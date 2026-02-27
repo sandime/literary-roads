@@ -439,30 +439,31 @@ const MasterMap = ({ selectedStates, onHome }) => {
         </MapContainer>
       </div>
 
-      {/* Route Planner Panel
-          Mobile: position:fixed so it anchors to the real viewport (avoids 100vh Android Chrome bug).
-          Desktop md+: switches back to absolute, centered with transform. */}
+      {/* Route Planner — mobile: fixed slide-up from bottom; desktop md+: centered dialog */}
       {showPlanner && (
         <div
-          className="fixed left-[10%] right-[10%] top-[10%] z-[1001] md:absolute md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
-          style={{ maxHeight: '80vh' }}
+          className="animate-slide-up fixed bottom-0 left-0 right-0 z-[1001] md:absolute md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 bg-midnight-navy/95 border-t-4 md:border-4 border-starlight-turquoise rounded-t-3xl md:rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
+          style={{ maxHeight: '70vh' }}
         >
-          <h2 className="text-starlight-turquoise font-bungee text-[14px] md:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+          {/* Drag handle indicator (mobile only) */}
+          <div className="md:hidden w-10 h-1 bg-starlight-turquoise/40 rounded-full mx-auto mb-3" />
+
+          <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
           </h2>
-          <p className="text-atomic-orange font-special-elite text-[12px] md:text-sm mb-2 md:mb-4 text-center">
+          <p className="text-atomic-orange font-special-elite text-[0.875rem] mb-3 text-center">
             Plot your literary journey
           </p>
 
-          <div className="space-y-3 md:space-y-4">
+          <div className="space-y-3">
             {selectedStates.length > 1 && (
-              <p className="text-chrome-silver font-special-elite text-[11px] md:text-xs text-center -mb-1">
+              <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
                 Include state if needed — e.g. "Memphis, TN"
               </p>
             )}
 
             <div>
-              <label className="text-paper-white font-special-elite text-[14px] md:text-sm block mb-1 md:mb-2">
+              <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
                 Starting City
               </label>
               <input
@@ -471,12 +472,12 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 onChange={(e) => setStartCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
                 className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: '1rem' }}
               />
             </div>
 
             <div>
-              <label className="text-paper-white font-special-elite text-[14px] md:text-sm block mb-1 md:mb-2">
+              <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
                 Destination City
               </label>
               <input
@@ -485,27 +486,27 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 onChange={(e) => setEndCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
                 className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
-                style={{ fontSize: '16px' }}
+                style={{ fontSize: '1rem' }}
               />
             </div>
 
             {error && (
               <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
-                <p className="text-atomic-orange font-special-elite text-[12px] md:text-xs">{error}</p>
+                <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
               </div>
             )}
 
             <button
               onClick={handlePlotRoute}
               disabled={loading}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2 md:py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[14px] md:text-base"
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[0.875rem]"
             >
               {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
             </button>
 
             <button
               onClick={onHome}
-              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-1.5 md:py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[14px] md:text-sm"
+              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
             >
               ← Change State
             </button>
