@@ -452,82 +452,106 @@ const MasterMap = ({ selectedStates, onHome }) => {
       </div>
 
       {/* Route Planner — mobile: fixed right-side drawer; desktop md+: centered dialog */}
-      {showPlanner && (
-        <div
-          className="animate-slide-in-right fixed top-[80px] right-0 z-[1001] w-[85vw] h-[calc(100vh-80px)] bg-midnight-navy/95 border-l-4 border-starlight-turquoise rounded-l-2xl p-4 shadow-2xl overflow-y-auto md:animate-none md:absolute md:top-1/2 md:right-auto md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md md:h-auto md:border-l-0 md:border-4 md:rounded-lg md:p-6"
-          onTouchStart={handlePlannerTouchStart}
-          onTouchEnd={handlePlannerTouchEnd}
-        >
-          {/* Swipe hint — mobile only */}
-          <div className="md:hidden flex justify-start mb-4">
-            <div className="w-1 h-10 rounded-full bg-starlight-turquoise/40" />
-          </div>
+      {showPlanner && (() => {
+        const plannerForm = (
+          <>
+            <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+              {stateLabel}
+            </h2>
+            <p className="text-atomic-orange font-special-elite text-[0.875rem] mb-3 text-center">
+              Plot your literary journey
+            </p>
 
-          <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
-            {stateLabel}
-          </h2>
-          <p className="text-atomic-orange font-special-elite text-[0.875rem] mb-3 text-center">
-            Plot your literary journey
-          </p>
+            <div className="space-y-3">
+              {selectedStates.length > 1 && (
+                <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
+                  Include state if needed — e.g. "Memphis, TN"
+                </p>
+              )}
 
-          <div className="space-y-3">
-            {selectedStates.length > 1 && (
-              <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
-                Include state if needed — e.g. "Memphis, TN"
-              </p>
-            )}
-
-            <div>
-              <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
-                Starting City
-              </label>
-              <input
-                type="text"
-                value={startCity}
-                onChange={(e) => setStartCity(e.target.value)}
-                placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
-                style={{ fontSize: '1rem' }}
-              />
-            </div>
-
-            <div>
-              <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
-                Destination City
-              </label>
-              <input
-                type="text"
-                value={endCity}
-                onChange={(e) => setEndCity(e.target.value)}
-                placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
-                style={{ fontSize: '1rem' }}
-              />
-            </div>
-
-            {error && (
-              <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
-                <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
+              <div>
+                <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
+                  Starting City
+                </label>
+                <input
+                  type="text"
+                  value={startCity}
+                  onChange={(e) => setStartCity(e.target.value)}
+                  placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
+                  className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                  style={{ fontSize: '1rem' }}
+                />
               </div>
-            )}
 
-            <button
-              onClick={handlePlotRoute}
-              disabled={loading}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[0.875rem]"
-            >
-              {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
-            </button>
+              <div>
+                <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
+                  Destination City
+                </label>
+                <input
+                  type="text"
+                  value={endCity}
+                  onChange={(e) => setEndCity(e.target.value)}
+                  placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
+                  className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                  style={{ fontSize: '1rem' }}
+                />
+              </div>
 
-            <button
-              onClick={onHome}
-              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
+              {error && (
+                <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
+                  <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
+                </div>
+              )}
+
+              <button
+                onClick={handlePlotRoute}
+                disabled={loading}
+                className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[0.875rem]"
+              >
+                {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
+              </button>
+
+              <button
+                onClick={onHome}
+                className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
+              >
+                ← Change State
+              </button>
+            </div>
+          </>
+        );
+
+        return (
+          <>
+            {/* Mobile: right-side drawer — inline style so nothing can override */}
+            <div
+              className="md:hidden animate-slide-in-right bg-midnight-navy/95 overflow-y-auto"
+              style={{
+                position: 'fixed',
+                top: '80px',
+                right: 0,
+                width: '85vw',
+                height: 'calc(100vh - 80px)',
+                zIndex: 1001,
+                borderLeft: '4px solid #40E0D0',
+                borderTopLeftRadius: '1rem',
+                borderBottomLeftRadius: '1rem',
+                padding: '1rem',
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
+              }}
+              onTouchStart={handlePlannerTouchStart}
+              onTouchEnd={handlePlannerTouchEnd}
             >
-              ← Change State
-            </button>
-          </div>
-        </div>
-      )}
+              {plannerForm}
+            </div>
+
+            {/* Desktop: centered dialog */}
+            <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-6 shadow-2xl overflow-y-auto z-[1001]">
+              {plannerForm}
+            </div>
+          </>
+        );
+      })()}
 
       {/* Clear Route Button */}
       {route.length > 0 && (
@@ -554,10 +578,11 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* THE SHELF - Googie slide-up drawer */}
       {selectedLocation && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl animate-slide-up max-h-[70vh] overflow-y-auto">
-          <div className="h-2 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
+        <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl animate-slide-up flex flex-col max-h-[50vh] md:max-h-[70vh]">
+          <div className="h-2 flex-shrink-0 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
 
-          <div className="p-4 md:p-6 max-w-2xl mx-auto">
+          {/* Scrollable content */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full">
             <button
               onClick={() => setSelectedLocation(null)}
               className="absolute top-4 right-4 md:top-6 md:right-6 text-starlight-turquoise hover:text-atomic-orange transition-colors"
@@ -606,7 +631,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 href={selectedLocation.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors mb-3"
+                className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
               >
                 <span>Read more on Wikipedia</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -614,22 +639,23 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 </svg>
               </a>
             )}
+          </div>
 
-            <div className="flex gap-3">
-              <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg">
-                GET DIRECTIONS
-              </button>
-              <button
-                onClick={() => handleTripToggle(selectedLocation)}
-                className={`px-4 border-2 font-special-elite py-2.5 rounded-lg transition-all ${
-                  tripIds.has(selectedLocation.id)
-                    ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange'
-                    : 'bg-transparent border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
-                }`}
-              >
-                {tripIds.has(selectedLocation.id) ? '✓ IN TRIP' : '+ ADD TO TRIP'}
-              </button>
-            </div>
+          {/* Sticky buttons — always visible at bottom */}
+          <div className="flex-shrink-0 flex gap-3 px-4 pb-4 md:px-6 md:pb-6 pt-2 max-w-2xl mx-auto w-full">
+            <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg">
+              GET DIRECTIONS
+            </button>
+            <button
+              onClick={() => handleTripToggle(selectedLocation)}
+              className={`px-4 border-2 font-special-elite py-2.5 rounded-lg transition-all ${
+                tripIds.has(selectedLocation.id)
+                  ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange'
+                  : 'bg-transparent border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
+              }`}
+            >
+              {tripIds.has(selectedLocation.id) ? '✓ IN TRIP' : '+ ADD TO TRIP'}
+            </button>
           </div>
         </div>
       )}
