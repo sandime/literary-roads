@@ -366,13 +366,13 @@ const MasterMap = ({ selectedStates, onHome }) => {
           {!showPlanner && (
             <button
               onClick={handleNearMe}
-              className="bg-atomic-orange text-midnight-navy font-bungee px-4 py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-2 text-sm"
+              className="bg-atomic-orange text-midnight-navy font-bungee px-2 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              NEAR ME
+              <span className="hidden sm:inline">NEAR ME</span>
             </button>
           )}
 
@@ -433,7 +433,8 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* Route Planner Panel */}
       {showPlanner && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 sm:p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl max-h-[calc(100vh-6rem)] overflow-y-auto">
+        <div className="absolute inset-x-0 top-16 sm:top-20 bottom-0 z-[999] flex items-center justify-center px-4 pointer-events-none">
+          <div className="pointer-events-auto bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 sm:p-6 w-full max-w-md shadow-2xl max-h-full overflow-y-auto">
           <h2 className="text-starlight-turquoise font-bungee text-lg sm:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
           </h2>
@@ -495,6 +496,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
               ← Change State
             </button>
           </div>
+          </div>
         </div>
       )}
 
@@ -512,10 +514,12 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* Route Info */}
       {route.length > 0 && !selectedLocation && (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000] bg-midnight-navy/90 border-2 border-atomic-orange px-6 py-3 rounded-lg">
-          <p className="text-paper-white font-special-elite text-sm text-center">
-            Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
-          </p>
+        <div className="absolute bottom-4 sm:bottom-8 inset-x-4 z-[1000] flex justify-center">
+          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-4 sm:px-6 py-2 sm:py-3 rounded-lg">
+            <p className="text-paper-white font-special-elite text-xs sm:text-sm text-center">
+              Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
+            </p>
+          </div>
         </div>
       )}
 
