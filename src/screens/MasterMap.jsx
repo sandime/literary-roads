@@ -454,7 +454,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
       {/* Route Planner — mobile: fixed right-side drawer; desktop md+: centered dialog */}
       {showPlanner && (
         <div
-          className="planner-drawer animate-slide-in-right fixed top-[80px] right-0 z-[1001] w-[85vw] bg-midnight-navy/95 border-l-4 border-starlight-turquoise rounded-l-2xl p-4 shadow-2xl overflow-y-auto md:animate-none md:absolute md:top-1/2 md:right-auto md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md md:border-l-0 md:border-4 md:rounded-lg md:p-6"
+          className="animate-slide-in-right fixed top-[80px] right-0 z-[1001] w-[85vw] h-[calc(100vh-80px)] bg-midnight-navy/95 border-l-4 border-starlight-turquoise rounded-l-2xl p-4 shadow-2xl overflow-y-auto md:animate-none md:absolute md:top-1/2 md:right-auto md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md md:h-auto md:border-l-0 md:border-4 md:rounded-lg md:p-6"
           onTouchStart={handlePlannerTouchStart}
           onTouchEnd={handlePlannerTouchEnd}
         >
@@ -554,20 +554,20 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* THE SHELF - Googie slide-up drawer */}
       {selectedLocation && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl animate-slide-up">
+        <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl animate-slide-up max-h-[70vh] overflow-y-auto">
           <div className="h-2 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
 
-          <div className="p-6 max-w-2xl mx-auto">
+          <div className="p-4 md:p-6 max-w-2xl mx-auto">
             <button
               onClick={() => setSelectedLocation(null)}
-              className="absolute top-6 right-6 text-starlight-turquoise hover:text-atomic-orange transition-colors"
+              className="absolute top-4 right-4 md:top-6 md:right-6 text-starlight-turquoise hover:text-atomic-orange transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               {selectedLocation.type === 'bookstore' && (
                 <span className="text-atomic-orange font-bungee text-xs px-3 py-1 border-2 border-atomic-orange rounded-full">
                   📚 BOOKSTORE
@@ -585,15 +585,15 @@ const MasterMap = ({ selectedStates, onHome }) => {
               )}
             </div>
 
-            <h2 className="text-starlight-turquoise font-bungee text-2xl mb-2 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
+            <h2 className="text-starlight-turquoise font-bungee text-xl md:text-2xl mb-1 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
               {selectedLocation.name}
             </h2>
 
-            <p className="text-paper-white font-special-elite text-sm mb-3">
+            <p className="text-paper-white font-special-elite text-sm mb-2 line-clamp-3 md:line-clamp-none">
               {selectedLocation.description}
             </p>
 
-            <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-4">
+            <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
               <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -606,7 +606,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 href={selectedLocation.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors mb-4"
+                className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors mb-3"
               >
                 <span>Read more on Wikipedia</span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -615,13 +615,13 @@ const MasterMap = ({ selectedStates, onHome }) => {
               </a>
             )}
 
-            <div className="flex gap-3 mt-4">
-              <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg">
+            <div className="flex gap-3">
+              <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg">
                 GET DIRECTIONS
               </button>
               <button
                 onClick={() => handleTripToggle(selectedLocation)}
-                className={`px-4 border-2 font-special-elite py-3 rounded-lg transition-all ${
+                className={`px-4 border-2 font-special-elite py-2.5 rounded-lg transition-all ${
                   tripIds.has(selectedLocation.id)
                     ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange'
                     : 'bg-transparent border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
