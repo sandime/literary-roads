@@ -442,7 +442,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
       {/* Route Planner — mobile: fixed slide-up from bottom; desktop md+: centered dialog */}
       {showPlanner && (
         <div
-          className="animate-slide-up fixed top-[10vh] left-1/2 -translate-x-1/2 w-[90%] z-[1001] md:absolute md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
+          className="animate-slide-up fixed top-[10vh] left-0 right-0 mx-auto w-[90%] z-[1001] md:absolute md:left-1/2 md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
           style={{ maxHeight: '60vh' }}
         >
 
