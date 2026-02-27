@@ -439,25 +439,30 @@ const MasterMap = ({ selectedStates, onHome }) => {
         </MapContainer>
       </div>
 
-      {/* Route Planner Panel */}
+      {/* Route Planner Panel
+          Mobile: position:fixed so it anchors to the real viewport (avoids 100vh Android Chrome bug).
+          Desktop md+: switches back to absolute, centered with transform. */}
       {showPlanner && (
-        <div className="absolute left-[5%] right-[5%] top-1/4 z-[999] md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-3 md:p-6 shadow-2xl max-h-[65vh] overflow-y-auto">
-          <h2 className="text-starlight-turquoise font-bungee text-[13px] md:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+        <div
+          className="fixed left-[10%] right-[10%] top-[10%] z-[1001] md:absolute md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
+          style={{ maxHeight: '80vh' }}
+        >
+          <h2 className="text-starlight-turquoise font-bungee text-[14px] md:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
           </h2>
-          <p className="text-atomic-orange font-special-elite text-[10px] md:text-sm mb-2 md:mb-4 text-center">
+          <p className="text-atomic-orange font-special-elite text-[12px] md:text-sm mb-2 md:mb-4 text-center">
             Plot your literary journey
           </p>
 
-          <div className="space-y-2 md:space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {selectedStates.length > 1 && (
-              <p className="text-chrome-silver font-special-elite text-[9px] md:text-xs text-center -mb-1">
+              <p className="text-chrome-silver font-special-elite text-[11px] md:text-xs text-center -mb-1">
                 Include state if needed — e.g. "Memphis, TN"
               </p>
             )}
 
             <div>
-              <label className="text-paper-white font-special-elite text-[10px] md:text-sm block mb-1 md:mb-2">
+              <label className="text-paper-white font-special-elite text-[14px] md:text-sm block mb-1 md:mb-2">
                 Starting City
               </label>
               <input
@@ -465,12 +470,13 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 value={startCity}
                 onChange={(e) => setStartCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-[11px] md:text-sm px-2 md:px-3 py-1.5 md:py-2 rounded focus:outline-none focus:border-atomic-orange"
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                style={{ fontSize: '16px' }}
               />
             </div>
 
             <div>
-              <label className="text-paper-white font-special-elite text-[10px] md:text-sm block mb-1 md:mb-2">
+              <label className="text-paper-white font-special-elite text-[14px] md:text-sm block mb-1 md:mb-2">
                 Destination City
               </label>
               <input
@@ -478,27 +484,28 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 value={endCity}
                 onChange={(e) => setEndCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-[11px] md:text-sm px-2 md:px-3 py-1.5 md:py-2 rounded focus:outline-none focus:border-atomic-orange"
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                style={{ fontSize: '16px' }}
               />
             </div>
 
             {error && (
-              <div className="bg-atomic-orange/20 border border-atomic-orange px-2 md:px-3 py-1.5 md:py-2 rounded">
-                <p className="text-atomic-orange font-special-elite text-[10px] md:text-xs">{error}</p>
+              <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
+                <p className="text-atomic-orange font-special-elite text-[12px] md:text-xs">{error}</p>
               </div>
             )}
 
             <button
               onClick={handlePlotRoute}
               disabled={loading}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-1.5 md:py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[11px] md:text-base"
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2 md:py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[14px] md:text-base"
             >
               {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
             </button>
 
             <button
               onClick={onHome}
-              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-1 md:py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[11px] md:text-sm"
+              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-1.5 md:py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[14px] md:text-sm"
             >
               ← Change State
             </button>
