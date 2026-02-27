@@ -442,11 +442,9 @@ const MasterMap = ({ selectedStates, onHome }) => {
       {/* Route Planner — mobile: fixed slide-up from bottom; desktop md+: centered dialog */}
       {showPlanner && (
         <div
-          className="animate-slide-up fixed bottom-0 left-0 right-0 z-[1001] md:absolute md:bottom-auto md:left-1/2 md:right-auto md:top-1/2 md:w-full md:max-w-md md:-translate-x-1/2 md:-translate-y-1/2 bg-midnight-navy/95 border-t-4 md:border-4 border-starlight-turquoise rounded-t-3xl md:rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
-          style={{ maxHeight: '70vh' }}
+          className="animate-slide-up fixed top-[10vh] left-1/2 -translate-x-1/2 w-[90%] z-[1001] md:absolute md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
+          style={{ maxHeight: '60vh' }}
         >
-          {/* Drag handle indicator (mobile only) */}
-          <div className="md:hidden w-10 h-1 bg-starlight-turquoise/40 rounded-full mx-auto mb-3" />
 
           <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
