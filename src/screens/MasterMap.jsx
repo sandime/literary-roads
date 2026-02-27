@@ -346,16 +346,17 @@ const MasterMap = ({ selectedStates, onHome }) => {
         {/* Mobile: flex row so NEAR ME is static, not absolute */}
         <div className="flex items-center md:block">
 
-          {/* Home button — static on mobile, absolute on md+ */}
+          {/* Home button — labeled on mobile, icon-only on md+ */}
           <button
             onClick={onHome}
             title="Back to map"
-            className="flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1 md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2"
+            className="flex-shrink-0 flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1 md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2"
           >
             <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
+            <span className="md:hidden font-bungee text-[9px] leading-tight">HOME</span>
           </button>
 
           {/* Title */}
@@ -383,18 +384,19 @@ const MasterMap = ({ selectedStates, onHome }) => {
               </button>
             )}
 
-            {/* Trip bag icon */}
+            {/* My Trip button — labeled on mobile */}
             <button
               onClick={() => setShowRoadTrip(true)}
-              className="relative text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+              className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
               title="My Road Trip"
             >
               <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
+              <span className="md:hidden font-bungee text-[9px] leading-tight">MY TRIP</span>
               {tripItems.length > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
                   {tripItems.length > 9 ? '9+' : tripItems.length}
                 </span>
               )}
@@ -443,10 +445,10 @@ const MasterMap = ({ selectedStates, onHome }) => {
       {/* Route Planner — mobile: slide-up from bottom (50vh); desktop: centered dialog */}
       {showPlanner && (
         <>
-          {/* Mobile bottom drawer */}
+          {/* Mobile bottom drawer — fixed so iOS Safari URL bar doesn't push it off-screen */}
           <div
-            className="md:hidden animate-slide-up absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl overflow-y-auto"
-            style={{ height: '50vh' }}
+            className="md:hidden animate-slide-up bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl overflow-y-auto"
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '50vh', zIndex: 1001 }}
           >
             <div className="h-2 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
             <div className="p-4">
@@ -584,7 +586,10 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* THE SHELF - Googie slide-up drawer */}
       {selectedLocation && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl animate-slide-up flex flex-col max-h-[50vh] md:max-h-[70vh]">
+        <div
+          className="animate-slide-up bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
+          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: '50vh', zIndex: 1001 }}
+        >
           <div className="h-2 flex-shrink-0 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
 
           {/* Scrollable content */}
