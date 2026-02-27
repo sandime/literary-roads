@@ -1,0 +1,166 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Leaflet popup styling */
+.leaflet-popup-content-wrapper {
+  background-color: #1A1B2E !important;
+  border: 2px solid #40E0D0 !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-tip {
+  background-color: #1A1B2E !important;
+  border: 2px solid #40E0D0 !important;
+}
+
+.custom-popup .leaflet-popup-content {
+  margin: 0 !important;
+}
+
+/* Remove default marker icon */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.custom-marker-icon svg {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+/* Googie neon marker styling */
+.custom-googie-marker {
+  background: transparent !important;
+  border: none !important;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.custom-googie-marker:hover {
+  transform: scale(1.1);
+}
+
+.custom-googie-marker svg {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+/* Neon flicker animations - Highway Googie style */
+@keyframes neon-flicker-slow {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes neon-flicker-fast {
+  0%, 100% {
+    opacity: 1;
+  }
+  41%, 42%, 43% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes neon-shimmer {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+
+.neon-flicker-slow {
+  animation: neon-flicker-slow 6s infinite;
+}
+
+.neon-flicker-fast {
+  animation: neon-flicker-fast 4s infinite;
+}
+
+.neon-shimmer {
+  animation: neon-shimmer 3s ease-in-out infinite;
+}
+
+/* Active/tapped marker pulse */
+.custom-googie-marker.active {
+  animation: marker-pulse 0.3s ease-out;
+}
+
+@keyframes marker-pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 8px #FF4E00);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* The Shelf - Googie slide-up drawer animation */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1A1B2E;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #40E0D0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #FF4E00;
+}
+
+/* Global styles */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Special Elite', monospace;
+  background-color: #1A1B2E;
+  color: #F5F5DC;
+  overflow: hidden;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
