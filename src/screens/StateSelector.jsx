@@ -130,7 +130,7 @@ const StateSelector = ({ onStateSelect }) => {
       {/* ── Hover label (above bottom panel) ── */}
       {hoveredState && (
         <div className="absolute left-1/2 transform -translate-x-1/2 z-[1002] bg-midnight-navy/95 border-2 border-atomic-orange px-6 py-3 rounded-lg pointer-events-none shadow-2xl"
-          style={{ bottom: panelVisible ? '9rem' : '2rem' }}
+          style={{ bottom: panelVisible ? '10rem' : '2rem' }}
         >
           <p className="text-atomic-orange font-bungee text-xl tracking-wider text-center">
             {hoveredState}
@@ -152,14 +152,15 @@ const StateSelector = ({ onStateSelect }) => {
 
       {/* ── Bottom panel: selected chips + Continue button ── */}
       <div
-        className={`absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/97 border-t-2 border-starlight-turquoise transition-transform duration-300 ease-out ${
+        className={`z-[1001] bg-midnight-navy/97 border-t-2 border-starlight-turquoise transition-transform duration-300 ease-out ${
           panelVisible ? 'translate-y-0' : 'translate-y-full'
         }`}
+        style={{ position: 'fixed', bottom: 0, left: 0, right: 0, paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
       >
         {/* Neon accent line */}
         <div className="h-0.5 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-70" />
 
-        <div className="p-4">
+        <div className="p-4 pb-2">
           {/* State chips */}
           <div className="flex flex-wrap gap-2 mb-3 max-h-20 overflow-y-auto">
             {[...selectedStates].map((state) => (
@@ -177,7 +178,7 @@ const StateSelector = ({ onStateSelect }) => {
           {/* Continue button */}
           <button
             onClick={handleContinue}
-            className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg"
+            className="w-full bg-atomic-orange text-midnight-navy font-bungee py-4 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg text-base"
           >
             EXPLORE {selectedStates.size} STATE{selectedStates.size > 1 ? 'S' : ''} →
           </button>
