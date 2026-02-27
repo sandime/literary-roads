@@ -341,7 +341,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
   return (
     <div className="relative h-screen w-full">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise p-4">
+      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-2 sm:py-4">
         {/* Home button */}
         <button
           onClick={onHome}
@@ -354,10 +354,10 @@ const MasterMap = ({ selectedStates, onHome }) => {
           </svg>
         </button>
 
-        <h1 className="text-starlight-turquoise font-bungee text-2xl text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
+        <h1 className="text-starlight-turquoise font-bungee text-xl sm:text-2xl text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
           THE LITERARY ROADS
         </h1>
-        <p className="text-atomic-orange font-special-elite text-center text-sm mt-1">
+        <p className="text-atomic-orange font-special-elite text-center text-xs sm:text-sm mt-0.5 sm:mt-1">
           Where every mile is a new chapter
         </p>
 
@@ -396,7 +396,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
       </div>
 
       {/* Map */}
-      <div className="h-full pt-20">
+      <div className="h-full pt-16 sm:pt-20">
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -433,15 +433,15 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* Route Planner Panel */}
       {showPlanner && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-6 max-w-md w-full shadow-2xl">
-          <h2 className="text-starlight-turquoise font-bungee text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 sm:p-6 w-[calc(100%-2rem)] max-w-md shadow-2xl max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <h2 className="text-starlight-turquoise font-bungee text-lg sm:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
           </h2>
-          <p className="text-atomic-orange font-special-elite text-sm mb-4 text-center">
+          <p className="text-atomic-orange font-special-elite text-xs sm:text-sm mb-3 sm:mb-4 text-center">
             Plot your literary journey
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {selectedStates.length > 1 && (
               <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
                 Include state if needed — e.g. "Memphis, TN"
@@ -449,7 +449,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
             )}
 
             <div>
-              <label className="text-paper-white font-special-elite text-sm block mb-2">
+              <label className="text-paper-white font-special-elite text-xs sm:text-sm block mb-1 sm:mb-2">
                 Starting City
               </label>
               <input
@@ -457,12 +457,12 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 value={startCity}
                 onChange={(e) => setStartCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-4 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-sm px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
               />
             </div>
 
             <div>
-              <label className="text-paper-white font-special-elite text-sm block mb-2">
+              <label className="text-paper-white font-special-elite text-xs sm:text-sm block mb-1 sm:mb-2">
                 Destination City
               </label>
               <input
@@ -470,12 +470,12 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 value={endCity}
                 onChange={(e) => setEndCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-4 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-sm px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
               />
             </div>
 
             {error && (
-              <div className="bg-atomic-orange/20 border border-atomic-orange px-4 py-2 rounded">
+              <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
                 <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
               </div>
             )}
@@ -483,14 +483,14 @@ const MasterMap = ({ selectedStates, onHome }) => {
             <button
               onClick={handlePlotRoute}
               disabled={loading}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2 sm:py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
             </button>
 
             <button
               onClick={onHome}
-              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all"
+              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-1.5 sm:py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-sm"
             >
               ← Change State
             </button>
