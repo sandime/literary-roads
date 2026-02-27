@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -125,6 +125,18 @@ const MasterMap = ({ selectedStates, onHome }) => {
   const [showRoadTrip, setShowRoadTrip] = useState(false);
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
+
+  // Swipe-to-dismiss for mobile planner drawer
+  const swipeTouchStartX = useRef(null);
+  const handlePlannerTouchStart = (e) => {
+    swipeTouchStartX.current = e.touches[0].clientX;
+  };
+  const handlePlannerTouchEnd = (e) => {
+    if (swipeTouchStartX.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - swipeTouchStartX.current;
+    if (deltaX > 60) setShowPlanner(false);
+    swipeTouchStartX.current = null;
+  };
 
   const handleTripToggle = (location) => {
     if (tripIds.has(location.id)) {
@@ -439,12 +451,17 @@ const MasterMap = ({ selectedStates, onHome }) => {
         </MapContainer>
       </div>
 
-      {/* Route Planner — mobile: fixed slide-up from bottom; desktop md+: centered dialog */}
+      {/* Route Planner — mobile: fixed right-side drawer; desktop md+: centered dialog */}
       {showPlanner && (
         <div
-          className="animate-slide-up fixed bottom-0 left-0 right-0 z-[1001] md:absolute md:bottom-auto md:left-1/2 md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 md:w-full md:max-w-md bg-midnight-navy/95 border-t-4 md:border-4 border-starlight-turquoise rounded-t-3xl md:rounded-lg p-4 md:p-6 shadow-2xl overflow-y-auto"
-          style={{ maxHeight: '60vh', paddingBottom: 'env(safe-area-inset-bottom)' }}
+          className="planner-drawer animate-slide-in-right fixed top-[80px] right-0 z-[1001] w-[85vw] bg-midnight-navy/95 border-l-4 border-starlight-turquoise rounded-l-2xl p-4 shadow-2xl overflow-y-auto md:animate-none md:absolute md:top-1/2 md:right-auto md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md md:border-l-0 md:border-4 md:rounded-lg md:p-6"
+          onTouchStart={handlePlannerTouchStart}
+          onTouchEnd={handlePlannerTouchEnd}
         >
+          {/* Swipe hint — mobile only */}
+          <div className="md:hidden flex justify-start mb-4">
+            <div className="w-1 h-10 rounded-full bg-starlight-turquoise/40" />
+          </div>
 
           <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
