@@ -341,62 +341,70 @@ const MasterMap = ({ selectedStates, onHome }) => {
   return (
     <div className="relative h-screen w-full">
       {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-2 sm:py-4">
-        {/* Home button */}
-        <button
-          onClick={onHome}
-          title="Back to map"
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-        </button>
+      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
+        {/* Mobile: flex row so NEAR ME is static, not absolute */}
+        <div className="flex items-center md:block">
 
-        <h1 className="text-starlight-turquoise font-bungee text-xl sm:text-2xl text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
-          THE LITERARY ROADS
-        </h1>
-        <p className="text-atomic-orange font-special-elite text-center text-xs sm:text-sm mt-0.5 sm:mt-1">
-          Where every mile is a new chapter
-        </p>
-
-        {/* Right-side buttons */}
-        <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-          {!showPlanner && (
-            <button
-              onClick={handleNearMe}
-              className="bg-atomic-orange text-midnight-navy font-bungee px-2 sm:px-4 py-1.5 sm:py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 sm:gap-2 text-xs sm:text-sm"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span className="hidden sm:inline">NEAR ME</span>
-            </button>
-          )}
-
-          {/* Trip bag icon */}
+          {/* Home button — static on mobile, absolute on md+ */}
           <button
-            onClick={() => setShowRoadTrip(true)}
-            className="relative text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
-            title="My Road Trip"
+            onClick={onHome}
+            title="Back to map"
+            className="flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1 md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            {tripItems.length > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                {tripItems.length > 9 ? '9+' : tripItems.length}
-              </span>
-            )}
           </button>
+
+          {/* Title */}
+          <div className="flex-1 text-center mx-1 md:mx-0">
+            <h1 className="text-starlight-turquoise font-bungee text-[15px] md:text-2xl text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+              THE LITERARY ROADS
+            </h1>
+            <p className="hidden md:block text-atomic-orange font-special-elite text-center text-sm mt-1">
+              Where every mile is a new chapter
+            </p>
+          </div>
+
+          {/* Right buttons — static on mobile, absolute on md+ */}
+          <div className="flex-shrink-0 flex items-center gap-1 md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 md:gap-2">
+            {!showPlanner && (
+              <button
+                onClick={handleNearMe}
+                className="bg-atomic-orange text-midnight-navy font-bungee px-2 md:px-4 py-1 md:py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 md:gap-2 text-[10px] md:text-sm"
+              >
+                <svg className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="hidden md:inline">NEAR ME</span>
+              </button>
+            )}
+
+            {/* Trip bag icon */}
+            <button
+              onClick={() => setShowRoadTrip(true)}
+              className="relative text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+              title="My Road Trip"
+            >
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              {tripItems.length > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {tripItems.length > 9 ? '9+' : tripItems.length}
+                </span>
+              )}
+            </button>
+          </div>
+
         </div>
       </div>
 
       {/* Map */}
-      <div className="h-full pt-16 sm:pt-20">
+      <div className="h-full pt-11 md:pt-20">
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -433,24 +441,23 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* Route Planner Panel */}
       {showPlanner && (
-        <div className="absolute inset-x-0 top-16 sm:top-20 bottom-0 z-[999] flex items-center justify-center px-4 pointer-events-none">
-          <div className="pointer-events-auto bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-4 sm:p-6 w-full max-w-md shadow-2xl max-h-full overflow-y-auto">
-          <h2 className="text-starlight-turquoise font-bungee text-lg sm:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+        <div className="absolute left-[5%] right-[5%] top-1/4 z-[999] md:left-1/2 md:right-auto md:w-full md:max-w-md md:-translate-x-1/2 md:top-1/2 md:-translate-y-1/2 bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-3 md:p-6 shadow-2xl max-h-[65vh] overflow-y-auto">
+          <h2 className="text-starlight-turquoise font-bungee text-[13px] md:text-xl mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
             {stateLabel}
           </h2>
-          <p className="text-atomic-orange font-special-elite text-xs sm:text-sm mb-3 sm:mb-4 text-center">
+          <p className="text-atomic-orange font-special-elite text-[10px] md:text-sm mb-2 md:mb-4 text-center">
             Plot your literary journey
           </p>
 
-          <div className="space-y-3 sm:space-y-4">
+          <div className="space-y-2 md:space-y-4">
             {selectedStates.length > 1 && (
-              <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
+              <p className="text-chrome-silver font-special-elite text-[9px] md:text-xs text-center -mb-1">
                 Include state if needed — e.g. "Memphis, TN"
               </p>
             )}
 
             <div>
-              <label className="text-paper-white font-special-elite text-xs sm:text-sm block mb-1 sm:mb-2">
+              <label className="text-paper-white font-special-elite text-[10px] md:text-sm block mb-1 md:mb-2">
                 Starting City
               </label>
               <input
@@ -458,12 +465,12 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 value={startCity}
                 onChange={(e) => setStartCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-sm px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-[11px] md:text-sm px-2 md:px-3 py-1.5 md:py-2 rounded focus:outline-none focus:border-atomic-orange"
               />
             </div>
 
             <div>
-              <label className="text-paper-white font-special-elite text-xs sm:text-sm block mb-1 sm:mb-2">
+              <label className="text-paper-white font-special-elite text-[10px] md:text-sm block mb-1 md:mb-2">
                 Destination City
               </label>
               <input
@@ -471,31 +478,30 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 value={endCity}
                 onChange={(e) => setEndCity(e.target.value)}
                 placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-sm px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite text-[11px] md:text-sm px-2 md:px-3 py-1.5 md:py-2 rounded focus:outline-none focus:border-atomic-orange"
               />
             </div>
 
             {error && (
-              <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
-                <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
+              <div className="bg-atomic-orange/20 border border-atomic-orange px-2 md:px-3 py-1.5 md:py-2 rounded">
+                <p className="text-atomic-orange font-special-elite text-[10px] md:text-xs">{error}</p>
               </div>
             )}
 
             <button
               onClick={handlePlotRoute}
               disabled={loading}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-2 sm:py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee py-1.5 md:py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-[11px] md:text-base"
             >
               {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
             </button>
 
             <button
               onClick={onHome}
-              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-1.5 sm:py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-sm"
+              className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-1 md:py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[11px] md:text-sm"
             >
               ← Change State
             </button>
-          </div>
           </div>
         </div>
       )}
@@ -514,9 +520,9 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       {/* Route Info */}
       {route.length > 0 && !selectedLocation && (
-        <div className="absolute bottom-4 sm:bottom-8 inset-x-4 z-[1000] flex justify-center">
-          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-4 sm:px-6 py-2 sm:py-3 rounded-lg">
-            <p className="text-paper-white font-special-elite text-xs sm:text-sm text-center">
+        <div className="absolute bottom-4 md:bottom-8 inset-x-4 z-[1000] flex justify-center">
+          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
+            <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
               Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
             </p>
           </div>
