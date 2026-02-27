@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -126,17 +126,6 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
 
-  // Swipe-to-dismiss for mobile planner drawer
-  const swipeTouchStartX = useRef(null);
-  const handlePlannerTouchStart = (e) => {
-    swipeTouchStartX.current = e.touches[0].clientX;
-  };
-  const handlePlannerTouchEnd = (e) => {
-    if (swipeTouchStartX.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - swipeTouchStartX.current;
-    if (deltaX > 60) setShowPlanner(false);
-    swipeTouchStartX.current = null;
-  };
 
   const handleTripToggle = (location) => {
     if (tripIds.has(location.id)) {
@@ -451,28 +440,82 @@ const MasterMap = ({ selectedStates, onHome }) => {
         </MapContainer>
       </div>
 
-      {/* Route Planner — mobile: fixed right-side drawer; desktop md+: centered dialog */}
-      {showPlanner && (() => {
-        const plannerForm = (
-          <>
+      {/* Route Planner — mobile: slide-up from bottom (50vh); desktop: centered dialog */}
+      {showPlanner && (
+        <>
+          {/* Mobile bottom drawer */}
+          <div
+            className="md:hidden animate-slide-up absolute bottom-0 left-0 right-0 z-[1001] bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl overflow-y-auto"
+            style={{ height: '50vh' }}
+          >
+            <div className="h-2 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
+            <div className="p-4">
+              <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+                {stateLabel}
+              </h2>
+              <p className="text-atomic-orange font-special-elite text-[0.875rem] mb-3 text-center">
+                Plot your literary journey
+              </p>
+              <div className="space-y-2">
+                {selectedStates.length > 1 && (
+                  <p className="text-chrome-silver font-special-elite text-xs text-center">
+                    Include state if needed — e.g. "Memphis, TN"
+                  </p>
+                )}
+                <input
+                  type="text"
+                  value={startCity}
+                  onChange={(e) => setStartCity(e.target.value)}
+                  placeholder={selectedStates.length > 1 ? 'Starting city, e.g. Memphis, TN' : 'Starting city, e.g. New York City'}
+                  className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                  style={{ fontSize: '1rem' }}
+                />
+                <input
+                  type="text"
+                  value={endCity}
+                  onChange={(e) => setEndCity(e.target.value)}
+                  placeholder={selectedStates.length > 1 ? 'Destination city, e.g. Chicago, IL' : 'Destination city, e.g. Buffalo'}
+                  className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                  style={{ fontSize: '1rem' }}
+                />
+                {error && (
+                  <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={handlePlotRoute}
+                    disabled={loading}
+                    className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-50 text-[0.875rem]"
+                  >
+                    {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
+                  </button>
+                  <button
+                    onClick={onHome}
+                    className="px-4 bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
+                  >
+                    ← State
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop: centered dialog */}
+          <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-6 shadow-2xl overflow-y-auto z-[1001]">
             <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
               {stateLabel}
             </h2>
             <p className="text-atomic-orange font-special-elite text-[0.875rem] mb-3 text-center">
               Plot your literary journey
             </p>
-
             <div className="space-y-3">
               {selectedStates.length > 1 && (
                 <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
                   Include state if needed — e.g. "Memphis, TN"
                 </p>
               )}
-
               <div>
-                <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
-                  Starting City
-                </label>
+                <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Starting City</label>
                 <input
                   type="text"
                   value={startCity}
@@ -482,11 +525,8 @@ const MasterMap = ({ selectedStates, onHome }) => {
                   style={{ fontSize: '1rem' }}
                 />
               </div>
-
               <div>
-                <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">
-                  Destination City
-                </label>
+                <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Destination City</label>
                 <input
                   type="text"
                   value={endCity}
@@ -496,13 +536,11 @@ const MasterMap = ({ selectedStates, onHome }) => {
                   style={{ fontSize: '1rem' }}
                 />
               </div>
-
               {error && (
                 <div className="bg-atomic-orange/20 border border-atomic-orange px-3 py-2 rounded">
                   <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
                 </div>
               )}
-
               <button
                 onClick={handlePlotRoute}
                 disabled={loading}
@@ -510,7 +548,6 @@ const MasterMap = ({ selectedStates, onHome }) => {
               >
                 {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
               </button>
-
               <button
                 onClick={onHome}
                 className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
@@ -518,40 +555,9 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 ← Change State
               </button>
             </div>
-          </>
-        );
-
-        return (
-          <>
-            {/* Mobile: right-side drawer — inline style so nothing can override */}
-            <div
-              className="md:hidden animate-slide-in-right bg-midnight-navy/95 overflow-y-auto"
-              style={{
-                position: 'fixed',
-                top: '80px',
-                right: 0,
-                width: '85vw',
-                height: 'calc(100vh - 80px)',
-                zIndex: 1001,
-                borderLeft: '4px solid #40E0D0',
-                borderTopLeftRadius: '1rem',
-                borderBottomLeftRadius: '1rem',
-                padding: '1rem',
-                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
-              }}
-              onTouchStart={handlePlannerTouchStart}
-              onTouchEnd={handlePlannerTouchEnd}
-            >
-              {plannerForm}
-            </div>
-
-            {/* Desktop: centered dialog */}
-            <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-6 shadow-2xl overflow-y-auto z-[1001]">
-              {plannerForm}
-            </div>
-          </>
-        );
-      })()}
+          </div>
+        </>
+      )}
 
       {/* Clear Route Button */}
       {route.length > 0 && (
