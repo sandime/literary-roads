@@ -10,6 +10,7 @@ import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import RoadTrip from './RoadTrip';
+import { useAuth } from '../contexts/AuthContext';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -217,7 +218,8 @@ const createCustomIcon = (type) => {
   });
 };
 
-const MasterMap = ({ selectedStates, onHome }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
+  const { user } = useAuth();
   const [startCity, setStartCity] = useState('');
   const [endCity, setEndCity] = useState('');
   const [route, setRoute] = useState([]);
@@ -517,6 +519,25 @@ const MasterMap = ({ selectedStates, onHome }) => {
                   {tripItems.length > 9 ? '9+' : tripItems.length}
                 </span>
               )}
+            </button>
+
+            {/* Profile / Login button */}
+            <button
+              onClick={user ? onShowProfile : onShowLogin}
+              title={user ? 'Traveler\'s Log' : 'Log In'}
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            >
+              {user?.photoURL ? (
+                <img src={user.photoURL} className="w-5 h-5 md:w-6 md:h-6 rounded-full" alt="avatar" />
+              ) : (
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              )}
+              <span className="md:hidden font-bungee text-[9px] leading-tight">
+                {user ? 'LOG' : 'LOG IN'}
+              </span>
             </button>
           </div>
 
