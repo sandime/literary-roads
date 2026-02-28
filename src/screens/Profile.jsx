@@ -65,7 +65,7 @@ function BookCover({ book, onRemove }) {
 }
 
 // ── Add-book modal ──────────────────────────────────────────────────────────
-function BookModal({ favoriteBooks, onAdd, onClose }) {
+function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -76,7 +76,7 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    if (query.length < 2) { setResults([]); return; }
+    if (query.length < 2) { setResults([]); setSearching(false); return; }
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
       setResults(await searchBooks(query));
@@ -85,8 +85,15 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
     return () => clearTimeout(debounceRef.current);
   }, [query]);
 
+  const handleAdd = (book) => {
+    onAdd(book);
+    // Clear search so user can find next book without stale results
+    setQuery('');
+    setResults([]);
+  };
+
   const addedIds = new Set(favoriteBooks.map((b) => b.id));
-  const full = favoriteBooks.length >= 5;
+  const full = favoriteBooks.length >= 4;
 
   return (
     <div
@@ -108,57 +115,95 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
         boxShadow: '0 0 40px rgba(64,224,208,0.25), 0 -4px 30px rgba(0,0,0,0.6)',
       }}>
 
-        {/* Drag handle */}
-        <div style={{ width: '36px', height: '4px', background: 'rgba(64,224,208,0.3)', borderRadius: '2px', margin: '0 auto 16px' }} />
+        {/* Fixed header — never scrolls */}
+        <div style={{ flexShrink: 0 }}>
+          {/* Drag handle */}
+          <div style={{ width: '36px', height: '4px', background: 'rgba(64,224,208,0.3)', borderRadius: '2px', margin: '0 auto 16px' }} />
 
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
-          <h3 className="font-bungee" style={{ color: '#40E0D0', fontSize: '15px', textShadow: '0 0 12px rgba(64,224,208,0.6)', letterSpacing: '0.06em' }}>
-            ADD A BOOK
-          </h3>
-          <button onClick={onClose} style={{
-            background: 'transparent', border: '1.5px solid rgba(64,224,208,0.4)',
-            borderRadius: '50%', width: '30px', height: '30px',
-            color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            lineHeight: 1,
-          }}>×</button>
-        </div>
+          {/* Title + close */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div>
+              <h3 className="font-bungee" style={{ color: '#40E0D0', fontSize: '15px', textShadow: '0 0 12px rgba(64,224,208,0.6)', letterSpacing: '0.06em' }}>
+                {full ? 'YOUR BOOKS' : 'ADD A BOOK'}
+              </h3>
+              {full && (
+                <p className="font-special-elite" style={{ fontSize: '10px', color: 'rgba(255,78,0,0.7)', marginTop: '2px' }}>
+                  Max 4 reached — remove one to add another
+                </p>
+              )}
+            </div>
+            <button onClick={onClose} style={{
+              background: 'transparent', border: '1.5px solid rgba(64,224,208,0.4)',
+              borderRadius: '50%', width: '30px', height: '30px',
+              color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              lineHeight: 1, flexShrink: 0,
+            }}>×</button>
+          </div>
 
-        {/* Slot counter */}
-        <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', justifyContent: 'center' }}>
-          {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} style={{
-              width: '28px', height: '4px', borderRadius: '2px',
-              background: i < favoriteBooks.length ? '#FF4E00' : 'rgba(255,78,0,0.15)',
-              boxShadow: i < favoriteBooks.length ? '0 0 6px rgba(255,78,0,0.5)' : 'none',
-              transition: 'background 0.3s',
-            }} />
-          ))}
-          <span className="font-bungee" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', letterSpacing: '0.1em', marginLeft: '6px', alignSelf: 'center' }}>
-            {favoriteBooks.length}/5
-          </span>
-        </div>
+          {/* Slot counter */}
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', justifyContent: 'center' }}>
+            {Array.from({ length: 4 }, (_, i) => (
+              <div key={i} style={{
+                width: '32px', height: '4px', borderRadius: '2px',
+                background: i < favoriteBooks.length ? '#FF4E00' : 'rgba(255,78,0,0.15)',
+                boxShadow: i < favoriteBooks.length ? '0 0 6px rgba(255,78,0,0.5)' : 'none',
+                transition: 'background 0.3s',
+              }} />
+            ))}
+            <span className="font-bungee" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', letterSpacing: '0.1em', marginLeft: '6px', alignSelf: 'center' }}>
+              {favoriteBooks.length}/4
+            </span>
+          </div>
 
-        {/* Search input */}
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search title, author..."
-          style={{
-            width: '100%', boxSizing: 'border-box',
-            background: 'rgba(255,255,255,0.05)',
-            border: '1.5px solid rgba(64,224,208,0.4)',
-            borderRadius: '8px', color: '#F5F5DC',
-            padding: '10px 14px', fontSize: '15px',
-            fontFamily: 'Special Elite, serif', outline: 'none',
-            marginBottom: '12px', transition: 'border-color 0.2s',
-          }}
-          onFocus={(e) => e.currentTarget.style.borderColor = '#40E0D0'}
-          onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(64,224,208,0.4)'}
-        />
+          {/* Current books (mini strip so user sees what's saved) */}
+          {favoriteBooks.length > 0 && (
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '12px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+              {favoriteBooks.map((b) => {
+                const src = b.coverURL || b.cover || null;
+                return (
+                  <div key={b.id} style={{ position: 'relative', flexShrink: 0 }}>
+                    <div style={{ width: '36px', height: '50px', borderRadius: '3px', overflow: 'hidden', border: '1.5px solid rgba(64,224,208,0.4)' }}>
+                      {src
+                        ? <img src={src} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        : <div style={{ width: '100%', height: '100%', background: '#2A1508', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>📖</div>
+                      }
+                    </div>
+                    <button onClick={() => onRemove(b.id)} style={{
+                      position: 'absolute', top: '-5px', right: '-5px',
+                      width: '14px', height: '14px', borderRadius: '50%',
+                      background: '#FF4E00', border: 'none', color: '#1A1B2E',
+                      fontSize: '9px', cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center', fontWeight: 'bold',
+                    }}>×</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Search input — fixed, never moves */}
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={full ? 'Remove a book above to add more' : 'Search title, author...'}
+            disabled={full}
+            style={{
+              width: '100%', boxSizing: 'border-box',
+              background: full ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.05)',
+              border: `1.5px solid ${full ? 'rgba(64,224,208,0.15)' : 'rgba(64,224,208,0.4)'}`,
+              borderRadius: '8px', color: full ? 'rgba(192,192,192,0.3)' : '#F5F5DC',
+              padding: '10px 14px', fontSize: '15px',
+              fontFamily: 'Special Elite, serif', outline: 'none',
+              marginBottom: '10px', transition: 'border-color 0.2s',
+              cursor: full ? 'not-allowed' : 'text',
+            }}
+            onFocus={(e) => { if (!full) e.currentTarget.style.borderColor = '#40E0D0'; }}
+            onBlur={(e) => e.currentTarget.style.borderColor = full ? 'rgba(64,224,208,0.15)' : 'rgba(64,224,208,0.4)'}
+          />
+        </div>{/* end fixed header */}
 
         {/* Results list */}
         <div style={{ overflowY: 'auto', flex: 1 }}>
@@ -194,8 +239,8 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
                   borderRadius: '3px', overflow: 'hidden',
                   border: '1px solid rgba(64,224,208,0.2)',
                 }}>
-                  {book.cover
-                    ? <img src={book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {book.coverURL || book.cover
+                    ? <img src={book.coverURL || book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <div style={{ width: '100%', height: '100%', background: '#2A1508', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📖</div>
                   }
                 </div>
@@ -221,7 +266,7 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
 
                 {/* Add / Added button */}
                 <button
-                  onClick={() => !added && !full && onAdd(book)}
+                  onClick={() => !added && !full && handleAdd(book)}
                   disabled={added || full}
                   className="font-bungee"
                   style={{
@@ -271,7 +316,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
   };
 
   const handleAddBook = async (book) => {
-    if (favoriteBooks.length >= 5 || favoriteBooks.find((b) => b.id === book.id)) return;
+    if (favoriteBooks.length >= 4 || favoriteBooks.find((b) => b.id === book.id)) return;
     const updated = [...favoriteBooks, book];
     setFavoriteBooks(updated);
     await saveBooks(updated);
@@ -373,24 +418,24 @@ export default function Profile({ onBack, selectedStates = [] }) {
           <h2 className="font-bungee text-sm" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
             FAVORITE BOOKS
           </h2>
-          {favoriteBooks.length < 5 && (
-            <button
-              onClick={() => setShowBookModal(true)}
-              className="font-bungee text-xs px-3 py-1 rounded-full"
-              style={{
-                background: '#FF4E00', color: '#1A1B2E',
-                boxShadow: '0 0 10px rgba(255,78,0,0.45)',
-                border: 'none', cursor: 'pointer',
-              }}
-            >
-              + ADD
-            </button>
-          )}
+          <button
+            onClick={() => setShowBookModal(true)}
+            className="font-bungee text-xs px-3 py-1 rounded-full"
+            style={{
+              background: favoriteBooks.length >= 4 ? 'transparent' : '#FF4E00',
+              color: favoriteBooks.length >= 4 ? '#40E0D0' : '#1A1B2E',
+              boxShadow: favoriteBooks.length >= 4 ? 'none' : '0 0 10px rgba(255,78,0,0.45)',
+              border: favoriteBooks.length >= 4 ? '1.5px solid rgba(64,224,208,0.5)' : 'none',
+              cursor: 'pointer',
+            }}
+          >
+            {favoriteBooks.length >= 4 ? 'EDIT BOOKS' : '+ ADD'}
+          </button>
         </div>
 
         {favoriteBooks.length === 0 ? (
           <p className="font-special-elite text-sm text-center py-3 italic" style={{ color: 'rgba(192,192,192,0.35)' }}>
-            No favorites yet — add up to 5 books
+            No favorites yet — add up to 4 books
           </p>
         ) : (
           <div style={{ position: 'relative' }}>
@@ -420,7 +465,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
               {favoriteBooks.map((book) => (
                 <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
               ))}
-              {favoriteBooks.length < 5 && (
+              {favoriteBooks.length < 4 && (
                 <button
                   onClick={() => setShowBookModal(true)}
                   style={{
@@ -472,9 +517,9 @@ export default function Profile({ onBack, selectedStates = [] }) {
 
       {/* Sign out */}
       <button onClick={handleSignOut} className="w-full max-w-lg font-bungee py-3 rounded-xl text-sm"
-        style={{ background: 'transparent', border: '2px solid #FF4E00', color: '#FF4E00' }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = '#FF4E00'; e.currentTarget.style.color = '#1A1B2E'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#FF4E00'; }}
+        style={{ background: 'transparent', border: '2px solid #40E0D0', color: '#40E0D0' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#40E0D0'; e.currentTarget.style.color = '#1A1B2E'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#40E0D0'; }}
       >
         SIGN OUT
       </button>
@@ -484,6 +529,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
         <BookModal
           favoriteBooks={favoriteBooks}
           onAdd={handleAddBook}
+          onRemove={handleRemoveBook}
           onClose={() => setShowBookModal(false)}
         />
       )}
