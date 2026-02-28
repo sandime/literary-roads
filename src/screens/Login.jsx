@@ -271,6 +271,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -292,7 +293,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
     setLoading(true);
     try {
       if (mode === 'login') await signInWithEmail(email, password);
-      else await registerWithEmail(email, password);
+      else await registerWithEmail(email, password, displayName);
       onLoginSuccess();
     } catch (e) { handleErr(e); }
     finally { setLoading(false); }
@@ -424,6 +425,14 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
 
               {/* Form */}
               <form onSubmit={handleSubmit}>
+                {mode === 'register' && (
+                  <div style={{ marginBottom: '10px' }}>
+                    <label className="lr-label">DISPLAY NAME <span style={{ color: 'rgba(200,155,70,0.45)', fontFamily: 'Special Elite, serif', fontSize: '9px', letterSpacing: '0.05em' }}>(optional)</span></label>
+                    <input className="lr-input" type="text" value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Literary Traveler" maxLength={40} />
+                  </div>
+                )}
                 <div style={{ marginBottom: '10px' }}>
                   <label className="lr-label">EMAIL</label>
                   <input className="lr-input" type="email" value={email} required

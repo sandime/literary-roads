@@ -26,9 +26,8 @@ export default function Profile({ onBack, selectedStates = [] }) {
     onBack();
   };
 
-  const initials = user?.displayName
-    ? user.displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
-    : user?.email?.[0]?.toUpperCase() || '?';
+  const displayName = user?.displayName || 'Literary Traveler';
+  const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <div
@@ -86,10 +85,11 @@ export default function Profile({ onBack, selectedStates = [] }) {
             </div>
           )}
           <div className="min-w-0">
-            <p className="font-bungee text-paper-white text-base truncate">
-              {user?.displayName || 'Literary Traveler'}
+            <p className="font-bungee text-paper-white text-base truncate">{displayName}</p>
+            {/* Email visible only to the account owner — never stored publicly */}
+            <p className="font-special-elite text-xs truncate mt-0.5" style={{ color: 'rgba(192,192,192,0.45)' }}>
+              {user?.email}
             </p>
-            <p className="font-special-elite text-chrome-silver text-sm truncate">{user?.email}</p>
           </div>
         </div>
       </div>
