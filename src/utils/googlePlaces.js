@@ -247,6 +247,47 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
   }
 };
 
+// Autocomplete a city name (US localities only)
+export const autocompleteCity = async (input) => {
+  if (!input || input.length < 2) return [];
+  try {
+    const response = await fetch(
+      'https://places.googleapis.com/v1/places:autocomplete',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        },
+        body: JSON.stringify({
+          input,
+          includedPrimaryTypes: ['locality', 'administrative_area_level_3'],
+          includedRegionCodes: ['us'],
+        }),
+      }
+    );
+    const data = await response.json();
+    if (!data.suggestions) return [];
+    return data.suggestions
+      .filter(s => s.placePrediction)
+      .slice(0, 5)
+      .map(s => {
+        const pred = s.placePrediction;
+        const main = pred.structuredFormat?.mainText?.text || '';
+        const secondary = (pred.structuredFormat?.secondaryText?.text || '').replace(/, USA$/, '');
+        return {
+          id: pred.placeId,
+          display: main,
+          state: secondary,
+          label: secondary ? `${main}, ${secondary}` : main,
+        };
+      });
+  } catch (err) {
+    console.error('Autocomplete error:', err);
+    return [];
+  }
+};
+
 // Search along a route (multiple points)
 export const searchAlongRoute = async (routePoints, radiusMiles = 5) => {
   // Sample every 10 miles or so to avoid too many API calls

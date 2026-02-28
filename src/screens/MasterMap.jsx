@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
-import { searchAlongRoute, geocodeCity, searchNearbyPlaces } from '../utils/googlePlaces';
-import { searchLiteraryAlongRoute } from '../utils/wikipedia';
+import { searchAlongRoute, geocodeCity, searchNearbyPlaces, autocompleteCity } from '../utils/googlePlaces';
+import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
@@ -18,14 +19,113 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+// City autocomplete input with Googie-style dropdown
+const CityAutocomplete = ({ value, onChange, placeholder, className, style }) => {
+  const [suggestions, setSuggestions] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [dropdownPos, setDropdownPos] = useState({});
+  const inputRef = useRef(null);
+  const containerRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const skipRef = useRef(false);
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    if (skipRef.current) { skipRef.current = false; return; }
+    if (!value || value.length < 2) { setSuggestions([]); setShowDropdown(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      const results = await autocompleteCity(value);
+      setSuggestions(results);
+      if (results.length > 0 && inputRef.current) {
+        const r = inputRef.current.getBoundingClientRect();
+        setDropdownPos({ top: r.bottom + 4, left: r.left, width: r.width });
+        setShowDropdown(true);
+      } else {
+        setShowDropdown(false);
+      }
+      setActiveIndex(-1);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [value]);
+
+  useEffect(() => {
+    const close = (e) => {
+      if (
+        containerRef.current && !containerRef.current.contains(e.target) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target)
+      ) setShowDropdown(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
+  const select = (s) => {
+    skipRef.current = true;
+    onChange(s.label);
+    setShowDropdown(false);
+    setSuggestions([]);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!showDropdown) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIndex(i => Math.min(i + 1, suggestions.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIndex(i => Math.max(i - 1, -1)); }
+    else if (e.key === 'Enter' && activeIndex >= 0) { e.preventDefault(); select(suggestions[activeIndex]); }
+    else if (e.key === 'Escape') setShowDropdown(false);
+  };
+
+  return (
+    <div ref={containerRef}>
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className={className}
+        style={style}
+        autoComplete="off"
+      />
+      {showDropdown && suggestions.length > 0 && createPortal(
+        <ul
+          ref={dropdownRef}
+          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+          className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg overflow-hidden shadow-[0_0_20px_rgba(64,224,208,0.3)]"
+        >
+          {suggestions.map((s, i) => (
+            <li
+              key={s.id}
+              onClick={() => select(s)}
+              className={[
+                'px-3 py-2.5 cursor-pointer flex items-baseline gap-0.5 transition-colors',
+                i > 0 ? 'border-t border-starlight-turquoise/20' : '',
+                i === activeIndex
+                  ? 'bg-starlight-turquoise/20 text-starlight-turquoise'
+                  : 'text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise',
+              ].join(' ')}
+            >
+              <span className="font-special-elite text-sm">{s.display}</span>
+              {s.state && <span className="font-special-elite text-xs text-chrome-silver">, {s.state}</span>}
+            </li>
+          ))}
+        </ul>,
+        document.body
+      )}
+    </div>
+  );
+};
+
 // Custom Googie-style neon outline icons
 const createCustomIcon = (type) => {
   const icons = {
-    // QUILL - Historic Literary Landmarks (Paper White)
+    // OAK TREE - Historic Literary Landmarks (Neon Green)
     landmark: `
       <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="glow-white">
+          <filter id="glow-green">
             <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
@@ -34,16 +134,21 @@ const createCustomIcon = (type) => {
             </feMerge>
           </filter>
         </defs>
-        <g filter="url(#glow-white)" class="neon-marker neon-flicker-slow">
-          <!-- Quill shaft -->
-          <path d="M 29 7 Q 27 13 24 19 L 20 29"
-                fill="none" stroke="#F5F5DC" stroke-width="2" stroke-linecap="round"/>
-          <!-- Feather barbs -->
-          <line x1="25" y1="13" x2="21" y2="15" stroke="#F5F5DC" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="23" y1="17" x2="19" y2="19" stroke="#F5F5DC" stroke-width="1.5" stroke-linecap="round"/>
-          <line x1="22" y1="21" x2="18" y2="23" stroke="#F5F5DC" stroke-width="1.5" stroke-linecap="round"/>
-          <!-- Ink tip -->
-          <circle cx="20" cy="30" r="1.5" fill="#F5F5DC"/>
+        <g filter="url(#glow-green)" class="neon-marker neon-flicker-slow">
+          <!-- Trunk -->
+          <line x1="20" y1="36" x2="20" y2="25" stroke="#39FF14" stroke-width="3" stroke-linecap="round"/>
+          <!-- Left branch -->
+          <path d="M 20 27 Q 16 24 14 22" fill="none" stroke="#39FF14" stroke-width="2" stroke-linecap="round"/>
+          <!-- Right branch -->
+          <path d="M 20 26 Q 24 23 26 21" fill="none" stroke="#39FF14" stroke-width="2" stroke-linecap="round"/>
+          <!-- Center branch -->
+          <line x1="20" y1="25" x2="20" y2="18" stroke="#39FF14" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Left canopy lobe -->
+          <ellipse cx="12" cy="16" rx="6" ry="5" fill="none" stroke="#39FF14" stroke-width="2"/>
+          <!-- Center canopy lobe -->
+          <ellipse cx="20" cy="11" rx="7" ry="6" fill="none" stroke="#39FF14" stroke-width="2"/>
+          <!-- Right canopy lobe -->
+          <ellipse cx="28" cy="16" rx="6" ry="5" fill="none" stroke="#39FF14" stroke-width="2"/>
         </g>
       </svg>
     `,
@@ -291,13 +396,25 @@ const MasterMap = ({ selectedStates, onHome }) => {
 
       setRoute(routePoints);
 
-      const [places, wikiLandmarks, curatedLandmarks] = await Promise.all([
+      const [places, wikiLandmarks, curatedLandmarks, destPlaces, destWikiLandmarks, destCurated] = await Promise.all([
         searchAlongRoute(routePoints, 5),
         searchLiteraryAlongRoute(routePoints, 5),
-        getCuratedLandmarks(routePoints, 5)
+        getCuratedLandmarks(routePoints, 5),
+        searchNearbyPlaces(endCoords.lat, endCoords.lng, 10),
+        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 10),
+        getCuratedLandmarks([[endCoords.lat, endCoords.lng]], 10),
       ]);
 
-      setVisibleLocations([...curatedLandmarks, ...places, ...wikiLandmarks]);
+      // Merge all results, deduplicating by id
+      const seenIds = new Set();
+      const allLocations = [];
+      for (const loc of [...curatedLandmarks, ...places, ...wikiLandmarks, ...destCurated, ...destPlaces, ...destWikiLandmarks]) {
+        if (!seenIds.has(loc.id)) {
+          seenIds.add(loc.id);
+          allLocations.push(loc);
+        }
+      }
+      setVisibleLocations(allLocations);
 
       const lats = routePoints.map(p => p[0]);
       const lngs = routePoints.map(p => p[1]);
@@ -464,18 +581,16 @@ const MasterMap = ({ selectedStates, onHome }) => {
                     Include state if needed — e.g. "Memphis, TN"
                   </p>
                 )}
-                <input
-                  type="text"
+                <CityAutocomplete
                   value={startCity}
-                  onChange={(e) => setStartCity(e.target.value)}
+                  onChange={setStartCity}
                   placeholder={selectedStates.length > 1 ? 'Starting city, e.g. Memphis, TN' : 'Starting city, e.g. New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
                 />
-                <input
-                  type="text"
+                <CityAutocomplete
                   value={endCity}
-                  onChange={(e) => setEndCity(e.target.value)}
+                  onChange={setEndCity}
                   placeholder={selectedStates.length > 1 ? 'Destination city, e.g. Chicago, IL' : 'Destination city, e.g. Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
@@ -518,10 +633,9 @@ const MasterMap = ({ selectedStates, onHome }) => {
               )}
               <div>
                 <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Starting City</label>
-                <input
-                  type="text"
+                <CityAutocomplete
                   value={startCity}
-                  onChange={(e) => setStartCity(e.target.value)}
+                  onChange={setStartCity}
                   placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
@@ -529,10 +643,9 @@ const MasterMap = ({ selectedStates, onHome }) => {
               </div>
               <div>
                 <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Destination City</label>
-                <input
-                  type="text"
+                <CityAutocomplete
                   value={endCity}
-                  onChange={(e) => setEndCity(e.target.value)}
+                  onChange={setEndCity}
                   placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
@@ -587,7 +700,7 @@ const MasterMap = ({ selectedStates, onHome }) => {
       {/* THE SHELF - Googie slide-up drawer */}
       {selectedLocation && (
         <div
-          className="animate-slide-up bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
+          className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
           style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: '50vh', zIndex: 1001 }}
         >
           <div className="h-2 flex-shrink-0 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
@@ -615,8 +728,8 @@ const MasterMap = ({ selectedStates, onHome }) => {
                 </span>
               )}
               {selectedLocation.type === 'landmark' && (
-                <span className="text-paper-white font-bungee text-xs px-3 py-1 border-2 border-paper-white rounded-full">
-                  ✒️ LITERARY LANDMARK
+                <span className="font-bungee text-xs px-3 py-1 border-2 rounded-full" style={{ color: '#39FF14', borderColor: '#39FF14' }}>
+                  🌲 LITERARY LANDMARK
                 </span>
               )}
             </div>
