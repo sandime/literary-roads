@@ -3,28 +3,43 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { getTrip } from '../utils/tripStorage';
-import { searchGoogleBooks } from '../utils/googleBooks';
+import { searchBooks } from '../utils/googleBooks';
 
 const MARKER_LABELS = { landmark: '📖', bookstore: '📚', cafe: '☕' };
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
+  // Support both old `cover` field and new `coverURL` field
+  const coverSrc = book.coverURL || book.cover || null;
   return (
     <div style={{ flexShrink: 0, width: '64px', position: 'relative' }}>
-      <div style={{
-        width: '64px', height: '90px', borderRadius: '4px', overflow: 'hidden',
-        border: '2px solid rgba(64,224,208,0.35)',
-        boxShadow: '0 0 8px rgba(64,224,208,0.15)',
-      }}>
-        {book.cover
-          ? <img src={book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{
-              width: '100%', height: '100%',
-              background: 'linear-gradient(145deg, #5C3A1E, #2A1508)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px',
-            }}>📖</div>
-        }
-      </div>
+      <a
+        href={book.link || '#'}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`${book.title} — ${book.author}`}
+        style={{ display: 'block', textDecoration: 'none' }}
+      >
+        <div
+          style={{
+            width: '64px', height: '90px', borderRadius: '4px', overflow: 'hidden',
+            border: '2px solid rgba(64,224,208,0.35)',
+            boxShadow: '0 0 8px rgba(64,224,208,0.15)',
+            transition: 'border-color 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#40E0D0'; e.currentTarget.style.boxShadow = '0 0 14px rgba(64,224,208,0.5)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.35)'; e.currentTarget.style.boxShadow = '0 0 8px rgba(64,224,208,0.15)'; }}
+        >
+          {coverSrc
+            ? <img src={coverSrc} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <div style={{
+                width: '100%', height: '100%',
+                background: 'linear-gradient(145deg, #5C3A1E, #2A1508)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px',
+              }}>📖</div>
+          }
+        </div>
+      </a>
       {/* Remove button */}
       <button
         onClick={() => onRemove(book.id)}
@@ -64,7 +79,7 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
     if (query.length < 2) { setResults([]); return; }
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
-      setResults(await searchGoogleBooks(query));
+      setResults(await searchBooks(query));
       setSearching(false);
     }, 350);
     return () => clearTimeout(debounceRef.current);
@@ -195,6 +210,13 @@ function BookModal({ favoriteBooks, onAdd, onClose }) {
                   <p className="font-special-elite" style={{ fontSize: '11px', color: 'rgba(192,192,192,0.55)', marginTop: '3px' }}>
                     {book.author}
                   </p>
+                  <span style={{
+                    fontSize: '8px', fontFamily: 'Bungee, sans-serif', letterSpacing: '0.06em',
+                    color: book.source === 'google' ? 'rgba(64,224,208,0.45)' : 'rgba(255,78,0,0.45)',
+                    marginTop: '2px', display: 'block',
+                  }}>
+                    {book.source === 'google' ? 'GOOGLE BOOKS' : 'OPEN LIBRARY'}
+                  </span>
                 </div>
 
                 {/* Add / Added button */}
@@ -232,6 +254,8 @@ export default function Profile({ onBack, selectedStates = [] }) {
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [showBookModal, setShowBookModal] = useState(false);
+  const carouselRef = useRef(null);
+  const scrollCarousel = (dir) => carouselRef.current?.scrollBy({ left: dir * 88, behavior: 'smooth' });
 
   // Load favorites from Firestore
   useEffect(() => {
@@ -369,27 +393,65 @@ export default function Profile({ onBack, selectedStates = [] }) {
             No favorites yet — add up to 5 books
           </p>
         ) : (
-          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '6px' }}>
-            {favoriteBooks.map((book) => (
-              <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
-            ))}
-            {favoriteBooks.length < 5 && (
-              <button
-                onClick={() => setShowBookModal(true)}
-                style={{
-                  flexShrink: 0, width: '64px', height: '90px',
-                  borderRadius: '4px', border: '2px dashed rgba(64,224,208,0.25)',
-                  background: 'transparent', cursor: 'pointer',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: '4px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.6)'; e.currentTarget.style.color = 'rgba(64,224,208,0.7)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.25)'; e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
-              >
-                <span style={{ fontSize: '20px' }}>+</span>
-                <span className="font-bungee" style={{ fontSize: '7px', letterSpacing: '0.08em' }}>ADD</span>
-              </button>
-            )}
+          <div style={{ position: 'relative' }}>
+            {/* Left arrow — desktop only */}
+            <button
+              onClick={() => scrollCarousel(-1)}
+              className="hidden md:flex"
+              style={{
+                position: 'absolute', left: '-18px', top: '38px', zIndex: 2,
+                width: '28px', height: '28px', borderRadius: '50%',
+                background: '#1A1B2E', border: '1.5px solid rgba(64,224,208,0.4)',
+                color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+                alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 0 8px rgba(64,224,208,0.25)',
+              }}
+            >‹</button>
+
+            {/* Scrollable track */}
+            <div
+              ref={carouselRef}
+              style={{
+                display: 'flex', gap: '12px',
+                overflowX: 'auto', paddingBottom: '6px',
+                scrollbarWidth: 'none', msOverflowStyle: 'none',
+              }}
+            >
+              {favoriteBooks.map((book) => (
+                <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
+              ))}
+              {favoriteBooks.length < 5 && (
+                <button
+                  onClick={() => setShowBookModal(true)}
+                  style={{
+                    flexShrink: 0, width: '64px', height: '90px',
+                    borderRadius: '4px', border: '2px dashed rgba(64,224,208,0.25)',
+                    background: 'transparent', cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: '4px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.6)'; e.currentTarget.style.color = 'rgba(64,224,208,0.7)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.25)'; e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
+                >
+                  <span style={{ fontSize: '20px' }}>+</span>
+                  <span className="font-bungee" style={{ fontSize: '7px', letterSpacing: '0.08em' }}>ADD</span>
+                </button>
+              )}
+            </div>
+
+            {/* Right arrow — desktop only */}
+            <button
+              onClick={() => scrollCarousel(1)}
+              className="hidden md:flex"
+              style={{
+                position: 'absolute', right: '-18px', top: '38px', zIndex: 2,
+                width: '28px', height: '28px', borderRadius: '50%',
+                background: '#1A1B2E', border: '1.5px solid rgba(64,224,208,0.4)',
+                color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+                alignItems: 'center', justifyContent: 'center',
+                boxShadow: '0 0 8px rgba(64,224,208,0.25)',
+              }}
+            >›</button>
           </div>
         )}
       </div>
