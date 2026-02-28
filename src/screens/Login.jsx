@@ -231,6 +231,38 @@ const CSS = `
     text-align: center; font-family: 'Bungee', sans-serif;
     letter-spacing: 0.04em; line-height: 1.35;
   }
+
+  /* ── MOBILE ── */
+  @media (max-width: 767px) {
+    .lr-wrap {
+      justify-content: flex-start !important;
+      padding: 16px 10px 24px !important;
+    }
+    .lr-frame {
+      padding: 6px !important;
+      border-radius: 14px !important;
+      border-width: 2px !important;
+    }
+    .lr-page-l { padding: 1rem !important; }
+    .lr-page-r {
+      /* horizontal page separator on mobile */
+      border-top: 3px solid rgba(18,8,0,0.95) !important;
+      box-shadow: inset 0 5px 14px rgba(0,0,0,0.55) !important;
+      padding: 1rem !important;
+    }
+    /* Prevent iOS Safari from zooming on input focus */
+    .lr-input {
+      font-size: 16px !important;
+      padding: 10px 12px !important;
+    }
+    .lr-mode-btn  { padding: 9px 4px !important; font-size: 11px !important; }
+    .lr-google-btn { padding: 12px 14px !important; font-size: 15px !important; }
+    .lr-log-btn   { padding: 13px !important; font-size: 15px !important; }
+    .lr-hr        { margin: 8px 0 !important; }
+    .lr-stat-row  { padding: 5px 0 !important; }
+    .lr-stamp-hide { display: none !important; }
+    .lr-car       { display: none !important; }
+  }
 `;
 
 export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
@@ -267,7 +299,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
   };
 
   return (
-    <div style={{
+    <div className="lr-wrap" style={{
       minHeight: '100vh',
       background: 'radial-gradient(ellipse at 48% 22%, #1C0F55 0%, #10102E 28%, #080918 62%, #030408 100%)',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -326,8 +358,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
         ))}
 
         {/* ── PASSPORT SPREAD ── */}
-        <div style={{ borderRadius: '10px', overflow: 'hidden', display: 'flex', flexDirection: 'row' }}
-          className="flex-col md:flex-row">
+        <div className="flex flex-col md:flex-row" style={{ borderRadius: '10px', overflow: 'hidden' }}>
 
           {/* ═══ LEFT PAGE ═══ */}
           <div className="lr-page-l" style={{ flex: 1, minWidth: 0, padding: '1.4rem 1.5rem' }}>
@@ -343,8 +374,8 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
                     Valid for all literary territories
                   </div>
                 </div>
-                {/* Red stamp */}
-                <div className="lr-stamp-ring" style={{
+                {/* Red stamp — hidden on mobile to save space */}
+                <div className="lr-stamp-ring lr-stamp-hide" style={{
                   width: '50px', height: '50px', flexShrink: 0,
                   border: '2px solid rgba(185,65,10,0.6)',
                   boxShadow: '0 0 0 1px rgba(185,65,10,0.25)',
@@ -467,8 +498,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
           </div>
 
           {/* ═══ RIGHT PAGE ═══ */}
-          <div className="lr-page-r" style={{ width: '260px', flexShrink: 0, padding: '1.4rem 1.5rem' }}
-            /* On mobile becomes full width — md:w-[260px] handled by inline width only on md+ */ >
+          <div className="lr-page-r md:w-64 lg:w-72" style={{ flexShrink: 0, padding: '1.4rem 1.5rem' }}>
             <div className="lr-inner">
 
               {/* Right page header */}
@@ -559,8 +589,8 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
         ← Back
       </button>
 
-      {/* Road car silhouette */}
-      <div style={{ position: 'relative', zIndex: 1, marginTop: '12px', opacity: 0.32 }}>
+      {/* Road car silhouette — hidden on mobile */}
+      <div className="lr-car" style={{ position: 'relative', zIndex: 1, marginTop: '12px', opacity: 0.32 }}>
         <svg width="210" height="58" viewBox="0 0 210 58" fill="none">
           <path d="M18 40 L28 26 L54 20 L82 18 L114 18 L138 22 L158 29 L168 40 L178 40 L180 44 L8 44 L10 40 Z"
             stroke="#40E0D0" strokeWidth="1.5" fill="none"/>
