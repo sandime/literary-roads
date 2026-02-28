@@ -1,19 +1,263 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
+import { db } from '../config/firebase';
 import { getTrip } from '../utils/tripStorage';
+import { searchGoogleBooks } from '../utils/googleBooks';
 
-const MARKER_LABELS = {
-  landmark: '📖',
-  bookstore: '📚',
-  cafe: '☕',
-};
+const MARKER_LABELS = { landmark: '📖', bookstore: '📚', cafe: '☕' };
 
+// ── Book cover card (profile display) ──────────────────────────────────────
+function BookCover({ book, onRemove }) {
+  return (
+    <div style={{ flexShrink: 0, width: '64px', position: 'relative' }}>
+      <div style={{
+        width: '64px', height: '90px', borderRadius: '4px', overflow: 'hidden',
+        border: '2px solid rgba(64,224,208,0.35)',
+        boxShadow: '0 0 8px rgba(64,224,208,0.15)',
+      }}>
+        {book.cover
+          ? <img src={book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          : <div style={{
+              width: '100%', height: '100%',
+              background: 'linear-gradient(145deg, #5C3A1E, #2A1508)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px',
+            }}>📖</div>
+        }
+      </div>
+      {/* Remove button */}
+      <button
+        onClick={() => onRemove(book.id)}
+        title="Remove"
+        style={{
+          position: 'absolute', top: '-7px', right: '-7px',
+          width: '20px', height: '20px', borderRadius: '50%',
+          background: '#FF4E00', border: '1.5px solid #1A1B2E',
+          color: '#1A1B2E', fontSize: '12px', lineHeight: 1,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontWeight: 'bold', boxShadow: '0 0 6px rgba(255,78,0,0.6)',
+        }}
+      >×</button>
+      {/* Title */}
+      <p style={{
+        marginTop: '5px', fontSize: '9px', color: 'rgba(200,200,200,0.65)',
+        fontFamily: 'Special Elite, serif', textAlign: 'center', lineHeight: 1.25,
+        overflow: 'hidden', display: '-webkit-box',
+        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      }}>{book.title}</p>
+    </div>
+  );
+}
+
+// ── Add-book modal ──────────────────────────────────────────────────────────
+function BookModal({ favoriteBooks, onAdd, onClose }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const debounceRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    if (query.length < 2) { setResults([]); return; }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      setResults(await searchGoogleBooks(query));
+      setSearching(false);
+    }, 350);
+    return () => clearTimeout(debounceRef.current);
+  }, [query]);
+
+  const addedIds = new Set(favoriteBooks.map((b) => b.id));
+  const full = favoriteBooks.length >= 5;
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 200,
+        background: 'rgba(5,6,15,0.9)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
+      <div style={{
+        width: '100%', maxWidth: '500px',
+        background: '#0D0E1A',
+        border: '2px solid #40E0D0',
+        borderRadius: '18px 18px 0 0',
+        padding: '20px 20px 32px',
+        maxHeight: '88vh',
+        display: 'flex', flexDirection: 'column',
+        boxShadow: '0 0 40px rgba(64,224,208,0.25), 0 -4px 30px rgba(0,0,0,0.6)',
+      }}>
+
+        {/* Drag handle */}
+        <div style={{ width: '36px', height: '4px', background: 'rgba(64,224,208,0.3)', borderRadius: '2px', margin: '0 auto 16px' }} />
+
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <h3 className="font-bungee" style={{ color: '#40E0D0', fontSize: '15px', textShadow: '0 0 12px rgba(64,224,208,0.6)', letterSpacing: '0.06em' }}>
+            ADD A BOOK
+          </h3>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: '1.5px solid rgba(64,224,208,0.4)',
+            borderRadius: '50%', width: '30px', height: '30px',
+            color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            lineHeight: 1,
+          }}>×</button>
+        </div>
+
+        {/* Slot counter */}
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '14px', justifyContent: 'center' }}>
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} style={{
+              width: '28px', height: '4px', borderRadius: '2px',
+              background: i < favoriteBooks.length ? '#FF4E00' : 'rgba(255,78,0,0.15)',
+              boxShadow: i < favoriteBooks.length ? '0 0 6px rgba(255,78,0,0.5)' : 'none',
+              transition: 'background 0.3s',
+            }} />
+          ))}
+          <span className="font-bungee" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', letterSpacing: '0.1em', marginLeft: '6px', alignSelf: 'center' }}>
+            {favoriteBooks.length}/5
+          </span>
+        </div>
+
+        {/* Search input */}
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search title, author..."
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1.5px solid rgba(64,224,208,0.4)',
+            borderRadius: '8px', color: '#F5F5DC',
+            padding: '10px 14px', fontSize: '15px',
+            fontFamily: 'Special Elite, serif', outline: 'none',
+            marginBottom: '12px', transition: 'border-color 0.2s',
+          }}
+          onFocus={(e) => e.currentTarget.style.borderColor = '#40E0D0'}
+          onBlur={(e) => e.currentTarget.style.borderColor = 'rgba(64,224,208,0.4)'}
+        />
+
+        {/* Results list */}
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          {searching && (
+            <p className="font-special-elite" style={{ color: 'rgba(192,192,192,0.45)', fontSize: '13px', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+              Searching...
+            </p>
+          )}
+          {!searching && query.length > 1 && results.length === 0 && (
+            <p className="font-special-elite" style={{ color: 'rgba(192,192,192,0.45)', fontSize: '13px', textAlign: 'center', padding: '20px 0', fontStyle: 'italic' }}>
+              No results found
+            </p>
+          )}
+          {!searching && query.length <= 1 && (
+            <p className="font-special-elite" style={{ color: 'rgba(192,192,192,0.25)', fontSize: '12px', textAlign: 'center', padding: '24px 0', fontStyle: 'italic' }}>
+              Type to search the literary universe...
+            </p>
+          )}
+
+          {results.map((book) => {
+            const added = addedIds.has(book.id);
+            return (
+              <div key={book.id} style={{
+                display: 'flex', gap: '12px', alignItems: 'center',
+                padding: '10px', borderRadius: '10px', marginBottom: '8px',
+                background: added ? 'rgba(64,224,208,0.06)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${added ? 'rgba(64,224,208,0.25)' : 'rgba(255,255,255,0.07)'}`,
+                transition: 'background 0.2s',
+              }}>
+                {/* Cover thumbnail */}
+                <div style={{
+                  width: '44px', height: '62px', flexShrink: 0,
+                  borderRadius: '3px', overflow: 'hidden',
+                  border: '1px solid rgba(64,224,208,0.2)',
+                }}>
+                  {book.cover
+                    ? <img src={book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <div style={{ width: '100%', height: '100%', background: '#2A1508', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📖</div>
+                  }
+                </div>
+
+                {/* Title + author */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="font-bungee" style={{
+                    fontSize: '10px', color: '#F0E6CC', lineHeight: 1.3,
+                    overflow: 'hidden', display: '-webkit-box',
+                    WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                  }}>{book.title}</p>
+                  <p className="font-special-elite" style={{ fontSize: '11px', color: 'rgba(192,192,192,0.55)', marginTop: '3px' }}>
+                    {book.author}
+                  </p>
+                </div>
+
+                {/* Add / Added button */}
+                <button
+                  onClick={() => !added && !full && onAdd(book)}
+                  disabled={added || full}
+                  className="font-bungee"
+                  style={{
+                    flexShrink: 0,
+                    padding: '7px 11px', borderRadius: '6px', fontSize: '10px',
+                    letterSpacing: '0.06em', cursor: added || full ? 'default' : 'pointer',
+                    border: added ? '1.5px solid #40E0D0' : 'none',
+                    background: added ? 'transparent' : full ? 'rgba(255,78,0,0.2)' : '#FF4E00',
+                    color: added ? '#40E0D0' : full ? 'rgba(255,78,0,0.5)' : '#1A1B2E',
+                    boxShadow: added ? 'none' : full ? 'none' : '0 0 8px rgba(255,78,0,0.45)',
+                  }}
+                >
+                  {added ? '✓ IN LIST' : full ? 'FULL' : 'ADD'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ── Main Profile component ──────────────────────────────────────────────────
 export default function Profile({ onBack, selectedStates = [] }) {
   const { user, logout } = useAuth();
   const tripItems = getTrip();
-  const [privacyOn, setPrivacyOn] = useState(
-    () => localStorage.getItem('lr-privacy') === 'true'
-  );
+
+  const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
+  const [favoriteBooks, setFavoriteBooks] = useState([]);
+  const [showBookModal, setShowBookModal] = useState(false);
+
+  // Load favorites from Firestore
+  useEffect(() => {
+    if (!user) return;
+    getDoc(doc(db, 'users', user.uid)).then((snap) => {
+      if (snap.exists()) setFavoriteBooks(snap.data().favoriteBooks || []);
+    }).catch(() => {});
+  }, [user]);
+
+  const saveBooks = async (books) => {
+    if (!user) return;
+    await setDoc(doc(db, 'users', user.uid), { favoriteBooks: books }, { merge: true });
+  };
+
+  const handleAddBook = async (book) => {
+    if (favoriteBooks.length >= 5 || favoriteBooks.find((b) => b.id === book.id)) return;
+    const updated = [...favoriteBooks, book];
+    setFavoriteBooks(updated);
+    await saveBooks(updated);
+  };
+
+  const handleRemoveBook = async (id) => {
+    const updated = favoriteBooks.filter((b) => b.id !== id);
+    setFavoriteBooks(updated);
+    await saveBooks(updated);
+  };
 
   const handlePrivacyToggle = () => {
     const next = !privacyOn;
@@ -21,10 +265,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
     localStorage.setItem('lr-privacy', String(next));
   };
 
-  const handleSignOut = async () => {
-    await logout();
-    onBack();
-  };
+  const handleSignOut = async () => { await logout(); onBack(); };
 
   const displayName = user?.displayName || 'Literary Traveler';
   const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -36,57 +277,30 @@ export default function Profile({ onBack, selectedStates = [] }) {
     >
       {/* Header */}
       <div className="w-full max-w-lg flex items-center justify-between mb-6">
-        <button
-          onClick={onBack}
-          className="font-special-elite text-chrome-silver hover:text-starlight-turquoise text-sm transition-colors"
-        >
+        <button onClick={onBack} className="font-special-elite text-chrome-silver hover:text-starlight-turquoise text-sm transition-colors">
           ← Back
         </button>
-        <h1
-          className="font-bungee text-xl md:text-2xl"
-          style={{
-            color: '#40E0D0',
-            textShadow: '0 0 15px rgba(64,224,208,0.7)',
-          }}
-        >
+        <h1 className="font-bungee text-xl md:text-2xl" style={{ color: '#40E0D0', textShadow: '0 0 15px rgba(64,224,208,0.7)' }}>
           TRAVELER'S LOG
         </h1>
         <div className="w-12" />
       </div>
 
       {/* Profile card */}
-      <div
-        className="w-full max-w-lg rounded-2xl p-[2px] mb-5"
-        style={{
-          background: 'linear-gradient(135deg, #40E0D0 0%, #FF4E00 100%)',
-          boxShadow: '0 0 25px rgba(64,224,208,0.3)',
-        }}
-      >
+      <div className="w-full max-w-lg rounded-2xl p-[2px] mb-5"
+        style={{ background: 'linear-gradient(135deg, #40E0D0 0%, #FF4E00 100%)', boxShadow: '0 0 25px rgba(64,224,208,0.3)' }}>
         <div className="rounded-2xl p-6 flex items-center gap-4" style={{ background: '#1E1F33' }}>
-          {/* Avatar */}
           {user?.photoURL ? (
-            <img
-              src={user.photoURL}
-              alt="avatar"
-              className="w-16 h-16 rounded-full flex-shrink-0"
-              style={{ border: '3px solid #40E0D0', boxShadow: '0 0 12px rgba(64,224,208,0.6)' }}
-            />
+            <img src={user.photoURL} alt="avatar" className="w-16 h-16 rounded-full flex-shrink-0"
+              style={{ border: '3px solid #40E0D0', boxShadow: '0 0 12px rgba(64,224,208,0.6)' }} />
           ) : (
-            <div
-              className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 font-bungee text-2xl"
-              style={{
-                background: '#1A1B2E',
-                border: '3px solid #40E0D0',
-                boxShadow: '0 0 12px rgba(64,224,208,0.6)',
-                color: '#40E0D0',
-              }}
-            >
+            <div className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 font-bungee text-2xl"
+              style={{ background: '#1A1B2E', border: '3px solid #40E0D0', boxShadow: '0 0 12px rgba(64,224,208,0.6)', color: '#40E0D0' }}>
               {initials}
             </div>
           )}
           <div className="min-w-0">
             <p className="font-bungee text-paper-white text-base truncate">{displayName}</p>
-            {/* Email visible only to the account owner — never stored publicly */}
             <p className="font-special-elite text-xs truncate mt-0.5" style={{ color: 'rgba(192,192,192,0.45)' }}>
               {user?.email}
             </p>
@@ -100,38 +314,22 @@ export default function Profile({ onBack, selectedStates = [] }) {
           { icon: '📍', label: 'Stops Saved', value: tripItems.length },
           { icon: '🗺️', label: 'States Explored', value: selectedStates.length || '—' },
         ].map(({ icon, label, value }) => (
-          <div
-            key={label}
-            className="rounded-xl p-4 flex flex-col items-center gap-1"
-            style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}
-          >
+          <div key={label} className="rounded-xl p-4 flex flex-col items-center gap-1"
+            style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
             <span className="text-2xl">{icon}</span>
-            <span
-              className="font-bungee text-2xl"
-              style={{ color: '#FF4E00', textShadow: '0 0 10px rgba(255,78,0,0.5)' }}
-            >
-              {value}
-            </span>
+            <span className="font-bungee text-2xl" style={{ color: '#FF4E00', textShadow: '0 0 10px rgba(255,78,0,0.5)' }}>{value}</span>
             <span className="font-special-elite text-chrome-silver text-xs text-center">{label}</span>
           </div>
         ))}
       </div>
 
       {/* Top Literary Stops */}
-      <div
-        className="w-full max-w-lg rounded-xl p-5 mb-5"
-        style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}
-      >
-        <h2
-          className="font-bungee text-sm mb-3"
-          style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}
-        >
+      <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+        <h2 className="font-bungee text-sm mb-3" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
           TOP LITERARY STOPS
         </h2>
         {tripItems.length === 0 ? (
-          <p className="font-special-elite text-chrome-silver text-sm text-center py-4 italic">
-            Start planning your route!
-          </p>
+          <p className="font-special-elite text-chrome-silver text-sm text-center py-4 italic">Start planning your route!</p>
         ) : (
           <ul className="space-y-2">
             {tripItems.slice(0, 5).map((item, i) => (
@@ -145,47 +343,88 @@ export default function Profile({ onBack, selectedStates = [] }) {
         )}
       </div>
 
+      {/* ── Favorite Books ── */}
+      <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bungee text-sm" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
+            FAVORITE BOOKS
+          </h2>
+          {favoriteBooks.length < 5 && (
+            <button
+              onClick={() => setShowBookModal(true)}
+              className="font-bungee text-xs px-3 py-1 rounded-full"
+              style={{
+                background: '#FF4E00', color: '#1A1B2E',
+                boxShadow: '0 0 10px rgba(255,78,0,0.45)',
+                border: 'none', cursor: 'pointer',
+              }}
+            >
+              + ADD
+            </button>
+          )}
+        </div>
+
+        {favoriteBooks.length === 0 ? (
+          <p className="font-special-elite text-sm text-center py-3 italic" style={{ color: 'rgba(192,192,192,0.35)' }}>
+            No favorites yet — add up to 5 books
+          </p>
+        ) : (
+          <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '6px' }}>
+            {favoriteBooks.map((book) => (
+              <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
+            ))}
+            {favoriteBooks.length < 5 && (
+              <button
+                onClick={() => setShowBookModal(true)}
+                style={{
+                  flexShrink: 0, width: '64px', height: '90px',
+                  borderRadius: '4px', border: '2px dashed rgba(64,224,208,0.25)',
+                  background: 'transparent', cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: '4px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.6)'; e.currentTarget.style.color = 'rgba(64,224,208,0.7)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.25)'; e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
+              >
+                <span style={{ fontSize: '20px' }}>+</span>
+                <span className="font-bungee" style={{ fontSize: '7px', letterSpacing: '0.08em' }}>ADD</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Privacy toggle */}
-      <div
-        className="w-full max-w-lg rounded-xl p-4 mb-5 flex items-center justify-between"
-        style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}
-      >
+      <div className="w-full max-w-lg rounded-xl p-4 mb-5 flex items-center justify-between"
+        style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
         <div>
           <p className="font-bungee text-paper-white text-xs">PRIVATE PROFILE</p>
           <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Hide your trips from others</p>
         </div>
-        <button
-          onClick={handlePrivacyToggle}
-          className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
-          style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}
-        >
-          <span
-            className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-            style={{ left: privacyOn ? '22px' : '2px' }}
-          />
+        <button onClick={handlePrivacyToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
+          style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}>
+          <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+            style={{ left: privacyOn ? '22px' : '2px' }} />
         </button>
       </div>
 
       {/* Sign out */}
-      <button
-        onClick={handleSignOut}
-        className="w-full max-w-lg font-bungee py-3 rounded-xl transition-all text-sm"
-        style={{
-          background: 'transparent',
-          border: '2px solid #FF4E00',
-          color: '#FF4E00',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = '#FF4E00';
-          e.currentTarget.style.color = '#1A1B2E';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent';
-          e.currentTarget.style.color = '#FF4E00';
-        }}
+      <button onClick={handleSignOut} className="w-full max-w-lg font-bungee py-3 rounded-xl text-sm"
+        style={{ background: 'transparent', border: '2px solid #FF4E00', color: '#FF4E00' }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = '#FF4E00'; e.currentTarget.style.color = '#1A1B2E'; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#FF4E00'; }}
       >
         SIGN OUT
       </button>
+
+      {/* Book search modal */}
+      {showBookModal && (
+        <BookModal
+          favoriteBooks={favoriteBooks}
+          onAdd={handleAddBook}
+          onClose={() => setShowBookModal(false)}
+        />
+      )}
     </div>
   );
 }
