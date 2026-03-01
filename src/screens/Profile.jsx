@@ -294,6 +294,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
+  const [visitedCount, setVisitedCount] = useState(0);
   const [showBookModal, setShowBookModal] = useState(false);
 
   // Real-time sync: onSnapshot fires immediately on mount and on any cross-device change
@@ -304,8 +305,10 @@ export default function Profile({ onBack, selectedStates = [] }) {
       ref,
       (snap) => {
         if (!snap.exists()) return;
-        setFavoriteBooks(snap.data().favoriteBooks || []);
-        setTripCount((snap.data().trip || []).length);
+        const data = snap.data();
+        setFavoriteBooks(data.favoriteBooks || []);
+        setTripCount((data.trip || []).length);
+        setVisitedCount((data.visitedStates || []).length);
       },
       (err) => console.error('[Profile] snapshot:', err),
     );
@@ -350,7 +353,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-start px-4 py-8 overflow-y-auto"
+      className="h-screen flex flex-col items-center justify-start px-4 py-8 overflow-y-auto"
       style={{ background: 'radial-gradient(ellipse at 50% 20%, #2D1B69 0%, #1A1B2E 60%, #0D0E1A 100%)' }}
     >
       {/* Header */}
@@ -390,7 +393,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
       <div className="w-full max-w-lg grid grid-cols-2 gap-3 mb-5">
         {[
           { icon: '📍', label: 'Stops Saved', value: tripCount },
-          { icon: '🗺️', label: 'States Explored', value: selectedStates.length || '—' },
+          { icon: '🗺️', label: 'States Explored', value: visitedCount || '—' },
         ].map(({ icon, label, value }) => (
           <div key={label} className="rounded-xl p-4 flex flex-col items-center gap-1"
             style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
@@ -427,7 +430,10 @@ export default function Profile({ onBack, selectedStates = [] }) {
             No favorites yet — add up to 4 books
           </p>
         ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', paddingTop: '18px', paddingBottom: '4px' }}>
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+            gap: '16px', paddingTop: '18px', paddingBottom: '4px',
+          }}>
             {favoriteBooks.map((book) => (
               <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
             ))}

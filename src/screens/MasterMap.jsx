@@ -12,7 +12,7 @@ import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStor
 import RoadTrip from './RoadTrip';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { doc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -272,6 +272,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
       .catch((err) => console.error('[MasterMap] save trip:', err));
   };
 
+  // Record which states were being explored when an item is added (unique, cumulative)
+  const trackVisitedStates = () => {
+    if (!user || !selectedStates.length) return;
+    setDoc(
+      doc(db, 'users', user.uid),
+      { visitedStates: arrayUnion(...selectedStates) },
+      { merge: true },
+    ).catch((err) => console.error('[MasterMap] track states:', err));
+  };
+
   const handleTripToggle = (location) => {
     if (tripIds.has(location.id)) {
       const updated = tripItems.filter((i) => i.id !== location.id);
@@ -280,7 +290,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
     } else {
       const updated = [...tripItems, location];
       setTripItems(updated);
-      if (user) { saveTripToFirestore(updated); } else { addToTrip(location); }
+      if (user) {
+        saveTripToFirestore(updated);
+        trackVisitedStates();
+      } else {
+        addToTrip(location);
+      }
     }
   };
 
@@ -543,6 +558,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 <span className="hidden md:inline">NEAR ME</span>
+              </button>
+            )}
+
+            {/* Clear Route button — only when route is active */}
+            {route.length > 0 && (
+              <button
+                onClick={handleClearRoute}
+                className="font-bungee text-[9px] md:text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-1.5 py-0.5 md:px-2 md:py-1 whitespace-nowrap"
+              >
+                CLEAR ROUTE
               </button>
             )}
 
@@ -813,18 +838,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
             </div>
           </div>
         </>
-      )}
-
-      {/* Clear Route Button */}
-      {route.length > 0 && (
-        <div className="absolute top-24 right-4 z-[1000]">
-          <button
-            onClick={handleClearRoute}
-            className="bg-midnight-navy/90 text-starlight-turquoise border-2 border-starlight-turquoise px-4 py-2 rounded-lg font-special-elite text-sm hover:bg-starlight-turquoise hover:text-midnight-navy transition-all shadow-lg"
-          >
-            Clear Route
-          </button>
-        </div>
       )}
 
       {/* Route Info */}
