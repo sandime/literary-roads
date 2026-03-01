@@ -456,24 +456,36 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
 
       setRoute(routePoints);
 
-      const [places, wikiLandmarks, curatedLandmarks, destPlaces, destWikiLandmarks, destCurated] = await Promise.all([
+      // Build a full point list: start + route + end so getCuratedLandmarks covers the whole trip
+      const allTripPoints = [
+        [startCoords.lat, startCoords.lng],
+        ...routePoints,
+        [endCoords.lat, endCoords.lng],
+      ];
+
+      const [places, wikiLandmarks, curatedLandmarks, destPlaces, destWikiLandmarks] = await Promise.all([
         searchAlongRoute(routePoints, 5),
         searchLiteraryAlongRoute(routePoints, 5),
-        getCuratedLandmarks(routePoints, 5),
+        getCuratedLandmarks(allTripPoints, 25),   // single fetch, covers full route at city-level radius
         searchNearbyPlaces(endCoords.lat, endCoords.lng, 10),
         searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 10),
-        getCuratedLandmarks([[endCoords.lat, endCoords.lng]], 10),
       ]);
 
-      // Merge all results, deduplicating by id
+      // Merge results — curated (ALA/Firestore) first so they win dedup over Wikipedia
+      // Dedup by: (1) id, (2) normalized name — catches same place from two sources
       const seenIds = new Set();
+      const seenNames = new Set();
+      const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
       const allLocations = [];
-      for (const loc of [...curatedLandmarks, ...places, ...wikiLandmarks, ...destCurated, ...destPlaces, ...destWikiLandmarks]) {
-        if (!seenIds.has(loc.id)) {
+      for (const loc of [...curatedLandmarks, ...places, ...wikiLandmarks, ...destPlaces, ...destWikiLandmarks]) {
+        const nn = normName(loc.name);
+        if (!seenIds.has(loc.id) && !seenNames.has(nn)) {
           seenIds.add(loc.id);
+          seenNames.add(nn);
           allLocations.push(loc);
         }
       }
+      console.log(`[MasterMap] ${allLocations.length} total landmarks (${curatedLandmarks.length} Firestore/ALA, ${wikiLandmarks.length} Wikipedia)`);
       setVisibleLocations(allLocations);
 
       const lats = routePoints.map(p => p[0]);
@@ -718,7 +730,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
               position={[location.lat, location.lng]}
               icon={createCustomIcon(location.type)}
               eventHandlers={{
-                click: () => setSelectedLocation(location),
+                click: () => {
+                  console.log('[Shelf] Landmark clicked:', {
+                    name: location.name,
+                    source: location.source,
+                    id: location.id,
+                    city: location.city,
+                    state: location.state,
+                    lat: location.lat,
+                    lng: location.lng,
+                  });
+                  setSelectedLocation(location);
+                },
               }}
             />
           ))}
@@ -911,11 +934,32 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
               >
-                <span>Read more on Wikipedia</span>
+                <span>
+                  {selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' : 'Read more on Wikipedia'}
+                </span>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </a>
+            )}
+
+            {selectedLocation.source === 'ALA' && (
+              <p className="font-special-elite mt-3 pt-3 border-t border-white/10"
+                style={{ fontSize: '10px', color: 'rgba(192,192,192,0.55)', lineHeight: '1.4' }}>
+                Literary landmark courtesy of the{' '}
+                {selectedLocation.sourceUrl ? (
+                  <a
+                    href={selectedLocation.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'rgba(64,224,208,0.6)', textDecoration: 'underline' }}
+                  >
+                    American Library Association
+                  </a>
+                ) : (
+                  'American Library Association'
+                )}
+              </p>
             )}
           </div>
 

@@ -14,33 +14,39 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   return R * c;
 };
 
-// Get curated literary landmarks from Firebase
-export const getCuratedLandmarks = async (routePoints, radiusMiles = 5) => {
+// Get curated literary landmarks from Firebase within radiusMiles of any route point.
+// Pass start + all route points + end for full coverage.
+// Use a generous radius (25 miles default) since ALA landmarks are geocoded to city centers.
+export const getCuratedLandmarks = async (routePoints, radiusMiles = 25) => {
   try {
-    // Get all curated landmarks from Firebase
     const landmarksRef = collection(db, 'literary_landmarks');
     const snapshot = await getDocs(landmarksRef);
-    
+
     const allLandmarks = [];
     snapshot.forEach((doc) => {
-      allLandmarks.push({
-        id: doc.id,
-        ...doc.data(),
-        source: 'curated'
-      });
+      const data = doc.data();
+      // Skip docs without valid coordinates (failed geocoding)
+      if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
+      // Preserve the original source field (e.g. 'ALA') so The Shelf can attribute correctly
+      allLandmarks.push({ id: doc.id, ...data });
     });
-    
-    // Filter to only those near the route
-    const nearbyLandmarks = allLandmarks.filter(landmark => {
-      return routePoints.some(point => {
-        const distance = getDistance(landmark.lat, landmark.lng, point[0], point[1]);
-        return distance <= radiusMiles;
-      });
-    });
-    
+
+    console.log(`[Firestore] ${allLandmarks.length} total landmarks fetched`);
+
+    // Sample route points to keep the distance check fast on long routes
+    const samplePoints = routePoints.filter((_, i) => i % 5 === 0)
+      .concat(routePoints[routePoints.length - 1]); // always include last point
+
+    const nearbyLandmarks = allLandmarks.filter(landmark =>
+      samplePoints.some(point =>
+        getDistance(landmark.lat, landmark.lng, point[0], point[1]) <= radiusMiles
+      )
+    );
+
+    console.log(`[Firestore] ${nearbyLandmarks.length} landmarks within ${radiusMiles} miles of route`);
     return nearbyLandmarks;
   } catch (error) {
-    console.error('Error fetching curated landmarks:', error);
+    console.error('[Firestore] getCuratedLandmarks error:', error);
     return [];
   }
 };
