@@ -471,16 +471,27 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
                 </button>
 
                 <button type="button" onClick={onContinueAsGuest}
+                  className="font-bungee"
                   style={{
-                    width: '100%', background: 'transparent', border: 'none',
-                    color: 'rgba(195,150,65,0.55)', fontSize: '12px', cursor: 'pointer',
-                    fontFamily: 'Special Elite, serif', textAlign: 'center', padding: '4px',
-                    transition: 'color 0.2s',
+                    width: '100%', background: 'transparent',
+                    border: '1.5px dashed rgba(64,224,208,0.5)',
+                    borderRadius: '5px', padding: '9px 14px',
+                    color: 'rgba(64,224,208,0.75)', fontSize: '11px',
+                    letterSpacing: '0.1em', cursor: 'pointer',
+                    transition: 'border-color 0.2s, color 0.2s, background 0.2s',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#40E0D0'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(195,150,65,0.55)'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#40E0D0';
+                    e.currentTarget.style.color = '#40E0D0';
+                    e.currentTarget.style.background = 'rgba(64,224,208,0.06)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(64,224,208,0.5)';
+                    e.currentTarget.style.color = 'rgba(64,224,208,0.75)';
+                    e.currentTarget.style.background = 'transparent';
+                  }}
                 >
-                  Continue as Guest →
+                  CONTINUE AS GUEST →
                 </button>
               </form>
 

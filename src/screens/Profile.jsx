@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { getTrip } from '../utils/tripStorage';
@@ -293,26 +293,37 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
 
 // ── Main Profile component ──────────────────────────────────────────────────
 export default function Profile({ onBack, selectedStates = [] }) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const tripItems = getTrip();
 
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [showBookModal, setShowBookModal] = useState(false);
-  const carouselRef = useRef(null);
-  const scrollCarousel = (dir) => carouselRef.current?.scrollBy({ left: dir * 88, behavior: 'smooth' });
 
-  // Load favorites from Firestore
+  // Real-time sync: onSnapshot fires immediately on mount and on any cross-device change
   useEffect(() => {
     if (!user) return;
-    getDoc(doc(db, 'users', user.uid)).then((snap) => {
-      if (snap.exists()) setFavoriteBooks(snap.data().favoriteBooks || []);
-    }).catch(() => {});
+    const ref = doc(db, 'users', user.uid);
+    const unsub = onSnapshot(
+      ref,
+      (snap) => { if (snap.exists()) setFavoriteBooks(snap.data().favoriteBooks || []); },
+      (err) => console.error('[Profile] books snapshot:', err),
+    );
+    return unsub;
   }, [user]);
 
   const saveBooks = async (books) => {
     if (!user) return;
-    await setDoc(doc(db, 'users', user.uid), { favoriteBooks: books }, { merge: true });
+    const ref = doc(db, 'users', user.uid);
+    try {
+      await updateDoc(ref, { favoriteBooks: books });
+    } catch (err) {
+      if (err.code === 'not-found') {
+        await setDoc(ref, { favoriteBooks: books }, { merge: true });
+      } else {
+        console.error('[Profile] save books:', err);
+      }
+    }
   };
 
   const handleAddBook = async (book) => {
@@ -333,8 +344,6 @@ export default function Profile({ onBack, selectedStates = [] }) {
     setPrivacyOn(next);
     localStorage.setItem('lr-privacy', String(next));
   };
-
-  const handleSignOut = async () => { await logout(); onBack(); };
 
   const displayName = user?.displayName || 'Literary Traveler';
   const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -392,27 +401,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
         ))}
       </div>
 
-      {/* Top Literary Stops */}
-      <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-        <h2 className="font-bungee text-sm mb-3" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
-          TOP LITERARY STOPS
-        </h2>
-        {tripItems.length === 0 ? (
-          <p className="font-special-elite text-chrome-silver text-sm text-center py-4 italic">Start planning your route!</p>
-        ) : (
-          <ul className="space-y-2">
-            {tripItems.slice(0, 5).map((item, i) => (
-              <li key={item.id} className="flex items-center gap-3">
-                <span className="font-bungee text-atomic-orange text-xs w-4 flex-shrink-0">{i + 1}</span>
-                <span className="text-sm flex-shrink-0">{MARKER_LABELS[item.type] || '📌'}</span>
-                <span className="font-special-elite text-paper-white text-sm truncate">{item.name}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* ── Favorite Books ── */}
+      {/* ── Favorite Books ── (above stops so it's always visible on mobile) */}
       <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-bungee text-sm" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
@@ -438,66 +427,48 @@ export default function Profile({ onBack, selectedStates = [] }) {
             No favorites yet — add up to 4 books
           </p>
         ) : (
-          <div style={{ position: 'relative' }}>
-            {/* Left arrow — desktop only */}
-            <button
-              onClick={() => scrollCarousel(-1)}
-              className="hidden md:flex"
-              style={{
-                position: 'absolute', left: '-18px', top: '38px', zIndex: 2,
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: '#1A1B2E', border: '1.5px solid rgba(64,224,208,0.4)',
-                color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
-                alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 0 8px rgba(64,224,208,0.25)',
-              }}
-            >‹</button>
-
-            {/* Scrollable track */}
-            <div
-              ref={carouselRef}
-              style={{
-                display: 'flex', gap: '12px',
-                overflowX: 'auto', paddingBottom: '6px',
-                scrollbarWidth: 'none', msOverflowStyle: 'none',
-              }}
-            >
-              {favoriteBooks.map((book) => (
-                <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
-              ))}
-              {favoriteBooks.length < 4 && (
-                <button
-                  onClick={() => setShowBookModal(true)}
-                  style={{
-                    flexShrink: 0, width: '64px', height: '90px',
-                    borderRadius: '4px', border: '2px dashed rgba(64,224,208,0.25)',
-                    background: 'transparent', cursor: 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    gap: '4px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.6)'; e.currentTarget.style.color = 'rgba(64,224,208,0.7)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.25)'; e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
-                >
-                  <span style={{ fontSize: '20px' }}>+</span>
-                  <span className="font-bungee" style={{ fontSize: '7px', letterSpacing: '0.08em' }}>ADD</span>
-                </button>
-              )}
-            </div>
-
-            {/* Right arrow — desktop only */}
-            <button
-              onClick={() => scrollCarousel(1)}
-              className="hidden md:flex"
-              style={{
-                position: 'absolute', right: '-18px', top: '38px', zIndex: 2,
-                width: '28px', height: '28px', borderRadius: '50%',
-                background: '#1A1B2E', border: '1.5px solid rgba(64,224,208,0.4)',
-                color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
-                alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 0 8px rgba(64,224,208,0.25)',
-              }}
-            >›</button>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', paddingTop: '16px', paddingBottom: '4px' }}>
+            {favoriteBooks.map((book) => (
+              <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
+            ))}
+            {favoriteBooks.length < 4 && (
+              <button
+                onClick={() => setShowBookModal(true)}
+                style={{
+                  flexShrink: 0, width: '64px', height: '90px',
+                  borderRadius: '4px', border: '2px dashed rgba(64,224,208,0.25)',
+                  background: 'transparent', cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  gap: '4px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.6)'; e.currentTarget.style.color = 'rgba(64,224,208,0.7)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.25)'; e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
+              >
+                <span style={{ fontSize: '20px' }}>+</span>
+                <span className="font-bungee" style={{ fontSize: '7px', letterSpacing: '0.08em' }}>ADD</span>
+              </button>
+            )}
           </div>
+        )}
+      </div>
+
+      {/* Top Literary Stops */}
+      <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+        <h2 className="font-bungee text-sm mb-3" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
+          TOP LITERARY STOPS
+        </h2>
+        {tripItems.length === 0 ? (
+          <p className="font-special-elite text-chrome-silver text-sm text-center py-4 italic">Start planning your route!</p>
+        ) : (
+          <ul className="space-y-2">
+            {tripItems.slice(0, 5).map((item, i) => (
+              <li key={item.id} className="flex items-center gap-3">
+                <span className="font-bungee text-atomic-orange text-xs w-4 flex-shrink-0">{i + 1}</span>
+                <span className="text-sm flex-shrink-0">{MARKER_LABELS[item.type] || '📌'}</span>
+                <span className="font-special-elite text-paper-white text-sm truncate">{item.name}</span>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
 
@@ -514,15 +485,6 @@ export default function Profile({ onBack, selectedStates = [] }) {
             style={{ left: privacyOn ? '22px' : '2px' }} />
         </button>
       </div>
-
-      {/* Sign out */}
-      <button onClick={handleSignOut} className="w-full max-w-lg font-bungee py-3 rounded-xl text-sm"
-        style={{ background: 'transparent', border: '2px solid #40E0D0', color: '#40E0D0' }}
-        onMouseEnter={(e) => { e.currentTarget.style.background = '#40E0D0'; e.currentTarget.style.color = '#1A1B2E'; }}
-        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#40E0D0'; }}
-      >
-        SIGN OUT
-      </button>
 
       {/* Book search modal */}
       {showBookModal && (
