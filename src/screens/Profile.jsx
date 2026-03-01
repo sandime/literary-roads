@@ -2,17 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { doc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { getTrip } from '../utils/tripStorage';
 import { searchBooks } from '../utils/googleBooks';
-
-const MARKER_LABELS = { landmark: '📖', bookstore: '📚', cafe: '☕' };
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
-  // Support both old `cover` field and new `coverURL` field
   const coverSrc = book.coverURL || book.cover || null;
   return (
-    <div style={{ flexShrink: 0, width: '64px', position: 'relative' }}>
+    <div style={{ flexShrink: 0, width: '88px', position: 'relative' }}>
       <a
         href={book.link || '#'}
         target="_blank"
@@ -22,20 +18,20 @@ function BookCover({ book, onRemove }) {
       >
         <div
           style={{
-            width: '64px', height: '90px', borderRadius: '4px', overflow: 'hidden',
+            width: '88px', height: '124px', borderRadius: '5px', overflow: 'hidden',
             border: '2px solid rgba(64,224,208,0.35)',
-            boxShadow: '0 0 8px rgba(64,224,208,0.15)',
+            boxShadow: '0 0 10px rgba(64,224,208,0.15)',
             transition: 'border-color 0.2s, box-shadow 0.2s',
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#40E0D0'; e.currentTarget.style.boxShadow = '0 0 14px rgba(64,224,208,0.5)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.35)'; e.currentTarget.style.boxShadow = '0 0 8px rgba(64,224,208,0.15)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#40E0D0'; e.currentTarget.style.boxShadow = '0 0 18px rgba(64,224,208,0.5)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.35)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(64,224,208,0.15)'; }}
         >
           {coverSrc
             ? <img src={coverSrc} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : <div style={{
                 width: '100%', height: '100%',
                 background: 'linear-gradient(145deg, #5C3A1E, #2A1508)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px',
               }}>📖</div>
           }
         </div>
@@ -45,18 +41,18 @@ function BookCover({ book, onRemove }) {
         onClick={() => onRemove(book.id)}
         title="Remove"
         style={{
-          position: 'absolute', top: '-7px', right: '-7px',
-          width: '20px', height: '20px', borderRadius: '50%',
+          position: 'absolute', top: '-8px', right: '-8px',
+          width: '22px', height: '22px', borderRadius: '50%',
           background: '#FF4E00', border: '1.5px solid #1A1B2E',
-          color: '#1A1B2E', fontSize: '12px', lineHeight: 1,
+          color: '#1A1B2E', fontSize: '13px', lineHeight: 1,
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontWeight: 'bold', boxShadow: '0 0 6px rgba(255,78,0,0.6)',
+          fontWeight: 'bold', boxShadow: '0 0 8px rgba(255,78,0,0.6)',
         }}
       >×</button>
       {/* Title */}
       <p style={{
-        marginTop: '5px', fontSize: '9px', color: 'rgba(200,200,200,0.65)',
-        fontFamily: 'Special Elite, serif', textAlign: 'center', lineHeight: 1.25,
+        marginTop: '6px', fontSize: '10px', color: 'rgba(200,200,200,0.65)',
+        fontFamily: 'Special Elite, serif', textAlign: 'center', lineHeight: 1.3,
         overflow: 'hidden', display: '-webkit-box',
         WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
       }}>{book.title}</p>
@@ -294,10 +290,10 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
 // ── Main Profile component ──────────────────────────────────────────────────
 export default function Profile({ onBack, selectedStates = [] }) {
   const { user } = useAuth();
-  const tripItems = getTrip();
 
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
   const [favoriteBooks, setFavoriteBooks] = useState([]);
+  const [tripCount, setTripCount] = useState(0);
   const [showBookModal, setShowBookModal] = useState(false);
 
   // Real-time sync: onSnapshot fires immediately on mount and on any cross-device change
@@ -306,8 +302,12 @@ export default function Profile({ onBack, selectedStates = [] }) {
     const ref = doc(db, 'users', user.uid);
     const unsub = onSnapshot(
       ref,
-      (snap) => { if (snap.exists()) setFavoriteBooks(snap.data().favoriteBooks || []); },
-      (err) => console.error('[Profile] books snapshot:', err),
+      (snap) => {
+        if (!snap.exists()) return;
+        setFavoriteBooks(snap.data().favoriteBooks || []);
+        setTripCount((snap.data().trip || []).length);
+      },
+      (err) => console.error('[Profile] snapshot:', err),
     );
     return unsub;
   }, [user]);
@@ -389,7 +389,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
       {/* Stats grid */}
       <div className="w-full max-w-lg grid grid-cols-2 gap-3 mb-5">
         {[
-          { icon: '📍', label: 'Stops Saved', value: tripItems.length },
+          { icon: '📍', label: 'Stops Saved', value: tripCount },
           { icon: '🗺️', label: 'States Explored', value: selectedStates.length || '—' },
         ].map(({ icon, label, value }) => (
           <div key={label} className="rounded-xl p-4 flex flex-col items-center gap-1"
@@ -427,7 +427,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
             No favorites yet — add up to 4 books
           </p>
         ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', paddingTop: '16px', paddingBottom: '4px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', paddingTop: '18px', paddingBottom: '4px' }}>
             {favoriteBooks.map((book) => (
               <BookCover key={book.id} book={book} onRemove={handleRemoveBook} />
             ))}
@@ -435,40 +435,20 @@ export default function Profile({ onBack, selectedStates = [] }) {
               <button
                 onClick={() => setShowBookModal(true)}
                 style={{
-                  flexShrink: 0, width: '64px', height: '90px',
-                  borderRadius: '4px', border: '2px dashed rgba(64,224,208,0.25)',
+                  flexShrink: 0, width: '88px', height: '124px',
+                  borderRadius: '5px', border: '2px dashed rgba(64,224,208,0.25)',
                   background: 'transparent', cursor: 'pointer',
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  gap: '4px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
+                  gap: '6px', color: 'rgba(64,224,208,0.4)', transition: 'border-color 0.2s, color 0.2s',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.6)'; e.currentTarget.style.color = 'rgba(64,224,208,0.7)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.25)'; e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
               >
-                <span style={{ fontSize: '20px' }}>+</span>
-                <span className="font-bungee" style={{ fontSize: '7px', letterSpacing: '0.08em' }}>ADD</span>
+                <span style={{ fontSize: '26px' }}>+</span>
+                <span className="font-bungee" style={{ fontSize: '8px', letterSpacing: '0.08em' }}>ADD BOOK</span>
               </button>
             )}
           </div>
-        )}
-      </div>
-
-      {/* Top Literary Stops */}
-      <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-        <h2 className="font-bungee text-sm mb-3" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
-          TOP LITERARY STOPS
-        </h2>
-        {tripItems.length === 0 ? (
-          <p className="font-special-elite text-chrome-silver text-sm text-center py-4 italic">Start planning your route!</p>
-        ) : (
-          <ul className="space-y-2">
-            {tripItems.slice(0, 5).map((item, i) => (
-              <li key={item.id} className="flex items-center gap-3">
-                <span className="font-bungee text-atomic-orange text-xs w-4 flex-shrink-0">{i + 1}</span>
-                <span className="text-sm flex-shrink-0">{MARKER_LABELS[item.type] || '📌'}</span>
-                <span className="font-special-elite text-paper-white text-sm truncate">{item.name}</span>
-              </li>
-            ))}
-          </ul>
         )}
       </div>
 

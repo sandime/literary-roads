@@ -230,7 +230,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [tripItems, setTripItems] = useState(() => getTrip());
+  const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
@@ -248,27 +248,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
 
-  // Real-time Firestore trip sync for authenticated users
+  // Trip source: Firestore for auth users, localStorage for guests — never mixed
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Guest: load from localStorage, no Firestore involved
+      setTripItems(getTrip());
+      return;
+    }
+    // Auth user: clear any stale state immediately, then stream from Firestore
+    setTripItems([]);
     const ref = doc(db, 'users', user.uid);
     const unsub = onSnapshot(
       ref,
-      (snap) => {
-        if (!snap.exists()) return;
-        const data = snap.data();
-        if (data.trip !== undefined) {
-          // Firestore is authoritative — sync to local state + localStorage
-          const firestoreTrip = data.trip || [];
-          setTripItems(firestoreTrip);
-          localStorage.setItem('literary-roads-trip', JSON.stringify(firestoreTrip));
-        } else {
-          // First time: push existing localStorage trip up to Firestore
-          const localItems = getTrip();
-          setDoc(ref, { trip: localItems }, { merge: true }).catch(console.error);
-        }
-      },
-      (err) => console.error('[MasterMap] trip snapshot:', err),
+      (snap) => { setTripItems(snap.exists() ? (snap.data().trip || []) : []); },
+      (err) => console.error('[MasterMap] trip sync:', err),
     );
     return unsub;
   }, [user]);
@@ -280,20 +273,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
   };
 
   const handleTripToggle = (location) => {
-    let updated;
     if (tripIds.has(location.id)) {
-      updated = removeFromTrip(location.id);
+      const updated = tripItems.filter((i) => i.id !== location.id);
+      setTripItems(updated);
+      if (user) { saveTripToFirestore(updated); } else { removeFromTrip(location.id); }
     } else {
-      updated = addToTrip(location);
+      const updated = [...tripItems, location];
+      setTripItems(updated);
+      if (user) { saveTripToFirestore(updated); } else { addToTrip(location); }
     }
-    setTripItems(updated);
-    saveTripToFirestore(updated);
   };
 
   const handleClearTrip = () => {
-    const updated = clearTrip();
-    setTripItems(updated);
-    saveTripToFirestore(updated);
+    setTripItems([]);
+    if (user) { saveTripToFirestore([]); } else { clearTrip(); }
   };
 
   // State centers for initial zoom
