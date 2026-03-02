@@ -321,10 +321,11 @@ export default function Resources({ onBack }) {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      position: 'fixed', inset: 0,
       background: 'radial-gradient(ellipse at 50% 0%, #0e1030 0%, #090A1A 45%, #04050F 100%)',
       color: '#F5F5DC',
       overflowY: 'auto',
+      WebkitOverflowScrolling: 'touch',
     }}>
 
       {/* ── Header bar ── */}
