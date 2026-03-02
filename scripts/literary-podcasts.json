@@ -1,0 +1,68 @@
+[
+  {
+    "id": "between-the-covers",
+    "title": "Between the Covers",
+    "host": "David Naimon",
+    "description": "In-depth conversations with fiction writers about craft, process, and the life of writing.",
+    "url": "https://tinhouse.com/podcast/",
+    "rssUrl": "https://feeds.simplecast.com/S6Rn3lNt",
+    "tags": ["Craft & Conversations", "Fiction", "Interviews"],
+    "emoji": "🎙️",
+    "active": true
+  },
+  {
+    "id": "new-yorker-fiction",
+    "title": "The New Yorker Fiction Podcast",
+    "host": "Deborah Treisman",
+    "description": "A prominent author reads and discusses a classic story from the New Yorker archive.",
+    "url": "https://www.newyorker.com/podcast/fiction",
+    "rssUrl": "https://feeds.feedburner.com/newyorkerfiction",
+    "tags": ["Short Fiction", "Classics", "Interviews"],
+    "emoji": "📖",
+    "active": true
+  },
+  {
+    "id": "book-riot",
+    "title": "Book Riot Podcast",
+    "host": "Rebecca Schinsky & Jeff O'Neal",
+    "description": "Book news, recommendations, and the reading life — for the obsessed reader.",
+    "url": "https://bookriot.com/category/podcast/",
+    "rssUrl": "https://feeds.simplecast.com/kkO45b9T",
+    "tags": ["Book Culture", "Recommendations", "General"],
+    "emoji": "📚",
+    "active": true
+  },
+  {
+    "id": "literary-disco",
+    "title": "Literary Disco",
+    "host": "Rider Strong, Julia Pistell & Tod Goldberg",
+    "description": "Three writers geek out on books, movies, and culture with warmth and humor.",
+    "url": "http://literarydisco.com",
+    "rssUrl": "",
+    "tags": ["Book Talk", "Culture", "Humor"],
+    "emoji": "🎧",
+    "active": true
+  },
+  {
+    "id": "backlisted",
+    "title": "Backlisted",
+    "host": "John Mitchinson & Andy Miller",
+    "description": "Rediscovering overlooked, forgotten, and underrated books with infectious enthusiasm.",
+    "url": "https://backlisted.fm",
+    "rssUrl": "https://backlisted.fm/feed/podcast/",
+    "tags": ["Classics & Rediscovery", "Overlooked Books"],
+    "emoji": "🔍",
+    "active": true
+  },
+  {
+    "id": "shakespeare-unlimited",
+    "title": "Shakespeare Unlimited",
+    "host": "Folger Shakespeare Library",
+    "description": "Interviews with scholars, actors, and artists about Shakespeare's life, work, and legacy.",
+    "url": "https://www.folger.edu/shakespeare-unlimited",
+    "rssUrl": "https://feeds.soundcloud.com/users/soundcloud:users:172014056/sounds.rss",
+    "tags": ["Literary History", "Theater", "Scholars"],
+    "emoji": "🎭",
+    "active": true
+  }
+]
