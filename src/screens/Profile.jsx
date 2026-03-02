@@ -478,7 +478,7 @@ export default function Profile({ onBack, selectedStates = [] }) {
         <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
           Literary landmarks courtesy of the{' '}
           <a
-            href="https://www.ala.org/united/literary_landmarks"
+            href="https://www.ala.org/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-starlight-turquoise hover:text-atomic-orange transition-colors underline"

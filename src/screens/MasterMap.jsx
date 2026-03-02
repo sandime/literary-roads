@@ -947,18 +947,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
               <p className="font-special-elite mt-3 pt-3 border-t border-white/10"
                 style={{ fontSize: '10px', color: 'rgba(192,192,192,0.55)', lineHeight: '1.4' }}>
                 Literary landmark courtesy of the{' '}
-                {selectedLocation.sourceUrl ? (
-                  <a
-                    href={selectedLocation.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: 'rgba(64,224,208,0.6)', textDecoration: 'underline' }}
-                  >
-                    American Library Association
-                  </a>
-                ) : (
-                  'American Library Association'
-                )}
+                <a
+                  href="https://www.ala.org/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: 'rgba(64,224,208,0.6)', textDecoration: 'underline' }}
+                >
+                  American Library Association
+                </a>
               </p>
             )}
           </div>

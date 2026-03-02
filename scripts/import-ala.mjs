@@ -158,7 +158,7 @@ function parseLandmarks() {
       year:        dedicatedYear,
       type:        'landmark',
       source:      'ALA',
-      sourceUrl:   'https://www.ala.org/united/literary_landmarks',
+      sourceUrl:   'https://www.ala.org/',
     });
   }
 
