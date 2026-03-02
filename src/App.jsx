@@ -5,10 +5,11 @@ import StateSelector from './screens/StateSelector';
 import MasterMap from './screens/MasterMap';
 import Login from './screens/Login';
 import Profile from './screens/Profile';
+import Resources from './screens/Resources';
 import './App.css';
 
 function AppInner() {
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
 
@@ -34,6 +35,11 @@ function AppInner() {
     setScreen('profile');
   };
 
+  const handleShowResources = () => {
+    setPreviousScreen(screen);
+    setScreen('resources');
+  };
+
   const handleAuthBack = () => {
     setScreen(previousScreen || 'stateSelector');
   };
@@ -54,6 +60,7 @@ function AppInner() {
           onHome={handleHome}
           onShowProfile={handleShowProfile}
           onShowLogin={handleShowLogin}
+          onShowResources={handleShowResources}
         />
       )}
       {screen === 'login' && (
@@ -68,6 +75,9 @@ function AppInner() {
           onBack={handleAuthBack}
           selectedStates={selectedStates}
         />
+      )}
+      {screen === 'resources' && (
+        <Resources onBack={handleAuthBack} />
       )}
     </>
   );

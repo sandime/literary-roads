@@ -220,7 +220,7 @@ const createCustomIcon = (type) => {
   });
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources }) => {
   const { user, logout } = useAuth();
   const [startCity, setStartCity] = useState('');
   const [endCity, setEndCity] = useState('');
@@ -599,6 +599,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin }) => {
                   {tripItems.length > 9 ? '9+' : tripItems.length}
                 </span>
               )}
+            </button>
+
+            {/* Highway Snacks button */}
+            <button
+              onClick={onShowResources}
+              title="Highway Snacks"
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            >
+              {/* Coffee cup icon */}
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
+              </svg>
+              <span className="md:hidden font-bungee text-[9px] leading-tight">SNACKS</span>
+              <span className="hidden md:inline font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
             </button>
 
             {/* Profile / Login button + dropdown */}
