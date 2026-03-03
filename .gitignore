@@ -38,3 +38,7 @@ dist-ssr
 .firebase
 .firebaserc
 firebase-debug.log
+.env
+
+# Generated discovery output
+scripts/podcasts-discovered.json
