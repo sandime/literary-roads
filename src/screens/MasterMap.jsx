@@ -10,6 +10,7 @@ import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import RoadTrip from './RoadTrip';
+import Guestbook from '../components/Guestbook';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -893,7 +894,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {selectedLocation && (
         <div
           className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
-          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: '50vh', zIndex: 1001 }}
+          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: '65vh', zIndex: 1001 }}
         >
           <div className="h-2 flex-shrink-0 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
 
@@ -972,6 +973,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 </a>
               </p>
             )}
+
+            <Guestbook
+              key={selectedLocation.id}
+              locationId={selectedLocation.id}
+              user={user}
+              onShowLogin={onShowLogin}
+            />
           </div>
 
           {/* Sticky buttons — always visible at bottom */}

@@ -1,5 +1,19 @@
 [
   {
+    "id": "what-should-i-read-next",
+    "title": "What Should I Read Next?",
+    "host": "Anne Bogel",
+    "description": "Anne Bogel — the blogger behind Modern Mrs. Darcy — talks books with readers, helping them find their next great read by dissecting what they love and what leaves them cold.",
+    "url": "https://modernmrsdarcy.com/what-should-i-read-next/",
+    "rssUrl": "https://feeds.simplecast.com/W_9rTEj_",
+    "tags": [
+      "Book Recommendations",
+      "Book Culture"
+    ],
+    "emoji": "📚",
+    "active": true,
+  },
+  {
     "id": "between-the-covers",
     "title": "Between the Covers",
     "host": "David Naimon",
@@ -9,6 +23,22 @@
     "tags": ["Craft & Conversations", "Fiction", "Interviews"],
     "emoji": "🎙️",
     "active": true
+  },
+  {
+    "id": "nyt-book-review",
+    "title": "The Book Review",
+    "host": "New York Times",
+    "description": "The New York Times Book Review podcast features author interviews, discussions of the week's notable new books, and conversations about literature and the publishing world.",
+    "url": "https://www.nytimes.com/column/book-review-podcast",
+    "rssUrl": "https://rss.nytimes.com/services/xml/rss/nyt/Books.xml",
+    "tags": [
+      "Book News",
+      "Literary Criticism",
+      "Interviews"
+    ],
+    "emoji": "📰",
+    "active": true,
+  
   },
   {
     "id": "new-yorker-fiction",
@@ -55,6 +85,20 @@
     "active": true
   },
   {
+    "id": "3-books-with-neil-pasricha",
+    "title": "3 Books With Neil Pasricha",
+    "host": "Neil Pasricha: Bestselling Author",
+    "description": "3 Books is a completely insane and totally epic 22-year-long quest to uncover and discuss the 1000 most formative books in the world. Each chapter discusses the 3 most formative books of one of the world's most inspiring people. Sample guests include: Brené Brown, David Sedaris, Malcolm Gladwell, Roxane Gay, Cheryl Strayed, Rich Roll, Soyoung the Variety Store Owner, Derek the Hype Man, Kevin the Bookseller, Shirley The Nurse, Vishwas the Uber Driver, Angie Thomas, David Mitchell, Surgeon General Vivek Murthy, Mark Manson, Seth Godin, Judy Blume, and Quentin Tarantino. 3 Books is published on the lunar calendar with each of the 333 chapters dropped on the exact minute of every single full moon all the way up to 10:37 PM EST on April 26, 2040. 3 Books is an Apple \"Best Of\" award-winning show and is 100% non-profit with no ads, no sponsors, no commercials, and no interruptions. 3 Books has 3 clubs including the End of the Podcast Club, the Cover to Cover Club, and the Secret Club, which operates entirely through the mail and is only accessible by calling 1-833-READ-A-LOT. Each chapter is hosted live and in-person at the guest's preferred location by Neil Pasricha, New York Times bestselling author of The Book of Awesome, The Happiness Equation, Two-Minute Mornings, etc. For more info check out: https://www.3books.co",
+    "url": "http://www.3books.co?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Social Sciences",
+      "Music"
+    ],
+    "emoji": "🎙️",
+    "active": true,
+ },
+  {
     "id": "shakespeare-unlimited",
     "title": "Shakespeare Unlimited",
     "host": "Folger Shakespeare Library",
@@ -64,5 +108,18 @@
     "tags": ["Literary History", "Theater", "Scholars"],
     "emoji": "🎭",
     "active": true
-  }
+  },
+  {
+    "id": "ask-penguin",
+    "title": "Ask Penguin",
+    "host": "Penguin Books UK",
+    "description": "What Should I Read next? Ask Penguin is the podcast where your quirkiest, trickiest, and most urgent book questions get answered. Hosted by Rhianna Dhillon, we bring bestselling authors and Penguin insiders to explore some of your favourite books and discover new ones that you are yet to read.&nbsp; Hosted on Acast. See acast.com/privacy for more information.",
+    "url": "https://www.penguin.co.uk/discover/podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Music"
+    ],
+    "emoji": "🎙️",
+    "active": true,
+  },
 ]
