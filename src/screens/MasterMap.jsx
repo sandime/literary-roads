@@ -23,6 +23,61 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+// Major city suggestions per state — drives smart placeholder text in the route planner
+const STATE_MAJOR_CITIES = {
+  'Alabama':              { abbr: 'AL', cities: ['Birmingham', 'Montgomery', 'Mobile'] },
+  'Alaska':               { abbr: 'AK', cities: ['Anchorage', 'Fairbanks', 'Juneau'] },
+  'Arizona':              { abbr: 'AZ', cities: ['Phoenix', 'Tucson', 'Flagstaff'] },
+  'Arkansas':             { abbr: 'AR', cities: ['Little Rock', 'Fayetteville', 'Fort Smith'] },
+  'California':           { abbr: 'CA', cities: ['Los Angeles', 'San Francisco', 'San Diego'] },
+  'Colorado':             { abbr: 'CO', cities: ['Denver', 'Boulder', 'Colorado Springs'] },
+  'Connecticut':          { abbr: 'CT', cities: ['Hartford', 'New Haven', 'Mystic'] },
+  'Delaware':             { abbr: 'DE', cities: ['Wilmington', 'Dover', 'Newark'] },
+  'Florida':              { abbr: 'FL', cities: ['Miami', 'Orlando', 'Tampa'] },
+  'Georgia':              { abbr: 'GA', cities: ['Atlanta', 'Savannah', 'Athens'] },
+  'Hawaii':               { abbr: 'HI', cities: ['Honolulu', 'Hilo', 'Kailua'] },
+  'Idaho':                { abbr: 'ID', cities: ['Boise', 'Idaho Falls', 'Coeur d\'Alene'] },
+  'Illinois':             { abbr: 'IL', cities: ['Chicago', 'Springfield', 'Galena'] },
+  'Indiana':              { abbr: 'IN', cities: ['Indianapolis', 'Bloomington', 'Fort Wayne'] },
+  'Iowa':                 { abbr: 'IA', cities: ['Des Moines', 'Iowa City', 'Cedar Rapids'] },
+  'Kansas':               { abbr: 'KS', cities: ['Kansas City', 'Wichita', 'Lawrence'] },
+  'Kentucky':             { abbr: 'KY', cities: ['Louisville', 'Lexington', 'Bowling Green'] },
+  'Louisiana':            { abbr: 'LA', cities: ['New Orleans', 'Baton Rouge', 'Lafayette'] },
+  'Maine':                { abbr: 'ME', cities: ['Portland', 'Bar Harbor', 'Augusta'] },
+  'Maryland':             { abbr: 'MD', cities: ['Baltimore', 'Annapolis', 'Frederick'] },
+  'Massachusetts':        { abbr: 'MA', cities: ['Boston', 'Cambridge', 'Concord'] },
+  'Michigan':             { abbr: 'MI', cities: ['Detroit', 'Ann Arbor', 'Grand Rapids'] },
+  'Minnesota':            { abbr: 'MN', cities: ['Minneapolis', 'St. Paul', 'Duluth'] },
+  'Mississippi':          { abbr: 'MS', cities: ['Jackson', 'Oxford', 'Natchez'] },
+  'Missouri':             { abbr: 'MO', cities: ['St. Louis', 'Kansas City', 'Hannibal'] },
+  'Montana':              { abbr: 'MT', cities: ['Missoula', 'Bozeman', 'Billings'] },
+  'Nebraska':             { abbr: 'NE', cities: ['Omaha', 'Lincoln', 'Grand Island'] },
+  'Nevada':               { abbr: 'NV', cities: ['Las Vegas', 'Reno', 'Carson City'] },
+  'New Hampshire':        { abbr: 'NH', cities: ['Portsmouth', 'Manchester', 'Concord'] },
+  'New Jersey':           { abbr: 'NJ', cities: ['Newark', 'Princeton', 'Jersey City'] },
+  'New Mexico':           { abbr: 'NM', cities: ['Santa Fe', 'Albuquerque', 'Taos'] },
+  'New York':             { abbr: 'NY', cities: ['New York City', 'Buffalo', 'Albany'] },
+  'North Carolina':       { abbr: 'NC', cities: ['Asheville', 'Charlotte', 'Raleigh'] },
+  'North Dakota':         { abbr: 'ND', cities: ['Fargo', 'Bismarck', 'Grand Forks'] },
+  'Ohio':                 { abbr: 'OH', cities: ['Columbus', 'Cleveland', 'Cincinnati'] },
+  'Oklahoma':             { abbr: 'OK', cities: ['Oklahoma City', 'Tulsa', 'Norman'] },
+  'Oregon':               { abbr: 'OR', cities: ['Portland', 'Eugene', 'Ashland'] },
+  'Pennsylvania':         { abbr: 'PA', cities: ['Philadelphia', 'Pittsburgh', 'Gettysburg'] },
+  'Rhode Island':         { abbr: 'RI', cities: ['Providence', 'Newport', 'Bristol'] },
+  'South Carolina':       { abbr: 'SC', cities: ['Charleston', 'Columbia', 'Beaufort'] },
+  'South Dakota':         { abbr: 'SD', cities: ['Rapid City', 'Sioux Falls', 'Deadwood'] },
+  'Tennessee':            { abbr: 'TN', cities: ['Nashville', 'Memphis', 'Knoxville'] },
+  'Texas':                { abbr: 'TX', cities: ['Austin', 'Houston', 'San Antonio'] },
+  'Utah':                 { abbr: 'UT', cities: ['Salt Lake City', 'Moab', 'Provo'] },
+  'Vermont':              { abbr: 'VT', cities: ['Burlington', 'Montpelier', 'Stowe'] },
+  'Virginia':             { abbr: 'VA', cities: ['Richmond', 'Charlottesville', 'Alexandria'] },
+  'Washington':           { abbr: 'WA', cities: ['Seattle', 'Spokane', 'Olympia'] },
+  'West Virginia':        { abbr: 'WV', cities: ['Charleston', 'Morgantown', 'Harpers Ferry'] },
+  'Wisconsin':            { abbr: 'WI', cities: ['Milwaukee', 'Madison', 'Green Bay'] },
+  'Wyoming':              { abbr: 'WY', cities: ['Cheyenne', 'Jackson', 'Laramie'] },
+  'District of Columbia': { abbr: 'DC', cities: ['Washington'] },
+};
+
 // City autocomplete input with Googie-style dropdown
 const CityAutocomplete = ({ value, onChange, placeholder, className, style }) => {
   const [suggestions, setSuggestions] = useState([]);
@@ -248,6 +303,25 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   }, [showUserMenu]);
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
+
+  // Smart placeholder city hints: first selected state → start, last selected state → end
+  const cityHint = useMemo(() => {
+    if (!selectedStates.length) return { start: null, end: null };
+    const firstInfo = STATE_MAJOR_CITIES[selectedStates[0]];
+    const lastInfo  = STATE_MAJOR_CITIES[selectedStates[selectedStates.length - 1]];
+    if (selectedStates.length === 1 && firstInfo) {
+      // Single state: suggest two different cities so start ≠ end
+      const endCity = firstInfo.cities[1] ?? firstInfo.cities[0];
+      return {
+        start: `${firstInfo.cities[0]}, ${firstInfo.abbr}`,
+        end:   `${endCity}, ${firstInfo.abbr}`,
+      };
+    }
+    return {
+      start: firstInfo ? `${firstInfo.cities[0]}, ${firstInfo.abbr}` : null,
+      end:   lastInfo  ? `${lastInfo.cities[0]}, ${lastInfo.abbr}`   : null,
+    };
+  }, [selectedStates]);
 
   // Trip source: Firestore for auth users, localStorage for guests — never mixed
   useEffect(() => {
@@ -789,14 +863,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
-                  placeholder={selectedStates.length > 1 ? 'Starting city, e.g. Memphis, TN' : 'Starting city, e.g. New York City'}
+                  placeholder={cityHint.start ? `Starting city — e.g. ${cityHint.start}` : 'Starting city, e.g. New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
                 />
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
-                  placeholder={selectedStates.length > 1 ? 'Destination city, e.g. Chicago, IL' : 'Destination city, e.g. Buffalo'}
+                  placeholder={cityHint.end ? `Destination — e.g. ${cityHint.end}` : 'Destination city, e.g. Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
                 />
@@ -841,7 +915,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
-                  placeholder={selectedStates.length > 1 ? 'e.g., Memphis, TN' : 'e.g., New York City'}
+                  placeholder={cityHint.start ? `e.g., ${cityHint.start}` : 'e.g., New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
                 />
@@ -851,7 +925,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
-                  placeholder={selectedStates.length > 1 ? 'e.g., Chicago, IL' : 'e.g., Buffalo'}
+                  placeholder={cityHint.end ? `e.g., ${cityHint.end}` : 'e.g., Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
                 />
