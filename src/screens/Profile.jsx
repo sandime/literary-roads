@@ -288,7 +288,7 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
 }
 
 // ── Main Profile component ──────────────────────────────────────────────────
-export default function Profile({ onBack, selectedStates = [] }) {
+export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) {
   const { user } = useAuth();
 
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
@@ -389,19 +389,65 @@ export default function Profile({ onBack, selectedStates = [] }) {
         </div>
       </div>
 
-      {/* Stats grid */}
+      {/* Stats + Book Log row */}
       <div className="w-full max-w-lg grid grid-cols-2 gap-3 mb-5">
-        {[
-          { icon: '📍', label: 'Stops Saved', value: tripCount },
-          { icon: '🗺️', label: 'States Explored', value: visitedCount || '—' },
-        ].map(({ icon, label, value }) => (
-          <div key={label} className="rounded-xl p-4 flex flex-col items-center gap-1"
-            style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-            <span className="text-2xl">{icon}</span>
-            <span className="font-bungee text-2xl" style={{ color: '#FF4E00', textShadow: '0 0 10px rgba(255,78,0,0.5)' }}>{value}</span>
-            <span className="font-special-elite text-chrome-silver text-xs text-center">{label}</span>
+        {/* Stops Saved stat */}
+        <div className="rounded-xl p-4 flex flex-col items-center gap-1"
+          style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+          <span className="text-2xl">📍</span>
+          <span className="font-bungee text-2xl" style={{ color: '#FF4E00', textShadow: '0 0 10px rgba(255,78,0,0.5)' }}>{tripCount}</span>
+          <span className="font-special-elite text-chrome-silver text-xs text-center">Stops Saved</span>
+        </div>
+
+        {/* BOOK LOG — Googie trapezoid button */}
+        <button
+          onClick={onShowBookLog}
+          style={{
+            position: 'relative',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {/* Outer glow layer (pink) */}
+          <div style={{
+            position: 'absolute', inset: '-3px',
+            clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
+            background: 'linear-gradient(135deg, #FF4FD8, #39FF14)',
+            filter: 'blur(6px)',
+            opacity: 0.75,
+          }} />
+          {/* Button face */}
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
+            background: 'linear-gradient(160deg, #00D9FF 0%, #0099CC 100%)',
+            border: '2px solid transparent',
+            backgroundClip: 'padding-box',
+            padding: '18px 12px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            gap: '4px',
+            boxShadow: 'inset 0 0 20px rgba(0,217,255,0.3), 0 0 18px rgba(0,217,255,0.5)',
+          }}>
+            {/* Neon inner border highlight */}
+            <div style={{
+              position: 'absolute', inset: '3px',
+              clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
+              border: '1px solid rgba(255,255,255,0.35)',
+              pointerEvents: 'none',
+            }} />
+            <span className="font-bungee" style={{
+              fontSize: '13px', letterSpacing: '0.08em', color: '#0A1A2F',
+              textShadow: '0 1px 0 rgba(255,255,255,0.4)',
+              lineHeight: 1.1,
+            }}>BOOK LOG</span>
           </div>
-        ))}
+        </button>
       </div>
 
       {/* ── Favorite Books ── (above stops so it's always visible on mobile) */}

@@ -6,10 +6,11 @@ import MasterMap from './screens/MasterMap';
 import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
+import BookLog from './screens/BookLog';
 import './App.css';
 
 function AppInner() {
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
 
@@ -51,6 +52,14 @@ function AppInner() {
     setScreen('resources');
   };
 
+  const handleShowBookLog = () => {
+    setPreviousScreen(screen);
+    setScreen('bookLog');
+  };
+
+  // Profile is only ever opened from the map, so its back always returns to map.
+  const handleProfileBack = () => setScreen('map');
+
   const handleAuthBack = () => {
     setScreen(previousScreen || 'stateSelector');
   };
@@ -84,9 +93,13 @@ function AppInner() {
       )}
       {screen === 'profile' && (
         <Profile
-          onBack={handleAuthBack}
+          onBack={handleProfileBack}
+          onShowBookLog={handleShowBookLog}
           selectedStates={selectedStates}
         />
+      )}
+      {screen === 'bookLog' && (
+        <BookLog onBack={handleAuthBack} />
       )}
       {screen === 'resources' && (
         <Resources onBack={handleAuthBack} />
