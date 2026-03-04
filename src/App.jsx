@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import Odometer from './screens/Odometer';
 import StateSelector from './screens/StateSelector';
@@ -13,6 +13,15 @@ function AppInner() {
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
 
+  // Persists route state across navigation so the map restores when returning
+  const routeStateRef = useRef({
+    startCity: '',
+    endCity: '',
+    route: [],
+    visibleLocations: [],
+    showPlanner: true,
+  });
+
   const handleLoadingComplete = () => setScreen('stateSelector');
 
   const handleStateSelect = (statesArray) => {
@@ -21,6 +30,8 @@ function AppInner() {
   };
 
   const handleHome = () => {
+    // Clear saved route when going back to state selection
+    routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
     setSelectedStates([]);
     setScreen('stateSelector');
   };
@@ -61,6 +72,7 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
+          routeStateRef={routeStateRef}
         />
       )}
       {screen === 'login' && (

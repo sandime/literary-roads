@@ -387,13 +387,15 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, routeStateRef }) => {
   const { user, logout } = useAuth();
-  const [startCity, setStartCity] = useState('');
-  const [endCity, setEndCity] = useState('');
-  const [route, setRoute] = useState([]);
-  const [visibleLocations, setVisibleLocations] = useState([]);
-  const [showPlanner, setShowPlanner] = useState(true);
+  // Initialize from saved ref so route survives navigating away and back
+  const saved = routeStateRef?.current ?? {};
+  const [startCity, setStartCity] = useState(saved.startCity ?? '');
+  const [endCity, setEndCity] = useState(saved.endCity ?? '');
+  const [route, setRoute] = useState(saved.route ?? []);
+  const [visibleLocations, setVisibleLocations] = useState(saved.visibleLocations ?? []);
+  const [showPlanner, setShowPlanner] = useState(saved.showPlanner ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -414,6 +416,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
+
+  // Sync route state back to ref so it survives navigation (MasterMap unmounts/remounts)
+  useEffect(() => { if (routeStateRef) routeStateRef.current.startCity = startCity; }, [startCity, routeStateRef]);
+  useEffect(() => { if (routeStateRef) routeStateRef.current.endCity = endCity; }, [endCity, routeStateRef]);
+  useEffect(() => { if (routeStateRef) routeStateRef.current.route = route; }, [route, routeStateRef]);
+  useEffect(() => { if (routeStateRef) routeStateRef.current.visibleLocations = visibleLocations; }, [visibleLocations, routeStateRef]);
+  useEffect(() => { if (routeStateRef) routeStateRef.current.showPlanner = showPlanner; }, [showPlanner, routeStateRef]);
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
 
@@ -453,6 +462,24 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     );
     return unsub;
   }, [user]);
+
+  // Clear the plotted route when the user logs out
+  const prevUserRef = useRef(user);
+  useEffect(() => {
+    if (prevUserRef.current !== null && user === null) {
+      setRoute([]);
+      setVisibleLocations([]);
+      setStartCity('');
+      setEndCity('');
+      setError('');
+      setSelectedLocation(null);
+      setShowPlanner(true);
+      if (routeStateRef) {
+        routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
+      }
+    }
+    prevUserRef.current = user;
+  }, [user, routeStateRef]);
 
   const saveTripToFirestore = (items) => {
     if (!user) return;

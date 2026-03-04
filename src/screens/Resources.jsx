@@ -1,67 +1,9 @@
 import { useState, useEffect } from 'react';
-import { doc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 
 const MAX_FAVORITES = 5;
-
-// ── Podcast data ───────────────────────────────────────────────────────────
-const PODCASTS = [
-  {
-    id: 'between-the-covers',
-    title: 'Between the Covers',
-    host: 'David Naimon',
-    description: 'In-depth conversations with fiction writers about craft, process, and the life of writing.',
-    url: 'https://tinhouse.com/podcast/',
-    tag: 'Craft & Conversations',
-    emoji: '🎙️',
-  },
-  {
-    id: 'new-yorker-fiction',
-    title: 'The New Yorker Fiction Podcast',
-    host: 'Deborah Treisman',
-    description: 'A prominent author reads and discusses a classic story from the New Yorker archive.',
-    url: 'https://www.newyorker.com/podcast/fiction',
-    tag: 'Short Fiction',
-    emoji: '📖',
-  },
-  {
-    id: 'book-riot',
-    title: 'Book Riot Podcast',
-    host: 'Rebecca Schinsky & Jeff O\'Neal',
-    description: 'Book news, recommendations, and the reading life — for the obsessed reader.',
-    url: 'https://bookriot.com/category/podcast/',
-    tag: 'Book Culture',
-    emoji: '📚',
-  },
-  {
-    id: 'literary-disco',
-    title: 'Literary Disco',
-    host: 'Rider Strong, Julia Pistell & Tod Goldberg',
-    description: 'Three writers geek out on books, movies, and culture with warmth and humor.',
-    url: 'http://literarydisco.com',
-    tag: 'Book Talk',
-    emoji: '🎧',
-  },
-  {
-    id: 'backlisted',
-    title: 'Backlisted',
-    host: 'John Mitchinson & Andy Miller',
-    description: 'Rediscovering overlooked, forgotten, and underrated books with infectious enthusiasm.',
-    url: 'https://backlisted.fm',
-    tag: 'Classics & Rediscovery',
-    emoji: '🔍',
-  },
-  {
-    id: 'shakespeare-unlimited',
-    title: 'Shakespeare Unlimited',
-    host: 'Folger Shakespeare Library',
-    description: 'Interviews with scholars, actors, and artists about Shakespeare\'s life, work, and legacy.',
-    url: 'https://www.folger.edu/shakespeare-unlimited',
-    tag: 'Literary History',
-    emoji: '🎭',
-  },
-];
 
 // ── Coming-soon sections ───────────────────────────────────────────────────
 const COMING_SOON = [
@@ -265,9 +207,39 @@ function Toast({ message, onDismiss }) {
 // ── Main component ─────────────────────────────────────────────────────────
 export default function Resources({ onBack }) {
   const { user } = useAuth();
+  const [podcasts,  setPodcasts]  = useState([]);
+  const [podLoading, setPodLoading] = useState(true);
   const [favIds,    setFavIds]    = useState([]);   // string[]
   const [toast,     setToast]     = useState(null); // string | null
   const [saving,    setSaving]    = useState(false);
+
+  // Fetch podcasts from Firestore literary_podcasts collection
+  useEffect(() => {
+    console.log('[Resources] Fetching literary_podcasts from Firestore…');
+    getDocs(collection(db, 'literary_podcasts'))
+      .then((snap) => {
+        console.log(`[Resources] Got ${snap.size} podcast docs`);
+        const data = snap.docs.map((d) => {
+          const p = d.data();
+          return {
+            id: d.id,
+            title: p.title || '',
+            host: p.host || '',
+            description: p.description || '',
+            url: p.url || '#',
+            emoji: p.emoji || '🎙️',
+            // Firestore stores tags as array; PodcastCard renders a single tag string
+            tag: Array.isArray(p.tags) ? p.tags[0] || '' : (p.tags || ''),
+          };
+        });
+        console.log('[Resources] Podcasts loaded:', data.map((p) => p.title));
+        setPodcasts(data);
+      })
+      .catch((err) => {
+        console.error('[Resources] Failed to load podcasts — code:', err.code, '| message:', err.message);
+      })
+      .finally(() => setPodLoading(false));
+  }, []);
 
   // Real-time sync with Firestore (same pattern as Profile)
   useEffect(() => {
@@ -307,9 +279,9 @@ export default function Resources({ onBack }) {
     persist(updated);
   };
 
-  const favPodcasts  = PODCASTS.filter((p) => favIds.includes(p.id));
-  const otherPodcasts = PODCASTS.filter((p) => !favIds.includes(p.id));
-  const canFavorite  = favIds.length < MAX_FAVORITES;
+  const favPodcasts   = podcasts.filter((p) => favIds.includes(p.id));
+  const otherPodcasts = podcasts.filter((p) => !favIds.includes(p.id));
+  const canFavorite   = favIds.length < MAX_FAVORITES;
 
   const cardProps = (p) => ({
     podcast: p,
@@ -440,21 +412,30 @@ export default function Resources({ onBack }) {
             color="#FF4E00"
             glowColor="rgba(255,78,0,0.5)"
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {otherPodcasts.map((p) => (
-              <PodcastCard key={p.id} {...cardProps(p)} />
-            ))}
-            {/* When all are favorited */}
-            {otherPodcasts.length === 0 && (
-              <p style={{
-                fontFamily: 'Special Elite, serif', fontSize: '13px',
-                color: 'rgba(200,155,70,0.5)', textAlign: 'center',
-                fontStyle: 'italic', padding: '8px 0',
-              }}>
-                You've favorited all the podcasts — more coming soon!
-              </p>
-            )}
-          </div>
+          {podLoading ? (
+            <p style={{
+              fontFamily: 'Special Elite, serif', fontSize: '13px',
+              color: 'rgba(200,155,70,0.5)', textAlign: 'center',
+              fontStyle: 'italic', padding: '16px 0',
+            }}>
+              Loading podcasts…
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {otherPodcasts.map((p) => (
+                <PodcastCard key={p.id} {...cardProps(p)} />
+              ))}
+              {otherPodcasts.length === 0 && !podLoading && podcasts.length > 0 && (
+                <p style={{
+                  fontFamily: 'Special Elite, serif', fontSize: '13px',
+                  color: 'rgba(200,155,70,0.5)', textAlign: 'center',
+                  fontStyle: 'italic', padding: '8px 0',
+                }}>
+                  You've favorited all the podcasts — more coming soon!
+                </p>
+              )}
+            </div>
+          )}
         </section>
 
         {/* ── COMING SOON ── */}
