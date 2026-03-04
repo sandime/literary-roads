@@ -288,6 +288,57 @@ export const autocompleteCity = async (input) => {
   }
 };
 
+// Text search for bookstores, cafes, and landmarks anywhere in the US
+export const searchPlacesByText = async (query) => {
+  if (!query || query.length < 2) return [];
+  try {
+    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.types,places.editorialSummary',
+      },
+      body: JSON.stringify({
+        textQuery: query,
+        languageCode: 'en',
+        regionCode: 'US',
+        maxResultCount: 6,
+      }),
+    });
+    const data = await response.json();
+    if (!data.places) return [];
+
+    return data.places
+      .map((place) => {
+        const types = place.types || [];
+        let type = 'landmark';
+        if (types.includes('book_store')) type = 'bookstore';
+        else if (types.some((t) => ['cafe', 'coffee_shop'].includes(t))) type = 'cafe';
+
+        const description =
+          place.editorialSummary?.text ||
+          (type === 'bookstore' ? 'Independent bookstore' :
+           type === 'cafe'      ? 'Coffee shop'           : '');
+
+        return {
+          id: `search_${place.id}`,
+          name: place.displayName?.text || 'Unknown Place',
+          type,
+          lat: place.location?.latitude,
+          lng: place.location?.longitude,
+          address: place.formattedAddress || '',
+          description,
+          source: 'search',
+        };
+      })
+      .filter((p) => p.lat && p.lng);
+  } catch (err) {
+    console.error('[searchPlacesByText]', err);
+    return [];
+  }
+};
+
 // Search along a route (multiple points)
 export const searchAlongRoute = async (routePoints, radiusMiles = 5) => {
   // Sample every 10 miles or so to avoid too many API calls

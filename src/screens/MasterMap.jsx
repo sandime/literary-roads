@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
-import { searchAlongRoute, geocodeCity, searchNearbyPlaces, autocompleteCity } from '../utils/googlePlaces';
+import { searchAlongRoute, geocodeCity, searchNearbyPlaces, autocompleteCity, searchPlacesByText } from '../utils/googlePlaces';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
@@ -276,6 +276,117 @@ const createCustomIcon = (type) => {
   });
 };
 
+// Smoothly pans/zooms the map to a search result without re-mounting the MapContainer
+const MapController = ({ target }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo(target.center, target.zoom, { duration: 1.2 });
+  }, [target]);
+  return null;
+};
+
+// Inline search bar rendered inside the header when showSearch is true
+const PlaceSearch = ({ onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({});
+  const inputRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    if (!query || query.length < 2) { setResults([]); setShowResults(false); return; }
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      const res = await searchPlacesByText(query);
+      setResults(res);
+      if (res.length > 0 && inputRef.current) {
+        const r = inputRef.current.getBoundingClientRect();
+        setDropdownPos({ top: r.bottom + 4, left: r.left, width: r.width });
+        setShowResults(true);
+      } else {
+        setShowResults(false);
+      }
+      setSearching(false);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [query]);
+
+  useEffect(() => {
+    const close = (e) => {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target) &&
+        inputRef.current && !inputRef.current.contains(e.target)
+      ) setShowResults(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
+  const handleSelect = (place) => {
+    setQuery('');
+    setResults([]);
+    setShowResults(false);
+    onSelect(place);
+  };
+
+  const typeEmoji = { bookstore: '📚', cafe: '☕', landmark: '🌲' };
+
+  return (
+    <div className="max-w-2xl mx-auto w-full px-0 pb-1.5">
+      <div className="relative">
+        <input
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search bookstores, cafes, landmarks…"
+          className="w-full bg-black/60 border-2 border-starlight-turquoise/70 text-paper-white font-special-elite px-3 py-2 pr-8 rounded-lg focus:outline-none focus:border-starlight-turquoise"
+          style={{ fontSize: '0.875rem' }}
+          autoFocus
+        />
+        {searching && (
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+            <div className="w-3.5 h-3.5 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+      </div>
+      {showResults && results.length > 0 && createPortal(
+        <ul
+          ref={dropdownRef}
+          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+          className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg overflow-hidden shadow-[0_0_20px_rgba(64,224,208,0.3)]"
+        >
+          {results.map((place, i) => (
+            <li
+              key={place.id}
+              onPointerDown={() => handleSelect(place)}
+              style={{ touchAction: 'manipulation' }}
+              className={[
+                'px-3 py-2.5 cursor-pointer transition-colors hover:bg-starlight-turquoise/10',
+                i > 0 ? 'border-t border-starlight-turquoise/20' : '',
+              ].join(' ')}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm flex-shrink-0">{typeEmoji[place.type] || '📍'}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-special-elite text-paper-white text-sm truncate">{place.name}</p>
+                  <p className="font-special-elite text-chrome-silver text-xs truncate">{place.address}</p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>,
+        document.body
+      )}
+    </div>
+  );
+};
+
 const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources }) => {
   const { user, logout } = useAuth();
   const [startCity, setStartCity] = useState('');
@@ -289,6 +400,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchTarget, setSearchTarget] = useState(null);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -593,6 +706,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setLoading(false);
   };
 
+  const handleSearchSelect = (place) => {
+    setVisibleLocations((prev) => {
+      if (prev.some((l) => l.id === place.id)) return prev;
+      return [...prev, place];
+    });
+    setSearchTarget({ center: [place.lat, place.lng], zoom: 15 });
+    setSelectedLocation(place);
+    setShowPlanner(false);
+    setShowSearch(false);
+  };
+
   const handleClearRoute = () => {
     setRoute([]);
     setVisibleLocations([]);
@@ -657,6 +781,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 CLEAR ROUTE
               </button>
             )}
+
+            {/* Search button */}
+            <button
+              onClick={() => setShowSearch((v) => !v)}
+              title="Search places"
+              className={`flex flex-col items-center transition-colors px-2 py-0.5 md:p-1 ${
+                showSearch ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'
+              }`}
+            >
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <span className="md:hidden font-bungee text-[9px] leading-tight">SEARCH</span>
+            </button>
 
             {/* My Trip button — labeled on mobile */}
             <button
@@ -789,10 +928,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           </div>
 
         </div>
+        {showSearch && (
+          <PlaceSearch onSelect={handleSearchSelect} />
+        )}
       </div>
 
       {/* Map */}
-      <div className="h-full pt-11 md:pt-20">
+      <div className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -804,6 +946,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
+          <MapController target={searchTarget} />
 
           {route.length > 1 && (
             <Polyline

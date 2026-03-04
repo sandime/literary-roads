@@ -11,7 +11,7 @@
       "Book Culture"
     ],
     "emoji": "📚",
-    "active": true,
+    "active": true
   },
   {
     "id": "between-the-covers",
@@ -37,8 +37,7 @@
       "Interviews"
     ],
     "emoji": "📰",
-    "active": true,
-  
+    "active": true
   },
   {
     "id": "new-yorker-fiction",
@@ -96,8 +95,8 @@
       "Music"
     ],
     "emoji": "🎙️",
-    "active": true,
- },
+    "active": true
+  },
   {
     "id": "shakespeare-unlimited",
     "title": "Shakespeare Unlimited",
@@ -120,6 +119,19 @@
       "Music"
     ],
     "emoji": "🎙️",
-    "active": true,
+    "active": true
   },
+  {
+    "id": "c-span-bookshelf",
+    "title": "C-SPAN Bookshelf",
+    "host": "C-SPAN",
+    "description": "The C-SPAN Bookshelf podcast feed makes it easy for you to listen to all of the C-SPAN podcast episodes about nonfiction books. Each week we gather episodes from the different C-SPAN podcasts that feature authors talking about history, biography, current events, and culture to make it easier to discover the episodes and listen. If you like nonfiction books, follow this podcast feed so you never miss an episode!",
+    "url": "https://www.c-span.org/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "📜",
+    "active": true,
+    "_apple": "https://podcasts.apple.com/podcast/id1691138219",
+    "_listenNotesUrl": "https://www.listennotes.com/c/e5ad71158cb94d4186434bae6cf440eb/"
+  }
 ]

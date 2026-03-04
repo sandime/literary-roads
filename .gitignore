@@ -42,3 +42,7 @@ firebase-debug.log
 
 # Generated discovery output
 scripts/podcasts-discovered.json
+
+# Firebase service account key — never commit
+scripts/serviceAccount.json
+serviceAccount.json
