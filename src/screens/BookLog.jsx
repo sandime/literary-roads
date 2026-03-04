@@ -430,22 +430,33 @@ export default function BookLog({ onBack }) {
   const [saveError, setSaveError] = useState('');
   const [editingEntry, setEditingEntry] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
+  const [sortOrder, setSortOrder] = useState(
+    () => localStorage.getItem('booklog-sort') ?? 'date'
+  );
 
-  // Real-time sync with Firestore subcollection
+  // Real-time sync with Firestore subcollection (stored unsorted — sort happens in render)
   useEffect(() => {
     if (!user) return;
     const colRef = collection(db, 'users', user.uid, 'booksRead');
     const unsub = onSnapshot(colRef, (snap) => {
-      const books = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      books.sort((a, b) => {
-        const ta = a.timestamp?.toMillis?.() ?? 0;
-        const tb = b.timestamp?.toMillis?.() ?? 0;
-        return tb - ta;
-      });
-      setLoggedBooks(books);
+      setLoggedBooks(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     }, (err) => console.error('[BookLog] snapshot:', err));
     return unsub;
   }, [user]);
+
+  const handleSortChange = (order) => {
+    setSortOrder(order);
+    localStorage.setItem('booklog-sort', order);
+  };
+
+  const sortedBooks = [...loggedBooks].sort((a, b) => {
+    const ta = a.timestamp?.toMillis?.() ?? 0;
+    const tb = b.timestamp?.toMillis?.() ?? 0;
+    if (sortOrder === 'rating-desc') return (b.rating ?? 0) - (a.rating ?? 0) || tb - ta;
+    if (sortOrder === 'rating-asc')  return (a.rating ?? 0) - (b.rating ?? 0) || tb - ta;
+    if (sortOrder === 'title')       return (a.bookTitle ?? '').localeCompare(b.bookTitle ?? '');
+    return tb - ta; // 'date' default
+  });
 
   const resetForm = () => {
     setSelectedBook(null);
@@ -741,14 +752,41 @@ export default function BookLog({ onBack }) {
             {/* ── Logged books list ── */}
             {loggedBooks.length > 0 && (
               <div>
-                <h2 className="font-bungee" style={{
-                  color: '#39FF14', fontSize: '13px', letterSpacing: '0.08em',
-                  marginBottom: '12px',
-                  textShadow: '0 0 10px rgba(57,255,20,0.6)',
-                }}>
-                  YOUR LOG
-                </h2>
-                {loggedBooks.map((entry) =>
+                {/* Header row: title + sort pills */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h2 className="font-bungee" style={{
+                    color: '#39FF14', fontSize: '13px', letterSpacing: '0.08em',
+                    textShadow: '0 0 10px rgba(57,255,20,0.6)',
+                  }}>
+                    YOUR LOG
+                  </h2>
+                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                    {[
+                      { key: 'date',        label: 'RECENT' },
+                      { key: 'rating-desc', label: '★ BEST' },
+                      { key: 'rating-asc',  label: '★ WORST' },
+                      { key: 'title',       label: 'A→Z' },
+                    ].map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => handleSortChange(key)}
+                        className="font-bungee"
+                        style={{
+                          padding: '4px 9px', fontSize: '9px', letterSpacing: '0.07em',
+                          borderRadius: '6px', cursor: 'pointer', transition: 'all 0.15s',
+                          border: `1.5px solid ${sortOrder === key ? '#39FF14' : 'rgba(57,255,20,0.25)'}`,
+                          background: sortOrder === key ? 'rgba(57,255,20,0.15)' : 'transparent',
+                          color: sortOrder === key ? '#39FF14' : 'rgba(57,255,20,0.45)',
+                          boxShadow: sortOrder === key ? '0 0 8px rgba(57,255,20,0.3)' : 'none',
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {sortedBooks.map((entry) =>
                   editingEntry?.id === entry.id ? (
                     <EditPanel
                       key={entry.id}
