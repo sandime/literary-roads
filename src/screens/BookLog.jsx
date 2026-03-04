@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
@@ -183,7 +183,7 @@ function BookSearch({ onSelect }) {
 }
 
 // ── Single logged book card ──────────────────────────────────────────────────
-function LoggedBookCard({ entry, onDelete }) {
+function LoggedBookCard({ entry, onDelete, onEdit }) {
   return (
     <div style={{
       display: 'flex', gap: '12px', alignItems: 'flex-start',
@@ -253,21 +253,166 @@ function LoggedBookCard({ entry, onDelete }) {
         </div>
       </div>
 
-      {/* Delete */}
-      <button
-        onClick={() => onDelete(entry.id)}
-        style={{
-          position: 'absolute', top: '8px', right: '8px',
-          width: '20px', height: '20px', borderRadius: '50%',
-          background: 'rgba(255,78,0,0.2)', border: '1px solid rgba(255,78,0,0.4)',
-          color: '#FF4E00', fontSize: '12px', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          transition: 'background 0.15s',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.45)'}
-        onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.2)'}
-        title="Remove from log"
-      >×</button>
+      {/* Action buttons — top-right corner */}
+      <div style={{ position: 'absolute', top: '8px', right: '8px', display: 'flex', gap: '5px' }}>
+        {/* Edit */}
+        <button
+          onClick={() => onEdit(entry)}
+          style={{
+            width: '20px', height: '20px', borderRadius: '50%',
+            background: 'rgba(0,217,255,0.12)', border: '1px solid rgba(0,217,255,0.35)',
+            color: '#00D9FF', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,217,255,0.3)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,217,255,0.12)'}
+          title="Edit entry"
+        >
+          {/* Pencil icon */}
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        </button>
+        {/* Delete */}
+        <button
+          onClick={() => onDelete(entry.id)}
+          style={{
+            width: '20px', height: '20px', borderRadius: '50%',
+            background: 'rgba(255,78,0,0.2)', border: '1px solid rgba(255,78,0,0.4)',
+            color: '#FF4E00', fontSize: '12px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 0.15s',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.45)'}
+          onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.2)'}
+          title="Remove from log"
+        >×</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Inline edit panel ────────────────────────────────────────────────────────
+function EditPanel({ entry, onSave, onCancel, saving }) {
+  const [rating, setRating] = useState(entry.rating ?? 0);
+  const [finishedMonth, setFinishedMonth] = useState(entry.finishedMonth ?? '');
+  const [finishedYear, setFinishedYear] = useState(entry.finishedYear ? String(entry.finishedYear) : '');
+  const [format, setFormat] = useState(entry.format ?? 'read');
+
+  return (
+    <div style={{
+      borderRadius: '12px', padding: '14px',
+      background: '#080916',
+      border: '1.5px solid rgba(0,217,255,0.4)',
+      marginBottom: '10px',
+      boxShadow: '0 0 16px rgba(0,217,255,0.08)',
+    }}>
+      {/* Book title */}
+      <p className="font-bungee" style={{ fontSize: '11px', color: '#00D9FF', marginBottom: '12px', letterSpacing: '0.04em' }}>
+        EDITING: {entry.bookTitle}
+      </p>
+
+      {/* Rating */}
+      <div style={{ marginBottom: '12px' }}>
+        <label className="font-bungee" style={{ fontSize: '10px', color: 'rgba(0,217,255,0.7)', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+          RATING
+        </label>
+        <CatRating value={rating} onChange={setRating} />
+      </div>
+
+      {/* Finished date */}
+      <div style={{ marginBottom: '12px' }}>
+        <label className="font-bungee" style={{ fontSize: '10px', color: 'rgba(0,217,255,0.7)', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+          FINISHED
+        </label>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <select
+            value={finishedMonth}
+            onChange={(e) => setFinishedMonth(e.target.value)}
+            className="font-special-elite"
+            style={{
+              flex: 1, background: '#111220', border: '1.5px solid rgba(0,217,255,0.35)',
+              borderRadius: '8px', color: finishedMonth ? '#F5F5DC' : 'rgba(192,192,192,0.4)',
+              padding: '8px 10px', fontSize: '13px', outline: 'none', cursor: 'pointer',
+            }}
+          >
+            <option value="">Month</option>
+            {MONTHS.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select
+            value={finishedYear}
+            onChange={(e) => setFinishedYear(e.target.value)}
+            className="font-special-elite"
+            style={{
+              width: '100px', background: '#111220', border: '1.5px solid rgba(0,217,255,0.35)',
+              borderRadius: '8px', color: finishedYear ? '#F5F5DC' : 'rgba(192,192,192,0.4)',
+              padding: '8px 10px', fontSize: '13px', outline: 'none', cursor: 'pointer',
+            }}
+          >
+            <option value="">Year</option>
+            {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Format */}
+      <div style={{ marginBottom: '14px' }}>
+        <label className="font-bungee" style={{ fontSize: '10px', color: 'rgba(0,217,255,0.7)', letterSpacing: '0.08em', display: 'block', marginBottom: '6px' }}>
+          FORMAT
+        </label>
+        <div style={{ display: 'flex', borderRadius: '8px', overflow: 'hidden', border: '1.5px solid rgba(0,217,255,0.3)' }}>
+          {[
+            { value: 'read', label: '📖 READ' },
+            { value: 'audio', label: '🎧 LISTENED' },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setFormat(value)}
+              className="font-bungee"
+              style={{
+                flex: 1, padding: '8px 6px', border: 'none', cursor: 'pointer',
+                fontSize: '10px', letterSpacing: '0.06em', transition: 'background 0.2s, color 0.2s',
+                background: format === value ? '#00D9FF' : 'transparent',
+                color: format === value ? '#0A1A2F' : 'rgba(192,192,192,0.5)',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button
+          onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format })}
+          disabled={saving}
+          className="font-bungee"
+          style={{
+            flex: 1, padding: '10px',
+            background: saving ? 'rgba(255,78,0,0.4)' : '#FF4E00',
+            color: '#1A1B2E', borderRadius: '8px', border: 'none',
+            fontSize: '11px', letterSpacing: '0.08em', cursor: saving ? 'default' : 'pointer',
+            boxShadow: saving ? 'none' : '0 0 12px rgba(255,78,0,0.4)',
+          }}
+        >
+          {saving ? 'SAVING...' : 'SAVE'}
+        </button>
+        <button
+          onClick={onCancel}
+          className="font-bungee"
+          style={{
+            padding: '10px 16px', background: 'transparent',
+            border: '1.5px solid rgba(192,192,192,0.25)', borderRadius: '8px',
+            color: 'rgba(192,192,192,0.5)', fontSize: '11px', cursor: 'pointer',
+          }}
+        >
+          CANCEL
+        </button>
+      </div>
     </div>
   );
 }
@@ -283,6 +428,8 @@ export default function BookLog({ onBack }) {
   const [saving, setSaving] = useState(false);
   const [loggedBooks, setLoggedBooks] = useState([]);
   const [saveError, setSaveError] = useState('');
+  const [editingEntry, setEditingEntry] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   // Real-time sync with Firestore subcollection
   useEffect(() => {
@@ -335,6 +482,19 @@ export default function BookLog({ onBack }) {
       setSaveError('Could not save. Try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveEdit = async (updates) => {
+    if (!user || !editingEntry) return;
+    setEditSaving(true);
+    try {
+      await updateDoc(doc(db, 'users', user.uid, 'booksRead', editingEntry.id), updates);
+      setEditingEntry(null);
+    } catch (err) {
+      console.error('[BookLog] edit:', err);
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -588,9 +748,24 @@ export default function BookLog({ onBack }) {
                 }}>
                   YOUR LOG
                 </h2>
-                {loggedBooks.map((entry) => (
-                  <LoggedBookCard key={entry.id} entry={entry} onDelete={handleDelete} />
-                ))}
+                {loggedBooks.map((entry) =>
+                  editingEntry?.id === entry.id ? (
+                    <EditPanel
+                      key={entry.id}
+                      entry={editingEntry}
+                      onSave={handleSaveEdit}
+                      onCancel={() => setEditingEntry(null)}
+                      saving={editSaving}
+                    />
+                  ) : (
+                    <LoggedBookCard
+                      key={entry.id}
+                      entry={entry}
+                      onDelete={handleDelete}
+                      onEdit={setEditingEntry}
+                    />
+                  )
+                )}
               </div>
             )}
 
