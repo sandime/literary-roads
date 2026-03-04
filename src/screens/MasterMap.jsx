@@ -789,7 +789,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             {!showPlanner && (
               <button
                 onClick={handleNearMe}
-                className="bg-atomic-orange text-midnight-navy font-bungee px-2 md:px-4 py-1 md:py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 md:gap-2 text-[10px] md:text-sm"
+                className={`bg-atomic-orange text-midnight-navy font-bungee px-2 md:px-4 py-1 md:py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 md:gap-2 text-[10px] md:text-sm${route.length > 0 ? ' hidden md:flex' : ''}`}
               >
                 <svg className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -799,11 +799,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </button>
             )}
 
-            {/* Clear Route button — only when route is active */}
+            {/* Clear Route button — desktop only (mobile version floats below header) */}
             {route.length > 0 && (
               <button
                 onClick={handleClearRoute}
-                className="font-bungee text-[9px] md:text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-1.5 py-0.5 md:px-2 md:py-1 whitespace-nowrap"
+                className="hidden md:block font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
               >
                 CLEAR ROUTE
               </button>
@@ -960,6 +960,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         )}
       </div>
 
+      {/* Mobile-only: floating CLEAR ROUTE pill below header */}
+      {route.length > 0 && (
+        <button
+          onClick={handleClearRoute}
+          className="md:hidden absolute z-[999] font-bungee text-[10px] tracking-wide text-atomic-orange border border-atomic-orange bg-midnight-navy rounded-full px-3 py-1 shadow-lg"
+          style={{ top: '50px', right: '12px' }}
+        >
+          ✕ CLEAR
+        </button>
+      )}
+
       {/* Map */}
       <div className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
         <MapContainer
@@ -969,9 +980,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           style={{ background: '#1A1B2E' }}
           key={`${mapCenter[0]}-${mapCenter[1]}-${mapZoom}`}
         >
+          {/* Dark base without labels */}
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          />
+          {/* Bright label overlay — white text with halos for legibility */}
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
           />
           <MapController target={searchTarget} />
 
@@ -1013,8 +1029,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         <>
           {/* Mobile bottom drawer — fixed so iOS Safari URL bar doesn't push it off-screen */}
           <div
-            className="md:hidden animate-slide-up bg-midnight-navy/98 border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl overflow-y-auto"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '50vh', zIndex: 1001 }}
+            className="md:hidden animate-slide-up border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl overflow-y-auto"
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '50vh', zIndex: 1001, background: '#0D0E1A' }}
           >
             <div className="h-2 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
             <div className="p-4">
@@ -1034,15 +1050,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   value={startCity}
                   onChange={setStartCity}
                   placeholder={cityHint.start ? `Starting city — e.g. ${cityHint.start}` : 'Starting city, e.g. New York City'}
-                  className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
-                  style={{ fontSize: '1rem' }}
+                  className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                  style={{ fontSize: '1rem', background: '#1A1B2E' }}
                 />
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
                   placeholder={cityHint.end ? `Destination — e.g. ${cityHint.end}` : 'Destination city, e.g. Buffalo'}
-                  className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
-                  style={{ fontSize: '1rem' }}
+                  className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
+                  style={{ fontSize: '1rem', background: '#1A1B2E' }}
                 />
                 {error && (
                   <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
