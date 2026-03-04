@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
-import { searchAlongRoute, geocodeCity, searchNearbyPlaces, autocompleteCity, searchPlacesByText } from '../utils/googlePlaces';
+import { searchAlongRoute, geocodeCity, getPlaceCoords, searchNearbyPlaces, autocompleteCity, searchPlacesByText } from '../utils/googlePlaces';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
@@ -80,7 +80,7 @@ const STATE_MAJOR_CITIES = {
 };
 
 // City autocomplete input with Googie-style dropdown
-const CityAutocomplete = ({ value, onChange, placeholder, className, style, selectedStates = [] }) => {
+const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, className, style, selectedStates = [] }) => {
   const hasPR = selectedStates.includes('Puerto Rico');
   const hasOtherStates = selectedStates.some((s) => s !== 'Puerto Rico');
   const regionCodes = hasPR && !hasOtherStates ? ['PR'] : hasPR ? ['US', 'PR'] : ['US'];
@@ -127,6 +127,7 @@ const CityAutocomplete = ({ value, onChange, placeholder, className, style, sele
   const select = (s) => {
     skipRef.current = true;
     onChange(s.label);
+    onPlaceSelect?.(s.id);   // pass placeId to parent for accurate geocoding
     setShowDropdown(false);
     setSuggestions([]);
   };
@@ -145,7 +146,7 @@ const CityAutocomplete = ({ value, onChange, placeholder, className, style, sele
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => { onChange(e.target.value); onPlaceSelect?.(null); }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={className}
@@ -397,6 +398,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const saved = routeStateRef?.current ?? {};
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
+  const [startPlaceId, setStartPlaceId] = useState(null);
+  const [endPlaceId, setEndPlaceId] = useState(null);
   const [route, setRoute] = useState(saved.route ?? []);
   const [visibleLocations, setVisibleLocations] = useState(saved.visibleLocations ?? []);
   const [showPlanner, setShowPlanner] = useState(saved.showPlanner ?? true);
@@ -634,17 +637,24 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   };
 
   const handlePlotRoute = async () => {
+    if (!startCity.trim() || !endCity.trim()) {
+      setError('Please enter both a starting city and a destination.');
+      return;
+    }
+
     setError('');
     setLoading(true);
 
     try {
       // Single state: append state name to help geocoder disambiguate.
       // Multiple states: use raw input so cities in any selected state resolve.
-      const startQuery = selectedStates.length === 1 ? `${startCity}, ${selectedStates[0]}` : startCity;
-      const endQuery   = selectedStates.length === 1 ? `${endCity}, ${selectedStates[0]}`   : endCity;
+      const startQuery = selectedStates.length === 1 ? `${startCity.trim()}, ${selectedStates[0]}` : startCity.trim();
+      const endQuery   = selectedStates.length === 1 ? `${endCity.trim()}, ${selectedStates[0]}`   : endCity.trim();
 
-      const startCoords = await geocodeCity(startQuery);
-      const endCoords   = await geocodeCity(endQuery);
+      // Prefer Place Details (placeId from autocomplete) for accurate coords;
+      // fall back to text geocoding when user typed a city manually.
+      const startCoords = (startPlaceId && await getPlaceCoords(startPlaceId)) || await geocodeCity(startQuery);
+      const endCoords   = (endPlaceId   && await getPlaceCoords(endPlaceId))   || await geocodeCity(endQuery);
 
       if (!startCoords) {
         setError(`Could not find "${startCity}". Try adding the state, e.g. "Memphis, TN".`);
@@ -682,41 +692,37 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         [endCoords.lat, endCoords.lng],
       ];
 
-      const [places, wikiLandmarks, curatedLandmarks, destPlaces, destWikiLandmarks] = await Promise.all([
+      // ── Phase 1: fast sources (Google Places + Firestore) — blocks render ──
+      const [places, curatedLandmarks, destPlaces] = await Promise.all([
         searchAlongRoute(routePoints, 5),
-        searchLiteraryAlongRoute(routePoints, 5),
-        getCuratedLandmarks(allTripPoints, 25),   // single fetch, covers full route at city-level radius
+        getCuratedLandmarks(allTripPoints, 25),
         searchNearbyPlaces(endCoords.lat, endCoords.lng, 10),
-        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 10),
       ]);
 
-      // Merge results — curated (ALA/Firestore) first so they win dedup over Wikipedia
-      // Dedup by: (1) id, (2) normalized name — catches same place from two sources
+      const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
       const seenIds = new Set();
       const seenNames = new Set();
-      const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const allLocations = [];
-      for (const loc of [...curatedLandmarks, ...places, ...wikiLandmarks, ...destPlaces, ...destWikiLandmarks]) {
-        const nn = normName(loc.name);
-        if (!seenIds.has(loc.id) && !seenNames.has(nn)) {
-          seenIds.add(loc.id);
-          seenNames.add(nn);
-          allLocations.push(loc);
+      const mergeInto = (locations, incoming) => {
+        for (const loc of incoming) {
+          const nn = normName(loc.name);
+          if (!seenIds.has(loc.id) && !seenNames.has(nn)) {
+            seenIds.add(loc.id);
+            seenNames.add(nn);
+            locations.push(loc);
+          }
         }
-      }
-      console.log(`[MasterMap] ${allLocations.length} total landmarks (${curatedLandmarks.length} Firestore/ALA, ${wikiLandmarks.length} Wikipedia)`);
-      setVisibleLocations(allLocations);
+      };
 
+      const phase1Locations = [];
+      mergeInto(phase1Locations, [...curatedLandmarks, ...places, ...destPlaces]);
+      setVisibleLocations(phase1Locations);
+
+      // Fit map to route immediately
       const lats = routePoints.map(p => p[0]);
       const lngs = routePoints.map(p => p[1]);
-
       const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
       const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-
-      const latDiff = Math.max(...lats) - Math.min(...lats);
-      const lngDiff = Math.max(...lngs) - Math.min(...lngs);
-      const maxDiff = Math.max(latDiff, lngDiff);
-
+      const maxDiff = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
       let zoom = 13;
       if (maxDiff > 10) zoom = 6;
       else if (maxDiff > 5) zoom = 7;
@@ -724,17 +730,41 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       else if (maxDiff > 1) zoom = 9;
       else if (maxDiff > 0.5) zoom = 10;
       else if (maxDiff > 0.2) zoom = 11;
-
       setMapCenter([midLat, midLng]);
       setMapZoom(zoom);
-
       setShowPlanner(false);
+      setLoading(false);
+
+      // ── Phase 2: Wikipedia — runs in background, merges when ready ──
+      Promise.all([
+        searchLiteraryAlongRoute(routePoints, 5),
+        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 10),
+      ]).then(([wikiLandmarks, destWikiLandmarks]) => {
+        const wikiLocations = [...wikiLandmarks, ...destWikiLandmarks];
+        if (!wikiLocations.length) return;
+        setVisibleLocations((prev) => {
+          const merged = [...prev];
+          // rebuild seen sets from current state
+          const ids = new Set(prev.map(l => l.id));
+          const names = new Set(prev.map(l => normName(l.name)));
+          for (const loc of wikiLocations) {
+            const nn = normName(loc.name);
+            if (!ids.has(loc.id) && !names.has(nn)) {
+              ids.add(loc.id);
+              names.add(nn);
+              merged.push(loc);
+            }
+          }
+          console.log(`[MasterMap] +${merged.length - prev.length} Wikipedia landmarks added`);
+          return merged;
+        });
+      }).catch(() => {});
+
     } catch (err) {
       setError('Something went wrong. Please try again.');
       console.error('Route plotting error:', err);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const handleSearchSelect = (place) => {
@@ -1053,6 +1083,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
+                  onPlaceSelect={setStartPlaceId}
                   placeholder={cityHint.start ? `Starting city — e.g. ${cityHint.start}` : 'Starting city, e.g. New York City'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
@@ -1061,6 +1092,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
+                  onPlaceSelect={setEndPlaceId}
                   placeholder={cityHint.end ? `Destination — e.g. ${cityHint.end}` : 'Destination city, e.g. Buffalo'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
@@ -1107,6 +1139,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
+                  onPlaceSelect={setStartPlaceId}
                   placeholder={cityHint.start ? `e.g., ${cityHint.start}` : 'e.g., New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
@@ -1118,6 +1151,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
+                  onPlaceSelect={setEndPlaceId}
                   placeholder={cityHint.end ? `e.g., ${cityHint.end}` : 'e.g., Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}

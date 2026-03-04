@@ -97,8 +97,36 @@ const isExcludedBookstore = (placeName) => {
   return false; // Keep all bookstores for now
 };
 
+// Resolve a Places API placeId to precise coordinates via Place Details
+export const getPlaceCoords = async (placeId) => {
+  if (!placeId) return null;
+  try {
+    const response = await fetch(
+      `https://places.googleapis.com/v1/places/${placeId}?fields=location,displayName,formattedAddress`,
+      {
+        headers: {
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': 'location,displayName,formattedAddress',
+        },
+      }
+    );
+    const data = await response.json();
+    if (data.location) {
+      return {
+        lat: data.location.latitude,
+        lng: data.location.longitude,
+        formatted: data.formattedAddress || data.displayName?.text || placeId,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 // Geocode a city name to coordinates
 export const geocodeCity = async (cityState) => {
+  if (!cityState || !cityState.trim()) return null;
   try {
     const response = await fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityState)}&key=${GOOGLE_PLACES_API_KEY}`
@@ -340,24 +368,53 @@ export const searchPlacesByText = async (query) => {
 };
 
 // Search along a route (multiple points)
-export const searchAlongRoute = async (routePoints, radiusMiles = 5) => {
-  // Sample every 10 miles or so to avoid too many API calls
-  const samplePoints = routePoints.filter((_, index) => index % 3 === 0);
-  
-  const allPlaces = [];
-  const seenIds = new Set();
+// Haversine distance in miles between two [lat, lng] points
+const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 
-  for (const point of samplePoints) {
-    const places = await searchNearbyPlaces(point[0], point[1], radiusMiles);
-    
-    // Deduplicate
-    places.forEach(place => {
+export const searchAlongRoute = async (routePoints, radiusMiles = 5) => {
+  if (!routePoints.length) return [];
+
+  // Sample one point every SAMPLE_INTERVAL miles so coverage is consistent
+  // regardless of how many geometry points the route has (simplified vs full).
+  // With radiusMiles=5 and SAMPLE_INTERVAL=10, adjacent circles overlap, ensuring
+  // no gap larger than the search radius.
+  const SAMPLE_INTERVAL = 10; // miles between sample points
+  const samplePoints = [routePoints[0]];
+  let accumulated = 0;
+  for (let i = 1; i < routePoints.length; i++) {
+    accumulated += distanceMiles(routePoints[i - 1], routePoints[i]);
+    if (accumulated >= SAMPLE_INTERVAL) {
+      samplePoints.push(routePoints[i]);
+      accumulated = 0;
+    }
+  }
+  // Always include the last point
+  const last = routePoints[routePoints.length - 1];
+  if (samplePoints[samplePoints.length - 1] !== last) samplePoints.push(last);
+
+  console.log(`[searchAlongRoute] ${routePoints.length} route points → ${samplePoints.length} samples @ ${SAMPLE_INTERVAL}mi intervals`);
+
+  // Run all searches in parallel then deduplicate
+  const results = await Promise.all(
+    samplePoints.map((pt) => searchNearbyPlaces(pt[0], pt[1], radiusMiles))
+  );
+
+  const seenIds = new Set();
+  const allPlaces = [];
+  for (const places of results) {
+    for (const place of places) {
       if (!seenIds.has(place.id)) {
         seenIds.add(place.id);
         allPlaces.push(place);
       }
-    });
+    }
   }
-
   return allPlaces;
 };
