@@ -26,15 +26,28 @@ const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
 const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
   const [hoveredState, setHoveredState] = useState('');
   const [selectedStates, setSelectedStates] = useState(new Set());
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   // Refs keep event-handler closures from going stale
   const selectedRef = useRef(new Set()); // mirrors selectedStates
   const layersRef   = useRef({});        // { stateName: leafletLayer }
+  const userMenuRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const close = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
 
   useEffect(() => {
     fetch(
@@ -126,24 +139,99 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
             </button>
 
             {/* Profile / Login */}
-            <button
-              onClick={user ? onShowProfile : onShowLogin}
-              title={user ? "Traveler's Log" : 'Log In'}
-              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
-            >
-              {user?.photoURL ? (
-                <img src={user.photoURL} className="w-5 h-5 md:w-6 md:h-6 rounded-full"
-                  style={{ border: '1.5px solid #40E0D0' }} alt="avatar" />
-              ) : (
-                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
+                title={user ? "Traveler's Log" : 'Log In'}
+                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+              >
+                {user?.photoURL ? (
+                  <img src={user.photoURL} className="w-5 h-5 md:w-6 md:h-6 rounded-full"
+                    style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} alt="avatar" />
+                ) : (
+                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+                <span className="md:hidden font-bungee text-[9px] leading-tight">
+                  {user ? 'LOG' : 'LOG IN'}
+                </span>
+              </button>
+
+              {/* Dropdown */}
+              {user && showUserMenu && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                  minWidth: '160px', zIndex: 9999,
+                  background: '#0D0E1A',
+                  border: '1.5px solid #40E0D0',
+                  borderRadius: '10px',
+                  boxShadow: '0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)',
+                  overflow: 'hidden',
+                  animation: 'lr-dropdown-in 0.18s ease',
+                }}>
+                  <style>{`
+                    @keyframes lr-dropdown-in {
+                      from { opacity: 0; transform: translateY(-6px); }
+                      to   { opacity: 1; transform: translateY(0); }
+                    }
+                  `}</style>
+
+                  {/* User info */}
+                  <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(64,224,208,0.15)' }}>
+                    <p className="font-bungee" style={{ fontSize: '10px', color: '#40E0D0', letterSpacing: '0.06em', lineHeight: 1.2 }}>
+                      {user.displayName || 'Literary Traveler'}
+                    </p>
+                    <p className="font-special-elite" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', marginTop: '2px' }}>
+                      {user.email}
+                    </p>
+                  </div>
+
+                  {/* View Profile */}
+                  <button
+                    onClick={() => { setShowUserMenu(false); onShowProfile(); }}
+                    className="font-bungee w-full text-left"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '11px 14px', fontSize: '11px', letterSpacing: '0.05em',
+                      color: '#40E0D0', background: 'transparent', border: 'none',
+                      cursor: 'pointer', transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(64,224,208,0.08)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    VIEW PROFILE
+                  </button>
+
+                  <div style={{ height: '1px', background: 'rgba(64,224,208,0.1)', margin: '0 10px' }} />
+
+                  {/* Sign Out */}
+                  <button
+                    onClick={async () => { setShowUserMenu(false); await logout(); }}
+                    className="font-bungee w-full text-left"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      padding: '11px 14px', fontSize: '11px', letterSpacing: '0.05em',
+                      color: '#FF4E00', background: 'transparent', border: 'none',
+                      cursor: 'pointer', transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.08)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    SIGN OUT
+                  </button>
+                </div>
               )}
-              <span className="md:hidden font-bungee text-[9px] leading-tight">
-                {user ? 'LOG' : 'LOG IN'}
-              </span>
-            </button>
+            </div>
           </div>
         </div>
       </div>

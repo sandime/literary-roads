@@ -248,7 +248,7 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
 };
 
 // Autocomplete a city name (US localities only)
-export const autocompleteCity = async (input) => {
+export const autocompleteCity = async (input, regionCodes = ['US']) => {
   if (!input || input.length < 2) return [];
   try {
     const response = await fetch(
@@ -262,7 +262,7 @@ export const autocompleteCity = async (input) => {
         body: JSON.stringify({
           input,
           includedPrimaryTypes: ['locality', 'administrative_area_level_3'],
-          includedRegionCodes: ['us'],
+          includedRegionCodes: regionCodes,
         }),
       }
     );

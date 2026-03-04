@@ -76,10 +76,14 @@ const STATE_MAJOR_CITIES = {
   'Wisconsin':            { abbr: 'WI', cities: ['Milwaukee', 'Madison', 'Green Bay'] },
   'Wyoming':              { abbr: 'WY', cities: ['Cheyenne', 'Jackson', 'Laramie'] },
   'District of Columbia': { abbr: 'DC', cities: ['Washington'] },
+  'Puerto Rico':          { abbr: 'PR', cities: ['San Juan', 'Ponce', 'Mayagüez'] },
 };
 
 // City autocomplete input with Googie-style dropdown
-const CityAutocomplete = ({ value, onChange, placeholder, className, style }) => {
+const CityAutocomplete = ({ value, onChange, placeholder, className, style, selectedStates = [] }) => {
+  const hasPR = selectedStates.includes('Puerto Rico');
+  const hasOtherStates = selectedStates.some((s) => s !== 'Puerto Rico');
+  const regionCodes = hasPR && !hasOtherStates ? ['PR'] : hasPR ? ['US', 'PR'] : ['US'];
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -95,7 +99,7 @@ const CityAutocomplete = ({ value, onChange, placeholder, className, style }) =>
     if (skipRef.current) { skipRef.current = false; return; }
     if (!value || value.length < 2) { setSuggestions([]); setShowDropdown(false); return; }
     debounceRef.current = setTimeout(async () => {
-      const results = await autocompleteCity(value);
+      const results = await autocompleteCity(value, regionCodes);
       setSuggestions(results);
       if (results.length > 0 && inputRef.current) {
         const r = inputRef.current.getBoundingClientRect();
@@ -1052,6 +1056,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.start ? `Starting city — e.g. ${cityHint.start}` : 'Starting city, e.g. New York City'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
+                  selectedStates={selectedStates}
                 />
                 <CityAutocomplete
                   value={endCity}
@@ -1059,6 +1064,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.end ? `Destination — e.g. ${cityHint.end}` : 'Destination city, e.g. Buffalo'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
+                  selectedStates={selectedStates}
                 />
                 {error && (
                   <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
@@ -1104,6 +1110,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.start ? `e.g., ${cityHint.start}` : 'e.g., New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
+                  selectedStates={selectedStates}
                 />
               </div>
               <div>
@@ -1114,6 +1121,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.end ? `e.g., ${cityHint.end}` : 'e.g., Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
+                  selectedStates={selectedStates}
                 />
               </div>
               {error && (
