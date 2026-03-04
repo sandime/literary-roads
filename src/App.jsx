@@ -13,6 +13,8 @@ function AppInner() {
   const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
+  // Tracks where Profile was opened from (map or stateSelector) — never clobbered by sub-navigation
+  const [profileOrigin, setProfileOrigin] = useState('stateSelector');
 
   // Persists route state across navigation so the map restores when returning
   const routeStateRef = useRef({
@@ -43,6 +45,7 @@ function AppInner() {
   };
 
   const handleShowProfile = () => {
+    setProfileOrigin(screen);   // remember map vs stateSelector
     setPreviousScreen(screen);
     setScreen('profile');
   };
@@ -57,8 +60,8 @@ function AppInner() {
     setScreen('bookLog');
   };
 
-  // Profile is only ever opened from the map, so its back always returns to map.
-  const handleProfileBack = () => setScreen('map');
+  // Profile back uses profileOrigin, which is never clobbered by BookLog navigation.
+  const handleProfileBack = () => setScreen(profileOrigin);
 
   const handleAuthBack = () => {
     setScreen(previousScreen || 'stateSelector');
@@ -72,7 +75,12 @@ function AppInner() {
     <>
       {screen === 'loading' && <Odometer onComplete={handleLoadingComplete} />}
       {screen === 'stateSelector' && (
-        <StateSelector onStateSelect={handleStateSelect} onShowLogin={handleShowLogin} />
+        <StateSelector
+          onStateSelect={handleStateSelect}
+          onShowLogin={handleShowLogin}
+          onShowProfile={handleShowProfile}
+          onShowResources={handleShowResources}
+        />
       )}
       {screen === 'map' && (
         <MasterMap

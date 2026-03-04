@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const US_CENTER = [39.5, -98.35];
 const US_ZOOM = 4;
@@ -24,7 +25,8 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources }) => {
+  const { user } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
   const [hoveredState, setHoveredState] = useState('');
@@ -93,19 +95,61 @@ const StateSelector = ({ onStateSelect }) => {
     <div className="h-screen w-full relative bg-midnight-navy overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise p-4 text-center">
-        <h1 className="text-starlight-turquoise font-bungee text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
-          THE LITERARY ROADS
-        </h1>
-        <p className="text-atomic-orange font-special-elite text-sm mt-1">
-          {selectedStates.size === 0
-            ? 'Click states to select your journey'
-            : `${selectedStates.size} state${selectedStates.size > 1 ? 's' : ''} selected — click more or continue`}
-        </p>
+      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
+        <div className="flex items-center">
+          {/* Title block */}
+          <div className="flex-1 text-center">
+            <h1 className="text-starlight-turquoise font-bungee text-[15px] md:text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+              THE LITERARY ROADS
+            </h1>
+            <p className="text-atomic-orange font-special-elite text-xs md:text-sm mt-0.5">
+              {selectedStates.size === 0
+                ? 'Click states to select your journey'
+                : `${selectedStates.size} state${selectedStates.size > 1 ? 's' : ''} selected — click more or continue`}
+            </p>
+          </div>
+
+          {/* Right nav icons */}
+          <div className="flex-shrink-0 flex items-center gap-1 md:gap-2 ml-2">
+            {/* Highway Snacks */}
+            <button
+              onClick={onShowResources}
+              title="Highway Snacks"
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            >
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
+              </svg>
+              <span className="md:hidden font-bungee text-[9px] leading-tight">SNACKS</span>
+              <span className="hidden md:inline font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
+            </button>
+
+            {/* Profile / Login */}
+            <button
+              onClick={user ? onShowProfile : onShowLogin}
+              title={user ? "Traveler's Log" : 'Log In'}
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            >
+              {user?.photoURL ? (
+                <img src={user.photoURL} className="w-5 h-5 md:w-6 md:h-6 rounded-full"
+                  style={{ border: '1.5px solid #40E0D0' }} alt="avatar" />
+              ) : (
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              )}
+              <span className="md:hidden font-bungee text-[9px] leading-tight">
+                {user ? 'LOG' : 'LOG IN'}
+              </span>
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* ── Map ── */}
-      <div className="h-full pt-20">
+      <div className="h-full pt-16 md:pt-20">
         <MapContainer
           center={US_CENTER}
           zoom={US_ZOOM}
