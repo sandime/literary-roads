@@ -13,9 +13,10 @@ import RoadTrip from './RoadTrip';
 import Guestbook from '../components/Guestbook';
 import HitchhikerTale from '../components/HitchhikerTale';
 import TaleModal from '../components/TaleModal';
+import PitStopRating from '../components/PitStopRating';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { doc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -185,7 +186,11 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
 };
 
 // Custom Googie-style neon outline icons
-const createCustomIcon = (type) => {
+const createCustomIcon = (type, hasStarburst = false) => {
+  const glowBoost = hasStarburst ? 'filter:drop-shadow(0 0 10px rgba(255,210,0,0.9));' : '';
+  const starburstOverlay = hasStarburst
+    ? `<img src="/literary-roads/images/starburst-rating.png" alt="" style="position:absolute;top:-14px;right:-14px;width:40px;height:40px;z-index:10;" />`
+    : '';
   const icons = {
     // OAK TREE - Historic Literary Landmarks (Neon Green)
     landmark: `
@@ -275,7 +280,7 @@ const createCustomIcon = (type) => {
   };
 
   return L.divIcon({
-    html: icons[type] || icons.cafe,
+    html: `<div style="position:relative;display:inline-block;${glowBoost}">${icons[type] || icons.cafe}${starburstOverlay}</div>`,
     className: 'custom-googie-marker',
     iconSize: [40, 40],
     iconAnchor: [20, 40],
@@ -410,6 +415,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale'
   const [showTaleModal, setShowTaleModal] = useState(false);
+  const [starburstIds, setStarburstIds] = useState(new Set());
   const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -430,6 +436,32 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Reset shelf tab whenever a new location is opened
   useEffect(() => { setShelfTab('info'); setShowTaleModal(false); }, [selectedLocation?.id]);
+
+  // Pre-fetch ratings for all bookstore/cafe pins so starbursts show immediately on the map
+  useEffect(() => {
+    const eligible = visibleLocations.filter(
+      (l) => l.type === 'bookstore' || l.type === 'cafe'
+    );
+    if (!eligible.length) return;
+    let cancelled = false;
+    Promise.all(
+      eligible.map((loc) =>
+        getDoc(doc(db, 'locationRatings', loc.id))
+          .then((snap) => (snap.exists() && snap.data().hasStarburst ? loc.id : null))
+          .catch(() => null)
+      )
+    ).then((results) => {
+      if (cancelled) return;
+      const starred = results.filter(Boolean);
+      if (!starred.length) return;
+      setStarburstIds((prev) => {
+        const next = new Set(prev);
+        starred.forEach((id) => next.add(id));
+        return next;
+      });
+    });
+    return () => { cancelled = true; };
+  }, [visibleLocations]);
 
   // Sync route state back to ref so it survives navigation (MasterMap unmounts/remounts)
   useEffect(() => { if (routeStateRef) routeStateRef.current.startCity = startCity; }, [startCity, routeStateRef]);
@@ -526,6 +558,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         addToTrip(location);
       }
     }
+  };
+
+  const handleStarburstChange = (locationId, hasStarburst) => {
+    setStarburstIds((prev) => {
+      const next = new Set(prev);
+      if (hasStarburst) next.add(locationId);
+      else next.delete(locationId);
+      return next;
+    });
   };
 
   const handleRemoveFromTrip = (id) => {
@@ -1051,7 +1092,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             <Marker
               key={location.id}
               position={[location.lat, location.lng]}
-              icon={createCustomIcon(location.type)}
+              icon={createCustomIcon(location.type, starburstIds.has(location.id))}
               eventHandlers={{
                 click: () => {
                   console.log('[Shelf] Landmark clicked:', {
@@ -1243,9 +1284,28 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               )}
             </div>
 
-            <h2 className="text-starlight-turquoise font-bungee text-xl md:text-2xl mb-3 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
-              {selectedLocation.name}
-            </h2>
+            <div className="flex items-center gap-2 mb-3">
+              <h2 className="text-starlight-turquoise font-bungee text-xl md:text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+                {selectedLocation.name}
+              </h2>
+              {starburstIds.has(selectedLocation.id) && (
+                <img
+                  src="/literary-roads/images/starburst-rating.png"
+                  alt="Highly recommended"
+                  title="10+ travelers recommend this stop!"
+                  style={{ width: '60px', height: '60px', flexShrink: 0 }}
+                />
+              )}
+            </div>
+
+            {/* Pit stop rating */}
+            <PitStopRating
+              key={selectedLocation.id}
+              locationId={selectedLocation.id}
+              user={user}
+              onShowLogin={onShowLogin}
+              onStarburstChange={handleStarburstChange}
+            />
 
             {/* Tab bar — bookstores & cafes only */}
             {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
