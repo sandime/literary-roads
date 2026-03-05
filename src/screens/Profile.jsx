@@ -399,54 +399,30 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
           <span className="font-special-elite text-chrome-silver text-xs text-center">Stops Saved</span>
         </div>
 
-        {/* BOOK LOG — Googie trapezoid button */}
+        {/* BOOK LOG — image button */}
         <button
           onClick={onShowBookLog}
           style={{
-            position: 'relative',
             background: 'none',
             border: 'none',
             padding: 0,
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            transition: 'transform 0.2s ease, filter 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.transform = 'scale(1.05)';
+            e.currentTarget.style.filter = 'drop-shadow(0 0 10px rgba(64,224,208,0.7))';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.transform = 'scale(1)';
+            e.currentTarget.style.filter = 'none';
           }}
         >
-          {/* Outer glow layer (pink) */}
-          <div style={{
-            position: 'absolute', inset: '-3px',
-            clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
-            background: 'linear-gradient(135deg, #FF4FD8, #39FF14)',
-            filter: 'blur(6px)',
-            opacity: 0.75,
-          }} />
-          {/* Button face */}
-          <div style={{
-            position: 'relative',
-            width: '100%',
-            clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
-            background: 'linear-gradient(160deg, #00D9FF 0%, #0099CC 100%)',
-            border: '2px solid transparent',
-            backgroundClip: 'padding-box',
-            padding: '18px 12px',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            gap: '4px',
-            boxShadow: 'inset 0 0 20px rgba(0,217,255,0.3), 0 0 18px rgba(0,217,255,0.5)',
-          }}>
-            {/* Neon inner border highlight */}
-            <div style={{
-              position: 'absolute', inset: '3px',
-              clipPath: 'polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%)',
-              border: '1px solid rgba(255,255,255,0.35)',
-              pointerEvents: 'none',
-            }} />
-            <span className="font-bungee" style={{
-              fontSize: '13px', letterSpacing: '0.08em', color: '#0A1A2F',
-              textShadow: '0 1px 0 rgba(255,255,255,0.4)',
-              lineHeight: 1.1,
-            }}>BOOK LOG</span>
-          </div>
+          <img
+            src="/literary-roads/images/book_log.png"
+            alt="Book Log"
+            style={{ width: '120px', display: 'block' }}
+          />
         </button>
       </div>
 
