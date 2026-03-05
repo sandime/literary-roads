@@ -11,6 +11,8 @@ import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import RoadTrip from './RoadTrip';
 import Guestbook from '../components/Guestbook';
+import HitchhikerTale from '../components/HitchhikerTale';
+import TaleModal from '../components/TaleModal';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -406,6 +408,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale'
+  const [showTaleModal, setShowTaleModal] = useState(false);
   const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -423,6 +427,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
+
+  // Reset shelf tab whenever a new location is opened
+  useEffect(() => { setShelfTab('info'); setShowTaleModal(false); }, [selectedLocation?.id]);
 
   // Sync route state back to ref so it survives navigation (MasterMap unmounts/remounts)
   useEffect(() => { if (routeStateRef) routeStateRef.current.startCity = startCity; }, [startCity, routeStateRef]);
@@ -1211,6 +1218,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </svg>
             </button>
 
+            {/* Type badge + name (always visible) */}
             <div className="flex items-center gap-2 mb-2">
               {selectedLocation.type === 'bookstore' && (
                 <span className="text-atomic-orange font-bungee text-xs px-3 py-1 border-2 border-atomic-orange rounded-full">
@@ -1229,59 +1237,112 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               )}
             </div>
 
-            <h2 className="text-starlight-turquoise font-bungee text-xl md:text-2xl mb-1 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
+            <h2 className="text-starlight-turquoise font-bungee text-xl md:text-2xl mb-3 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
               {selectedLocation.name}
             </h2>
 
-            <p className="text-paper-white font-special-elite text-sm mb-2 line-clamp-3 md:line-clamp-none">
-              {selectedLocation.description}
-            </p>
-
-            <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
-              <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>{selectedLocation.address}</span>
-            </div>
-
-            {selectedLocation.url && (
-              <a
-                href={selectedLocation.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
-              >
-                <span>
-                  {selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' : 'Read more on Wikipedia'}
-                </span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </a>
+            {/* Tab bar — bookstores & cafes only */}
+            {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
+              <div className="flex gap-1 mb-4 border-b border-white/10 pb-0">
+                {[
+                  { id: 'info', label: 'INFO' },
+                  { id: 'guestbook', label: 'GUESTBOOK' },
+                  { id: 'tale', label: "HITCHHIKER'S TALE" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setShelfTab(tab.id)}
+                    className="font-bungee px-3 py-1.5 rounded-t-lg transition-all relative"
+                    style={{
+                      fontSize: '10px',
+                      color: shelfTab === tab.id ? '#40E0D0' : 'rgba(192,192,192,0.5)',
+                      background: shelfTab === tab.id ? 'rgba(64,224,208,0.08)' : 'transparent',
+                      borderBottom: shelfTab === tab.id ? '2px solid #40E0D0' : '2px solid transparent',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             )}
 
-            {selectedLocation.source === 'ALA' && (
-              <p className="font-special-elite mt-3 pt-3 border-t border-white/10"
-                style={{ fontSize: '10px', color: 'rgba(192,192,192,0.55)', lineHeight: '1.4' }}>
-                Literary landmark courtesy of the{' '}
-                <a
-                  href="https://www.ala.org/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: 'rgba(64,224,208,0.6)', textDecoration: 'underline' }}
-                >
-                  American Library Association
-                </a>
-              </p>
+            {/* Tab: Info (or full content for landmarks) */}
+            {(selectedLocation.type === 'landmark' || shelfTab === 'info') && (
+              <div>
+                <p className="text-paper-white font-special-elite text-sm mb-2 line-clamp-3 md:line-clamp-none">
+                  {selectedLocation.description}
+                </p>
+
+                <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
+                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{selectedLocation.address}</span>
+                </div>
+
+                {selectedLocation.url && (
+                  <a
+                    href={selectedLocation.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
+                  >
+                    <span>
+                      {selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' : 'Read more on Wikipedia'}
+                    </span>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                )}
+
+                {selectedLocation.source === 'ALA' && (
+                  <p className="font-special-elite mt-3 pt-3 border-t border-white/10"
+                    style={{ fontSize: '10px', color: 'rgba(192,192,192,0.55)', lineHeight: '1.4' }}>
+                    Literary landmark courtesy of the{' '}
+                    <a
+                      href="https://www.ala.org/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: 'rgba(64,224,208,0.6)', textDecoration: 'underline' }}
+                    >
+                      American Library Association
+                    </a>
+                  </p>
+                )}
+
+                {/* Landmarks keep Guestbook inline */}
+                {selectedLocation.type === 'landmark' && (
+                  <Guestbook
+                    key={selectedLocation.id}
+                    locationId={selectedLocation.id}
+                    user={user}
+                    onShowLogin={onShowLogin}
+                  />
+                )}
+              </div>
             )}
 
-            <Guestbook
-              key={selectedLocation.id}
-              locationId={selectedLocation.id}
-              user={user}
-              onShowLogin={onShowLogin}
-            />
+            {/* Tab: Guestbook */}
+            {shelfTab === 'guestbook' && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
+              <Guestbook
+                key={selectedLocation.id}
+                locationId={selectedLocation.id}
+                user={user}
+                onShowLogin={onShowLogin}
+              />
+            )}
+
+            {/* Tab: Hitchhiker's Tale */}
+            {shelfTab === 'tale' && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
+              <HitchhikerTale
+                key={selectedLocation.id}
+                locationId={selectedLocation.id}
+                locationName={selectedLocation.name}
+                onOpenModal={() => setShowTaleModal(true)}
+              />
+            )}
           </div>
 
           {/* Sticky buttons — always visible at bottom */}
@@ -1310,6 +1371,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           onRemove={(id) => setTripItems(removeFromTrip(id))}
           onClearAll={handleClearTrip}
           onClose={() => setShowRoadTrip(false)}
+        />
+      )}
+
+      {/* ── Hitchhiker's Tale modal ── */}
+      {showTaleModal && selectedLocation && (
+        <TaleModal
+          locationId={selectedLocation.id}
+          locationName={selectedLocation.name}
+          user={user}
+          onShowLogin={onShowLogin}
+          onClose={() => setShowTaleModal(false)}
         />
       )}
     </div>
