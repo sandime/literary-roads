@@ -528,6 +528,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
   };
 
+  const handleRemoveFromTrip = (id) => {
+    const updated = tripItems.filter((i) => i.id !== id);
+    setTripItems(updated);
+    if (user) { saveTripToFirestore(updated); } else { removeFromTrip(id); }
+  };
+
   const handleClearTrip = () => {
     setTripItems([]);
     if (user) { saveTripToFirestore([]); } else { clearTrip(); }
@@ -1368,7 +1374,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {showRoadTrip && (
         <RoadTrip
           items={tripItems}
-          onRemove={(id) => setTripItems(removeFromTrip(id))}
+          onRemove={handleRemoveFromTrip}
           onClearAll={handleClearTrip}
           onClose={() => setShowRoadTrip(false)}
         />
