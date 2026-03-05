@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { subscribeToStory, addSentence, MAX_SENTENCES, MAX_CHARS } from '../utils/hitchhikerStories';
+import { subscribeToStory, addSentence, MAX_SENTENCES, MAX_CHARS, MAX_TITLE_CHARS } from '../utils/hitchhikerStories';
 
 export default function TaleModal({ locationId, locationName, user, onShowLogin, onClose }) {
   const [story, setStory] = useState(undefined);
+  const [titleInput, setTitleInput] = useState('');
   const [inputText, setInputText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -13,15 +14,22 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
     return unsub;
   }, [locationId]);
 
+  // Submit handler — handles both "create new story" and "append sentence"
   const handleSubmit = async () => {
     if (!user) { onShowLogin?.(); return; }
     const text = inputText.trim();
     if (!text || text.length > MAX_CHARS) return;
+    // When creating: require a title
+    if (!story && !titleInput.trim()) {
+      setError('Please enter a title for the story.');
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
-      await addSentence(locationId, locationName, text, user);
+      await addSentence(locationId, locationName, text, user, titleInput.trim() || undefined);
       setInputText('');
+      setTitleInput('');
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 150);
     } catch (err) {
       setError(err.message || `Failed to save. (${err.code})`);
@@ -30,10 +38,11 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
     }
   };
 
-  const title = story?.title || `The Tale of ${locationName}`;
+  const displayTitle = story?.title || `The Tale of ${locationName}`;
   const sentences = story?.sentences || [];
   const count = story?.sentenceCount || 0;
   const isFull = count >= MAX_SENTENCES;
+  const isNewStory = story === null;
 
   return (
     <div
@@ -60,7 +69,7 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
             className="font-bungee text-starlight-turquoise text-base md:text-lg leading-tight truncate"
             style={{ textShadow: '0 0 10px rgba(64,224,208,0.7)' }}
           >
-            {title}
+            {displayTitle}
           </h2>
           {story && (
             <p className="text-chrome-silver/50 font-special-elite" style={{ fontSize: '10px' }}>
@@ -85,12 +94,6 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
           <div className="flex justify-center py-16">
             <div className="w-6 h-6 border-2 border-atomic-orange border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : sentences.length === 0 ? (
-          <div className="text-center py-14">
-            <p className="text-4xl mb-4">📖</p>
-            <p className="text-chrome-silver font-special-elite text-sm">The tale hasn't begun yet...</p>
-            <p className="text-chrome-silver/40 font-special-elite text-xs mt-1">Write the first sentence below.</p>
-          </div>
         ) : (
           <div className="space-y-5">
             {sentences.map((s, i) => (
@@ -106,12 +109,12 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
         <div ref={bottomRef} className="h-4" />
       </div>
 
-      {/* ── Add sentence ── */}
+      {/* ── Input area ── */}
       <div
         className="flex-shrink-0 border-t-2 border-white/10 px-4 py-4 max-w-2xl mx-auto w-full"
         style={{ background: '#12132a' }}
       >
-        {isFull ? (
+        {story === undefined ? null : isFull ? (
           <p className="text-chrome-silver/50 font-special-elite text-xs text-center py-2">
             This tale has reached its full length (100 sentences). What a journey!
           </p>
@@ -120,20 +123,52 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
             onClick={onShowLogin}
             className="w-full border border-dashed border-starlight-turquoise/50 text-chrome-silver/70 font-special-elite py-3 rounded-lg hover:border-starlight-turquoise hover:text-starlight-turquoise transition-all text-xs"
           >
-            Sign in to add to the story
+            Sign in to {isNewStory ? 'start the tale' : 'add to the story'}
           </button>
         ) : (
-          <div>
-            <textarea
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value.slice(0, MAX_CHARS))}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
-              }}
-              placeholder="Continue the tale..."
-              rows={2}
-              className="w-full bg-black/40 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2 rounded-lg focus:outline-none focus:border-starlight-turquoise resize-none text-sm mb-2"
-            />
+          <div className="space-y-2">
+            {/* Title field — only shown when creating a new story */}
+            {isNewStory && (
+              <div>
+                <label className="block text-chrome-silver/60 font-special-elite mb-1" style={{ fontSize: '10px' }}>
+                  STORY TITLE
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={titleInput}
+                    onChange={(e) => setTitleInput(e.target.value.slice(0, MAX_TITLE_CHARS))}
+                    placeholder={`e.g. "Midnight at the Bookshop"`}
+                    className="w-full bg-black/40 border-2 border-atomic-orange/60 text-paper-white font-special-elite px-3 py-2 rounded-lg focus:outline-none focus:border-atomic-orange text-sm pr-12"
+                  />
+                  <span
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 font-special-elite text-xs ${titleInput.length >= MAX_TITLE_CHARS ? 'text-atomic-orange' : 'text-chrome-silver/30'}`}
+                  >
+                    {titleInput.length}/{MAX_TITLE_CHARS}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Sentence field */}
+            <div>
+              {isNewStory && (
+                <label className="block text-chrome-silver/60 font-special-elite mb-1" style={{ fontSize: '10px' }}>
+                  FIRST SENTENCE
+                </label>
+              )}
+              <textarea
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value.slice(0, MAX_CHARS))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+                }}
+                placeholder={isNewStory ? 'Begin the tale...' : 'Continue the tale...'}
+                rows={2}
+                className="w-full bg-black/40 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2 rounded-lg focus:outline-none focus:border-starlight-turquoise resize-none text-sm"
+              />
+            </div>
+
             <div className="flex items-center justify-between gap-3">
               <span
                 className={`font-special-elite text-xs flex-shrink-0 ${inputText.length >= MAX_CHARS ? 'text-atomic-orange' : 'text-chrome-silver/40'}`}
@@ -145,11 +180,11 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
               )}
               <button
                 onClick={handleSubmit}
-                disabled={submitting || !inputText.trim()}
+                disabled={submitting || !inputText.trim() || (isNewStory && !titleInput.trim())}
                 className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee px-6 py-1.5 rounded-lg hover:bg-starlight-turquoise disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 style={{ fontSize: '11px' }}
               >
-                {submitting ? 'SAVING...' : 'SUBMIT'}
+                {submitting ? 'SAVING...' : isNewStory ? 'START THE TALE' : 'SUBMIT'}
               </button>
             </div>
           </div>

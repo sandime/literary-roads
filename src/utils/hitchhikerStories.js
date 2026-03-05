@@ -23,8 +23,11 @@ export function subscribeToStory(locationId, callback) {
   );
 }
 
+export const MAX_TITLE_CHARS = 60;
+
 // Append a sentence. Creates the story doc if it doesn't exist yet.
-export async function addSentence(locationId, locationName, sentenceText, user) {
+// customTitle is required when creating a new story; ignored for existing ones.
+export async function addSentence(locationId, locationName, sentenceText, user, customTitle) {
   const ref = doc(db, 'hitchhikerStories', locationId);
   const sentence = {
     userId: user.uid,
@@ -36,7 +39,7 @@ export async function addSentence(locationId, locationName, sentenceText, user) 
   const snap = await getDoc(ref);
   if (!snap.exists()) {
     await setDoc(ref, {
-      title: `The Tale of ${locationName}`,
+      title: (customTitle || '').trim() || `The Tale of ${locationName}`,
       locationName,
       locationPlaceId: locationId,
       createdBy: { userId: user.uid, userName: user.displayName || 'Anonymous Traveler' },

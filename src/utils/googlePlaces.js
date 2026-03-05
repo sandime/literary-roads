@@ -350,7 +350,7 @@ export const searchPlacesByText = async (query) => {
            type === 'cafe'      ? 'Coffee shop'           : '');
 
         return {
-          id: `search_${place.id}`,
+          id: place.id,
           name: place.displayName?.text || 'Unknown Place',
           type,
           lat: place.location?.latitude,
