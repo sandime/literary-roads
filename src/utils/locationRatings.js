@@ -22,8 +22,8 @@ export function subscribeToRating(locationId, callback) {
   );
 }
 
-// Cast a yes/no vote. Throws if the user has already voted.
-export async function castVote(locationId, userId, vote) {
+// Cast a yes vote. Throws if the user has already voted.
+export async function castVote(locationId, userId) {
   const ref = doc(db, 'locationRatings', locationId);
   const snap = await getDoc(ref);
 
@@ -32,21 +32,17 @@ export async function castVote(locationId, userId, vote) {
     if ((data.voters || []).includes(userId)) {
       throw new Error('Already voted');
     }
-    const newYesVotes = (data.yesVotes || 0) + (vote === 'yes' ? 1 : 0);
-    const updates = {
+    const newYesVotes = (data.yesVotes || 0) + 1;
+    await updateDoc(ref, {
+      yesVotes: increment(1),
       voters: arrayUnion(userId),
       hasStarburst: newYesVotes >= STARBURST_THRESHOLD,
-    };
-    if (vote === 'yes') updates.yesVotes = increment(1);
-    else updates.noVotes = increment(1);
-    await updateDoc(ref, updates);
+    });
   } else {
-    const yesVotes = vote === 'yes' ? 1 : 0;
     await setDoc(ref, {
-      yesVotes,
-      noVotes: vote === 'no' ? 1 : 0,
+      yesVotes: 1,
       voters: [userId],
-      hasStarburst: yesVotes >= STARBURST_THRESHOLD,
+      hasStarburst: 1 >= STARBURST_THRESHOLD,
     });
   }
 }
