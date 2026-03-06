@@ -1,12 +1,61 @@
 // Wikipedia API integration for literary landmarks
 
-const LITERARY_KEYWORDS = [
+// Specific literary author names (used for stricter checks like graves)
+const LITERARY_AUTHOR_NAMES = [
   'hemingway', 'twain', 'poe', 'fitzgerald', 'faulkner',
   'dickinson', 'whitman', 'thoreau', 'emerson', 'alcott',
   'steinbeck', 'kerouac', 'salinger', 'morrison', 'angelou',
-  'hawthorne', 'melville', 'london', "o'connor", 'williams',
-  'literary', 'literature', 'author', 'writer', 'poet',
+  'hawthorne', 'melville', "o'connor", 'williams', 'london',
+  'frost', 'sandburg', 'cather', 'updike', 'cheever', 'carver',
+  'vonnegut', 'capote', 'plath', 'sexton', 'ginsberg', 'hughes',
+  'baldwin', 'ellison', 'hurston', 'toomer', 'dunbar', 'chesnutt',
+  'wharton', 'james', 'adams', 'crane', 'norris', 'dreiser',
+  'sinclair', 'dos passos', 'cummings', 'pound', 'eliot',
+  'longfellow', 'whittier', 'lowell', 'holmes', 'irving',
+  'cooper', 'stowe', 'chopin', 'jewett', 'freeman', 'garland',
 ];
+
+const LITERARY_KEYWORDS = [
+  ...LITERARY_AUTHOR_NAMES,
+  'literary', 'literature', 'author', 'writer', 'poet',
+  'birthplace', 'boyhood home', 'childhood home', 'home of',
+  'house museum', 'writing', 'published',
+];
+
+// Titles containing these are always excluded regardless of keyword match
+const TITLE_HARD_EXCLUDES = [
+  'transit authority', 'transit station', 'transit center',
+  'bus station', 'bus terminal', 'bus stop', 'bus depot',
+  'train station', 'railway station', 'railroad station',
+  'metro station', 'subway station', 'light rail',
+  'airport', 'seaport', 'harbor',
+  'courthouse', 'county court', 'city hall', 'town hall',
+  'post office', 'fire station', 'police station', 'precinct',
+  'military', 'fort ', ' fort', 'battle of', 'war memorial',
+  'veterans memorial', 'soldiers memorial',
+  'hospital', 'medical center', 'clinic',
+  'shopping mall', 'shopping center', 'plaza',
+  'power plant', 'water tower', 'sewage',
+];
+
+// Title patterns that indicate a grave/burial — only pass if a known author name is also present
+const GRAVE_PATTERNS = ['grave of', 'tomb of', 'burial of', 'cemetery', 'graveyard', 'mausoleum'];
+
+const isLiteraryTitle = (title) => {
+  const lower = title.toLowerCase();
+
+  // Hard exclude non-literary civic/transit locations
+  if (TITLE_HARD_EXCLUDES.some(ex => lower.includes(ex))) return false;
+
+  // Grave/burial entries require a specific author name — generic "author" keyword not enough
+  const isGrave = GRAVE_PATTERNS.some(p => lower.includes(p));
+  if (isGrave) {
+    return LITERARY_AUTHOR_NAMES.some(name => lower.includes(name));
+  }
+
+  // Standard check: any literary keyword
+  return LITERARY_KEYWORDS.some(kw => lower.includes(kw));
+};
 
 // Wrap a promise with a hard timeout
 const withTimeout = (promise, ms) =>
@@ -27,10 +76,10 @@ export const searchLiteraryLandmarks = async (lat, lng, radiusMiles = 5) => {
     const data = await response.json();
     if (!data.query?.geosearch) return [];
 
-    // Filter by title keyword first — no extra fetches needed for non-matches
-    const matches = data.query.geosearch.filter(({ title }) =>
-      LITERARY_KEYWORDS.some((kw) => title.toLowerCase().includes(kw))
-    ).slice(0, 5); // cap detail fetches to 5 per point
+    // Filter by title first — no extra fetches needed for non-matches
+    const matches = data.query.geosearch
+      .filter(({ title }) => isLiteraryTitle(title))
+      .slice(0, 5); // cap detail fetches to 5 per point
 
     const results = await Promise.all(
       matches.map(async (place) => {

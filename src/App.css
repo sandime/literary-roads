@@ -38,6 +38,12 @@
   height: 32px;
 }
 
+/* Override default Leaflet cluster styling — our cluster uses a custom SVG badge */
+.landmark-cluster-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
 /* Googie neon marker styling */
 .custom-googie-marker {
   background: transparent !important;

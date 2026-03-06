@@ -1,7 +1,10 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
+import 'react-leaflet-cluster/lib/assets/MarkerCluster.css';
+import 'react-leaflet-cluster/lib/assets/MarkerCluster.Default.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
 import { searchAlongRoute, geocodeCity, getPlaceCoords, searchNearbyPlaces, autocompleteCity, searchPlacesByText } from '../utils/googlePlaces';
@@ -185,8 +188,55 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
   );
 };
 
+// Counter to give each icon's SVG filters a unique DOM ID, preventing cross-marker contamination
+let _iconUid = 0;
+
+// Neon green cluster badge for grouped landmark markers
+const createLandmarkClusterIcon = (cluster) => {
+  const count = cluster.getChildCount();
+  return L.divIcon({
+    html: `
+      <div style="
+        position: relative;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="cluster-glow" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <circle cx="22" cy="22" r="18" stroke="#39FF14" stroke-width="2.5" filter="url(#cluster-glow)"/>
+          <circle cx="22" cy="22" r="18" fill="#39FF14" fill-opacity="0.15"/>
+        </svg>
+        <span style="
+          position: absolute;
+          color: #39FF14;
+          font-family: 'Bungee', sans-serif;
+          font-size: ${count > 99 ? '11px' : count > 9 ? '13px' : '15px'};
+          line-height: 1;
+          text-shadow: 0 0 8px #39FF14;
+          pointer-events: none;
+        ">${count}</span>
+      </div>
+    `,
+    className: 'landmark-cluster-marker',
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+  });
+};
+
 // Custom Googie-style neon outline icons
 const createCustomIcon = (type, hasStarburst = false) => {
+  const uid = ++_iconUid;
   const glowBoost = hasStarburst ? 'filter:drop-shadow(0 0 10px rgba(255,210,0,0.9));' : '';
   const starburstOverlay = hasStarburst
     ? `<img src="/literary-roads/images/starburst-rating.png" alt="" style="position:absolute;top:-14px;right:-14px;width:40px;height:40px;z-index:10;" />`
@@ -194,32 +244,31 @@ const createCustomIcon = (type, hasStarburst = false) => {
   const icons = {
     // OAK TREE - Historic Literary Landmarks (Neon Green)
     landmark: `
-      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="glow-green">
-            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <filter id="glow-green-${uid}" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
             <feMerge>
-              <feMergeNode in="coloredBlur"/>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
         </defs>
-        <g filter="url(#glow-green)" class="neon-marker neon-flicker-slow">
+        <g filter="url(#glow-green-${uid})" class="neon-marker neon-flicker-slow">
           <!-- Trunk -->
           <line x1="20" y1="36" x2="20" y2="25" stroke="#39FF14" stroke-width="3" stroke-linecap="round"/>
           <!-- Left branch -->
-          <path d="M 20 27 Q 16 24 14 22" fill="none" stroke="#39FF14" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 20 27 Q 16 24 14 22" stroke="#39FF14" stroke-width="2" stroke-linecap="round"/>
           <!-- Right branch -->
-          <path d="M 20 26 Q 24 23 26 21" fill="none" stroke="#39FF14" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 20 26 Q 24 23 26 21" stroke="#39FF14" stroke-width="2" stroke-linecap="round"/>
           <!-- Center branch -->
           <line x1="20" y1="25" x2="20" y2="18" stroke="#39FF14" stroke-width="1.5" stroke-linecap="round"/>
-          <!-- Left canopy lobe -->
-          <ellipse cx="12" cy="16" rx="6" ry="5" fill="none" stroke="#39FF14" stroke-width="2"/>
+          <!-- Left canopy lobe — shifted out for clear gap -->
+          <ellipse cx="10" cy="17" rx="6" ry="5" stroke="#39FF14" stroke-width="2"/>
           <!-- Center canopy lobe -->
-          <ellipse cx="20" cy="11" rx="7" ry="6" fill="none" stroke="#39FF14" stroke-width="2"/>
-          <!-- Right canopy lobe -->
-          <ellipse cx="28" cy="16" rx="6" ry="5" fill="none" stroke="#39FF14" stroke-width="2"/>
+          <ellipse cx="20" cy="11" rx="6" ry="5.5" stroke="#39FF14" stroke-width="2"/>
+          <!-- Right canopy lobe — shifted out for clear gap -->
+          <ellipse cx="30" cy="17" rx="6" ry="5" stroke="#39FF14" stroke-width="2"/>
         </g>
       </svg>
     `,
@@ -228,7 +277,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
     bookstore: `
       <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="glow-orange">
+          <filter id="glow-orange-${uid}">
             <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
@@ -237,7 +286,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
             </feMerge>
           </filter>
         </defs>
-        <g filter="url(#glow-orange)" class="neon-marker neon-flicker-fast">
+        <g filter="url(#glow-orange-${uid})" class="neon-marker neon-flicker-fast">
           <!-- Open book outline -->
           <path d="M 10 14 L 10 29 Q 20 27 20 27 Q 20 27 30 29 L 30 14 Q 20 16 20 16 Q 20 16 10 14"
                 fill="none" stroke="#FF4E00" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
@@ -251,7 +300,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
     cafe: `
       <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="glow-turquoise">
+          <filter id="glow-turquoise-${uid}">
             <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
@@ -260,7 +309,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
             </feMerge>
           </filter>
         </defs>
-        <g filter="url(#glow-turquoise)" class="neon-marker neon-shimmer">
+        <g filter="url(#glow-turquoise-${uid})" class="neon-marker neon-shimmer">
           <!-- Coffee cup outline -->
           <path d="M 12 16 L 14 28 Q 20 30 26 28 L 28 16"
                 fill="none" stroke="#40E0D0" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
@@ -282,7 +331,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
     search: `
       <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <filter id="glow-gold">
+          <filter id="glow-gold-${uid}">
             <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
@@ -290,7 +339,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
             </feMerge>
           </filter>
         </defs>
-        <g filter="url(#glow-gold)">
+        <g filter="url(#glow-gold-${uid})">
           <path d="M 16 2 C 8.3 2 2 8.3 2 16 C 2 24 16 38 16 38 C 16 38 30 24 30 16 C 30 8.3 23.7 2 16 2 Z"
                 fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
           <circle cx="16" cy="16" r="5" fill="#1A1B2E"/>
@@ -1115,33 +1164,55 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             />
           )}
 
-          {visibleLocations.map((location) =>
-            location.type === 'search' ? (
-              <Marker
-                key={location.id}
-                position={[location.lat, location.lng]}
-                icon={createCustomIcon('search')}
-              >
-                <Popup className="search-pin-popup">
-                  <div style={{ fontFamily: 'Special Elite, serif', minWidth: '140px' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '2px' }}>{location.name}</div>
-                    {location.address && <div style={{ fontSize: '11px', color: '#888' }}>{location.address}</div>}
-                  </div>
-                </Popup>
-              </Marker>
-            ) : (
-              <Marker
-                key={location.id}
-                position={[location.lat, location.lng]}
-                icon={createCustomIcon(location.type, starburstIds.has(location.id))}
-                eventHandlers={{
-                  click: () => {
-                    setSelectedLocation(location);
-                  },
-                }}
-              />
+          {/* Landmark markers — clustered into neon green badges */}
+          <MarkerClusterGroup
+            iconCreateFunction={createLandmarkClusterIcon}
+            maxClusterRadius={50}
+            showCoverageOnHover={false}
+            zoomToBoundsOnClick={true}
+            spiderfyOnMaxZoom={true}
+            chunkedLoading
+          >
+            {visibleLocations
+              .filter(l => l.type === 'landmark')
+              .map(location => (
+                <Marker
+                  key={location.id}
+                  position={[location.lat, location.lng]}
+                  icon={createCustomIcon('landmark', starburstIds.has(location.id))}
+                  eventHandlers={{ click: () => setSelectedLocation(location) }}
+                />
+              ))
+            }
+          </MarkerClusterGroup>
+
+          {/* Bookstore, cafe, and search markers — not clustered */}
+          {visibleLocations
+            .filter(l => l.type !== 'landmark')
+            .map(location =>
+              location.type === 'search' ? (
+                <Marker
+                  key={location.id}
+                  position={[location.lat, location.lng]}
+                  icon={createCustomIcon('search')}
+                >
+                  <Popup className="search-pin-popup">
+                    <div style={{ fontFamily: 'Special Elite, serif', minWidth: '140px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '2px' }}>{location.name}</div>
+                      {location.address && <div style={{ fontSize: '11px', color: '#888' }}>{location.address}</div>}
+                    </div>
+                  </Popup>
+                </Marker>
+              ) : (
+                <Marker
+                  key={location.id}
+                  position={[location.lat, location.lng]}
+                  icon={createCustomIcon(location.type, starburstIds.has(location.id))}
+                  eventHandlers={{ click: () => setSelectedLocation(location) }}
+                />
+              )
             )
-          )}
+          }
         </MapContainer>
       </div>
 

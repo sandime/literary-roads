@@ -6,13 +6,14 @@ const getDistance = (lat1, lon1, lat2, lon2) => {
   const R = 3959; // Earth's radius in miles
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
+  const a =
     Math.sin(dLat/2) * Math.sin(dLat/2) +
     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
     Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c;
 };
+
 
 // Get curated literary landmarks from Firebase within radiusMiles of any route point.
 // Pass start + all route points + end for full coverage.
@@ -28,7 +29,8 @@ export const getCuratedLandmarks = async (routePoints, radiusMiles = 25) => {
       // Skip docs without valid coordinates (failed geocoding)
       if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
       // Preserve the original source field (e.g. 'ALA') so The Shelf can attribute correctly
-      allLandmarks.push({ id: doc.id, ...data });
+      // Always enforce type:'landmark' — guards against missing/incorrect Firestore field
+      allLandmarks.push({ id: doc.id, ...data, type: 'landmark' });
     });
 
     console.log(`[Firestore] ${allLandmarks.length} total landmarks fetched`);
