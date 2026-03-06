@@ -277,13 +277,34 @@ const createCustomIcon = (type, hasStarburst = false) => {
         </g>
       </svg>
     `,
+
+    // MAP PIN - Generic search result (Gold)
+    search: `
+      <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-gold">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-gold)">
+          <path d="M 16 2 C 8.3 2 2 8.3 2 16 C 2 24 16 38 16 38 C 16 38 30 24 30 16 C 30 8.3 23.7 2 16 2 Z"
+                fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
+          <circle cx="16" cy="16" r="5" fill="#1A1B2E"/>
+        </g>
+      </svg>
+    `,
   };
 
+  const isSearch = type === 'search';
   return L.divIcon({
     html: `<div style="position:relative;display:inline-block;${glowBoost}">${icons[type] || icons.cafe}${starburstOverlay}</div>`,
     className: 'custom-googie-marker',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
+    iconSize: isSearch ? [32, 40] : [40, 40],
+    iconAnchor: isSearch ? [16, 40] : [20, 40],
     popupAnchor: [0, -40],
   });
 };
@@ -346,7 +367,7 @@ const PlaceSearch = ({ onSelect }) => {
     onSelect(place);
   };
 
-  const typeEmoji = { bookstore: '📚', cafe: '☕', landmark: '🌲' };
+  const typeEmoji = { bookstore: '📚', cafe: '☕', landmark: '🌲', search: '📍' };
 
   return (
     <div className="max-w-2xl mx-auto w-full px-0 pb-1.5">
@@ -822,12 +843,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   };
 
   const handleSearchSelect = (place) => {
+    // Non-literary search results (landmark tagged by Google but not ALA/Wikipedia)
+    // get a yellow pin and no Shelf — just zoom + popup
+    const isLiteraryResult = place.type === 'bookstore' || place.type === 'cafe' ||
+      (place.type === 'landmark' && place.source !== 'search');
+    const normalizedPlace = isLiteraryResult ? place : { ...place, type: 'search' };
+
     setVisibleLocations((prev) => {
-      if (prev.some((l) => l.id === place.id)) return prev;
-      return [...prev, place];
+      if (prev.some((l) => l.id === normalizedPlace.id)) return prev;
+      return [...prev, normalizedPlace];
     });
     setSearchTarget({ center: [place.lat, place.lng], zoom: 15 });
-    setSelectedLocation(place);
+    if (isLiteraryResult) setSelectedLocation(place);
     setShowPlanner(false);
     setShowSearch(false);
   };
@@ -1088,27 +1115,33 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             />
           )}
 
-          {visibleLocations.map((location) => (
-            <Marker
-              key={location.id}
-              position={[location.lat, location.lng]}
-              icon={createCustomIcon(location.type, starburstIds.has(location.id))}
-              eventHandlers={{
-                click: () => {
-                  console.log('[Shelf] Landmark clicked:', {
-                    name: location.name,
-                    source: location.source,
-                    id: location.id,
-                    city: location.city,
-                    state: location.state,
-                    lat: location.lat,
-                    lng: location.lng,
-                  });
-                  setSelectedLocation(location);
-                },
-              }}
-            />
-          ))}
+          {visibleLocations.map((location) =>
+            location.type === 'search' ? (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon('search')}
+              >
+                <Popup className="search-pin-popup">
+                  <div style={{ fontFamily: 'Special Elite, serif', minWidth: '140px' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '2px' }}>{location.name}</div>
+                    {location.address && <div style={{ fontSize: '11px', color: '#888' }}>{location.address}</div>}
+                  </div>
+                </Popup>
+              </Marker>
+            ) : (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon(location.type, starburstIds.has(location.id))}
+                eventHandlers={{
+                  click: () => {
+                    setSelectedLocation(location);
+                  },
+                }}
+              />
+            )
+          )}
         </MapContainer>
       </div>
 
