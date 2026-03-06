@@ -15,8 +15,8 @@ const ALLOWED_COFFEE_CHAINS = [
   'peets',
 ];
 
-// HARD EXCLUDE: Fast food, ice cream, and non-coffee chains
-const HARD_EXCLUDE = [
+// HARD EXCLUDE: Fast food, ice cream, alcohol, warehouse, and non-coffee places
+const HARD_EXCLUDE_CAFE = [
   'mcdonald',
   'burger king',
   'wendy',
@@ -63,38 +63,122 @@ const HARD_EXCLUDE = [
   'custard',
   'shake',
   'smoothie',
+  // Breweries / bars / wine
+  'brewing',
+  'brewery',
+  'brewhouse',
+  'brewpub',
+  'vineyard',
+  'winery',
+  'wine bar',
+  'taproom',
+  'tap room',
+  ' bar & grill',
+  ' bar and grill',
+  'sports bar',
+  'cocktail',
+  // Warehouse / big box
+  "sam's club",
+  'costco',
+  'target',
+  'walmart',
 ];
 
 // Check if a cafe is a real coffee shop
 const isRealCoffeeShop = (placeName) => {
   const lowerName = placeName.toLowerCase();
-  
-  // Step 1: HARD EXCLUDE - if it's in this list, reject immediately
-  if (HARD_EXCLUDE.some(term => lowerName.includes(term))) {
-    return false;
+
+  // Step 1: HARD EXCLUDE
+  if (HARD_EXCLUDE_CAFE.some(term => lowerName.includes(term))) return false;
+
+  // Step 2: Reject standalone "bar" unless it's a coffee/juice bar
+  if (lowerName.includes(' bar') || lowerName.startsWith('bar ') || lowerName === 'bar') {
+    const okBar = ['coffee bar', 'juice bar', 'tea bar', 'espresso bar'];
+    if (!okBar.some(t => lowerName.includes(t))) return false;
   }
-  
-  // Step 2: ALLOWED CHAINS - if it's a known good chain, accept it
-  if (ALLOWED_COFFEE_CHAINS.some(chain => lowerName.includes(chain))) {
-    return true;
-  }
-  
-  // Step 3: COFFEE KEYWORDS - if it has coffee-specific terms, probably good
-  const strongCoffeeKeywords = ['coffee', 'espresso', 'cappuccino', 'latte', 'roasters', 'roastery', 'brew', 'bean', 'cafe', 'caffeine'];
-  const hasStrongCoffeeKeyword = strongCoffeeKeywords.some(keyword => lowerName.includes(keyword));
-  
-  if (hasStrongCoffeeKeyword) {
-    return true;
-  }
-  
-  // Step 4: Default reject (if it's just called "cafe" with no coffee terms, probably not a coffee shop)
+
+  // Step 3: ALLOWED CHAINS
+  if (ALLOWED_COFFEE_CHAINS.some(chain => lowerName.includes(chain))) return true;
+
+  // Step 4: COFFEE KEYWORDS
+  const coffeeKeywords = ['coffee', 'espresso', 'cappuccino', 'latte', 'roasters', 'roastery', 'brew', 'bean', 'cafe', 'caffeine', 'tea house', 'teahouse'];
+  if (coffeeKeywords.some(kw => lowerName.includes(kw))) return true;
+
+  // Step 5: Default reject
   return false;
 };
 
-// Check if a bookstore name is excluded
-const isExcludedBookstore = (placeName) => {
-  // For bookstores, we're less strict - only exclude if clearly not a bookstore
-  return false; // Keep all bookstores for now
+// KNOWN BOOKSTORE CHAINS — always accept regardless of name pattern
+const KNOWN_BOOKSTORE_CHAINS = [
+  'barnes & noble',
+  'barnes and noble',
+  'half price books',
+  "powell's",
+  'books-a-million',
+  'books a million',
+  'second & charles',
+  'second and charles',
+  'hastings',
+  'tattered cover',
+  'strand bookstore',
+  'the strand',
+];
+
+// BOOKSTORE HARD EXCLUDE — crystal shops, gift shops, discount retail, etc.
+const HARD_EXCLUDE_BOOKSTORE = [
+  'crystal',
+  'mystical',
+  'metaphysical',
+  'psychic',
+  'tarot',
+  'gift shop',
+  'gifts & more',
+  'gifts and more',
+  'souvenir',
+  'antique mall',
+  'antique market',
+  'antique store',
+  'antique shop',
+  'general store',
+  'convenience store',
+  'tobacco',
+  'vape',
+  'smoke shop',
+  "sam's club",
+  'costco',
+  'target',
+  'walmart',
+  "ollie's",
+  'ollies',
+  'bargain outlet',
+  'bargain bin',
+  'discount outlet',
+  'wholesale',
+  'dollar tree',
+  'dollar general',
+  '5 below',
+  'five below',
+  'big lots',
+  'grocery',
+  'supermarket',
+];
+
+// Check if a place tagged "book_store" is actually a real bookstore
+const isRealBookstore = (placeName) => {
+  const lowerName = placeName.toLowerCase();
+
+  // Step 1: HARD EXCLUDE
+  if (HARD_EXCLUDE_BOOKSTORE.some(term => lowerName.includes(term))) return false;
+
+  // Step 2: KNOWN CHAINS — always pass
+  if (KNOWN_BOOKSTORE_CHAINS.some(chain => lowerName.includes(chain))) return true;
+
+  // Step 3: REQUIRE positive book indicators in name
+  const bookKeywords = ['book', 'books', 'bookstore', 'bookshop', 'bookery', 'bookseller', 'booksellers', 'library', 'lit ', 'literary', 'reading', 'page', 'novel', 'story', 'stories', 'chapter', 'shelf', 'tome'];
+  if (bookKeywords.some(kw => lowerName.includes(kw))) return true;
+
+  // Step 4: Reject — tagged book_store but nothing in the name suggests it
+  return false;
 };
 
 // Resolve a Places API placeId to precise coordinates via Place Details
@@ -245,7 +329,7 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
 
     // Combine and format results
     const bookstores = (bookstoreData.places || [])
-      .filter(place => !isExcludedBookstore(place.displayName?.text || ''))
+      .filter(place => isRealBookstore(place.displayName?.text || ''))
       .map(place => ({
         id: place.id,
         name: place.displayName?.text || 'Unnamed Bookstore',
@@ -340,9 +424,14 @@ export const searchPlacesByText = async (query) => {
     return data.places
       .map((place) => {
         const types = place.types || [];
+        const name = place.displayName?.text || 'Unknown Place';
         let type = 'landmark';
         if (types.includes('book_store')) type = 'bookstore';
         else if (types.some((t) => ['cafe', 'coffee_shop'].includes(t))) type = 'cafe';
+
+        // Apply same filters as nearby search
+        if (type === 'bookstore' && !isRealBookstore(name)) type = 'landmark';
+        if (type === 'cafe' && !isRealCoffeeShop(name)) type = 'landmark';
 
         const description =
           place.editorialSummary?.text ||
@@ -351,7 +440,7 @@ export const searchPlacesByText = async (query) => {
 
         return {
           id: place.id,
-          name: place.displayName?.text || 'Unknown Place',
+          name,
           type,
           lat: place.location?.latitude,
           lng: place.location?.longitude,
