@@ -36,25 +36,77 @@ const TITLE_HARD_EXCLUDES = [
   'hospital', 'medical center', 'clinic',
   'shopping mall', 'shopping center', 'plaza',
   'power plant', 'water tower', 'sewage',
+  'school district', 'board of education',
+];
+
+// Titles with these patterns are ONLY allowed if a known author name also appears in the title.
+// e.g. "Mark Twain Elementary School" passes; "Jamestown High School" does not.
+// Exception: if the title contains "library" it always passes.
+const CONDITIONAL_EXCLUDES = [
+  'high school', 'middle school', 'elementary school', 'junior high',
+  'primary school', 'grammar school', 'secondary school',
+  'business college', 'community college', 'technical college',
+  'vocational school', 'trade school',
+  'academy', 'university', 'college',
+  ' station',   // "Jamestown Station" but not "Grand Central Station" (already caught by train station)
+  ' depot',
 ];
 
 // Title patterns that indicate a grave/burial — only pass if a known author name is also present
 const GRAVE_PATTERNS = ['grave of', 'tomb of', 'burial of', 'cemetery', 'graveyard', 'mausoleum'];
 
+// Keywords that must appear in the article extract for the place to qualify as literary.
+// Checked after the title passes — prevents generic civic buildings from slipping through.
+const EXTRACT_LITERARY_KEYWORDS = [
+  'author', 'writer', 'poet', 'novelist', 'playwright', 'literary',
+  'literature', 'novel', 'book', 'poem', 'poetry', 'fiction',
+  'nonfiction', 'non-fiction', 'memoir', 'biography', 'autobiography',
+  'wrote', 'published', 'writing', 'storyteller', 'prose', 'verse',
+  ...LITERARY_AUTHOR_NAMES,
+];
+
+// Test whether `text` contains `word` as a whole word (not as part of a longer word).
+// e.g. hasWord("jamestown west", "james") → false
+//      hasWord("mark twain house", "twain") → true
+const hasWord = (text, word) => new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(text);
+
+const titleHasAuthorName = (lower) => LITERARY_AUTHOR_NAMES.some(name => hasWord(lower, name));
+
 const isLiteraryTitle = (title) => {
   const lower = title.toLowerCase();
+
+  // Always pass libraries — they are inherently literary
+  if (lower.includes('library')) return true;
 
   // Hard exclude non-literary civic/transit locations
   if (TITLE_HARD_EXCLUDES.some(ex => lower.includes(ex))) return false;
 
-  // Grave/burial entries require a specific author name — generic "author" keyword not enough
-  const isGrave = GRAVE_PATTERNS.some(p => lower.includes(p));
-  if (isGrave) {
-    return LITERARY_AUTHOR_NAMES.some(name => lower.includes(name));
+  // Add missing hard excludes not covered above
+  if (lower.includes('armory') || lower.includes('armoury')) return false;
+
+  // Conditional excludes: schools, colleges, stations — only pass if named after an author
+  const isConditional = CONDITIONAL_EXCLUDES.some(p => lower.includes(p));
+  if (isConditional) {
+    return titleHasAuthorName(lower);
   }
 
-  // Standard check: any literary keyword
-  return LITERARY_KEYWORDS.some(kw => lower.includes(kw));
+  // Grave/burial entries require a specific author name
+  const isGrave = GRAVE_PATTERNS.some(p => lower.includes(p));
+  if (isGrave) {
+    return titleHasAuthorName(lower);
+  }
+
+  // Standard check: whole-word author names or literary keyword phrases
+  if (titleHasAuthorName(lower)) return true;
+  const PHRASE_KEYWORDS = ['literary', 'literature', 'author', 'writer', 'poet',
+    'birthplace', 'boyhood home', 'childhood home', 'home of', 'house museum', 'writing', 'published'];
+  return PHRASE_KEYWORDS.some(kw => lower.includes(kw));
+};
+
+// Secondary check on the fetched article extract.
+const isLiteraryExtract = (extract) => {
+  const lower = extract.toLowerCase();
+  return EXTRACT_LITERARY_KEYWORDS.some(kw => lower.includes(kw));
 };
 
 // Wrap a promise with a hard timeout
@@ -92,7 +144,10 @@ export const searchLiteraryLandmarks = async (lat, lng, radiusMiles = 5) => {
             3000
           );
           const detData = await det.json();
-          const extract = detData.query?.pages?.[place.pageid]?.extract || place.title;
+          const extract = detData.query?.pages?.[place.pageid]?.extract || '';
+          // Reject if the article content has no literary substance
+          if (!isLiteraryExtract(extract)) return null;
+          const description = extract.substring(0, 150) + (extract.length > 150 ? '...' : '');
           return {
             id: `wiki_${place.pageid}`,
             name: place.title,
@@ -100,7 +155,7 @@ export const searchLiteraryLandmarks = async (lat, lng, radiusMiles = 5) => {
             lat: place.lat,
             lng: place.lon,
             address: place.title,
-            description: extract.substring(0, 150) + (extract.length > 150 ? '...' : ''),
+            description,
             source: 'wikipedia',
             url: `https://en.wikipedia.org/?curid=${place.pageid}`,
           };
