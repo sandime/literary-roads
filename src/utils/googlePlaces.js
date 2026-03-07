@@ -84,11 +84,14 @@ const HARD_EXCLUDE_CAFE = [
   'walmart',
 ];
 
-// Check if a cafe is a real coffee shop
-const isRealCoffeeShop = (placeName) => {
+// Check if a cafe is a real coffee shop.
+// googleConfirmed=true means Google's Places API explicitly typed it as 'cafe' or 'coffee_shop'
+// — in that case we only apply hard excludes and trust Google's category.
+// googleConfirmed=false (text search) requires a positive keyword match.
+const isRealCoffeeShop = (placeName, googleConfirmed = false) => {
   const lowerName = placeName.toLowerCase();
 
-  // Step 1: HARD EXCLUDE
+  // Step 1: HARD EXCLUDE — always applied regardless of source
   if (HARD_EXCLUDE_CAFE.some(term => lowerName.includes(term))) return false;
 
   // Step 2: Reject standalone "bar" unless it's a coffee/juice bar
@@ -97,14 +100,17 @@ const isRealCoffeeShop = (placeName) => {
     if (!okBar.some(t => lowerName.includes(t))) return false;
   }
 
-  // Step 3: ALLOWED CHAINS
+  // Step 3: If Google already confirmed it's a cafe, trust that — no keyword check needed
+  if (googleConfirmed) return true;
+
+  // Step 4: ALLOWED CHAINS
   if (ALLOWED_COFFEE_CHAINS.some(chain => lowerName.includes(chain))) return true;
 
-  // Step 4: COFFEE KEYWORDS
-  const coffeeKeywords = ['coffee', 'espresso', 'cappuccino', 'latte', 'roasters', 'roastery', 'brew', 'bean', 'cafe', 'caffeine', 'tea house', 'teahouse'];
+  // Step 5: COFFEE KEYWORDS
+  const coffeeKeywords = ['coffee', 'espresso', 'cappuccino', 'latte', 'roasters', 'roastery', 'brew', 'bean', 'cafe', 'caffeine', 'tea house', 'teahouse', 'perk'];
   if (coffeeKeywords.some(kw => lowerName.includes(kw))) return true;
 
-  // Step 5: Default reject
+  // Step 6: Default reject
   return false;
 };
 
@@ -341,7 +347,7 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
       }));
 
     const cafes = (cafeData.places || [])
-      .filter(place => isRealCoffeeShop(place.displayName?.text || ''))
+      .filter(place => isRealCoffeeShop(place.displayName?.text || '', true))
       .map(place => ({
         id: place.id,
         name: place.displayName?.text || 'Unnamed Cafe',
