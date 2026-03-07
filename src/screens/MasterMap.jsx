@@ -491,6 +491,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showHamburger, setShowHamburger] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTarget, setSearchTarget] = useState(null);
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
@@ -1003,110 +1004,174 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   return (
     <div className="relative h-screen w-full">
-      {/* Header */}
+      {/* ══════════════════════════════════════════════
+           HEADER
+      ══════════════════════════════════════════════ */}
       <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
-        {/* Mobile: flex row so NEAR ME is static, not absolute */}
-        <div className="flex items-center md:block">
 
-          {/* Home button — labeled on mobile, icon-only on md+ */}
+        {/* ── Mobile header: hamburger | title | profile ── */}
+        <div className="flex items-center md:hidden">
+
+          {/* Hamburger */}
           <button
-            onClick={onHome}
-            title="Back to map"
-            className="flex-shrink-0 flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1 md:absolute md:left-4 md:top-1/2 md:-translate-y-1/2"
+            onClick={() => setShowHamburger(true)}
+            className="flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5"
+            aria-label="Open menu"
           >
-            <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <span className="md:hidden font-bungee text-[9px] leading-tight">HOME</span>
           </button>
 
           {/* Title */}
-          <div className="flex-1 text-center mx-1 md:mx-0">
-            <h1 className="text-starlight-turquoise font-bungee text-[15px] md:text-2xl text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+          <h1 className="flex-1 text-center text-starlight-turquoise font-bungee text-[15px] drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight px-2">
+            THE LITERARY ROADS
+          </h1>
+
+          {/* Profile / Login */}
+          <div ref={userMenuRef} style={{ position: 'relative' }} className="flex-shrink-0">
+            <button
+              onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
+              className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5"
+            >
+              {user?.photoURL ? (
+                <img src={user.photoURL} className="w-6 h-6 rounded-full" alt="avatar"
+                  style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              )}
+            </button>
+            {/* Mobile profile dropdown */}
+            {user && showUserMenu && (
+              <div style={{
+                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                minWidth: '160px', zIndex: 9999,
+                background: '#0D0E1A', border: '1.5px solid #40E0D0',
+                borderRadius: '10px', overflow: 'hidden',
+                boxShadow: '0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)',
+                animation: 'lr-dropdown-in 0.18s ease',
+              }}>
+                <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(64,224,208,0.15)' }}>
+                  <p className="font-bungee" style={{ fontSize: '10px', color: '#40E0D0', letterSpacing: '0.06em' }}>
+                    {user.displayName || 'Literary Traveler'}
+                  </p>
+                  <p className="font-special-elite" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', marginTop: '2px' }}>
+                    {user.email}
+                  </p>
+                </div>
+                <button onClick={() => { setShowUserMenu(false); onShowProfile(); }}
+                  className="font-bungee w-full text-left"
+                  style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#40E0D0', background:'transparent', border:'none', cursor:'pointer' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background='rgba(64,224,208,0.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  VIEW PROFILE
+                </button>
+                <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
+                <button onClick={async () => { setShowUserMenu(false); await logout(); }}
+                  className="font-bungee w-full text-left"
+                  style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  SIGN OUT
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Desktop header: home | title | right buttons ── */}
+        <div className="hidden md:block relative">
+          <style>{`
+            @keyframes lr-dropdown-in {
+              from { opacity: 0; transform: translateY(-6px); }
+              to   { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes lr-slide-in-left {
+              from { transform: translateX(-100%); }
+              to   { transform: translateX(0); }
+            }
+          `}</style>
+
+          {/* Home button */}
+          <button onClick={onHome} title="Home"
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </button>
+
+          {/* Title */}
+          <div className="text-center py-1">
+            <h1 className="text-starlight-turquoise font-bungee text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
               THE LITERARY ROADS
             </h1>
-            <p className="hidden md:block text-atomic-orange font-special-elite text-center text-sm mt-1">
-              Where every mile is a new chapter
-            </p>
+            <p className="text-atomic-orange font-special-elite text-sm mt-1">Where every mile is a new chapter</p>
           </div>
 
-          {/* Right buttons — static on mobile, absolute on md+ */}
-          <div className="flex-shrink-0 flex items-center gap-1 md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 md:gap-2">
+          {/* Right buttons */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            {/* Near Me */}
             {!showPlanner && (
-              <button
-                onClick={handleNearMe}
-                className={`bg-atomic-orange text-midnight-navy font-bungee px-2 md:px-4 py-1 md:py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 md:gap-2 text-[10px] md:text-sm${route.length > 0 ? ' hidden md:flex' : ''}`}
+              <button onClick={handleNearMe}
+                className="bg-atomic-orange text-midnight-navy font-bungee px-4 py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-2 text-sm"
               >
-                <svg className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span className="hidden md:inline">NEAR ME</span>
+                NEAR ME
               </button>
             )}
 
-            {/* Mobile-only NEAR ME pill shown inline in header when a route is active
-                (the floating pill area below the header is for SAVE/CLEAR) */}
-            {!showPlanner && route.length > 0 && (
-              <button
-                onClick={handleNearMe}
-                className="md:hidden bg-atomic-orange text-midnight-navy font-bungee px-2 py-1 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 text-[10px]"
-              >
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                ME
-              </button>
-            )}
-
-            {/* Clear Route + Save Route buttons — desktop only */}
+            {/* Save Route + Clear Route (desktop, route active) */}
             {route.length > 0 && (
               <>
                 {user && (
                   <button
                     onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
-                    className="hidden md:block font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
+                    className="font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
                   >
                     SAVE ROUTE
                   </button>
                 )}
                 <button
                   onClick={handleClearRoute}
-                  className="hidden md:block font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
+                  className="font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
                 >
                   CLEAR ROUTE
                 </button>
               </>
             )}
 
-            {/* Search button */}
-            <button
-              onClick={() => setShowSearch((v) => !v)}
-              title="Search places"
-              className={`flex flex-col items-center transition-colors px-2 py-0.5 md:p-1 ${
-                showSearch ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'
-              }`}
+            {/* Search */}
+            <button onClick={() => setShowSearch((v) => !v)} title="Search places"
+              className={`flex flex-col items-center transition-colors p-1 ${showSearch ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
             >
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <span className="md:hidden font-bungee text-[9px] leading-tight">SEARCH</span>
             </button>
 
-            {/* My Trip button — labeled on mobile */}
-            <button
-              onClick={() => setShowRoadTrip(true)}
-              className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
-              title="My Road Trip"
+            {/* My Trip */}
+            <button onClick={() => setShowRoadTrip(true)} title="My Road Trip"
+              className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
-              <span className="md:hidden font-bungee text-[9px] leading-tight">MY TRIP</span>
               {tripItems.length > 0 && (
                 <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
                   {tripItems.length > 9 ? '9+' : tripItems.length}
@@ -1114,110 +1179,70 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               )}
             </button>
 
-            {/* Highway Snacks button */}
-            <button
-              onClick={onShowResources}
-              title="Highway Snacks"
-              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            {/* Highway Snacks */}
+            <button onClick={onShowResources} title="Highway Snacks"
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
-              {/* Coffee cup icon */}
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
               </svg>
-              <span className="md:hidden font-bungee text-[9px] leading-tight">SNACKS</span>
-              <span className="hidden md:inline font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
+              <span className="font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
             </button>
 
-            {/* Profile / Login button + dropdown */}
+            {/* Profile / Login */}
             <div ref={userMenuRef} style={{ position: 'relative' }}>
               <button
                 onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
-                title={user ? 'Traveler\'s Log' : 'Log In'}
-                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+                title={user ? "Traveler's Log" : 'Log In'}
+                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
               >
                 {user?.photoURL ? (
-                  <img src={user.photoURL} className="w-5 h-5 md:w-6 md:h-6 rounded-full" alt="avatar"
+                  <img src={user.photoURL} className="w-6 h-6 rounded-full" alt="avatar"
                     style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
                 ) : (
-                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 )}
-                <span className="md:hidden font-bungee text-[9px] leading-tight">
-                  {user ? 'LOG' : 'LOG IN'}
-                </span>
               </button>
-
-              {/* Dropdown */}
               {user && showUserMenu && (
                 <div style={{
-                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                  minWidth: '160px', zIndex: 9999,
-                  background: '#0D0E1A',
-                  border: '1.5px solid #40E0D0',
-                  borderRadius: '10px',
-                  boxShadow: '0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)',
-                  overflow: 'hidden',
-                  animation: 'lr-dropdown-in 0.18s ease',
+                  position:'absolute', top:'calc(100% + 6px)', right:0,
+                  minWidth:'160px', zIndex:9999, background:'#0D0E1A',
+                  border:'1.5px solid #40E0D0', borderRadius:'10px',
+                  boxShadow:'0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)',
+                  overflow:'hidden', animation:'lr-dropdown-in 0.18s ease',
                 }}>
-                  <style>{`
-                    @keyframes lr-dropdown-in {
-                      from { opacity: 0; transform: translateY(-6px); }
-                      to   { opacity: 1; transform: translateY(0); }
-                    }
-                  `}</style>
-
-                  {/* User info header */}
-                  <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(64,224,208,0.15)' }}>
-                    <p className="font-bungee" style={{ fontSize: '10px', color: '#40E0D0', letterSpacing: '0.06em', lineHeight: 1.2 }}>
+                  <div style={{ padding:'10px 14px 8px', borderBottom:'1px solid rgba(64,224,208,0.15)' }}>
+                    <p className="font-bungee" style={{ fontSize:'10px', color:'#40E0D0', letterSpacing:'0.06em', lineHeight:1.2 }}>
                       {user.displayName || 'Literary Traveler'}
                     </p>
-                    <p className="font-special-elite" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', marginTop: '2px' }}>
+                    <p className="font-special-elite" style={{ fontSize:'9px', color:'rgba(192,192,192,0.4)', marginTop:'2px' }}>
                       {user.email}
                     </p>
                   </div>
-
-                  {/* View Profile */}
-                  <button
-                    onClick={() => { setShowUserMenu(false); onShowProfile(); }}
+                  <button onClick={() => { setShowUserMenu(false); onShowProfile(); }}
                     className="font-bungee w-full text-left"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '11px 14px', fontSize: '11px', letterSpacing: '0.05em',
-                      color: '#40E0D0', background: 'transparent', border: 'none',
-                      cursor: 'pointer', transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(64,224,208,0.08)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#40E0D0', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background='rgba(64,224,208,0.08)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
                   >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     VIEW PROFILE
                   </button>
-
-                  {/* Divider */}
-                  <div style={{ height: '1px', background: 'rgba(64,224,208,0.1)', margin: '0 10px' }} />
-
-                  {/* Sign Out */}
-                  <button
-                    onClick={async () => { setShowUserMenu(false); await logout(); }}
+                  <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
+                  <button onClick={async () => { setShowUserMenu(false); await logout(); }}
                     className="font-bungee w-full text-left"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '11px 14px', fontSize: '11px', letterSpacing: '0.05em',
-                      color: '#FF4E00', background: 'transparent', border: 'none',
-                      cursor: 'pointer', transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.08)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
                   >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                     SIGN OUT
                   </button>
@@ -1225,31 +1250,187 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               )}
             </div>
           </div>
-
         </div>
+
         {showSearch && (
           <PlaceSearch onSelect={handleSearchSelect} />
         )}
       </div>
 
-      {/* Mobile-only: floating SAVE + CLEAR pills below header
-          top: 58px clears the mobile header (~52px tall) with a comfortable gap */}
-      {route.length > 0 && (
-        <div className="md:hidden absolute z-[999] flex gap-2" style={{ top: '58px', right: '12px' }}>
-          {user && (
-            <button
-              onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
-              className="font-bungee text-[10px] tracking-wide text-starlight-turquoise border border-starlight-turquoise bg-midnight-navy rounded-full px-3 py-1 shadow-lg"
-            >
-              SAVE
-            </button>
-          )}
-          <button
-            onClick={handleClearRoute}
-            className="font-bungee text-[10px] tracking-wide text-atomic-orange border border-atomic-orange bg-midnight-navy rounded-full px-3 py-1 shadow-lg"
+      {/* ══════════════════════════════════════════════
+           MOBILE HAMBURGER DRAWER (mobile only)
+      ══════════════════════════════════════════════ */}
+      {showHamburger && (
+        <div className="md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-[2000] bg-black/60"
+            onClick={() => setShowHamburger(false)}
+          />
+          {/* Drawer */}
+          <div
+            className="fixed top-0 left-0 h-full z-[2001] bg-midnight-navy border-r-2 border-starlight-turquoise flex flex-col shadow-2xl"
+            style={{ width: 'min(280px, 82vw)', animation: 'lr-slide-in-left 0.22s ease' }}
           >
-            ✕ CLEAR
-          </button>
+            {/* Drawer header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-starlight-turquoise/30 flex-shrink-0">
+              <span className="font-bungee text-starlight-turquoise text-sm tracking-widest drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">
+                MENU
+              </span>
+              <button
+                onClick={() => setShowHamburger(false)}
+                className="text-chrome-silver hover:text-atomic-orange transition-colors p-1"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Neon accent */}
+            <div className="h-0.5 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-60 flex-shrink-0" />
+
+            {/* Nav items */}
+            <nav className="flex-1 overflow-y-auto py-2">
+
+              {/* Home */}
+              <button
+                onClick={() => { setShowHamburger(false); onHome(); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                HOME
+              </button>
+
+              {/* Search */}
+              <button
+                onClick={() => { setShowHamburger(false); setShowSearch((v) => !v); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                SEARCH
+              </button>
+
+              {/* Near Me — only when map is active (not in planner) */}
+              {!showPlanner && (
+                <button
+                  onClick={() => { setShowHamburger(false); handleNearMe(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                >
+                  <svg className="w-5 h-5 flex-shrink-0 text-atomic-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  NEAR ME
+                </button>
+              )}
+
+              {/* My Trip */}
+              <button
+                onClick={() => { setShowHamburger(false); setShowRoadTrip(true); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+                MY TRIP
+                {tripItems.length > 0 && (
+                  <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] w-5 h-5 rounded-full flex items-center justify-center leading-none">
+                    {tripItems.length > 9 ? '9+' : tripItems.length}
+                  </span>
+                )}
+              </button>
+
+              {/* Highway Snacks */}
+              <button
+                onClick={() => { setShowHamburger(false); onShowResources(); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
+                </svg>
+                HIGHWAY SNACKS
+              </button>
+
+              {/* Route-specific actions — only shown when route is plotted */}
+              {route.length > 0 && (
+                <>
+                  <div className="mx-5 my-2 h-px bg-starlight-turquoise/20" />
+                  <p className="px-5 py-1 font-special-elite text-[10px] text-chrome-silver/50 uppercase tracking-widest">
+                    Current Route
+                  </p>
+
+                  {user && (
+                    <button
+                      onClick={() => { setShowHamburger(false); setSaveRouteError(''); setShowSaveRouteModal(true); }}
+                      className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                    >
+                      <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                      </svg>
+                      SAVE ROUTE
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => { setShowHamburger(false); handleClearRoute(); }}
+                    className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
+                  >
+                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    CLEAR ROUTE
+                  </button>
+                </>
+              )}
+            </nav>
+
+            {/* Profile footer */}
+            <div className="flex-shrink-0 border-t border-starlight-turquoise/30">
+              {user ? (
+                <>
+                  <div className="px-5 py-3">
+                    <p className="font-bungee text-[10px] text-starlight-turquoise tracking-wide leading-tight">
+                      {user.displayName || 'Literary Traveler'}
+                    </p>
+                    <p className="font-special-elite text-[9px] text-chrome-silver/50 mt-0.5 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+                  <div className="flex border-t border-starlight-turquoise/20">
+                    <button
+                      onClick={() => { setShowHamburger(false); onShowProfile(); }}
+                      className="flex-1 py-3 font-bungee text-[11px] text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors"
+                    >
+                      PROFILE
+                    </button>
+                    <div className="w-px bg-starlight-turquoise/20" />
+                    <button
+                      onClick={async () => { setShowHamburger(false); await logout(); }}
+                      className="flex-1 py-3 font-bungee text-[11px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
+                    >
+                      SIGN OUT
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => { setShowHamburger(false); onShowLogin(); }}
+                  className="w-full py-3.5 font-bungee text-[13px] text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors flex items-center justify-center gap-3"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  LOG IN
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1337,19 +1518,28 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {/* Route Planner — mobile: slide-up from bottom (50vh); desktop: centered dialog */}
       {showPlanner && (
         <>
-          {/* Mobile bottom drawer — fixed so iOS Safari URL bar doesn't push it off-screen */}
+          {/* Mobile bottom drawer
+              - maxHeight keeps it below the header on any screen/orientation
+              - flex-col pins the gradient+title at top; only inputs scroll */}
           <div
-            className="md:hidden animate-slide-up border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl overflow-y-auto"
-            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: '50vh', zIndex: 1001, background: '#0D0E1A' }}
+            className="md:hidden animate-slide-up border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: 'calc(100vh - 52px)', zIndex: 1001, background: '#0D0E1A' }}
           >
-            <div className="h-2 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
-            <div className="p-4">
-              <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+            {/* Pinned: neon accent — never scrolls away */}
+            <div className="h-2 flex-shrink-0 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
+
+            {/* Pinned: title + subtitle */}
+            <div className="flex-shrink-0 px-4 pt-4 pb-2 text-center">
+              <h2 className="text-starlight-turquoise font-bungee text-[1.25rem] mb-1 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
                 {stateLabel}
               </h2>
-              <p className="text-atomic-orange font-special-elite text-[0.875rem] mb-3 text-center">
+              <p className="text-atomic-orange font-special-elite text-[0.875rem]">
                 Plot your literary journey
               </p>
+            </div>
+
+            {/* Scrollable: inputs + buttons — handles overflow on short/landscape screens */}
+            <div className="flex-1 overflow-y-auto px-4 pb-4">
               <div className="space-y-2">
                 {selectedStates.length > 1 && (
                   <p className="text-chrome-silver font-special-elite text-xs text-center">
