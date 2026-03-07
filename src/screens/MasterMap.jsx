@@ -12,7 +12,9 @@ import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wiki
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
+import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 import RoadTrip from './RoadTrip';
+import SaveRouteModal from '../components/SaveRouteModal';
 import Guestbook from '../components/Guestbook';
 import HitchhikerTale from '../components/HitchhikerTale';
 import TaleModal from '../components/TaleModal';
@@ -491,6 +493,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTarget, setSearchTarget] = useState(null);
+  const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
+  const [savingRoute, setSavingRoute] = useState(false);
+  const [saveRouteError, setSaveRouteError] = useState('');
+  const [savedRoutes, setSavedRoutes] = useState([]);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -579,6 +585,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     return unsub;
   }, [user]);
 
+  // Saved routes: stream from Firestore for logged-in users
+  useEffect(() => {
+    if (!user) { setSavedRoutes([]); return; }
+    return subscribeToSavedRoutes(user.uid, setSavedRoutes);
+  }, [user]);
+
   // Clear the plotted route when the user logs out
   const prevUserRef = useRef(user);
   useEffect(() => {
@@ -648,6 +660,77 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const handleClearTrip = () => {
     setTripItems([]);
     if (user) { saveTripToFirestore([]); } else { clearTrip(); }
+  };
+
+  const handleSaveRoute = async (routeName, notes) => {
+    if (!user) return;
+    setSavingRoute(true);
+    setSaveRouteError('');
+    console.log('[MasterMap] handleSaveRoute called — user:', user.uid, 'route points:', route.length, 'stops:', visibleLocations.length);
+    try {
+      await saveRoute(user.uid, {
+        routeName,
+        notes,
+        startCity,
+        endCity,
+        selectedStates,
+        routeCoordinates: route,
+        stops: visibleLocations,
+      });
+      console.log('[MasterMap] handleSaveRoute — success, closing modal');
+      setShowSaveRouteModal(false);
+      setSaveRouteError('');
+    } catch (err) {
+      console.error('[MasterMap] handleSaveRoute — FAILED:', err.code, err.message);
+      if (err.code === 'permission-denied') {
+        setSaveRouteError('Save failed: Firestore permissions. Add a savedRoutes subcollection rule in Firebase Console.');
+      } else {
+        setSaveRouteError(`Save failed: ${err.message}`);
+      }
+    } finally {
+      setSavingRoute(false);
+    }
+  };
+
+  const handleLoadRoute = (savedRoute) => {
+    const coords = typeof savedRoute.routeCoordinates === 'string'
+      ? JSON.parse(savedRoute.routeCoordinates)
+      : (savedRoute.routeCoordinates || []);
+    setRoute(coords);
+    setVisibleLocations(savedRoute.stops || []);
+    setStartCity(savedRoute.startCity || '');
+    setEndCity(savedRoute.endCity || '');
+    setSelectedLocation(null);
+    setShowPlanner(false);
+    setShowRoadTrip(false);
+
+    const pts = coords;
+    if (pts.length > 0) {
+      const lats = pts.map(p => p[0]);
+      const lngs = pts.map(p => p[1]);
+      const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+      const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+      const maxDiff = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
+      let zoom = 7;
+      if (maxDiff > 10) zoom = 6;
+      else if (maxDiff > 5) zoom = 7;
+      else if (maxDiff > 2) zoom = 8;
+      else if (maxDiff > 1) zoom = 9;
+      else if (maxDiff > 0.5) zoom = 10;
+      else if (maxDiff > 0.2) zoom = 11;
+      setMapCenter([midLat, midLng]);
+      setMapZoom(zoom);
+    }
+  };
+
+  const handleDeleteRoute = (routeId) => {
+    if (!user) return;
+    deleteSavedRoute(user.uid, routeId).catch(err => console.error('[MasterMap] delete route:', err));
+  };
+
+  const handleRenameRoute = (routeId, routeName) => {
+    if (!user) return;
+    updateRouteName(user.uid, routeId, routeName).catch(err => console.error('[MasterMap] rename route:', err));
   };
 
   // State centers for initial zoom
@@ -963,14 +1046,39 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </button>
             )}
 
-            {/* Clear Route button — desktop only (mobile version floats below header) */}
-            {route.length > 0 && (
+            {/* Mobile-only NEAR ME pill shown inline in header when a route is active
+                (the floating pill area below the header is for SAVE/CLEAR) */}
+            {!showPlanner && route.length > 0 && (
               <button
-                onClick={handleClearRoute}
-                className="hidden md:block font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
+                onClick={handleNearMe}
+                className="md:hidden bg-atomic-orange text-midnight-navy font-bungee px-2 py-1 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-1 text-[10px]"
               >
-                CLEAR ROUTE
+                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                ME
               </button>
+            )}
+
+            {/* Clear Route + Save Route buttons — desktop only */}
+            {route.length > 0 && (
+              <>
+                {user && (
+                  <button
+                    onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
+                    className="hidden md:block font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
+                  >
+                    SAVE ROUTE
+                  </button>
+                )}
+                <button
+                  onClick={handleClearRoute}
+                  className="hidden md:block font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
+                >
+                  CLEAR ROUTE
+                </button>
+              </>
             )}
 
             {/* Search button */}
@@ -1124,15 +1232,25 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         )}
       </div>
 
-      {/* Mobile-only: floating CLEAR ROUTE pill below header */}
+      {/* Mobile-only: floating SAVE + CLEAR pills below header
+          top: 58px clears the mobile header (~52px tall) with a comfortable gap */}
       {route.length > 0 && (
-        <button
-          onClick={handleClearRoute}
-          className="md:hidden absolute z-[999] font-bungee text-[10px] tracking-wide text-atomic-orange border border-atomic-orange bg-midnight-navy rounded-full px-3 py-1 shadow-lg"
-          style={{ top: '50px', right: '12px' }}
-        >
-          ✕ CLEAR
-        </button>
+        <div className="md:hidden absolute z-[999] flex gap-2" style={{ top: '58px', right: '12px' }}>
+          {user && (
+            <button
+              onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
+              className="font-bungee text-[10px] tracking-wide text-starlight-turquoise border border-starlight-turquoise bg-midnight-navy rounded-full px-3 py-1 shadow-lg"
+            >
+              SAVE
+            </button>
+          )}
+          <button
+            onClick={handleClearRoute}
+            className="font-bungee text-[10px] tracking-wide text-atomic-orange border border-atomic-orange bg-midnight-navy rounded-full px-3 py-1 shadow-lg"
+          >
+            ✕ CLEAR
+          </button>
+        </div>
       )}
 
       {/* Map */}
@@ -1541,6 +1659,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           onRemove={handleRemoveFromTrip}
           onClearAll={handleClearTrip}
           onClose={() => setShowRoadTrip(false)}
+          savedRoutes={savedRoutes}
+          onLoadRoute={handleLoadRoute}
+          onDeleteRoute={handleDeleteRoute}
+          onRenameRoute={handleRenameRoute}
         />
       )}
 
@@ -1552,6 +1674,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           user={user}
           onShowLogin={onShowLogin}
           onClose={() => setShowTaleModal(false)}
+        />
+      )}
+
+      {/* ── Save Route modal ── */}
+      {showSaveRouteModal && (
+        <SaveRouteModal
+          startCity={startCity}
+          endCity={endCity}
+          saving={savingRoute}
+          error={saveRouteError}
+          onSave={handleSaveRoute}
+          onClose={() => { setShowSaveRouteModal(false); setSaveRouteError(''); }}
         />
       )}
     </div>
