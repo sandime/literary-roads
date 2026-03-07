@@ -39,6 +39,21 @@ function AppInner() {
     setScreen('stateSelector');
   };
 
+  const handleLoadSavedRoute = (savedRoute) => {
+    const states = savedRoute.selectedStates?.length ? savedRoute.selectedStates : [];
+    setSelectedStates(states);
+    routeStateRef.current = {
+      startCity: savedRoute.startCity || '',
+      endCity: savedRoute.endCity || '',
+      route: typeof savedRoute.routeCoordinates === 'string'
+        ? JSON.parse(savedRoute.routeCoordinates)
+        : (savedRoute.routeCoordinates || []),
+      visibleLocations: savedRoute.stops || [],
+      showPlanner: false,
+    };
+    setScreen('map');
+  };
+
   const handleShowLogin = () => {
     setPreviousScreen(screen);
     setScreen('login');
@@ -80,6 +95,7 @@ function AppInner() {
           onShowLogin={handleShowLogin}
           onShowProfile={handleShowProfile}
           onShowResources={handleShowResources}
+          onLoadSavedRoute={handleLoadSavedRoute}
         />
       )}
       {screen === 'map' && (

@@ -3,6 +3,8 @@ import { doc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
+import CarSelector from '../components/CarSelector';
+import { saveSelectedCar } from '../utils/carCheckIns';
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
@@ -296,6 +298,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
   const [showBookModal, setShowBookModal] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
 
   // Real-time sync: onSnapshot fires immediately on mount and on any cross-device change
   useEffect(() => {
@@ -309,6 +312,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
         setFavoriteBooks(data.favoriteBooks || []);
         setTripCount((data.trip || []).length);
         setVisitedCount((data.visitedStates || []).length);
+        setSelectedCar(data.selectedCar || null);
       },
       (err) => console.error('[Profile] snapshot:', err),
     );
@@ -340,6 +344,12 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
     const updated = favoriteBooks.filter((b) => b.id !== id);
     setFavoriteBooks(updated);
     await saveBooks(updated);
+  };
+
+  const handleCarSelect = async (carType) => {
+    if (!user) return;
+    setSelectedCar(carType);
+    await saveSelectedCar(user.uid, carType).catch((err) => console.error('[Profile] save car:', err));
   };
 
   const handlePrivacyToggle = () => {
@@ -478,6 +488,24 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
             )}
           </div>
         )}
+      </div>
+
+      {/* ── Choose Your Ride ── */}
+      <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-bungee text-sm" style={{ color: '#FF4E00', textShadow: '0 0 8px rgba(255,78,0,0.5)' }}>
+            CHOOSE YOUR RIDE
+          </h2>
+          {selectedCar && (
+            <span className="font-special-elite text-xs" style={{ color: 'rgba(64,224,208,0.6)' }}>
+              Ready to park!
+            </span>
+          )}
+        </div>
+        <p className="font-special-elite text-xs mb-4" style={{ color: 'rgba(192,192,192,0.45)' }}>
+          Select your retro car to park at bookstores &amp; cafés along your route.
+        </p>
+        <CarSelector selectedCar={selectedCar} onSelect={handleCarSelect} />
       </div>
 
       {/* Privacy toggle */}

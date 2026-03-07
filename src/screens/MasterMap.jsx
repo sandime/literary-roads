@@ -13,6 +13,7 @@ import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
+import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
 import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
 import Guestbook from '../components/Guestbook';
@@ -360,6 +361,32 @@ const createCustomIcon = (type, hasStarburst = false) => {
   });
 };
 
+// Car check-in badge icon — sits above the location pin (iconAnchor y=68 places it above a 40px pin)
+const createCarBadgeIcon = (cars) => {
+  const count = cars.length;
+  const isConvoy = count >= 5;
+
+  if (isConvoy) {
+    return L.divIcon({
+      html: `<div style="background:linear-gradient(135deg,#FF4E00,#FFD700);border:2px solid #FFD700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:10px;color:#1A1B2E;box-shadow:0 0 14px rgba(255,215,0,0.9);line-height:1">🚗${count}</div>`,
+      className: '',
+      iconSize: [36, 36],
+      iconAnchor: [18, 76],
+    });
+  }
+
+  const src = carImgSrc(cars[0].carType);
+  const badge = count > 1
+    ? `<span style="position:absolute;top:-4px;right:-4px;background:#FF4E00;color:#1A1B2E;font-family:'Bungee',sans-serif;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 6px rgba(255,78,0,0.7)">${count}</span>`
+    : '';
+  return L.divIcon({
+    html: `<div style="position:relative;display:inline-block"><img src="${src}" style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,0.9))" />${badge}</div>`,
+    className: '',
+    iconSize: [28, 28],
+    iconAnchor: [14, 68],
+  });
+};
+
 // Smoothly pans/zooms the map to a search result without re-mounting the MapContainer
 const MapController = ({ target }) => {
   const map = useMap();
@@ -498,6 +525,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
   const [savedRoutes, setSavedRoutes] = useState([]);
+  const [userCar, setUserCar] = useState(null);
+  const [locationCars, setLocationCars] = useState({});  // { [locationId]: Car[] }
+  const [checkInLoading, setCheckInLoading] = useState(false);
+  const [checkInError, setCheckInError] = useState('');
+  const carSubsRef = useRef({});
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -511,8 +543,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
 
-  // Reset shelf tab whenever a new location is opened
-  useEffect(() => { setShelfTab('info'); setShowTaleModal(false); }, [selectedLocation?.id]);
+  // Reset shelf tab and transient state whenever a new location is opened
+  useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); }, [selectedLocation?.id]);
 
   // Pre-fetch ratings for all bookstore/cafe pins so starbursts show immediately on the map
   useEffect(() => {
@@ -580,7 +612,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     const ref = doc(db, 'users', user.uid);
     const unsub = onSnapshot(
       ref,
-      (snap) => { setTripItems(snap.exists() ? (snap.data().trip || []) : []); },
+      (snap) => {
+        if (snap.exists()) {
+          setTripItems(snap.data().trip || []);
+          setUserCar(snap.data().selectedCar || null);
+        } else {
+          setTripItems([]);
+          setUserCar(null);
+        }
+      },
       (err) => console.error('[MasterMap] trip sync:', err),
     );
     return unsub;
@@ -591,6 +631,37 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     if (!user) { setSavedRoutes([]); return; }
     return subscribeToSavedRoutes(user.uid, setSavedRoutes);
   }, [user]);
+
+  // Car check-in subscriptions: one listener per visible bookstore/cafe
+  useEffect(() => {
+    const eligible = visibleLocations
+      .filter(l => l.type === 'bookstore' || l.type === 'cafe')
+      .map(l => l.id);
+    const eligibleSet = new Set(eligible);
+    const subs = carSubsRef.current;
+
+    // Unsub from locations that are no longer visible
+    Object.keys(subs).forEach(id => {
+      if (!eligibleSet.has(id)) {
+        subs[id]();
+        delete subs[id];
+      }
+    });
+
+    // Subscribe to newly visible locations
+    eligible.forEach(id => {
+      if (!subs[id]) {
+        subs[id] = subscribeToLocationCars(id, (cars) => {
+          setLocationCars(prev => ({ ...prev, [id]: cars }));
+        });
+      }
+    });
+
+    return () => {
+      Object.values(carSubsRef.current).forEach(fn => fn());
+      carSubsRef.current = {};
+    };
+  }, [visibleLocations]);
 
   // Clear the plotted route when the user logs out
   const prevUserRef = useRef(user);
@@ -603,6 +674,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setError('');
       setSelectedLocation(null);
       setShowPlanner(true);
+      setUserCar(null);
       if (routeStateRef) {
         routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
       }
@@ -722,6 +794,51 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setMapCenter([midLat, midLng]);
       setMapZoom(zoom);
     }
+  };
+
+  const handleCheckIn = async () => {
+    if (!user || !selectedLocation || !userCar || checkInLoading) return;
+    setCheckInLoading(true);
+    setCheckInError('');
+    console.log('[MasterMap] handleCheckIn — location:', selectedLocation.id, 'car:', userCar, 'user:', user.uid);
+    try {
+      const ref = await checkIn(
+        user.uid,
+        user.displayName || 'Literary Traveler',
+        userCar,
+        selectedLocation.id,
+        selectedLocation.lat,
+        selectedLocation.lng,
+      );
+      console.log('[MasterMap] check-in success, doc:', ref.id);
+    } catch (err) {
+      console.error('[MasterMap] check-in FAILED:', err.code, err.message);
+      if (err.code === 'permission-denied') {
+        setCheckInError('Permission denied — add activeCheckIns rule in Firebase Console.');
+      } else {
+        setCheckInError(`Check-in failed: ${err.message}`);
+      }
+    } finally {
+      setCheckInLoading(false);
+    }
+  };
+
+  const handleUnpark = async () => {
+    if (!user || !selectedLocation) return;
+    const carsHere = locationCars[selectedLocation.id] || [];
+    const parked = carsHere.find(c => c.userId === user.uid);
+    if (!parked) return;
+    deleteCheckIn(selectedLocation.id, parked.id).catch(err =>
+      console.error('[MasterMap] unpark:', err.code, err.message)
+    );
+  };
+
+  const handleSelectStop = (item) => {
+    setShowRoadTrip(false);
+    setVisibleLocations(prev => prev.some(l => l.id === item.id) ? prev : [...prev, item]);
+    setSelectedLocation(item);
+    setSearchTarget({ center: [item.lat, item.lng], zoom: 15 });
+    setShowPlanner(false);
   };
 
   const handleDeleteRoute = (routeId) => {
@@ -1511,6 +1628,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               )
             )
           }
+
+          {/* Car check-in badges — rendered above location pins */}
+          {Object.entries(locationCars).map(([locationId, cars]) => {
+            if (!cars.length) return null;
+            const loc = visibleLocations.find(l => l.id === locationId);
+            if (!loc) return null;
+            return (
+              <Marker
+                key={`cars-${locationId}`}
+                position={[loc.lat, loc.lng]}
+                icon={createCarBadgeIcon(cars)}
+                interactive={false}
+              />
+            );
+          })}
         </MapContainer>
       </div>
 
@@ -1676,37 +1808,25 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </svg>
             </button>
 
-            {/* Type badge + name (always visible) */}
-            <div className="flex items-center gap-2 mb-2">
-              {selectedLocation.type === 'bookstore' && (
-                <span className="text-atomic-orange font-bungee text-xs px-3 py-1 border-2 border-atomic-orange rounded-full">
-                  📚 BOOKSTORE
-                </span>
-              )}
-              {selectedLocation.type === 'cafe' && (
-                <span className="text-starlight-turquoise font-bungee text-xs px-3 py-1 border-2 border-starlight-turquoise rounded-full">
-                  ☕ COFFEE SHOP
-                </span>
-              )}
-              {selectedLocation.type === 'landmark' && (
-                <span className="font-bungee text-xs px-3 py-1 border-2 rounded-full" style={{ color: '#39FF14', borderColor: '#39FF14' }}>
-                  🌲 LITERARY LANDMARK
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className="text-starlight-turquoise font-bungee text-xl md:text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+            {/* Type badge + name — compact single block */}
+            <div className="mb-1.5">
+              <div className="flex items-center gap-1.5 mb-1">
+                {selectedLocation.type === 'bookstore' && (
+                  <span className="text-atomic-orange font-bungee text-[10px] px-2 py-0.5 border border-atomic-orange rounded-full">📚 BOOKSTORE</span>
+                )}
+                {selectedLocation.type === 'cafe' && (
+                  <span className="text-starlight-turquoise font-bungee text-[10px] px-2 py-0.5 border border-starlight-turquoise rounded-full">☕ COFFEE SHOP</span>
+                )}
+                {selectedLocation.type === 'landmark' && (
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#39FF14', borderColor: '#39FF14' }}>🌲 LANDMARK</span>
+                )}
+                {starburstIds.has(selectedLocation.id) && (
+                  <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
+                )}
+              </div>
+              <h2 className="text-starlight-turquoise font-bungee text-base md:text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)] leading-tight">
                 {selectedLocation.name}
               </h2>
-              {starburstIds.has(selectedLocation.id) && (
-                <img
-                  src="/literary-roads/images/starburst-rating.png"
-                  alt="Highly recommended"
-                  title="10+ travelers recommend this stop!"
-                  style={{ width: '60px', height: '60px', flexShrink: 0 }}
-                />
-              )}
             </div>
 
             {/* Pit stop rating */}
@@ -1822,21 +1942,68 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             )}
           </div>
 
-          {/* Sticky buttons — always visible at bottom */}
-          <div className="flex-shrink-0 flex gap-3 px-4 pb-4 md:px-6 md:pb-6 pt-2 max-w-2xl mx-auto w-full">
-            <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-2.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg">
-              GET DIRECTIONS
-            </button>
-            <button
-              onClick={() => handleTripToggle(selectedLocation)}
-              className={`px-4 border-2 font-special-elite py-2.5 rounded-lg transition-all ${
-                tripIds.has(selectedLocation.id)
-                  ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange'
-                  : 'bg-transparent border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
-              }`}
-            >
-              {tripIds.has(selectedLocation.id) ? '✓ IN TRIP' : '+ ADD TO TRIP'}
-            </button>
+          {/* Sticky buttons */}
+          <div className="flex-shrink-0 flex flex-col gap-1.5 px-3 pb-3 md:px-5 md:pb-4 pt-1.5 max-w-2xl mx-auto w-full">
+            {/* Row 1: Directions + Trip — compact */}
+            <div className="flex gap-2">
+              <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-1.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-md text-xs">
+                DIRECTIONS
+              </button>
+              <button
+                onClick={() => handleTripToggle(selectedLocation)}
+                className={`px-3 border-2 font-bungee text-xs py-1.5 rounded-lg transition-all ${
+                  tripIds.has(selectedLocation.id)
+                    ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange'
+                    : 'bg-transparent border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
+                }`}
+              >
+                {tripIds.has(selectedLocation.id) ? '✓ IN TRIP' : '+ TRIP'}
+              </button>
+            </div>
+
+            {/* Row 2: Park Here — bookstores & cafes, logged-in users only */}
+            {user && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (() => {
+              const carsHere = locationCars[selectedLocation.id] || [];
+              const parked = carsHere.find(c => c.userId === user.uid);
+              if (parked) {
+                return (
+                  <div className="flex gap-2">
+                    <div className="flex-1 flex items-center justify-center gap-1.5 bg-atomic-orange/15 border border-atomic-orange text-atomic-orange font-bungee py-1.5 rounded-lg text-xs">
+                      <img src={carImgSrc(parked.carType)} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+                      PARKED ✓
+                      {carsHere.length > 1 && <span className="font-special-elite opacity-60">· {carsHere.length} here</span>}
+                    </div>
+                    <button
+                      onClick={handleUnpark}
+                      className="px-3 border border-chrome-silver/40 text-chrome-silver/70 font-bungee py-1.5 rounded-lg hover:border-atomic-orange hover:text-atomic-orange transition-all text-xs"
+                    >
+                      LEAVE
+                    </button>
+                  </div>
+                );
+              }
+              return (
+                <div>
+                  <button
+                    onClick={handleCheckIn}
+                    disabled={checkInLoading || !userCar}
+                    className={`w-full font-bungee py-1.5 rounded-lg transition-all text-xs flex items-center justify-center gap-1.5 ${
+                      !userCar
+                        ? 'bg-black/30 border border-chrome-silver/25 text-chrome-silver/35 cursor-not-allowed'
+                        : 'bg-black/30 border border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-midnight-navy'
+                    }`}
+                  >
+                    {checkInLoading ? 'PARKING...' : !userCar
+                      ? '🚗 Choose a ride in Profile first'
+                      : `🚗 PARK HERE${carsHere.length > 0 ? ` · ${carsHere.length} here` : ''}`
+                    }
+                  </button>
+                  {checkInError && (
+                    <p className="font-special-elite text-atomic-orange text-[10px] mt-1 text-center leading-tight">{checkInError}</p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -1848,6 +2015,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           onRemove={handleRemoveFromTrip}
           onClearAll={handleClearTrip}
           onClose={() => setShowRoadTrip(false)}
+          onSelectStop={handleSelectStop}
           savedRoutes={savedRoutes}
           onLoadRoute={handleLoadRoute}
           onDeleteRoute={handleDeleteRoute}

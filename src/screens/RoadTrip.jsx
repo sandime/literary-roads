@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import MyRoutes from '../components/MyRoutes';
 
-const RoadTrip = ({ items, onRemove, onClearAll, onClose, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute }) => {
+const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute }) => {
   const [activeTab, setActiveTab] = useState('stops');
 
   return (
@@ -113,11 +113,12 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, savedRoutes = [], onLo
               {items.map((item, index) => (
                 <div
                   key={item.id}
-                  className="bg-black/40 border border-starlight-turquoise/40 hover:border-starlight-turquoise rounded-lg p-4 relative transition-colors"
+                  onClick={() => onSelectStop?.(item)}
+                  className="bg-black/40 border border-starlight-turquoise/40 hover:border-starlight-turquoise rounded-lg p-4 relative transition-colors cursor-pointer"
                 >
                   {/* Remove */}
                   <button
-                    onClick={() => onRemove(item.id)}
+                    onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}
                     className="absolute top-3 right-3 text-chrome-silver/60 hover:text-atomic-orange transition-colors"
                     title="Remove stop"
                   >
