@@ -43,26 +43,38 @@ const TITLE_HARD_EXCLUDES = [
 // e.g. "Mark Twain Elementary School" passes; "Jamestown High School" does not.
 // Exception: if the title contains "library" it always passes.
 const CONDITIONAL_EXCLUDES = [
+  // Education
   'high school', 'middle school', 'elementary school', 'junior high',
   'primary school', 'grammar school', 'secondary school',
   'business college', 'community college', 'technical college',
   'vocational school', 'trade school',
   'academy', 'university', 'college',
-  ' station',   // "Jamestown Station" but not "Grand Central Station" (already caught by train station)
-  ' depot',
+  // Transit
+  ' station', ' depot',
+  // Religious buildings
+  'church', 'cathedral', 'chapel', 'basilica',
+  'synagogue', 'temple', 'mosque', 'parish',
+  'monastery', 'abbey', 'convent', 'priory',
+  'saint ', 'st. ', 'holy ',
+  // Generic geographic/civic
+  ' neighborhood', ' district', ' quarter',
+  ' suburb', ' ward', ' borough',
+  ' county', ' township',
+  'city of ', 'town of ', 'village of ',
 ];
 
 // Title patterns that indicate a grave/burial — only pass if a known author name is also present
 const GRAVE_PATTERNS = ['grave of', 'tomb of', 'burial of', 'cemetery', 'graveyard', 'mausoleum'];
 
-// Keywords that must appear in the article extract for the place to qualify as literary.
-// Checked after the title passes — prevents generic civic buildings from slipping through.
-const EXTRACT_LITERARY_KEYWORDS = [
+// Literary ACTIVITY terms — at least one of these must appear in the extract.
+// Author names alone are NOT sufficient (a church named "St. James" contains "james"
+// but has zero literary significance).
+const EXTRACT_ACTIVITY_TERMS = [
   'author', 'writer', 'poet', 'novelist', 'playwright', 'literary',
   'literature', 'novel', 'book', 'poem', 'poetry', 'fiction',
   'nonfiction', 'non-fiction', 'memoir', 'biography', 'autobiography',
   'wrote', 'published', 'writing', 'storyteller', 'prose', 'verse',
-  ...LITERARY_AUTHOR_NAMES,
+  'short story', 'short stories', 'essay', 'journalism', 'journalist',
 ];
 
 // Test whether `text` contains `word` as a whole word (not as part of a longer word).
@@ -72,11 +84,21 @@ const hasWord = (text, word) => new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\
 
 const titleHasAuthorName = (lower) => LITERARY_AUTHOR_NAMES.some(name => hasWord(lower, name));
 
+// Explicit literary phrases in a title always pass, even if a conditional pattern also matches.
+// e.g. "Louisville Literary District" contains ' district' (conditional) but also 'literary' → pass.
+const TITLE_EXPLICIT_LITERARY = [
+  'literary', 'literature', 'birthplace', 'boyhood home', 'childhood home',
+  'home of', 'house museum', 'reading room', 'writers', 'poets',
+];
+
 const isLiteraryTitle = (title) => {
   const lower = title.toLowerCase();
 
   // Always pass libraries — they are inherently literary
   if (lower.includes('library')) return true;
+
+  // Explicit literary phrase → pass before any conditional logic
+  if (TITLE_EXPLICIT_LITERARY.some(kw => lower.includes(kw))) return true;
 
   // Hard exclude non-literary civic/transit locations
   if (TITLE_HARD_EXCLUDES.some(ex => lower.includes(ex))) return false;
@@ -84,7 +106,8 @@ const isLiteraryTitle = (title) => {
   // Add missing hard excludes not covered above
   if (lower.includes('armory') || lower.includes('armoury')) return false;
 
-  // Conditional excludes: schools, colleges, stations — only pass if named after an author
+  // Conditional excludes: schools, churches, neighborhoods, etc.
+  // Only pass if the title also contains a known author's name as a whole word.
   const isConditional = CONDITIONAL_EXCLUDES.some(p => lower.includes(p));
   if (isConditional) {
     return titleHasAuthorName(lower);
@@ -96,17 +119,18 @@ const isLiteraryTitle = (title) => {
     return titleHasAuthorName(lower);
   }
 
-  // Standard check: whole-word author names or literary keyword phrases
+  // Standard check: whole-word author names or remaining literary keyword phrases
   if (titleHasAuthorName(lower)) return true;
-  const PHRASE_KEYWORDS = ['literary', 'literature', 'author', 'writer', 'poet',
-    'birthplace', 'boyhood home', 'childhood home', 'home of', 'house museum', 'writing', 'published'];
+  const PHRASE_KEYWORDS = ['author', 'writer', 'poet', 'writing', 'published', 'house museum'];
   return PHRASE_KEYWORDS.some(kw => lower.includes(kw));
 };
 
 // Secondary check on the fetched article extract.
+// Requires at least one literary ACTIVITY term — an author name alone is not enough,
+// because many non-literary places are incidentally named after or contain author names.
 const isLiteraryExtract = (extract) => {
   const lower = extract.toLowerCase();
-  return EXTRACT_LITERARY_KEYWORDS.some(kw => lower.includes(kw));
+  return EXTRACT_ACTIVITY_TERMS.some(kw => lower.includes(kw));
 };
 
 // Wrap a promise with a hard timeout
