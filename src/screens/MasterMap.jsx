@@ -993,13 +993,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   };
 
   const handleClearRoute = () => {
-    setRoute([]);
-    setVisibleLocations([]);
-    setStartCity('');
-    setEndCity('');
-    setError('');
-    setSelectedLocation(null);
-    setShowPlanner(true);
+    // Reset the persisted route ref so MasterMap starts clean if user returns
+    if (routeStateRef) {
+      routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
+    }
+    // Go back to the state selector — that's the 50-state interactive map
+    onHome();
   };
 
   return (
