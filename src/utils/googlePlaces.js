@@ -82,16 +82,43 @@ const HARD_EXCLUDE_CAFE = [
   'costco',
   'target',
   'walmart',
+  // Restaurants / dining (not coffee shops)
+  'ristorante',
+  'trattoria',
+  'osteria',
+  'gastropub',
+  'tavern',
+  ' grill',
+  'grille',
+  ' kitchen',
+  'dining room',
+  'steakhouse',
+  'steak house',
+  'chophouse',
+  'chop house',
+  'sushi',
+  'ramen',
+  'taqueria',
+  'cantina',
+  'pizzeria',
+];
+
+// Google place types that flag a restaurant (not a dedicated coffee shop)
+const RESTAURANT_TYPES = ['restaurant', 'bar', 'meal_takeaway', 'meal_delivery', 'food'];
+
+// Name keywords that confirm a dedicated coffee shop regardless of other signals
+const STRONG_COFFEE_KEYWORDS = [
+  'coffee', 'espresso', 'cappuccino', 'latte', 'roasters', 'roastery',
+  'brew', 'bean', 'cafe', 'caffeine', 'tea house', 'teahouse', 'perk',
 ];
 
 // Check if a cafe is a real coffee shop.
-// googleConfirmed=true means Google's Places API explicitly typed it as 'cafe' or 'coffee_shop'
-// — in that case we only apply hard excludes and trust Google's category.
-// googleConfirmed=false (text search) requires a positive keyword match.
-const isRealCoffeeShop = (placeName, googleConfirmed = false) => {
+// placeTypes: the Google `types` array for the place (used to reject restaurants tagged as cafe)
+// googleConfirmed=true: Google typed it as 'cafe'/'coffee_shop' via includedTypes search
+const isRealCoffeeShop = (placeName, googleConfirmed = false, placeTypes = []) => {
   const lowerName = placeName.toLowerCase();
 
-  // Step 1: HARD EXCLUDE — always applied regardless of source
+  // Step 1: HARD EXCLUDE — always applied
   if (HARD_EXCLUDE_CAFE.some(term => lowerName.includes(term))) return false;
 
   // Step 2: Reject standalone "bar" unless it's a coffee/juice bar
@@ -100,17 +127,28 @@ const isRealCoffeeShop = (placeName, googleConfirmed = false) => {
     if (!okBar.some(t => lowerName.includes(t))) return false;
   }
 
-  // Step 3: If Google already confirmed it's a cafe, trust that — no keyword check needed
+  // Step 3: If Google explicitly typed it as 'coffee_shop' — most specific signal, always trust it
+  if (placeTypes.includes('coffee_shop')) return true;
+
+  // Step 4: If Google also typed it as a restaurant/bar AND it's not a dedicated coffee_shop,
+  // require a strong coffee keyword in the name.
+  // e.g. "Gralehaus" (gastropub) → types: [cafe, restaurant, bar] → no coffee keyword → reject
+  // e.g. "Please and Thank You" → if it's coffee_shop type, already passed above
+  const hasRestaurantType = RESTAURANT_TYPES.some(t => placeTypes.includes(t));
+  if (hasRestaurantType) {
+    return STRONG_COFFEE_KEYWORDS.some(kw => lowerName.includes(kw));
+  }
+
+  // Step 5: If Google confirmed via includedTypes search and name isn't restaurant-flagged, trust it
   if (googleConfirmed) return true;
 
-  // Step 4: ALLOWED CHAINS
+  // Step 6: ALLOWED CHAINS
   if (ALLOWED_COFFEE_CHAINS.some(chain => lowerName.includes(chain))) return true;
 
-  // Step 5: COFFEE KEYWORDS
-  const coffeeKeywords = ['coffee', 'espresso', 'cappuccino', 'latte', 'roasters', 'roastery', 'brew', 'bean', 'cafe', 'caffeine', 'tea house', 'teahouse', 'perk'];
-  if (coffeeKeywords.some(kw => lowerName.includes(kw))) return true;
+  // Step 7: COFFEE KEYWORDS
+  if (STRONG_COFFEE_KEYWORDS.some(kw => lowerName.includes(kw))) return true;
 
-  // Step 6: Default reject
+  // Step 8: Default reject
   return false;
 };
 
@@ -347,7 +385,7 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
       }));
 
     const cafes = (cafeData.places || [])
-      .filter(place => isRealCoffeeShop(place.displayName?.text || '', true))
+      .filter(place => isRealCoffeeShop(place.displayName?.text || '', true, place.types || []))
       .map(place => ({
         id: place.id,
         name: place.displayName?.text || 'Unnamed Cafe',
