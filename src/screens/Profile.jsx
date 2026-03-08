@@ -300,6 +300,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
   const [visitedCount, setVisitedCount] = useState(0);
   const [showBookModal, setShowBookModal] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
+  const [activeCheckIn, setActiveCheckIn] = useState(null); // { locationId, checkInId } | null
 
   // Real-time sync: onSnapshot fires immediately on mount and on any cross-device change
   useEffect(() => {
@@ -315,6 +316,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
         setVisitedCount((data.visitedStates || []).length);
         setSelectedCar(data.selectedCar || null);
         setSoundEnabled(data.soundEnabled !== false); // default true
+        setActiveCheckIn(data.activeCheckIn || null);
       },
       (err) => console.error('[Profile] snapshot:', err),
     );
@@ -352,8 +354,11 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
     if (!user) return;
     setSelectedCar(carType);
     await saveSelectedCar(user.uid, carType).catch((err) => console.error('[Profile] save car:', err));
-    // If currently parked, update the live check-in so the new car appears on the map instantly
-    updateParkedCar(user.uid, carType).catch((err) => console.error('[Profile] update parked car:', err));
+    // If currently parked, repaint the live check-in so the new car appears on map instantly
+    if (activeCheckIn) {
+      updateParkedCar(user.uid, carType, activeCheckIn)
+        .catch((err) => console.error('[Profile] update parked car:', err));
+    }
   };
 
   const handlePrivacyToggle = () => {

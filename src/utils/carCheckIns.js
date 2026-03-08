@@ -1,7 +1,7 @@
 import { db } from '../config/firebase';
 import {
   collection, setDoc, deleteDoc, updateDoc, doc, onSnapshot, serverTimestamp,
-  getDoc, writeBatch,
+  getDoc, writeBatch, deleteField,
 } from 'firebase/firestore';
 
 export const CAR_TYPES = {
@@ -21,16 +21,16 @@ export const checkIn = async (userId, userName, carType, locationId, lat, lng) =
   const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
   console.log('[carCheckIns] checking in:', userId, 'at', locationId, 'car:', carType);
 
-  // Read user's current active check-in (if any)
-  const userCheckInRef = doc(db, 'userActiveCheckIn', userId);
-  const existing = await getDoc(userCheckInRef);
+  // Read user's current active check-in from their profile doc (no separate collection needed)
+  const userRef = doc(db, 'users', userId);
+  const userSnap = await getDoc(userRef);
+  const existing = userSnap.exists() ? (userSnap.data().activeCheckIn || null) : null;
 
   const batch = writeBatch(db);
 
   // Auto-leave previous location before parking at the new one
-  if (existing.exists()) {
-    const { locationId: oldLocId, checkInId: oldCheckInId } = existing.data();
-    batch.delete(doc(db, 'activeCheckIns', oldLocId, 'cars', oldCheckInId));
+  if (existing) {
+    batch.delete(doc(db, 'activeCheckIns', existing.locationId, 'cars', existing.checkInId));
   }
 
   // Create new check-in with a pre-generated ID so we can reference it in the batch
@@ -45,27 +45,29 @@ export const checkIn = async (userId, userName, carType, locationId, lat, lng) =
     longitude: lng,
   });
 
-  // Track user's single active check-in
-  batch.set(userCheckInRef, { locationId, checkInId: newCheckInRef.id });
+  // Store active check-in info on the user doc (already accessible, no extra rules needed)
+  batch.set(userRef, { activeCheckIn: { locationId, checkInId: newCheckInRef.id } }, { merge: true });
 
   await batch.commit();
   return newCheckInRef;
 };
 
-// If the user is currently parked, update their check-in's carType live on the map
-export const updateParkedCar = async (userId, newCarType) => {
-  const existing = await getDoc(doc(db, 'userActiveCheckIn', userId));
-  if (!existing.exists()) return; // not parked — nothing to update
-  const { locationId, checkInId } = existing.data();
-  await updateDoc(doc(db, 'activeCheckIns', locationId, 'cars', checkInId), {
-    carType: newCarType,
-  });
+// Called from Profile when user changes car while parked — reads activeCheckIn from user doc
+export const updateParkedCar = async (userId, newCarType, activeCheckIn) => {
+  if (!activeCheckIn?.locationId || !activeCheckIn?.checkInId) return;
+  await updateDoc(
+    doc(db, 'activeCheckIns', activeCheckIn.locationId, 'cars', activeCheckIn.checkInId),
+    { carType: newCarType },
+  );
 };
 
 export const deleteCheckIn = (locationId, checkInId, userId) => {
   const batch = writeBatch(db);
   batch.delete(doc(db, 'activeCheckIns', locationId, 'cars', checkInId));
-  if (userId) batch.delete(doc(db, 'userActiveCheckIn', userId));
+  // Clear the activeCheckIn field on the user doc
+  if (userId) {
+    batch.update(doc(db, 'users', userId), { activeCheckIn: deleteField() });
+  }
   return batch.commit();
 };
 
