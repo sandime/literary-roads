@@ -363,31 +363,37 @@ const createCustomIcon = (type, hasStarburst = false) => {
   });
 };
 
-// Car check-in badge icon — sits above the location pin (iconAnchor y=68 places it above a 40px pin)
-// Pass animating=true to trigger the honk bounce+headlight-flash animation
-const createCarBadgeIcon = (cars, animating = false) => {
-  const count = cars.length;
-  const isConvoy = count >= 5;
+// Pixel offsets (as iconAnchor values) to spread individual cars above a pin.
+// iconAnchor [ax, ay]: icon appears with its (ax,ay) pixel at the marker's geo point.
+// Default [14,68] = icon centered horizontally, 40px above pin bottom.
+const SPREAD_ANCHORS = [
+  [14, 68],  // 0: center (default)
+  [-12, 68], // 1: 26px to the right
+  [40, 68],  // 2: 26px to the left
+  [14, 42],  // 3: center, lower (closer to pin)
+];
+
+// Single car icon — one per car for 1–4 car clusters
+const createSingleCarIcon = (car, animating = false, index = 0) => {
+  const src = carImgSrc(car.carType);
   const cls = animating ? 'lr-honking' : '';
-
-  if (isConvoy) {
-    return L.divIcon({
-      html: `<div class="${cls}" style="background:linear-gradient(135deg,#FF4E00,#FFD700);border:2px solid #FFD700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:10px;color:#1A1B2E;box-shadow:0 0 14px rgba(255,215,0,0.9);line-height:1">🚗${count}</div>`,
-      className: '',
-      iconSize: [36, 36],
-      iconAnchor: [18, 76],
-    });
-  }
-
-  const src = carImgSrc(cars[0].carType);
-  const badge = count > 1
-    ? `<span style="position:absolute;top:-4px;right:-4px;background:#FF4E00;color:#1A1B2E;font-family:'Bungee',sans-serif;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 6px rgba(255,78,0,0.7)">${count}</span>`
-    : '';
+  const anchor = SPREAD_ANCHORS[index] ?? SPREAD_ANCHORS[0];
   return L.divIcon({
-    html: `<div class="${cls}" style="position:relative;display:inline-block"><img src="${src}" style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,0.9))" />${badge}</div>`,
+    html: `<div class="${cls}" style="position:relative;display:inline-block"><img src="${src}" style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,0.9))" /></div>`,
     className: '',
     iconSize: [28, 28],
-    iconAnchor: [14, 68],
+    iconAnchor: anchor,
+  });
+};
+
+// Convoy starburst icon — shown when 5+ cars are at one location
+const createConvoyIcon = (count, animating = false) => {
+  const cls = `lr-convoy${animating ? ' lr-honking' : ''}`;
+  return L.divIcon({
+    html: `<div class="${cls}" style="background:linear-gradient(135deg,#FF4E00,#FFD700);border:2.5px solid #FFD700;border-radius:50%;width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:12px;color:#1A1B2E;line-height:1">🚗${count}</div>`,
+    className: '',
+    iconSize: [42, 42],
+    iconAnchor: [21, 80],
   });
 };
 
@@ -1300,6 +1306,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               100% { transform: translateY(0)   scale(1);    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.9)); }
             }
             .lr-honking { animation: lr-car-honk 0.85s ease; }
+            @keyframes lr-convoy-pulse {
+              0%, 100% { box-shadow: 0 0 14px rgba(255,215,0,0.85), 0 0 6px rgba(255,78,0,0.5); }
+              50%       { box-shadow: 0 0 28px rgba(255,215,0,1),    0 0 14px rgba(255,78,0,0.8); }
+            }
+            .lr-convoy { animation: lr-convoy-pulse 1.6s ease-in-out infinite; }
           `}</style>
 
           {/* Home button */}
@@ -1718,24 +1729,59 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             const loc = visibleLocations.find(l => l.id === locationId);
             if (!loc) return null;
 
-            // Honkable when the current user is parked here and others are too
-            const userParkedHere = !!user && cars.some(c => c.userId === user.uid);
-            const othersHere = cars.filter(c => c.userId !== user?.uid);
-            const honkable = userParkedHere && othersHere.length > 0;
             const isHonking = honkingLocationId === locationId;
+            const userParkedHere = !!user && cars.some(c => c.userId === user.uid);
+            const honkHandler = { click: () => handleHonk(locationId, loc.name || locationId) };
 
-            return (
-              <Marker
-                key={`cars-${locationId}-${isHonking ? 'h' : 'i'}`}
-                position={[loc.lat, loc.lng]}
-                icon={createCarBadgeIcon(cars, isHonking)}
-                interactive={honkable}
-                title={honkable ? '🚗 Tap to honk!' : undefined}
-                eventHandlers={honkable ? {
-                  click: () => handleHonk(locationId, loc.name || locationId),
-                } : undefined}
-              />
-            );
+            // 5+ cars → convoy starburst with popup listing travelers
+            if (cars.length >= 5) {
+              const canHonkConvoy = userParkedHere && cars.some(c => c.userId !== user?.uid);
+              return (
+                <Marker
+                  key={`convoy-${locationId}-${isHonking ? 'h' : 'i'}`}
+                  position={[loc.lat, loc.lng]}
+                  icon={createConvoyIcon(cars.length, isHonking)}
+                  interactive={true}
+                  eventHandlers={canHonkConvoy ? honkHandler : undefined}
+                >
+                  <Popup>
+                    <div style={{ fontFamily: 'Bungee, sans-serif', minWidth: '150px' }}>
+                      <p style={{ color: '#FF4E00', fontSize: '11px', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                        🚗 {cars.length} TRAVELERS HERE
+                      </p>
+                      {cars.map(c => (
+                        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+                          <img src={carImgSrc(c.carType)} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                          <span style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: '#1A1B2E' }}>
+                            {c.userName || 'Traveler'}
+                          </span>
+                        </div>
+                      ))}
+                      {canHonkConvoy && (
+                        <p style={{ fontFamily: 'Special Elite, serif', fontSize: '10px', color: '#888', marginTop: '6px' }}>
+                          Tap the badge to honk at everyone!
+                        </p>
+                      )}
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            }
+
+            // 1–4 cars → individual spread markers
+            return cars.map((car, i) => {
+              const canHonkThis = userParkedHere && car.userId !== user?.uid;
+              return (
+                <Marker
+                  key={`car-${locationId}-${car.id}-${isHonking ? 'h' : 'i'}`}
+                  position={[loc.lat, loc.lng]}
+                  icon={createSingleCarIcon(car, isHonking && i === 0, i)}
+                  interactive={canHonkThis}
+                  title={canHonkThis ? '🚗 Tap to honk!' : undefined}
+                  eventHandlers={canHonkThis ? honkHandler : undefined}
+                />
+              );
+            });
           })}
         </MapContainer>
       </div>
