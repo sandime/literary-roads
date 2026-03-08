@@ -1,5 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './config/firebase';
 import Odometer from './screens/Odometer';
 import StateSelector from './screens/StateSelector';
 import MasterMap from './screens/MasterMap';
@@ -7,14 +10,26 @@ import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
 import BookLog from './screens/BookLog';
+import Ethics from './screens/Ethics';
+import EthicsModal from './components/EthicsModal';
 import './App.css';
 
 function AppInner() {
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog'
+  const { user } = useAuth();
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
   // Tracks where Profile was opened from (map or stateSelector) — never clobbered by sub-navigation
   const [profileOrigin, setProfileOrigin] = useState('stateSelector');
+  const [showEthicsModal, setShowEthicsModal] = useState(false);
+
+  // Check if logged-in user has accepted the Code of Ethics; show modal if not
+  useEffect(() => {
+    if (!user) { setShowEthicsModal(false); return; }
+    getDoc(doc(db, 'users', user.uid)).then(snap => {
+      if (!snap.exists() || !snap.data().acceptedEthics) setShowEthicsModal(true);
+    }).catch(() => {});
+  }, [user]);
 
   // Persists route state across navigation so the map restores when returning
   const routeStateRef = useRef({
@@ -81,6 +96,11 @@ function AppInner() {
     setScreen('resources');
   };
 
+  const handleShowEthics = () => {
+    setPreviousScreen(screen);
+    setScreen('ethics');
+  };
+
   const handleShowBookLog = () => {
     setPreviousScreen(screen);
     setScreen('bookLog');
@@ -117,6 +137,7 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
+          onShowEthics={handleShowEthics}
           routeStateRef={routeStateRef}
         />
       )}
@@ -139,6 +160,14 @@ function AppInner() {
       )}
       {screen === 'resources' && (
         <Resources onBack={handleAuthBack} />
+      )}
+      {screen === 'ethics' && (
+        <Ethics onBack={handleAuthBack} />
+      )}
+
+      {/* First-time ethics acceptance modal — blocks app until accepted */}
+      {showEthicsModal && user && (
+        <EthicsModal user={user} onAccepted={() => setShowEthicsModal(false)} />
       )}
     </>
   );

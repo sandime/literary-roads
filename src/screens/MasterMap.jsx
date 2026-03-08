@@ -508,7 +508,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, routeStateRef }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -1565,6 +1565,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
                 </svg>
                 HIGHWAY SNACKS
+              </button>
+
+              {/* Code of Ethics */}
+              <button
+                onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                CODE OF ETHICS
               </button>
 
               {/* Route-specific actions — only shown when route is plotted */}

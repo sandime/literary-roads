@@ -184,9 +184,18 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
                         {isOwn && !isFull && (
                           <button
                             onClick={() => { setEditingIndex(i); setEditText(s.text); setEditError(''); }}
-                            className="text-chrome-silver/30 hover:text-starlight-turquoise transition-colors mt-1"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'block', marginLeft: 'auto' }}
+                            style={{
+                              background: 'none', border: 'none', cursor: 'pointer',
+                              display: 'block', marginLeft: 'auto', marginTop: '4px',
+                              padding: '6px', borderRadius: '6px',
+                              color: '#FF4FD8',
+                              filter: 'drop-shadow(0 0 5px rgba(255,79,216,0.8))',
+                              fontSize: '15px',
+                              transition: 'filter 0.15s, transform 0.15s',
+                            }}
                             title="Edit your sentence"
+                            onMouseEnter={e => { e.currentTarget.style.filter = 'drop-shadow(0 0 9px rgba(255,79,216,1))'; e.currentTarget.style.transform = 'scale(1.2)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.filter = 'drop-shadow(0 0 5px rgba(255,79,216,0.8))'; e.currentTarget.style.transform = 'scale(1)'; }}
                           >✏️</button>
                         )}
                       </div>
