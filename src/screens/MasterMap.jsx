@@ -531,14 +531,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInError, setCheckInError] = useState('');
   const carSubsRef = useRef({});
-  const userMenuRef = useRef(null);
+  const userMenuRef = useRef(null);       // desktop profile container
+  const mobileMenuRef = useRef(null);     // mobile profile container
 
   useEffect(() => {
     if (!showUserMenu) return;
     const handleClick = (e) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
-        setShowUserMenu(false);
-      }
+      const insideMenu = userMenuRef.current?.contains(e.target) ||
+                         mobileMenuRef.current?.contains(e.target);
+      if (!insideMenu) setShowUserMenu(false);
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
@@ -1157,7 +1158,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           </h1>
 
           {/* Profile / Login */}
-          <div ref={userMenuRef} style={{ position: 'relative' }} className="flex-shrink-0">
+          <div ref={mobileMenuRef} style={{ position: 'relative' }} className="flex-shrink-0">
             <button
               onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
               className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5"
