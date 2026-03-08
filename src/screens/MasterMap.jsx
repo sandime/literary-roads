@@ -2096,9 +2096,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <div className="flex-shrink-0 flex flex-col gap-1.5 px-3 pb-3 md:px-5 md:pb-4 pt-1.5 max-w-2xl mx-auto w-full">
             {/* Row 1: Directions + Trip — compact */}
             <div className="flex gap-2">
-              <button className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-1.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-md text-xs">
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.lat},${selectedLocation.lng}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-1.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-md text-xs flex items-center justify-center"
+              >
                 DIRECTIONS
-              </button>
+              </a>
               <button
                 onClick={() => handleTripToggle(selectedLocation)}
                 className={`px-3 border-2 font-bungee text-xs py-1.5 rounded-lg transition-all ${
