@@ -19,6 +19,7 @@ import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
 import Guestbook from '../components/Guestbook';
 import HitchhikerTale from '../components/HitchhikerTale';
+import PostcardStudio from '../components/PostcardStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
 import { useAuth } from '../contexts/AuthContext';
@@ -516,7 +517,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [error, setError] = useState('');
   // pendingLocation: set by App.jsx when navigating here from a stop click in StateSelector
   const [selectedLocation, setSelectedLocation] = useState(saved.pendingLocation ?? null);
-  const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale'
+  const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale' | 'postcard'
   const [showTaleModal, setShowTaleModal] = useState(false);
   const [starburstIds, setStarburstIds] = useState(new Set());
   const [tripItems, setTripItems] = useState([]);
@@ -1984,7 +1985,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {[
                   { id: 'info', label: 'INFO' },
                   { id: 'guestbook', label: 'GUESTBOOK' },
-                  { id: 'tale', label: "HITCHHIKER'S TALE" },
+                  { id: 'tale', label: "HITCH. TALE" },
+                  { id: 'postcard', label: '📸 POSTCARD' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -2078,6 +2080,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 locationId={selectedLocation.id}
                 locationName={selectedLocation.name}
                 onOpenModal={() => setShowTaleModal(true)}
+              />
+            )}
+
+            {/* Tab: Postcard Studio */}
+            {shelfTab === 'postcard' && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
+              <PostcardStudio
+                key={selectedLocation.id}
+                location={selectedLocation}
               />
             )}
           </div>
