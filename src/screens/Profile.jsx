@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
 import CarSelector from '../components/CarSelector';
-import { saveSelectedCar } from '../utils/carCheckIns';
+import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
@@ -352,6 +352,8 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
     if (!user) return;
     setSelectedCar(carType);
     await saveSelectedCar(user.uid, carType).catch((err) => console.error('[Profile] save car:', err));
+    // If currently parked, update the live check-in so the new car appears on the map instantly
+    updateParkedCar(user.uid, carType).catch((err) => console.error('[Profile] update parked car:', err));
   };
 
   const handlePrivacyToggle = () => {

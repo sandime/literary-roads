@@ -1,6 +1,6 @@
 import { db } from '../config/firebase';
 import {
-  collection, setDoc, deleteDoc, doc, onSnapshot, serverTimestamp,
+  collection, setDoc, deleteDoc, updateDoc, doc, onSnapshot, serverTimestamp,
   getDoc, writeBatch,
 } from 'firebase/firestore';
 
@@ -50,6 +50,16 @@ export const checkIn = async (userId, userName, carType, locationId, lat, lng) =
 
   await batch.commit();
   return newCheckInRef;
+};
+
+// If the user is currently parked, update their check-in's carType live on the map
+export const updateParkedCar = async (userId, newCarType) => {
+  const existing = await getDoc(doc(db, 'userActiveCheckIn', userId));
+  if (!existing.exists()) return; // not parked — nothing to update
+  const { locationId, checkInId } = existing.data();
+  await updateDoc(doc(db, 'activeCheckIns', locationId, 'cars', checkInId), {
+    carType: newCarType,
+  });
 };
 
 export const deleteCheckIn = (locationId, checkInId, userId) => {
