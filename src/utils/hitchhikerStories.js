@@ -10,6 +10,21 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 
+// Update the text of one sentence (author only). Reads + writes the full array.
+export async function editSentence(locationId, sentenceIndex, newText, userId) {
+  const ref = doc(db, 'hitchhikerStories', locationId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('Story not found.');
+  const sentences = [...snap.data().sentences];
+  if (sentences[sentenceIndex]?.userId !== userId) throw new Error('Not your sentence.');
+  sentences[sentenceIndex] = {
+    ...sentences[sentenceIndex],
+    text: newText,
+    editedAt: new Date().toISOString(),
+  };
+  await updateDoc(ref, { sentences });
+}
+
 export const MAX_SENTENCES = 100;
 export const MAX_CHARS = 150;
 

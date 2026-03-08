@@ -1,5 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
-import { subscribeToStory, addSentence, MAX_SENTENCES, MAX_CHARS, MAX_TITLE_CHARS } from '../utils/hitchhikerStories';
+import { subscribeToStory, addSentence, editSentence, MAX_SENTENCES, MAX_CHARS, MAX_TITLE_CHARS } from '../utils/hitchhikerStories';
+
+const relativeTime = (iso) => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)   return 'just now';
+  if (m < 60)  return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24)  return `${h}h ago`;
+  const d = Math.floor(h / 24);
+  if (d < 7)   return `${d}d ago`;
+  const w = Math.floor(d / 7);
+  if (w < 5)   return `${w}w ago`;
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+};
 
 export default function TaleModal({ locationId, locationName, user, onShowLogin, onClose }) {
   const [story, setStory] = useState(undefined);
@@ -7,6 +21,10 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
   const [inputText, setInputText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState('');
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -35,6 +53,21 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
       setError(err.message || `Failed to save. (${err.code})`);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEditSave = async (index) => {
+    const text = editText.trim();
+    if (!text || text.length > MAX_CHARS) return;
+    setEditSubmitting(true);
+    setEditError('');
+    try {
+      await editSentence(locationId, index, text, user.uid);
+      setEditingIndex(null);
+    } catch (err) {
+      setEditError(err.message || 'Could not save edit.');
+    } finally {
+      setEditSubmitting(false);
     }
   };
 
@@ -95,15 +128,73 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
             <div className="w-6 h-6 border-2 border-atomic-orange border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <div className="space-y-5">
-            {sentences.map((s, i) => (
-              <div key={i} className="border-l-2 border-starlight-turquoise/30 pl-4">
-                <p className="text-paper-white font-special-elite text-sm leading-relaxed">{s.text}</p>
-                <p className="text-chrome-silver/35 font-special-elite mt-1.5" style={{ fontSize: '10px' }}>
-                  — {s.userName} · {new Date(s.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                </p>
-              </div>
-            ))}
+          <div className="space-y-4">
+            {sentences.map((s, i) => {
+              const isOwn = user?.uid === s.userId;
+              const isEditing = editingIndex === i;
+              return (
+                <div key={i} className="border-l-2 border-starlight-turquoise/30 pl-4">
+                  {isEditing ? (
+                    /* ── Inline edit ── */
+                    <div>
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value.slice(0, MAX_CHARS))}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleEditSave(i); } }}
+                        rows={3}
+                        autoFocus
+                        className="w-full bg-black/40 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2 rounded-lg focus:outline-none focus:border-starlight-turquoise resize-none text-sm"
+                      />
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`font-special-elite text-xs ${editText.length >= MAX_CHARS ? 'text-atomic-orange' : 'text-chrome-silver/40'}`}>
+                          {editText.length}/{MAX_CHARS}
+                        </span>
+                        {editError && <p className="text-atomic-orange font-special-elite text-xs flex-1 truncate">{editError}</p>}
+                        <button
+                          onClick={() => setEditingIndex(null)}
+                          className="font-bungee text-chrome-silver/60 hover:text-paper-white transition-colors ml-auto"
+                          style={{ fontSize: '10px', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >CANCEL</button>
+                        <button
+                          onClick={() => handleEditSave(i)}
+                          disabled={editSubmitting || !editText.trim()}
+                          className="font-bungee bg-starlight-turquoise text-midnight-navy px-4 py-1 rounded-lg hover:bg-atomic-orange disabled:opacity-40 transition-all"
+                          style={{ fontSize: '10px', cursor: editSubmitting ? 'default' : 'pointer' }}
+                        >{editSubmitting ? 'SAVING...' : 'SAVE'}</button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* ── Display: sentence left / meta right ── */
+                    <div className="flex items-start gap-3">
+                      {/* Story text */}
+                      <p className="flex-1 text-paper-white font-special-elite text-sm leading-relaxed">
+                        {s.text}
+                        {s.editedAt && (
+                          <span className="text-chrome-silver/30 font-special-elite ml-1" style={{ fontSize: '9px' }}>(edited)</span>
+                        )}
+                      </p>
+                      {/* Meta: author + date + edit button */}
+                      <div className="flex-shrink-0 text-right" style={{ minWidth: '80px' }}>
+                        <p className="text-starlight-turquoise/70 font-special-elite leading-tight" style={{ fontSize: '10px' }}>
+                          @{s.userName}
+                        </p>
+                        <p className="text-chrome-silver/30 font-special-elite leading-tight mt-0.5" style={{ fontSize: '9px' }}>
+                          {relativeTime(s.timestamp)}
+                        </p>
+                        {isOwn && !isFull && (
+                          <button
+                            onClick={() => { setEditingIndex(i); setEditText(s.text); setEditError(''); }}
+                            className="text-chrome-silver/30 hover:text-starlight-turquoise transition-colors mt-1"
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', display: 'block', marginLeft: 'auto' }}
+                            title="Edit your sentence"
+                          >✏️</button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
         <div ref={bottomRef} className="h-4" />
