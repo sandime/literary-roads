@@ -14,6 +14,7 @@ import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
+import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn } from '../utils/honkUtils';
 import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
 import Guestbook from '../components/Guestbook';
@@ -362,13 +363,15 @@ const createCustomIcon = (type, hasStarburst = false) => {
 };
 
 // Car check-in badge icon — sits above the location pin (iconAnchor y=68 places it above a 40px pin)
-const createCarBadgeIcon = (cars) => {
+// Pass animating=true to trigger the honk bounce+headlight-flash animation
+const createCarBadgeIcon = (cars, animating = false) => {
   const count = cars.length;
   const isConvoy = count >= 5;
+  const cls = animating ? 'lr-honking' : '';
 
   if (isConvoy) {
     return L.divIcon({
-      html: `<div style="background:linear-gradient(135deg,#FF4E00,#FFD700);border:2px solid #FFD700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:10px;color:#1A1B2E;box-shadow:0 0 14px rgba(255,215,0,0.9);line-height:1">🚗${count}</div>`,
+      html: `<div class="${cls}" style="background:linear-gradient(135deg,#FF4E00,#FFD700);border:2px solid #FFD700;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:10px;color:#1A1B2E;box-shadow:0 0 14px rgba(255,215,0,0.9);line-height:1">🚗${count}</div>`,
       className: '',
       iconSize: [36, 36],
       iconAnchor: [18, 76],
@@ -380,7 +383,7 @@ const createCarBadgeIcon = (cars) => {
     ? `<span style="position:absolute;top:-4px;right:-4px;background:#FF4E00;color:#1A1B2E;font-family:'Bungee',sans-serif;font-size:8px;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 0 6px rgba(255,78,0,0.7)">${count}</span>`
     : '';
   return L.divIcon({
-    html: `<div style="position:relative;display:inline-block"><img src="${src}" style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,0.9))" />${badge}</div>`,
+    html: `<div class="${cls}" style="position:relative;display:inline-block"><img src="${src}" style="width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 1px 4px rgba(0,0,0,0.9))" />${badge}</div>`,
     className: '',
     iconSize: [28, 28],
     iconAnchor: [14, 68],
@@ -527,9 +530,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [saveRouteError, setSaveRouteError] = useState('');
   const [savedRoutes, setSavedRoutes] = useState([]);
   const [userCar, setUserCar] = useState(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [locationCars, setLocationCars] = useState({});  // { [locationId]: Car[] }
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInError, setCheckInError] = useState('');
+  const [honkingLocationId, setHonkingLocationId] = useState(null);
+  const [honkToast, setHonkToast] = useState(null);   // { fromName, locationName }
+  const [honkMessage, setHonkMessage] = useState(''); // rate-limit feedback
+  const honkToastTimerRef = useRef(null);
+  const honkMsgTimerRef = useRef(null);
   const carSubsRef = useRef({});
   const userMenuRef = useRef(null);       // desktop profile container
   const mobileMenuRef = useRef(null);     // mobile profile container
@@ -623,11 +632,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       ref,
       (snap) => {
         if (snap.exists()) {
-          setTripItems(snap.data().trip || []);
-          setUserCar(snap.data().selectedCar || null);
+          const d = snap.data();
+          setTripItems(d.trip || []);
+          setUserCar(d.selectedCar || null);
+          setSoundEnabled(d.soundEnabled !== false); // default true
         } else {
           setTripItems([]);
           setUserCar(null);
+          setSoundEnabled(true);
         }
       },
       (err) => console.error('[MasterMap] trip sync:', err),
@@ -639,6 +651,22 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => {
     if (!user) { setSavedRoutes([]); return; }
     return subscribeToSavedRoutes(user.uid, setSavedRoutes);
+  }, [user]);
+
+  // Incoming honk notifications
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(doc(db, 'honkNotifications', user.uid), (snap) => {
+      if (!snap.exists() || !snap.data().pending) return;
+      const { fromName, locationName } = snap.data();
+      clearTimeout(honkToastTimerRef.current);
+      setHonkToast({ fromName, locationName });
+      honkToastTimerRef.current = setTimeout(() => {
+        setHonkToast(null);
+        clearHonkNotification(user.uid);
+      }, 5000);
+    });
+    return () => { unsub(); clearTimeout(honkToastTimerRef.current); };
   }, [user]);
 
   // Car check-in subscriptions: one listener per visible bookstore/cafe
@@ -841,6 +869,37 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     deleteCheckIn(selectedLocation.id, parked.id, user.uid).catch(err =>
       console.error('[MasterMap] unpark:', err.code, err.message)
     );
+  };
+
+  const handleHonk = async (locationId, locationName) => {
+    if (!user) return;
+    const { allowed, reason } = checkHonkAllowed(locationId);
+    if (!allowed) {
+      const msg = reason === 'rate'
+        ? 'Slow down! Max 3 honks per minute.'
+        : 'Already honked at these travelers! Try again in 10 min.';
+      clearTimeout(honkMsgTimerRef.current);
+      setHonkMessage(msg);
+      honkMsgTimerRef.current = setTimeout(() => setHonkMessage(''), 3000);
+      return;
+    }
+    const others = (locationCars[locationId] || []).filter(c => c.userId !== user.uid);
+    if (!others.length) return;
+
+    // Visual bounce + headlight flash
+    setHonkingLocationId(locationId);
+    setTimeout(() => setHonkingLocationId(null), 900);
+
+    // Audio
+    playHorn(soundEnabled);
+
+    // Record for rate limiting
+    recordHonk(locationId);
+
+    // Send Firestore notifications to other parked users
+    const toUserIds = [...new Set(others.map(c => c.userId))];
+    sendHonkNotifications(toUserIds, user.displayName || 'A Fellow Traveler', locationName)
+      .catch(err => console.error('[MasterMap] honk notify:', err));
   };
 
   const handleSelectStop = (item) => {
@@ -1231,6 +1290,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               from { transform: translateX(-100%); }
               to   { transform: translateX(0); }
             }
+            @keyframes lr-car-honk {
+              0%   { transform: translateY(0)   scale(1);    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.9)); }
+              20%  { transform: translateY(-6px) scale(1.15); filter: drop-shadow(0 0 16px rgba(255,220,0,1)) drop-shadow(0 0 8px rgba(255,255,255,0.8)); }
+              40%  { transform: translateY(0)   scale(1);    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.9)); }
+              60%  { transform: translateY(-4px) scale(1.08); filter: drop-shadow(0 0 10px rgba(255,220,0,0.85)) drop-shadow(0 0 6px rgba(255,255,255,0.6)); }
+              80%  { transform: translateY(0)   scale(1);    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.9)); }
+              100% { transform: translateY(0)   scale(1);    filter: drop-shadow(0 1px 4px rgba(0,0,0,0.9)); }
+            }
+            .lr-honking { animation: lr-car-honk 0.85s ease; }
           `}</style>
 
           {/* Home button */}
@@ -1648,17 +1716,75 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             if (!cars.length) return null;
             const loc = visibleLocations.find(l => l.id === locationId);
             if (!loc) return null;
+
+            // Honkable when the current user is parked here and others are too
+            const userParkedHere = !!user && cars.some(c => c.userId === user.uid);
+            const othersHere = cars.filter(c => c.userId !== user?.uid);
+            const honkable = userParkedHere && othersHere.length > 0;
+            const isHonking = honkingLocationId === locationId;
+
             return (
               <Marker
-                key={`cars-${locationId}`}
+                key={`cars-${locationId}-${isHonking ? 'h' : 'i'}`}
                 position={[loc.lat, loc.lng]}
-                icon={createCarBadgeIcon(cars)}
-                interactive={false}
+                icon={createCarBadgeIcon(cars, isHonking)}
+                interactive={honkable}
+                title={honkable ? '🚗 Tap to honk!' : undefined}
+                eventHandlers={honkable ? {
+                  click: () => handleHonk(locationId, loc.name || locationId),
+                } : undefined}
               />
             );
           })}
         </MapContainer>
       </div>
+
+      {/* ── Honk received toast ── */}
+      {honkToast && (
+        <div
+          style={{
+            position: 'fixed', top: '70px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 3000, background: '#0D0E1A', border: '2px solid #FF4E00',
+            borderRadius: '12px', padding: '10px 16px',
+            boxShadow: '0 0 24px rgba(255,78,0,0.5), 0 4px 20px rgba(0,0,0,0.7)',
+            display: 'flex', alignItems: 'center', gap: '10px',
+            animation: 'lr-dropdown-in 0.2s ease',
+            maxWidth: 'calc(100vw - 32px)',
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>🚗</span>
+          <div>
+            <p className="font-bungee" style={{ fontSize: '11px', color: '#FF4E00', letterSpacing: '0.05em' }}>
+              BEEP BEEP!
+            </p>
+            <p className="font-special-elite" style={{ fontSize: '12px', color: '#F5F5DC', lineHeight: 1.3 }}>
+              <strong>{honkToast.fromName}</strong> honked at you at {honkToast.locationName}!
+            </p>
+          </div>
+          <button
+            onClick={() => { setHonkToast(null); clearHonkNotification(user.uid); }}
+            style={{ background: 'none', border: 'none', color: 'rgba(192,192,192,0.5)', cursor: 'pointer', fontSize: '16px', padding: '2px', flexShrink: 0 }}
+          >×</button>
+        </div>
+      )}
+
+      {/* ── Honk rate-limit message ── */}
+      {honkMessage && (
+        <div
+          style={{
+            position: 'fixed', top: '70px', left: '50%', transform: 'translateX(-50%)',
+            zIndex: 3000, background: '#0D0E1A', border: '1.5px solid rgba(192,192,192,0.3)',
+            borderRadius: '10px', padding: '8px 14px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.6)',
+            animation: 'lr-dropdown-in 0.2s ease',
+            maxWidth: 'calc(100vw - 32px)',
+          }}
+        >
+          <p className="font-special-elite" style={{ fontSize: '12px', color: 'rgba(192,192,192,0.8)', whiteSpace: 'nowrap' }}>
+            {honkMessage}
+          </p>
+        </div>
+      )}
 
       {/* Route Planner — mobile: slide-up from bottom (50vh); desktop: centered dialog */}
       {showPlanner && (

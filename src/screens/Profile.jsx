@@ -294,6 +294,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
   const { user } = useAuth();
 
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
@@ -313,6 +314,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
         setTripCount((data.trip || []).length);
         setVisitedCount((data.visitedStates || []).length);
         setSelectedCar(data.selectedCar || null);
+        setSoundEnabled(data.soundEnabled !== false); // default true
       },
       (err) => console.error('[Profile] snapshot:', err),
     );
@@ -356,6 +358,13 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
     const next = !privacyOn;
     setPrivacyOn(next);
     localStorage.setItem('lr-privacy', String(next));
+  };
+
+  const handleSoundToggle = async () => {
+    if (!user) return;
+    const next = !soundEnabled;
+    setSoundEnabled(next);
+    await setDoc(doc(db, 'users', user.uid), { soundEnabled: next }, { merge: true });
   };
 
   const displayName = user?.displayName || 'Literary Traveler';
@@ -508,18 +517,36 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
         <CarSelector selectedCar={selectedCar} onSelect={handleCarSelect} />
       </div>
 
-      {/* Privacy toggle */}
-      <div className="w-full max-w-lg rounded-xl p-4 mb-5 flex items-center justify-between"
+      {/* Settings toggles */}
+      <div className="w-full max-w-lg rounded-xl mb-5 overflow-hidden"
         style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-        <div>
-          <p className="font-bungee text-paper-white text-xs">PRIVATE PROFILE</p>
-          <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Hide your trips from others</p>
+
+        {/* Privacy toggle */}
+        <div className="p-4 flex items-center justify-between"
+          style={{ borderBottom: '1px solid #2A2B45' }}>
+          <div>
+            <p className="font-bungee text-paper-white text-xs">PRIVATE PROFILE</p>
+            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Hide your trips from others</p>
+          </div>
+          <button onClick={handlePrivacyToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
+            style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}>
+            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+              style={{ left: privacyOn ? '22px' : '2px' }} />
+          </button>
         </div>
-        <button onClick={handlePrivacyToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
-          style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}>
-          <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-            style={{ left: privacyOn ? '22px' : '2px' }} />
-        </button>
+
+        {/* Sound effects toggle */}
+        <div className="p-4 flex items-center justify-between">
+          <div>
+            <p className="font-bungee text-paper-white text-xs">SOUND EFFECTS</p>
+            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Honk horn when meeting fellow travelers</p>
+          </div>
+          <button onClick={handleSoundToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
+            style={{ background: soundEnabled ? '#FF4E00' : '#3A3B55' }}>
+            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+              style={{ left: soundEnabled ? '22px' : '2px' }} />
+          </button>
+        </div>
       </div>
 
       {/* ALA Attribution */}
