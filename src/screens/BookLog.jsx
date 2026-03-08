@@ -25,7 +25,7 @@ function CatRating({ value, onChange }) {
   const [hovered, setHovered] = useState(0);
   const display = hovered || value;
   return (
-    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
       {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
@@ -44,7 +44,7 @@ function CatRating({ value, onChange }) {
             src="/literary-roads/images/retro_cat.png"
             alt={`cat ${n}`}
             style={{
-              width: '30px', height: 'auto', display: 'block',
+              width: '48px', height: 'auto', display: 'block',
               filter: display >= n ? CAT_FILTER_ACTIVE : CAT_FILTER_INACTIVE,
               transition: 'filter 0.15s',
             }}
@@ -218,14 +218,14 @@ function LoggedBookCard({ entry, onDelete, onEdit }) {
 
         {/* Cats */}
         {entry.rating > 0 && (
-          <div style={{ display: 'flex', gap: '3px', marginBottom: '5px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '4px', marginBottom: '5px', alignItems: 'center' }}>
             {[1, 2, 3, 4, 5].map((n) => (
               <img
                 key={n}
                 src="/literary-roads/images/retro_cat.png"
                 alt=""
                 style={{
-                  width: '20px', height: 'auto', display: 'block',
+                  width: '40px', height: 'auto', display: 'block',
                   filter: entry.rating >= n ? CAT_FILTER_ACTIVE : CAT_FILTER_INACTIVE,
                 }}
               />
