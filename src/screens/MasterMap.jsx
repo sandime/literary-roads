@@ -1985,15 +1985,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {[
                   { id: 'info', label: 'INFO' },
                   { id: 'guestbook', label: 'GUESTBOOK' },
-                  { id: 'tale', label: "HITCH. TALE" },
+                  { id: 'tale', label: "HITCHHIKER'S TALE" },
                   { id: 'postcard', label: '📸 POSTCARD' },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setShelfTab(tab.id)}
-                    className="font-bungee px-3 py-1.5 rounded-t-lg transition-all relative"
+                    className="font-bungee px-2 py-1.5 rounded-t-lg transition-all relative"
                     style={{
-                      fontSize: '10px',
+                      fontSize: '8.5px',
                       color: shelfTab === tab.id ? '#40E0D0' : 'rgba(192,192,192,0.5)',
                       background: shelfTab === tab.id ? 'rgba(64,224,208,0.08)' : 'transparent',
                       borderBottom: shelfTab === tab.id ? '2px solid #40E0D0' : '2px solid transparent',

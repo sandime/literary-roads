@@ -145,7 +145,7 @@ export default function PostcardStudio({ location }) {
         : '';
       let text = (location.name || 'Literary Stop') + city;
 
-      const fontSize = Math.round(OUTPUT_SIZE * 0.038);
+      const fontSize = Math.round(OUTPUT_SIZE * 0.024);
       ctx.font = `${fontSize}px Bungee, sans-serif`;
       ctx.fillStyle = '#40E0D0';
       ctx.shadowColor = 'rgba(64,224,208,0.85)';
