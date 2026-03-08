@@ -783,6 +783,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setStartCity(savedRoute.startCity || '');
     setEndCity(savedRoute.endCity || '');
     setSelectedLocation(null);
+    setSearchTarget(null);
     setShowPlanner(false);
     setShowRoadTrip(false);
 
@@ -837,7 +838,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     const carsHere = locationCars[selectedLocation.id] || [];
     const parked = carsHere.find(c => c.userId === user.uid);
     if (!parked) return;
-    deleteCheckIn(selectedLocation.id, parked.id).catch(err =>
+    deleteCheckIn(selectedLocation.id, parked.id, user.uid).catch(err =>
       console.error('[MasterMap] unpark:', err.code, err.message)
     );
   };
