@@ -511,7 +511,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showPlanner, setShowPlanner] = useState(saved.showPlanner ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState(null);
+  // pendingLocation: set by App.jsx when navigating here from a stop click in StateSelector
+  const [selectedLocation, setSelectedLocation] = useState(saved.pendingLocation ?? null);
   const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale'
   const [showTaleModal, setShowTaleModal] = useState(false);
   const [starburstIds, setStarburstIds] = useState(new Set());
@@ -542,6 +543,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
+
+  // Clear pendingLocation from ref after mount so it doesn't survive future navigations
+  useEffect(() => {
+    if (routeStateRef?.current?.pendingLocation) {
+      routeStateRef.current.pendingLocation = null;
+    }
+  }, []);
 
   // Reset shelf tab and transient state whenever a new location is opened
   useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); }, [selectedLocation?.id]);
@@ -921,8 +929,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     return { center: [midLat, midLng], zoom };
   })();
 
-  const [mapCenter, setMapCenter] = useState(initMapState.center);
-  const [mapZoom, setMapZoom]     = useState(initMapState.zoom);
+  const [mapCenter, setMapCenter] = useState(
+    saved.pendingLocation ? [saved.pendingLocation.lat, saved.pendingLocation.lng] : initMapState.center
+  );
+  const [mapZoom, setMapZoom] = useState(
+    saved.pendingLocation ? 15 : initMapState.zoom
+  );
 
   // Label shown in the planner panel header
   const stateLabel =

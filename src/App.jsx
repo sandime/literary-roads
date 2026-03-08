@@ -39,6 +39,17 @@ function AppInner() {
     setScreen('stateSelector');
   };
 
+  const handleSelectStopFromSelector = (item) => {
+    setSelectedStates([]);
+    routeStateRef.current = {
+      startCity: '', endCity: '', route: [],
+      visibleLocations: [item],
+      showPlanner: false,
+      pendingLocation: item,   // MasterMap reads this to open the Shelf on mount
+    };
+    setScreen('map');
+  };
+
   const handleLoadSavedRoute = (savedRoute) => {
     const states = savedRoute.selectedStates?.length ? savedRoute.selectedStates : [];
     setSelectedStates(states);
@@ -96,6 +107,7 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowResources={handleShowResources}
           onLoadSavedRoute={handleLoadSavedRoute}
+          onSelectStop={handleSelectStopFromSelector}
         />
       )}
       {screen === 'map' && (

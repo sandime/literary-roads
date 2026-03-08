@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
-import MyRoutes from '../components/MyRoutes';
+import { db } from '../config/firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { getTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
+import RoadTrip from './RoadTrip';
 import { subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 
 const US_CENTER = [39.5, -98.35];
@@ -27,7 +30,7 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onLoadSavedRoute }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onLoadSavedRoute, onSelectStop }) => {
   const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
@@ -36,6 +39,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showMyRoutes, setShowMyRoutes] = useState(false);
   const [savedRoutes, setSavedRoutes]   = useState([]);
+  const [tripItems, setTripItems]       = useState([]);
 
   // Refs keep event-handler closures from going stale
   const selectedRef = useRef(new Set()); // mirrors selectedStates
@@ -57,6 +61,31 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
     if (!user) { setSavedRoutes([]); return; }
     return subscribeToSavedRoutes(user.uid, setSavedRoutes);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) { setTripItems(getTrip()); return; }
+    const ref = doc(db, 'users', user.uid);
+    return onSnapshot(ref,
+      (snap) => setTripItems(snap.exists() ? (snap.data().trip || []) : []),
+      (err) => console.error('[StateSelector] trip sync:', err),
+    );
+  }, [user]);
+
+  const saveTripToFirestore = (items) => {
+    if (!user) return;
+    setDoc(doc(db, 'users', user.uid), { trip: items }, { merge: true }).catch(console.error);
+  };
+
+  const handleRemoveFromTrip = (id) => {
+    const updated = tripItems.filter(i => i.id !== id);
+    setTripItems(updated);
+    if (user) saveTripToFirestore(updated); else removeFromTrip(id);
+  };
+
+  const handleClearTrip = () => {
+    setTripItems([]);
+    if (user) saveTripToFirestore([]); else clearTrip();
+  };
 
   useEffect(() => {
     fetch(
@@ -380,54 +409,17 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
       )}
       {/* ── My Routes overlay ── */}
       {showMyRoutes && (
-        <div className="fixed inset-0 z-[2000] bg-midnight-navy flex flex-col" style={{ animation: 'lr-slide-in-left 0.22s ease' }}>
-          <style>{`@keyframes lr-slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
-
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b-2 border-starlight-turquoise flex-shrink-0 bg-midnight-navy">
-            <button
-              onClick={() => setShowMyRoutes(false)}
-              className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h2 className="font-bungee text-starlight-turquoise text-lg drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
-              MY SAVED ROUTES
-            </h2>
-            <div className="w-8" />
-          </div>
-          <div className="h-0.5 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-70 flex-shrink-0" />
-
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4">
-            {!user ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-16">
-                <svg className="w-16 h-16 text-starlight-turquoise/25 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <p className="text-paper-white font-bungee text-xl mb-2">SIGN IN TO SEE YOUR ROUTES</p>
-                <p className="text-chrome-silver font-special-elite text-sm max-w-xs mb-6">
-                  Log in to access your saved routes and load them directly onto the map.
-                </p>
-                <button
-                  onClick={() => { setShowMyRoutes(false); onShowLogin(); }}
-                  className="bg-atomic-orange text-midnight-navy font-bungee px-6 py-3 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg"
-                >
-                  LOG IN
-                </button>
-              </div>
-            ) : (
-              <MyRoutes
-                savedRoutes={savedRoutes}
-                onLoad={(route) => { setShowMyRoutes(false); onLoadSavedRoute(route); }}
-                onDelete={(id) => deleteSavedRoute(user.uid, id).catch(console.error)}
-                onRename={(id, name) => updateRouteName(user.uid, id, name).catch(console.error)}
-              />
-            )}
-          </div>
-        </div>
+        <RoadTrip
+          items={tripItems}
+          onRemove={handleRemoveFromTrip}
+          onClearAll={handleClearTrip}
+          onClose={() => setShowMyRoutes(false)}
+          onSelectStop={(item) => { setShowMyRoutes(false); onSelectStop?.(item); }}
+          savedRoutes={savedRoutes}
+          onLoadRoute={(route) => { setShowMyRoutes(false); onLoadSavedRoute(route); }}
+          onDeleteRoute={(id) => user && deleteSavedRoute(user.uid, id).catch(console.error)}
+          onRenameRoute={(id, name) => user && updateRouteName(user.uid, id, name).catch(console.error)}
+        />
       )}
     </div>
   );
