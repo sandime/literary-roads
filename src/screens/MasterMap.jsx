@@ -508,7 +508,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, onShowCredits, routeStateRef }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -553,6 +553,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [shelfDeskMinimized, setShelfDeskMinimized] = useState(false);
   const shelfRef = useRef(null);
   const shelfDragRef = useRef(null);
+  const [showInfoMenu, setShowInfoMenu] = useState(false);
+  const infoMenuRef = useRef(null);
 
   useEffect(() => {
     if (!showUserMenu) return;
@@ -564,6 +566,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
+
+  useEffect(() => {
+    if (!showInfoMenu) return;
+    const close = (e) => { if (!infoMenuRef.current?.contains(e.target)) setShowInfoMenu(false); };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [showInfoMenu]);
 
   // Reset shelf snap/minimize when a new location is opened
   useEffect(() => {
@@ -1360,15 +1369,35 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             .lr-convoy { animation: lr-convoy-pulse 1.6s ease-in-out infinite; }
           `}</style>
 
-          {/* Home button */}
-          <button onClick={onHome} title="Home"
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </button>
+          {/* Left group: Home + route actions */}
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <button onClick={onHome} title="Home"
+              className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </button>
+            {route.length > 0 && (
+              <>
+                {user && (
+                  <button
+                    onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
+                    className="font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
+                  >
+                    SAVE ROUTE
+                  </button>
+                )}
+                <button
+                  onClick={handleClearRoute}
+                  className="font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
+                >
+                  CLEAR ROUTE
+                </button>
+              </>
+            )}
+          </div>
 
           {/* Title */}
           <div className="text-center py-1">
@@ -1391,26 +1420,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 </svg>
                 NEAR ME
               </button>
-            )}
-
-            {/* Save Route + Clear Route (desktop, route active) */}
-            {route.length > 0 && (
-              <>
-                {user && (
-                  <button
-                    onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
-                    className="font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
-                  >
-                    SAVE ROUTE
-                  </button>
-                )}
-                <button
-                  onClick={handleClearRoute}
-                  className="font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
-                >
-                  CLEAR ROUTE
-                </button>
-              </>
             )}
 
             {/* Search */}
@@ -1446,6 +1455,46 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </svg>
               <span className="font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
             </button>
+
+            {/* AFTERWORD dropdown */}
+            <div ref={infoMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowInfoMenu(v => !v)}
+                className="flex flex-col items-center transition-colors p-1"
+                style={{ color: showInfoMenu ? '#FF4E00' : '#40E0D0' }}
+                title="Afterword"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span className="font-bungee text-[10px] leading-tight tracking-wide">AFTERWORD</span>
+              </button>
+              {showInfoMenu && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
+                  minWidth: '170px', zIndex: 9999,
+                  background: '#0D0E1A', border: '1.5px solid rgba(255,78,0,0.45)',
+                  borderRadius: '10px', overflow: 'hidden',
+                  boxShadow: '0 0 20px rgba(255,78,0,0.2), 0 8px 32px rgba(0,0,0,0.7)',
+                  animation: 'lr-dropdown-in 0.18s ease',
+                }}>
+                  {[
+                    { label: 'CODE OF ETHICS', action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
+                    { label: 'CREDITS', action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
+                  ].map(({ label, action }, i) => (
+                    <button key={label} onClick={action}
+                      className="font-bungee w-full text-left"
+                      style={{ display: 'flex', alignItems: 'center', padding: '10px 14px', fontSize: '11px', letterSpacing: '0.05em', color: '#FF4E00', background: 'transparent', border: 'none', borderTop: i > 0 ? '1px solid rgba(255,78,0,0.12)' : 'none', cursor: 'pointer', transition: 'background 0.15s' }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.08)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Profile / Login */}
             <div ref={userMenuRef} style={{ position: 'relative' }}>
@@ -1624,6 +1673,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 CODE OF ETHICS
+              </button>
+
+              {/* Credits */}
+              <button
+                onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                </svg>
+                CREDITS
               </button>
 
               {/* Route-specific actions — only shown when route is plotted */}

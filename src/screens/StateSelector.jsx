@@ -30,13 +30,14 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onLoadSavedRoute, onSelectStop }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop }) => {
   const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
   const [hoveredState, setHoveredState] = useState('');
   const [selectedStates, setSelectedStates] = useState(new Set());
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showHamburger, setShowHamburger] = useState(false);
   const [showMyRoutes, setShowMyRoutes] = useState(false);
   const [savedRoutes, setSavedRoutes]   = useState([]);
   const [tripItems, setTripItems]       = useState([]);
@@ -148,6 +149,17 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
       {/* ── Header ── */}
       <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
         <div className="flex items-center">
+          {/* Hamburger (mobile only) */}
+          <button
+            onClick={() => setShowHamburger(true)}
+            className="md:hidden flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5 mr-1"
+            aria-label="Open menu"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
           {/* Title block */}
           <div className="flex-1 text-center">
             <h1 className="text-starlight-turquoise font-bungee text-[15px] md:text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
@@ -407,6 +419,73 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
           )}
         </div>
       )}
+      {/* ── Hamburger drawer (mobile) ── */}
+      {showHamburger && (
+        <div className="md:hidden">
+          <style>{`@keyframes lr-slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }`}</style>
+          {/* Backdrop */}
+          <div className="fixed inset-0 z-[2000] bg-black/60" onClick={() => setShowHamburger(false)} />
+          {/* Drawer */}
+          <div className="fixed top-0 left-0 h-full z-[2001] bg-midnight-navy border-r-2 border-starlight-turquoise flex flex-col shadow-2xl"
+            style={{ width: 'min(280px, 82vw)', animation: 'lr-slide-in-left 0.22s ease' }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-starlight-turquoise/30 flex-shrink-0">
+              <span className="font-bungee text-starlight-turquoise text-sm tracking-widest drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">MENU</span>
+              <button onClick={() => setShowHamburger(false)} className="text-chrome-silver hover:text-atomic-orange transition-colors p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="h-0.5 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-60 flex-shrink-0" />
+
+            {/* Nav items */}
+            <nav className="flex-1 overflow-y-auto py-2">
+              {[
+                { label: 'MY TRIP', icon: 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z', action: () => { setShowHamburger(false); setShowMyRoutes(true); } },
+                { label: 'HIGHWAY SNACKS', icon: 'M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3', action: () => { setShowHamburger(false); onShowResources?.(); } },
+                ...(user && onShowBookLog ? [{ label: 'BOOK LOG', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', action: () => { setShowHamburger(false); onShowBookLog(); } }] : []),
+                { label: 'CODE OF ETHICS', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', action: () => { setShowHamburger(false); onShowEthics?.(); } },
+                { label: 'CREDITS', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', action: () => { setShowHamburger(false); onShowCredits?.(); } },
+              ].map(({ label, icon, action }) => (
+                <button key={label} onClick={action}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+                  </svg>
+                  {label}
+                </button>
+              ))}
+            </nav>
+
+            {/* Profile footer */}
+            <div className="flex-shrink-0 border-t border-starlight-turquoise/30">
+              {user ? (
+                <>
+                  <div className="px-5 py-3">
+                    <p className="font-bungee text-[11px] text-starlight-turquoise truncate">{user.displayName || 'Literary Traveler'}</p>
+                    <p className="font-special-elite text-[9px] text-chrome-silver/40 mt-0.5 truncate">{user.email}</p>
+                  </div>
+                  <button onClick={() => { setShowHamburger(false); onShowProfile?.(); }}
+                    className="w-full flex items-center gap-4 px-5 py-3 font-bungee text-[13px] text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors">
+                    VIEW PROFILE
+                  </button>
+                  <button onClick={async () => { setShowHamburger(false); await logout(); }}
+                    className="w-full flex items-center gap-4 px-5 py-3 font-bungee text-[13px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors">
+                    SIGN OUT
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => { setShowHamburger(false); onShowLogin?.(); }}
+                  className="w-full px-5 py-4 font-bungee text-[13px] text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors text-left">
+                  LOG IN / SIGN UP
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── My Routes overlay ── */}
       {showMyRoutes && (
         <RoadTrip

@@ -11,12 +11,13 @@ import Profile from './screens/Profile';
 import Resources from './screens/Resources';
 import BookLog from './screens/BookLog';
 import Ethics from './screens/Ethics';
+import Credits from './screens/Credits';
 import EthicsModal from './components/EthicsModal';
 import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics' | 'credits'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
   // Tracks where Profile was opened from (map or stateSelector) — never clobbered by sub-navigation
@@ -101,6 +102,11 @@ function AppInner() {
     setScreen('ethics');
   };
 
+  const handleShowCredits = () => {
+    setPreviousScreen(screen);
+    setScreen('credits');
+  };
+
   const handleShowBookLog = () => {
     setPreviousScreen(screen);
     setScreen('bookLog');
@@ -126,6 +132,9 @@ function AppInner() {
           onShowLogin={handleShowLogin}
           onShowProfile={handleShowProfile}
           onShowResources={handleShowResources}
+          onShowBookLog={handleShowBookLog}
+          onShowEthics={handleShowEthics}
+          onShowCredits={handleShowCredits}
           onLoadSavedRoute={handleLoadSavedRoute}
           onSelectStop={handleSelectStopFromSelector}
         />
@@ -138,6 +147,7 @@ function AppInner() {
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
           onShowEthics={handleShowEthics}
+          onShowCredits={handleShowCredits}
           routeStateRef={routeStateRef}
         />
       )}
@@ -163,6 +173,9 @@ function AppInner() {
       )}
       {screen === 'ethics' && (
         <Ethics onBack={handleAuthBack} />
+      )}
+      {screen === 'credits' && (
+        <Credits onBack={handleAuthBack} />
       )}
 
       {/* First-time ethics acceptance modal — blocks app until accepted */}
