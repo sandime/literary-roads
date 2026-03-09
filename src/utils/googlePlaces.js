@@ -421,7 +421,49 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
         description: 'Coffee shop'
       }));
 
-    return [...bookstores, ...cafes];
+    // Search for drive-in theaters (movie_theater type filtered by name)
+    const driveInResponse = await fetch(
+      `https://places.googleapis.com/v1/places:searchNearby`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.types,places.id,places.nationalPhoneNumber,places.websiteUri,places.businessStatus',
+        },
+        body: JSON.stringify({
+          includedTypes: ['movie_theater'],
+          maxResultCount: 5,
+          locationRestriction: {
+            circle: {
+              center: { latitude: lat, longitude: lng },
+              radius: Math.min(radiusMeters * 3, 48280), // Drive-ins are rarer; search up to ~30mi
+            },
+          },
+        }),
+      }
+    );
+    const driveInData = await driveInResponse.json();
+    const driveInKeywords = ['drive-in', 'drive in', 'drivein', 'auto movie', 'twin drive'];
+    const driveIns = (driveInData.places || [])
+      .filter(place => {
+        const n = (place.displayName?.text || '').toLowerCase();
+        return driveInKeywords.some(k => n.includes(k)) &&
+          place.businessStatus !== 'CLOSED_PERMANENTLY';
+      })
+      .map(place => ({
+        id: place.id,
+        name: place.displayName?.text || 'Drive-In Theater',
+        type: 'drivein',
+        lat: place.location?.latitude,
+        lng: place.location?.longitude,
+        address: place.formattedAddress || '',
+        phone: place.nationalPhoneNumber || '',
+        url: place.websiteUri || '',
+        description: 'Drive-in movie theater',
+      }));
+
+    return [...bookstores, ...cafes, ...driveIns];
   } catch (error) {
     console.error('Error fetching places:', error);
     return [];

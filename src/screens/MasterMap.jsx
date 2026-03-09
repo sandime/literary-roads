@@ -332,6 +332,36 @@ const createCustomIcon = (type, hasStarburst = false) => {
       </svg>
     `,
 
+    // MOVIE SCREEN - Drive-In Theaters (Magenta)
+    drivein: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-magenta-${uid}">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-magenta-${uid})" class="neon-marker">
+          <!-- Screen frame -->
+          <rect x="6" y="7" width="28" height="17" rx="1.5" fill="none" stroke="#E040FB" stroke-width="2"/>
+          <!-- Screen glare -->
+          <line x1="9" y1="10" x2="14" y2="10" stroke="#E040FB" stroke-width="1" opacity="0.45"/>
+          <!-- Film strip squares inside screen -->
+          <rect x="10" y="13" width="4" height="4" rx="0.5" fill="none" stroke="#E040FB" stroke-width="1" opacity="0.6"/>
+          <rect x="18" y="13" width="4" height="4" rx="0.5" fill="none" stroke="#E040FB" stroke-width="1" opacity="0.6"/>
+          <rect x="26" y="13" width="4" height="4" rx="0.5" fill="none" stroke="#E040FB" stroke-width="1" opacity="0.6"/>
+          <!-- Pole -->
+          <line x1="20" y1="24" x2="20" y2="32" stroke="#E040FB" stroke-width="2" stroke-linecap="round"/>
+          <!-- Base -->
+          <line x1="14" y1="32" x2="26" y2="32" stroke="#E040FB" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `,
+
     // MAP PIN - Generic search result (Gold)
     search: `
       <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
@@ -455,7 +485,7 @@ const PlaceSearch = ({ onSelect }) => {
     onSelect(place);
   };
 
-  const typeEmoji = { bookstore: '📚', cafe: '☕', landmark: '🌲', search: '📍' };
+  const typeEmoji = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', search: '📍' };
 
   return (
     <div className="max-w-2xl mx-auto w-full px-0 pb-1.5">
@@ -592,7 +622,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   // Pre-fetch ratings for all bookstore/cafe pins so starbursts show immediately on the map
   useEffect(() => {
     const eligible = visibleLocations.filter(
-      (l) => l.type === 'bookstore' || l.type === 'cafe'
+      (l) => l.type === 'bookstore' || l.type === 'cafe' || l.type === 'drivein'
     );
     if (!eligible.length) return;
     let cancelled = false;
@@ -2201,6 +2231,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {selectedLocation.type === 'landmark' && (
                   <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#39FF14', borderColor: '#39FF14' }}>🌲 LANDMARK</span>
                 )}
+                {selectedLocation.type === 'drivein' && (
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#E040FB', borderColor: '#E040FB' }}>🎬 DRIVE-IN</span>
+                )}
                 {starburstIds.has(selectedLocation.id) && (
                   <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
                 )}
@@ -2260,6 +2293,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   <span>{selectedLocation.address}</span>
                 </div>
 
+                {selectedLocation.phone && (
+                  <div className="flex items-center gap-2 text-chrome-silver font-special-elite text-sm mb-2">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <a href={`tel:${selectedLocation.phone}`} className="hover:text-starlight-turquoise transition-colors">
+                      {selectedLocation.phone}
+                    </a>
+                  </div>
+                )}
+
                 {selectedLocation.url && (
                   <a
                     href={selectedLocation.url}
@@ -2268,7 +2312,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
                   >
                     <span>
-                      {selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' : 'Read more on Wikipedia'}
+                      {selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' :
+                       selectedLocation.type === 'drivein' ? 'Visit website' : 'Read more on Wikipedia'}
                     </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -2358,8 +2403,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </button>
             </div>
 
-            {/* Row 2: Park Here — bookstores & cafes, logged-in users only */}
-            {user && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (() => {
+            {/* Row 2: Park Here — bookstores, cafes & drive-ins, logged-in users only */}
+            {user && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe' || selectedLocation.type === 'drivein') && (() => {
               const carsHere = locationCars[selectedLocation.id] || [];
               const parked = carsHere.find(c => c.userId === user.uid);
               if (parked) {
