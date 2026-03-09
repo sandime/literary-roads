@@ -549,7 +549,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const carSubsRef = useRef({});
   const userMenuRef = useRef(null);       // desktop profile container
   const mobileMenuRef = useRef(null);     // mobile profile container
-  const [shelfSnap, setShelfSnap] = useState('full'); // mobile: 'mini'|'half'|'full'
+  const [shelfSnap, setShelfSnap] = useState('half'); // mobile: 'mini'|'half'|'full'
   const [shelfDeskMinimized, setShelfDeskMinimized] = useState(false);
   const shelfRef = useRef(null);
   const shelfDragRef = useRef(null);
@@ -567,7 +567,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Reset shelf snap/minimize when a new location is opened
   useEffect(() => {
-    if (selectedLocation) { setShelfSnap('full'); setShelfDeskMinimized(false); }
+    if (selectedLocation) { setShelfSnap('half'); setShelfDeskMinimized(false); }
   }, [selectedLocation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear pendingLocation from ref after mount so it doesn't survive future navigations
