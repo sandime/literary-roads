@@ -379,9 +379,12 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
 
   return (
     <div
-      className="h-screen flex flex-col items-center justify-start px-4 py-8 overflow-y-auto"
-      style={{ background: 'radial-gradient(ellipse at 50% 20%, #2D1B69 0%, #1A1B2E 60%, #0D0E1A 100%)' }}
+      style={{
+        position: 'fixed', inset: 0, overflowY: 'auto',
+        background: 'radial-gradient(ellipse at 50% 20%, #2D1B69 0%, #1A1B2E 60%, #0D0E1A 100%)',
+      }}
     >
+    <div className="flex flex-col items-center justify-start px-4 py-8 w-full">
       {/* Header */}
       <div className="w-full max-w-lg flex items-center justify-between mb-6">
         <button onClick={onBack} className="font-special-elite text-chrome-silver hover:text-starlight-turquoise text-sm transition-colors">
@@ -587,6 +590,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
           onClose={() => setShowBookModal(false)}
         />
       )}
+    </div>
     </div>
   );
 }
