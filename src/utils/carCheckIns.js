@@ -9,6 +9,8 @@ export const CAR_TYPES = {
   rocket:      { label: 'Rocket Coupe',        file: 'car-icon-black-fins.png'  },
   woody:       { label: 'Woody Wagon',          file: 'car-icon-woody.png'       },
   bookbus:     { label: 'Book Bus',             file: 'car-icon-bookbus.png'     },
+  truck:       { label: 'Road Truck',           file: 'car-icon-truck.png'       },
+  ghia:        { label: 'Karmann Ghia',         file: 'car-icon-ghia.png'        },
 };
 
 export const carImgSrc = (carType) =>
