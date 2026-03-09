@@ -18,14 +18,21 @@ const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR
 // "Inactive" pipeline: grayscale + heavy darken collapses everything to near-black,
 //   blending into the dark page background so only a faint shape remains.
 const CAT_FILTER_ACTIVE   = 'sepia(1) saturate(8) hue-rotate(-8deg) brightness(1.05) drop-shadow(0 0 6px rgba(255,200,0,0.95))';
-const CAT_FILTER_INACTIVE = 'grayscale(1) brightness(0.18)';
+const CAT_FILTER_INACTIVE = 'grayscale(1) brightness(0.38) opacity(0.55)';
 
 // ── Cat rating selector ──────────────────────────────────────────────────────
 function CatRating({ value, onChange }) {
   const [hovered, setHovered] = useState(0);
   const display = hovered || value;
   return (
-    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+    <div style={{
+      display: 'inline-flex', gap: '6px', alignItems: 'center',
+      background: 'rgba(255, 200, 0, 0.07)',
+      border: '1px solid rgba(255, 200, 0, 0.22)',
+      borderRadius: '12px',
+      padding: '6px 10px',
+      boxShadow: '0 0 10px rgba(255,200,0,0.08) inset',
+    }}>
       {[1, 2, 3, 4, 5].map((n) => (
         <button
           key={n}
@@ -218,14 +225,21 @@ function LoggedBookCard({ entry, onDelete, onEdit }) {
 
         {/* Cats */}
         {entry.rating > 0 && (
-          <div style={{ display: 'flex', gap: '4px', marginBottom: '5px', alignItems: 'center' }}>
+          <div style={{
+            display: 'inline-flex', gap: '3px', marginBottom: '6px', alignItems: 'center',
+            background: 'rgba(255, 200, 0, 0.07)',
+            border: '1px solid rgba(255, 200, 0, 0.22)',
+            borderRadius: '10px',
+            padding: '4px 7px',
+            boxShadow: '0 0 8px rgba(255,200,0,0.07) inset',
+          }}>
             {[1, 2, 3, 4, 5].map((n) => (
               <img
                 key={n}
                 src="/literary-roads/images/retro_cat.png"
                 alt=""
                 style={{
-                  width: '40px', height: 'auto', display: 'block',
+                  width: '34px', height: 'auto', display: 'block',
                   filter: entry.rating >= n ? CAT_FILTER_ACTIVE : CAT_FILTER_INACTIVE,
                 }}
               />
