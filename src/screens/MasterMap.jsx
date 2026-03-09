@@ -549,6 +549,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const carSubsRef = useRef({});
   const userMenuRef = useRef(null);       // desktop profile container
   const mobileMenuRef = useRef(null);     // mobile profile container
+  const [shelfSnap, setShelfSnap] = useState('full'); // mobile: 'mini'|'half'|'full'
+  const [shelfDeskMinimized, setShelfDeskMinimized] = useState(false);
+  const shelfRef = useRef(null);
+  const shelfDragRef = useRef(null);
 
   useEffect(() => {
     if (!showUserMenu) return;
@@ -560,6 +564,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showUserMenu]);
+
+  // Reset shelf snap/minimize when a new location is opened
+  useEffect(() => {
+    if (selectedLocation) { setShelfSnap('full'); setShelfDeskMinimized(false); }
+  }, [selectedLocation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear pendingLocation from ref after mount so it doesn't survive future navigations
   useEffect(() => {
@@ -1196,6 +1205,30 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
     // Go back to the state selector — that's the 50-state interactive map
     onHome();
+  };
+
+  // ── Shelf drag handlers (mobile touch) ─────────────────────────────────────
+  const handleShelfDragStart = (e) => {
+    const snapPx = { mini: 56, half: window.innerHeight * 0.5, full: window.innerHeight * 0.8 };
+    shelfDragRef.current = { startY: e.touches[0].clientY, startH: snapPx[shelfSnap] ?? window.innerHeight * 0.8, snap: shelfSnap };
+  };
+  const handleShelfDragMove = (e) => {
+    if (!shelfDragRef.current) return;
+    const dy = e.touches[0].clientY - shelfDragRef.current.startY;
+    const newH = Math.max(56, Math.min(window.innerHeight * 0.88, shelfDragRef.current.startH - dy));
+    if (shelfRef.current) { shelfRef.current.style.height = newH + 'px'; shelfRef.current.style.transition = 'none'; }
+  };
+  const handleShelfDragEnd = (e) => {
+    if (!shelfDragRef.current) return;
+    const dy = e.changedTouches[0].clientY - shelfDragRef.current.startY;
+    const order = ['mini', 'half', 'full'];
+    const idx = order.indexOf(shelfDragRef.current.snap);
+    let next = shelfDragRef.current.snap;
+    if (dy > 60) next = order[Math.max(0, idx - 1)];
+    else if (dy < -60) next = order[Math.min(2, idx + 1)];
+    if (shelfRef.current) { shelfRef.current.style.height = ''; shelfRef.current.style.transition = ''; }
+    setShelfSnap(next);
+    shelfDragRef.current = null;
   };
 
   return (
@@ -1989,23 +2022,70 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       )}
 
       {/* THE SHELF - Googie slide-up drawer */}
-      {selectedLocation && (
+      {selectedLocation && (() => {
+        const isMob = window.innerWidth < 768;
+        const isExpanded = isMob ? shelfSnap !== 'mini' : !shelfDeskMinimized;
+        const snapH = { mini: '56px', half: '50vh', full: '80vh' }[shelfSnap];
+        return (
         <div
+          ref={shelfRef}
           className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
-          style={{ position: 'fixed', bottom: 0, left: 0, right: 0, maxHeight: '65vh', zIndex: 1001 }}
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1001,
+            height: isMob ? snapH : (shelfDeskMinimized ? '56px' : undefined),
+            maxHeight: isMob ? undefined : (shelfDeskMinimized ? '56px' : '65vh'),
+            overflow: 'hidden',
+            transition: 'height 0.28s cubic-bezier(0.4,0,0.2,1)',
+          }}
         >
+          {/* Mobile drag handle */}
+          <div
+            className="md:hidden flex-shrink-0 flex justify-center items-center pt-2.5 pb-1"
+            style={{ cursor: 'grab', touchAction: 'none' }}
+            onTouchStart={handleShelfDragStart}
+            onTouchMove={handleShelfDragMove}
+            onTouchEnd={handleShelfDragEnd}
+          >
+            <div style={{ width: '38px', height: '4px', background: 'rgba(64,224,208,0.35)', borderRadius: '2px' }} />
+          </div>
+
           <div className="h-2 flex-shrink-0 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80"></div>
 
-          {/* Scrollable content */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full">
+          {/* Collapsed bar — tap to expand */}
+          {!isExpanded && (
             <button
-              onClick={() => setSelectedLocation(null)}
-              className="absolute top-4 right-4 md:top-6 md:right-6 text-starlight-turquoise hover:text-atomic-orange transition-colors"
+              className="flex-1 flex items-center px-4 gap-3 w-full"
+              onClick={() => isMob ? setShelfSnap('half') : setShelfDeskMinimized(false)}
             >
+              <span className="text-starlight-turquoise font-bungee text-sm truncate">{selectedLocation.name}</span>
+              <span className="ml-auto text-chrome-silver/50 font-special-elite text-xs whitespace-nowrap">tap to expand ↑</span>
+            </button>
+          )}
+
+          {/* Scrollable content */}
+          {isExpanded && (
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full">
+            {/* Close + desktop minimize buttons */}
+            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1.5">
+              {/* Desktop minimize */}
+              <button
+                className="hidden md:flex items-center justify-center w-7 h-7 rounded-full text-chrome-silver/60 hover:text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors"
+                onClick={() => setShelfDeskMinimized(true)}
+                title="Minimize"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="4" y="11" width="16" height="2" rx="1"/>
+                </svg>
+              </button>
+              <button
+                onClick={() => setSelectedLocation(null)}
+                className="text-starlight-turquoise hover:text-atomic-orange transition-colors"
+              >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+              </button>
+            </div>
 
             {/* Type badge + name — compact single block */}
             <div className="mb-1.5">
@@ -2149,8 +2229,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               />
             )}
           </div>
+          )}
 
-          {/* Sticky buttons */}
+          {/* Sticky buttons — info tab only */}
+          {isExpanded && (shelfTab === 'info' || selectedLocation.type === 'landmark') && (
           <div className="flex-shrink-0 flex flex-col gap-1.5 px-3 pb-3 md:px-5 md:pb-4 pt-1.5 max-w-2xl mx-auto w-full">
             {/* Row 1: Directions + Trip — compact */}
             <div className="flex gap-2">
@@ -2218,8 +2300,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               );
             })()}
           </div>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* ── Road Trip overlay ── */}
       {showRoadTrip && (

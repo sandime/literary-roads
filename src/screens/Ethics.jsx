@@ -20,7 +20,7 @@ const PRINCIPLES = [
 export default function Ethics({ onBack }) {
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="h-screen flex flex-col overflow-hidden"
       style={{ background: 'radial-gradient(ellipse at 50% 10%, #2D1B69 0%, #1A1B2E 55%, #0D0E1A 100%)' }}
     >
       {/* Header */}
