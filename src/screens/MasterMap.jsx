@@ -887,6 +887,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     );
   };
 
+  const _doHonk = (locationId, locationName, toUserIds) => {
+    setHonkingLocationId(locationId);
+    setTimeout(() => setHonkingLocationId(null), 900);
+    playHorn(soundEnabled);
+    recordHonk(locationId);
+    sendHonkNotifications(toUserIds, user.displayName || 'A Fellow Traveler', locationName)
+      .catch(err => console.error('[MasterMap] honk notify:', err));
+  };
+
   const handleHonk = async (locationId, locationName) => {
     if (!user) return;
     const { allowed, reason } = checkHonkAllowed(locationId);
@@ -901,21 +910,23 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
     const others = (locationCars[locationId] || []).filter(c => c.userId !== user.uid);
     if (!others.length) return;
-
-    // Visual bounce + headlight flash
-    setHonkingLocationId(locationId);
-    setTimeout(() => setHonkingLocationId(null), 900);
-
-    // Audio
-    playHorn(soundEnabled);
-
-    // Record for rate limiting
-    recordHonk(locationId);
-
-    // Send Firestore notifications to other parked users
     const toUserIds = [...new Set(others.map(c => c.userId))];
-    sendHonkNotifications(toUserIds, user.displayName || 'A Fellow Traveler', locationName)
-      .catch(err => console.error('[MasterMap] honk notify:', err));
+    _doHonk(locationId, locationName, toUserIds);
+  };
+
+  const handleHonkOne = (locationId, locationName, targetUserId) => {
+    if (!user || targetUserId === user.uid) return;
+    const { allowed, reason } = checkHonkAllowed(locationId);
+    if (!allowed) {
+      const msg = reason === 'rate'
+        ? 'Slow down! Max 3 honks per minute.'
+        : 'Already honked at these travelers! Try again in 10 min.';
+      clearTimeout(honkMsgTimerRef.current);
+      setHonkMessage(msg);
+      honkMsgTimerRef.current = setTimeout(() => setHonkMessage(''), 3000);
+      return;
+    }
+    _doHonk(locationId, locationName, [targetUserId]);
   };
 
   const handleSelectStop = (item) => {
@@ -1781,31 +1792,58 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             // 5+ cars → convoy starburst with popup listing travelers
             if (cars.length >= 5) {
               const canHonkConvoy = userParkedHere && cars.some(c => c.userId !== user?.uid);
+              const locName = loc.name || locationId;
               return (
                 <Marker
                   key={`convoy-${locationId}-${isHonking ? 'h' : 'i'}`}
                   position={[loc.lat, loc.lng]}
                   icon={createConvoyIcon(cars.length, isHonking)}
                   interactive={true}
-                  eventHandlers={canHonkConvoy ? honkHandler : undefined}
                 >
                   <Popup>
-                    <div style={{ fontFamily: 'Bungee, sans-serif', minWidth: '150px' }}>
+                    <div style={{ fontFamily: 'Bungee, sans-serif', minWidth: '170px' }}>
                       <p style={{ color: '#FF4E00', fontSize: '11px', marginBottom: '8px', letterSpacing: '0.05em' }}>
                         🚗 {cars.length} TRAVELERS HERE
                       </p>
-                      {cars.map(c => (
-                        <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
-                          <img src={carImgSrc(c.carType)} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-                          <span style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: '#1A1B2E' }}>
-                            {c.userName || 'Traveler'}
-                          </span>
-                        </div>
-                      ))}
+                      {cars.map(c => {
+                        const isMe = c.userId === user?.uid;
+                        const canHonkThis = userParkedHere && !isMe;
+                        return (
+                          <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                            <img src={carImgSrc(c.carType)} alt="" style={{ width: '20px', height: '20px', objectFit: 'contain', flexShrink: 0 }} />
+                            <span style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: '#1A1B2E', flex: 1 }}>
+                              {c.userName || 'Traveler'}{isMe ? ' (you)' : ''}
+                            </span>
+                            {canHonkThis && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleHonkOne(locationId, locName, c.userId); }}
+                                style={{
+                                  background: '#FF4E00', border: 'none', borderRadius: '4px',
+                                  padding: '2px 6px', cursor: 'pointer', flexShrink: 0,
+                                  fontFamily: 'Bungee, sans-serif', fontSize: '9px',
+                                  color: '#1A1B2E', letterSpacing: '0.04em',
+                                }}
+                              >
+                                📯
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                       {canHonkConvoy && (
-                        <p style={{ fontFamily: 'Special Elite, serif', fontSize: '10px', color: '#888', marginTop: '6px' }}>
-                          Tap the badge to honk at everyone!
-                        </p>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleHonk(locationId, locName); }}
+                          style={{
+                            marginTop: '6px', width: '100%',
+                            background: 'linear-gradient(135deg, #FF4E00, #FFD700)',
+                            border: 'none', borderRadius: '6px',
+                            padding: '5px 8px', cursor: 'pointer',
+                            fontFamily: 'Bungee, sans-serif', fontSize: '9px',
+                            color: '#1A1B2E', letterSpacing: '0.04em',
+                          }}
+                        >
+                          📯 HONK EVERYONE!
+                        </button>
                       )}
                     </div>
                   </Popup>
