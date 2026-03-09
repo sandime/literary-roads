@@ -1270,7 +1270,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   VIEW PROFILE
                 </button>
                 <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
-                <button onClick={async () => { setShowUserMenu(false); await logout(); }}
+                <button onClick={async () => { setShowUserMenu(false); await logout(); onHome(); }}
                   className="font-bungee w-full text-left"
                   style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer' }}
                   onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
@@ -1445,7 +1445,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     VIEW PROFILE
                   </button>
                   <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
-                  <button onClick={async () => { setShowUserMenu(false); await logout(); }}
+                  <button onClick={async () => { setShowUserMenu(false); await logout(); onHome(); }}
                     className="font-bungee w-full text-left"
                     style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
                     onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
@@ -1633,7 +1633,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     </button>
                     <div className="w-px bg-starlight-turquoise/20" />
                     <button
-                      onClick={async () => { setShowHamburger(false); await logout(); }}
+                      onClick={async () => { setShowHamburger(false); await logout(); onHome(); }}
                       className="flex-1 py-3 font-bungee text-[11px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
                     >
                       SIGN OUT
