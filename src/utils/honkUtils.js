@@ -39,6 +39,33 @@ export const sendHonkNotifications = (toUserIds, fromUserName, locationName) =>
 export const clearHonkNotification = (userId) =>
   setDoc(doc(db, 'honkNotifications', userId), { pending: false }, { merge: true });
 
+// ── Browser Notification API (desktop) ───────────────────────────────────────
+
+// Request permission proactively (call when user parks their car).
+// Returns true if permission was already granted or just granted.
+export const requestHonkNotifPermission = async () => {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+};
+
+// Show a browser notification (falls back silently if not supported/denied).
+// Shown even when the tab is in the background.
+export const showBrowserHonkNotification = (fromName, locationName) => {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification('🚗 Beep Beep!', {
+      body: `${fromName} honked at you at ${locationName}!`,
+      icon: '/literary-roads/images/retro-car.png',
+      tag: 'lr-honk', // replaces any existing honk notification instead of stacking
+      silent: false,
+    });
+    setTimeout(() => n.close(), 6000);
+  } catch { /* browsers may block even with permission in some contexts */ }
+};
+
 // Plays a retro "beep beep" car horn using the Web Audio API
 export const playHorn = (soundEnabled) => {
   if (!soundEnabled) return;

@@ -14,7 +14,7 @@ import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
-import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn } from '../utils/honkUtils';
+import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn, requestHonkNotifPermission, showBrowserHonkNotification } from '../utils/honkUtils';
 import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
 import Guestbook from '../components/Guestbook';
@@ -677,6 +677,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       const { fromName, locationName } = snap.data();
       clearTimeout(honkToastTimerRef.current);
       setHonkToast({ fromName, locationName });
+      showBrowserHonkNotification(fromName, locationName);
       honkToastTimerRef.current = setTimeout(() => {
         setHonkToast(null);
         clearHonkNotification(user.uid);
@@ -865,6 +866,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         selectedLocation.lng,
       );
       console.log('[MasterMap] check-in success, doc:', ref.id);
+      // Ask for browser notification permission so honks are heard even when tab is backgrounded
+      requestHonkNotifPermission();
     } catch (err) {
       console.error('[MasterMap] check-in FAILED:', err.code, err.message);
       if (err.code === 'permission-denied') {
@@ -1879,7 +1882,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             boxShadow: '0 0 24px rgba(255,78,0,0.5), 0 4px 20px rgba(0,0,0,0.7)',
             display: 'flex', alignItems: 'center', gap: '10px',
             animation: 'lr-dropdown-in 0.2s ease',
-            maxWidth: 'calc(100vw - 32px)',
+            width: 'max-content', maxWidth: 'min(380px, calc(100vw - 32px))',
           }}
         >
           <span style={{ fontSize: '20px' }}>🚗</span>

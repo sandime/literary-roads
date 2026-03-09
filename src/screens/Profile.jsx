@@ -506,6 +506,44 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
         )}
       </div>
 
+      {/* ── Preferences ── */}
+      <div className="w-full max-w-lg rounded-xl mb-5 overflow-hidden"
+        style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+
+        <div className="px-4 pt-4 pb-2">
+          <h2 className="font-bungee text-sm" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>
+            PREFERENCES
+          </h2>
+        </div>
+
+        {/* Sound effects toggle */}
+        <div className="p-4 flex items-center justify-between"
+          style={{ borderTop: '1px solid #2A2B45', borderBottom: '1px solid #2A2B45' }}>
+          <div>
+            <p className="font-bungee text-paper-white text-xs">SOUND EFFECTS</p>
+            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Honk horn when meeting fellow travelers</p>
+          </div>
+          <button onClick={handleSoundToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
+            style={{ background: soundEnabled ? '#FF4E00' : '#3A3B55' }}>
+            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+              style={{ left: soundEnabled ? '22px' : '2px' }} />
+          </button>
+        </div>
+
+        {/* Privacy toggle */}
+        <div className="p-4 flex items-center justify-between">
+          <div>
+            <p className="font-bungee text-paper-white text-xs">PRIVATE PROFILE</p>
+            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Hide your trips from others</p>
+          </div>
+          <button onClick={handlePrivacyToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
+            style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}>
+            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+              style={{ left: privacyOn ? '22px' : '2px' }} />
+          </button>
+        </div>
+      </div>
+
       {/* ── Choose Your Ride ── */}
       <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
         <div className="flex items-center justify-between mb-3">
@@ -522,38 +560,6 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
           Select your retro car to park at bookstores &amp; cafés along your route.
         </p>
         <CarSelector selectedCar={selectedCar} onSelect={handleCarSelect} />
-      </div>
-
-      {/* Settings toggles */}
-      <div className="w-full max-w-lg rounded-xl mb-5 overflow-hidden"
-        style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-
-        {/* Privacy toggle */}
-        <div className="p-4 flex items-center justify-between"
-          style={{ borderBottom: '1px solid #2A2B45' }}>
-          <div>
-            <p className="font-bungee text-paper-white text-xs">PRIVATE PROFILE</p>
-            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Hide your trips from others</p>
-          </div>
-          <button onClick={handlePrivacyToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
-            style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}>
-            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-              style={{ left: privacyOn ? '22px' : '2px' }} />
-          </button>
-        </div>
-
-        {/* Sound effects toggle */}
-        <div className="p-4 flex items-center justify-between">
-          <div>
-            <p className="font-bungee text-paper-white text-xs">SOUND EFFECTS</p>
-            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Honk horn when meeting fellow travelers</p>
-          </div>
-          <button onClick={handleSoundToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
-            style={{ background: soundEnabled ? '#FF4E00' : '#3A3B55' }}>
-            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
-              style={{ left: soundEnabled ? '22px' : '2px' }} />
-          </button>
-        </div>
       </div>
 
       {/* ALA Attribution */}

@@ -3,15 +3,19 @@ import { useState, useRef, useEffect } from 'react';
 // ── Frame / orientation config ────────────────────────────────────────────────
 const FRAMES = {
   square: [
-    { id: 'sq1', label: 'Original', src: '/literary-roads/images/postcard-frame.png' },
+    { id: 'sq1', label: 'Design 1', src: '/literary-roads/images/postcard-frame.png' },
     { id: 'sq2', label: 'Design 2', src: '/literary-roads/images/postcard-square-2.png' },
+    { id: 'sq3', label: 'Design 3', src: '/literary-roads/images/postcard-square-3.png' },
+    { id: 'sq4', label: 'Cats',     src: '/literary-roads/images/postcard-square-cats.png' },
   ],
   portrait: [
     { id: 'pt1', label: 'Design 1', src: '/literary-roads/images/postcard-portrait.png' },
     { id: 'pt2', label: 'Design 2', src: '/literary-roads/images/postcard-portrait-2.png' },
+    { id: 'pt3', label: 'Design 3', src: '/literary-roads/images/postcard-portrait-3.png' },
   ],
   landscape: [
     { id: 'ls1', label: 'Design 1', src: '/literary-roads/images/postcard-landscape.png' },
+    { id: 'ls2', label: 'Design 2', src: '/literary-roads/images/postcard-landscape-2.png' },
   ],
 };
 
