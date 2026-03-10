@@ -35,8 +35,8 @@ export const COLORS = {
 
 // Map configuration
 export const MAP_CONFIG = {
-  defaultCenter: [38.2527, -85.7585], // Louisville, KY
-  defaultZoom: 13,
+  defaultCenter: [39.5, -98.35], // Continental US overview
+  defaultZoom: 4,
   corridorWidth: 5, // miles
   maxZoom: 18,
   minZoom: 4,

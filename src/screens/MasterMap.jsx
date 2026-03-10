@@ -438,6 +438,24 @@ const MapController = ({ target }) => {
   return null;
 };
 
+// Tracks live map position into routeStateRef so navigating to Profile/Snacks/etc and back
+// restores the exact view the user was on — not the hardcoded default.
+const MapPositionTracker = ({ routeStateRef }) => {
+  const map = useMap();
+  useEffect(() => {
+    const save = () => {
+      if (!routeStateRef) return;
+      const c = map.getCenter();
+      routeStateRef.current.mapCenter = [c.lat, c.lng];
+      routeStateRef.current.mapZoom   = map.getZoom();
+    };
+    map.on('moveend', save);
+    map.on('zoomend', save);
+    return () => { map.off('moveend', save); map.off('zoomend', save); };
+  }, [map, routeStateRef]);
+  return null;
+};
+
 // Inline search bar rendered inside the header when showSearch is true
 const PlaceSearch = ({ onSelect }) => {
   const [query, setQuery] = useState('');
@@ -552,8 +570,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showPlanner, setShowPlanner] = useState(saved.showPlanner ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  // pendingLocation: set by App.jsx when navigating here from a stop click in StateSelector
-  const [selectedLocation, setSelectedLocation] = useState(saved.pendingLocation ?? null);
+  // pendingLocation: one-time trigger from StateSelector; persistedLocation: survives nav away/back
+  const [selectedLocation, setSelectedLocation] = useState(
+    saved.pendingLocation ?? saved.persistedLocation ?? null
+  );
   const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale' | 'postcard'
   const [showTaleModal, setShowTaleModal] = useState(false);
   const [starburstIds, setStarburstIds] = useState(new Set());
@@ -667,6 +687,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => { if (routeStateRef) routeStateRef.current.route = route; }, [route, routeStateRef]);
   useEffect(() => { if (routeStateRef) routeStateRef.current.visibleLocations = visibleLocations; }, [visibleLocations, routeStateRef]);
   useEffect(() => { if (routeStateRef) routeStateRef.current.showPlanner = showPlanner; }, [showPlanner, routeStateRef]);
+  // Sync open stop so navigating to Profile/Snacks/Ethics and back restores The Shelf
+  useEffect(() => { if (routeStateRef) routeStateRef.current.persistedLocation = selectedLocation; }, [selectedLocation, routeStateRef]);
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
 
@@ -1076,10 +1098,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   })();
 
   const [mapCenter, setMapCenter] = useState(
-    saved.pendingLocation ? [saved.pendingLocation.lat, saved.pendingLocation.lng] : initMapState.center
+    saved.pendingLocation?.coords    ? saved.pendingLocation.coords
+    : saved.pendingLocation          ? [saved.pendingLocation.lat, saved.pendingLocation.lng]
+    : saved.persistedLocation?.coords ? saved.persistedLocation.coords
+    : saved.mapCenter                ? saved.mapCenter
+    : initMapState.center
   );
   const [mapZoom, setMapZoom] = useState(
-    saved.pendingLocation ? 15 : initMapState.zoom
+    (saved.pendingLocation || saved.persistedLocation) ? 15
+    : saved.mapZoom ?? initMapState.zoom
   );
 
   // Label shown in the planner panel header
@@ -1809,6 +1836,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
           />
           <MapController target={searchTarget} />
+          <MapPositionTracker routeStateRef={routeStateRef} />
 
           {route.length > 1 && (
             <Polyline
