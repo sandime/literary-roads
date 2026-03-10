@@ -17,6 +17,7 @@ import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../u
 import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn, requestHonkNotifPermission, showBrowserHonkNotification } from '../utils/honkUtils';
 import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
+import ShareRouteModal from '../components/ShareRouteModal';
 import Guestbook from '../components/Guestbook';
 import HitchhikerTale from '../components/HitchhikerTale';
 import PostcardStudio from '../components/PostcardStudio';
@@ -565,6 +566,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareRouteData, setShareRouteData] = useState(null);
   const [savedRoutes, setSavedRoutes] = useState([]);
   const [userCar, setUserCar] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -2463,6 +2466,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           onLoadRoute={handleLoadRoute}
           onDeleteRoute={handleDeleteRoute}
           onRenameRoute={handleRenameRoute}
+          onShareRoute={(r) => { setShareRouteData(r); setShowShareModal(true); }}
         />
       )}
 
@@ -2486,6 +2490,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           error={saveRouteError}
           onSave={handleSaveRoute}
           onClose={() => { setShowSaveRouteModal(false); setSaveRouteError(''); }}
+        />
+      )}
+
+      {/* ── Share Route modal ── */}
+      {showShareModal && shareRouteData && (
+        <ShareRouteModal
+          route={shareRouteData}
+          onClose={() => { setShowShareModal(false); setShareRouteData(null); }}
         />
       )}
     </div>

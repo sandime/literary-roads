@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
+import SharedRoutePage from './screens/SharedRoutePage';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './config/firebase';
 import Odometer from './screens/Odometer';
@@ -196,7 +198,10 @@ function AppInner() {
 function App() {
   return (
     <AuthProvider>
-      <AppInner />
+      <Routes>
+        <Route path="/route/:routeId" element={<SharedRoutePage />} />
+        <Route path="*" element={<AppInner />} />
+      </Routes>
     </AuthProvider>
   );
 }

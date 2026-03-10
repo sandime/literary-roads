@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import MyRoutes from '../components/MyRoutes';
 
-const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute }) => {
+const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute, onShareRoute }) => {
   const [activeTab, setActiveTab] = useState('stops');
 
   return (
@@ -180,6 +180,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
             onLoad={onLoadRoute}
             onDelete={onDeleteRoute}
             onRename={onRenameRoute}
+            onShare={onShareRoute}
           />
         )}
       </div>

@@ -8,6 +8,7 @@ import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { searchPlacesByText } from '../utils/googlePlaces';
 import RoadTrip from './RoadTrip';
+import ShareRouteModal from '../components/ShareRouteModal';
 import { subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 
 const US_CENTER = [39.5, -98.35];
@@ -40,7 +41,9 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   const [selectedStates, setSelectedStates] = useState(new Set());
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showHamburger, setShowHamburger] = useState(false);
-  const [showMyRoutes, setShowMyRoutes] = useState(false);
+  const [showMyRoutes, setShowMyRoutes]     = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareRouteData, setShareRouteData] = useState(null);
   const [savedRoutes, setSavedRoutes]   = useState([]);
   const [tripItems, setTripItems]       = useState([]);
   const [showSearch, setShowSearch]     = useState(false);
@@ -660,6 +663,15 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
           onLoadRoute={(route) => { setShowMyRoutes(false); onLoadSavedRoute(route); }}
           onDeleteRoute={(id) => user && deleteSavedRoute(user.uid, id).catch(console.error)}
           onRenameRoute={(id, name) => user && updateRouteName(user.uid, id, name).catch(console.error)}
+          onShareRoute={(r) => { setShareRouteData(r); setShowShareModal(true); }}
+        />
+      )}
+
+      {/* ── Share Route modal ── */}
+      {showShareModal && shareRouteData && (
+        <ShareRouteModal
+          route={shareRouteData}
+          onClose={() => { setShowShareModal(false); setShareRouteData(null); }}
         />
       )}
     </div>
