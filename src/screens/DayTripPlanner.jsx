@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
 import { autocompleteCity, geocodeCity } from '../utils/googlePlaces';
 import { saveRoute } from '../utils/savedRoutes';
-import { generateDayTrip, VISIT_MINUTES, MAX_STOPS, RADIUS_MILES } from '../utils/dayTripAlgorithm';
+import { generateDayTrip, VISIT_MINUTES, RADIUS_MILES } from '../utils/dayTripAlgorithm';
 
 // Fix default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -15,8 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬' };
-const TYPE_LABEL  = { bookstore: 'Bookstore', cafe: 'Coffee Shop', landmark: 'Literary Landmark', drivein: 'Drive-In Theater' };
+const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️' };
 
 const makeStopMarker = (num) => L.divIcon({
   className: '',
@@ -116,7 +115,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [startText, setStartText]   = useState('');
   const [startCoords, setStartCoords] = useState(null);
   const [duration, setDuration]     = useState('halfDay');
-  const [types, setTypes]           = useState({ bookstore: true, cafe: true, landmark: true, drivein: true });
+  const types = { bookstore: true, cafe: true, landmark: true, drivein: true };
 
   // Result state
   const [trip, setTrip]       = useState(null);
@@ -125,8 +124,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [saved, setSaved]     = useState(false);
 
   const mapRef = useRef(null);
-
-  const toggleType = (t) => setTypes(prev => ({ ...prev, [t]: !prev[t] }));
 
   const handleSelectSuggestion = async (desc) => {
     setStartText(desc);
@@ -147,13 +144,11 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   const doGenerate = async (coords) => {
-    const anySelected = Object.values(types).some(Boolean);
-    if (!anySelected) { setGenError('Select at least one location type.'); return; }
     setGenError('');
     setStep('generating');
     setSaved(false);
     try {
-      const result = await generateDayTrip(coords, duration, types);
+      const result = await generateDayTrip(coords, duration);
       if (!result || !result.stops.length) {
         setGenError('No locations found nearby. Try a different city or wider time range.');
         setStep('input');
@@ -180,7 +175,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     try {
       await saveRoute(user.uid, {
         routeName: `Day Trip from ${startText}`,
-        notes: `${RADIUS_MILES[duration]}-mile radius · ${MAX_STOPS[duration]} stops`,
+        notes: `${RADIUS_MILES[duration]}-mile radius · ${trip.stops.length} stops`,
         startCity: startText,
         endCity:   startText,
         selectedStates: [],
@@ -229,7 +224,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   return (
-    <div className="h-screen w-full bg-midnight-navy flex flex-col">
+    <div className="w-full bg-midnight-navy flex flex-col" style={{ height: '100dvh', minHeight: '100vh' }}>
       <style>{`
         @keyframes lr-fade-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         .lr-fade { animation: lr-fade-in 0.3s ease; }
@@ -320,30 +315,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               </div>
             </div>
 
-            {/* Location types */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
-                WHAT TO INCLUDE
-              </label>
-              <div className="space-y-2">
-                {Object.keys(types).map(t => (
-                  <label key={t}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      types[t]
-                        ? 'border-starlight-turquoise/60 bg-starlight-turquoise/5'
-                        : 'border-starlight-turquoise/15 opacity-60'
-                    }`}
-                  >
-                    <input type="checkbox" checked={types[t]} onChange={() => toggleType(t)}
-                      className="accent-starlight-turquoise w-4 h-4"
-                    />
-                    <span className="text-paper-white font-special-elite text-sm flex items-center gap-2">
-                      {TYPE_EMOJI[t]} {TYPE_LABEL[t]}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
           </div>
         )}
 
@@ -502,10 +473,16 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         )}
       </div>
 
-      {/* ── Sticky Generate button — always visible at bottom on mobile ── */}
+      {/* ── Generate button — fixed to viewport bottom, immune to iOS vh bugs ── */}
       {step === 'input' && (
-        <div className="flex-shrink-0 bg-midnight-navy border-t-2 border-starlight-turquoise/30 px-4 py-3"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
+        <div
+          style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100,
+            background: '#1A1B2E',
+            borderTop: '2px solid rgba(64,224,208,0.3)',
+            padding: '12px 16px',
+            paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)',
+          }}
         >
           {genError && (
             <p className="text-atomic-orange font-special-elite text-xs text-center mb-2">{genError}</p>
@@ -513,8 +490,11 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           <button
             onClick={handleGenerate}
             disabled={!startText}
-            className="w-full bg-atomic-orange text-midnight-navy font-bungee py-4 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-base"
-            style={{ boxShadow: startText ? '0 0 20px rgba(255,78,0,0.4)' : 'none', minHeight: 56 }}
+            className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-base"
+            style={{
+              minHeight: 56,
+              boxShadow: startText ? '0 0 20px rgba(255,78,0,0.4)' : 'none',
+            }}
           >
             GENERATE DAY TRIP →
           </button>
