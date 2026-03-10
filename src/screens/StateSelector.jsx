@@ -39,7 +39,8 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   const [loadError, setLoadError]       = useState(false);
   const [hoveredState, setHoveredState] = useState('');
   const [selectedStates, setSelectedStates] = useState(new Set());
-  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu]     = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHamburger, setShowHamburger] = useState(false);
   const [showMyRoutes, setShowMyRoutes]     = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -57,8 +58,9 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   // Refs keep event-handler closures from going stale
   const selectedRef    = useRef(new Set()); // mirrors selectedStates
   const layersRef      = useRef({});        // { stateName: leafletLayer }
-  const userMenuRef    = useRef(null);
-  const infoMenuRef    = useRef(null);
+  const userMenuRef      = useRef(null);
+  const mobileMenuRef    = useRef(null);
+  const infoMenuRef      = useRef(null);
   const searchInputRef = useRef(null);
   const searchDropRef  = useRef(null);
   const searchDebounce = useRef(null);
@@ -67,6 +69,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   useEffect(() => {
     const close = (e) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setShowUserMenu(false);
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setShowMobileMenu(false);
       if (infoMenuRef.current && !infoMenuRef.current.contains(e.target)) setShowInfoMenu(false);
       if (
         searchDropRef.current && !searchDropRef.current.contains(e.target) &&
@@ -236,23 +239,51 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                 </span>
               )}
             </button>
-            {/* Profile / Login — direct nav, no dropdown (hamburger has full menu) */}
-            <button
-              onClick={user ? onShowProfile : onShowLogin}
-              className="flex-shrink-0 text-starlight-turquoise active:text-atomic-orange transition-colors"
-              style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label={user ? 'View profile' : 'Log in'}
-            >
-              {user?.photoURL ? (
-                <img src={user.photoURL} className="w-7 h-7 rounded-full" alt="avatar"
-                  style={{ border: '1.5px solid #40E0D0' }} />
-              ) : (
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+            {/* Profile / Login */}
+            <div ref={mobileMenuRef} style={{ position: 'relative' }} className="flex-shrink-0">
+              <button
+                onClick={user ? () => setShowMobileMenu(v => !v) : onShowLogin}
+                style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                className="text-starlight-turquoise active:text-atomic-orange transition-colors"
+                aria-label={user ? 'Profile menu' : 'Log in'}
+              >
+                {user?.photoURL ? (
+                  <img src={user.photoURL} className="w-7 h-7 rounded-full" alt="avatar"
+                    style={{ border: '1.5px solid #40E0D0', boxShadow: showMobileMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
+                ) : (
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+              </button>
+              {user && showMobileMenu && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 4px)', right: 0,
+                  minWidth: '160px', zIndex: 9999,
+                  background: '#0D0E1A', border: '1.5px solid #40E0D0',
+                  borderRadius: '10px', overflow: 'hidden',
+                  boxShadow: '0 0 20px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.8)',
+                  animation: 'lr-dropdown-in 0.18s ease',
+                }}>
+                  <button
+                    onPointerDown={() => { setShowMobileMenu(false); onShowProfile(); }}
+                    className="w-full text-left font-bungee"
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#40E0D0', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
+                  >
+                    📖 VIEW PROFILE
+                  </button>
+                  <div style={{ height: 1, background: 'rgba(64,224,208,0.15)', margin: '0 12px' }} />
+                  <button
+                    onPointerDown={async () => { setShowMobileMenu(false); await logout(); }}
+                    className="w-full text-left font-bungee"
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#FF4E00', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
+                  >
+                    🚪 SIGN OUT
+                  </button>
+                </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
 
