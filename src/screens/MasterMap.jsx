@@ -1305,7 +1305,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           {/* Hamburger */}
           <button
             onClick={() => setShowHamburger(true)}
-            className="flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5"
+            className="flex-shrink-0 text-starlight-turquoise active:text-atomic-orange transition-colors"
+            style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             aria-label="Open menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1318,66 +1319,23 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             THE LITERARY ROADS
           </h1>
 
-          {/* Profile / Login */}
-          <div ref={mobileMenuRef} style={{ position: 'relative' }} className="flex-shrink-0">
-            <button
-              onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
-              className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5"
-            >
-              {user?.photoURL ? (
-                <img src={user.photoURL} className="w-6 h-6 rounded-full" alt="avatar"
-                  style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
-              ) : (
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              )}
-            </button>
-            {/* Mobile profile dropdown */}
-            {user && showUserMenu && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                minWidth: '160px', zIndex: 9999,
-                background: '#0D0E1A', border: '1.5px solid #40E0D0',
-                borderRadius: '10px', overflow: 'hidden',
-                boxShadow: '0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)',
-                animation: 'lr-dropdown-in 0.18s ease',
-              }}>
-                <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(64,224,208,0.15)' }}>
-                  <p className="font-bungee" style={{ fontSize: '10px', color: '#40E0D0', letterSpacing: '0.06em' }}>
-                    {user.displayName || 'Literary Traveler'}
-                  </p>
-                  <p className="font-special-elite" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', marginTop: '2px' }}>
-                    {user.email}
-                  </p>
-                </div>
-                <button onClick={() => { setShowUserMenu(false); onShowProfile(); }}
-                  className="font-bungee w-full text-left"
-                  style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#40E0D0', background:'transparent', border:'none', cursor:'pointer' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background='rgba(64,224,208,0.08)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  VIEW PROFILE
-                </button>
-                <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
-                <button onClick={async () => { setShowUserMenu(false); await logout(); onHome(); }}
-                  className="font-bungee w-full text-left"
-                  style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer' }}
-                  onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  SIGN OUT
-                </button>
-              </div>
+          {/* Profile / Login — direct nav, no dropdown (hamburger has full menu) */}
+          <button
+            onClick={user ? onShowProfile : onShowLogin}
+            className="flex-shrink-0 text-starlight-turquoise active:text-atomic-orange transition-colors"
+            style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            aria-label={user ? 'View profile' : 'Log in'}
+          >
+            {user?.photoURL ? (
+              <img src={user.photoURL} className="w-7 h-7 rounded-full" alt="avatar"
+                style={{ border: '1.5px solid #40E0D0' }} />
+            ) : (
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             )}
-          </div>
+          </button>
         </div>
 
         {/* ── Desktop header: home | title | right buttons ── */}
