@@ -557,7 +557,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, onShowCredits, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, onShowCredits, onShowDayTrip, routeStateRef }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -1477,6 +1477,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               NEAR ME
             </button>
 
+            {/* Day Trip Planner */}
+            <button onClick={() => onShowDayTrip?.()} title="Plan a Day Trip"
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span className="font-bungee text-[10px] leading-tight tracking-wide">DAY TRIP</span>
+            </button>
+
             {/* Search */}
             <button onClick={() => setShowSearch((v) => !v)} title="Search places"
               className={`flex flex-col items-center transition-colors p-1 ${showSearch ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
@@ -1704,6 +1715,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     {tripItems.length > 9 ? '9+' : tripItems.length}
                   </span>
                 )}
+              </button>
+
+              {/* Day Trip Planner */}
+              <button
+                onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
+                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                PLAN A DAY TRIP
               </button>
 
               {/* Highway Snacks */}

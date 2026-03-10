@@ -8,6 +8,7 @@ import { db } from './config/firebase';
 import Odometer from './screens/Odometer';
 import StateSelector from './screens/StateSelector';
 import MasterMap from './screens/MasterMap';
+import DayTripPlanner from './screens/DayTripPlanner';
 import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
@@ -120,6 +121,17 @@ function AppInner() {
     setScreen('bookLog');
   };
 
+  const handleShowDayTrip = () => {
+    setPreviousScreen(screen);
+    setScreen('dayTripPlanner');
+  };
+
+  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner }) => {
+    setSelectedStates([]);
+    routeStateRef.current = { startCity, endCity, route, visibleLocations, showPlanner };
+    setScreen('map');
+  };
+
   // Profile back uses profileOrigin, which is never clobbered by BookLog navigation.
   const handleProfileBack = () => setScreen(profileOrigin);
 
@@ -146,6 +158,7 @@ function AppInner() {
           onLoadSavedRoute={handleLoadSavedRoute}
           onSelectStop={handleSelectStopFromSelector}
           onNearMe={handleNearMeFromSelector}
+          onShowDayTrip={handleShowDayTrip}
         />
       )}
       {screen === 'map' && (
@@ -157,7 +170,15 @@ function AppInner() {
           onShowResources={handleShowResources}
           onShowEthics={handleShowEthics}
           onShowCredits={handleShowCredits}
+          onShowDayTrip={handleShowDayTrip}
           routeStateRef={routeStateRef}
+        />
+      )}
+      {screen === 'dayTripPlanner' && (
+        <DayTripPlanner
+          onBack={handleAuthBack}
+          onLoadTrip={handleLoadDayTrip}
+          onShowLogin={handleShowLogin}
         />
       )}
       {screen === 'login' && (
