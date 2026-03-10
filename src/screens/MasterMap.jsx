@@ -614,7 +614,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     if (routeStateRef?.current?.pendingLocation) {
       routeStateRef.current.pendingLocation = null;
     }
-  }, []);
+    // Fire near-me search if navigated here from the state selector's NEAR ME button
+    if (routeStateRef?.current?.pendingNearMe) {
+      routeStateRef.current.pendingNearMe = false;
+      handleNearMe();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset shelf tab and transient state whenever a new location is opened
   useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); }, [selectedLocation?.id]);
@@ -1411,14 +1416,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             </button>
             {route.length > 0 && (
               <>
-                {user && (
-                  <button
-                    onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); }}
-                    className="font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
-                  >
-                    SAVE ROUTE
-                  </button>
-                )}
+                <button
+                  onClick={() => { if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); } else { onShowLogin(); } }}
+                  className="font-bungee text-[11px] leading-tight tracking-wide text-starlight-turquoise hover:text-atomic-orange transition-colors border border-starlight-turquoise hover:border-atomic-orange rounded px-2 py-1 whitespace-nowrap"
+                >
+                  SAVE ROUTE
+                </button>
                 <button
                   onClick={handleClearRoute}
                   className="font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
@@ -1440,17 +1443,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           {/* Right buttons */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {/* Near Me */}
-            {!showPlanner && (
-              <button onClick={handleNearMe}
-                className="bg-atomic-orange text-midnight-navy font-bungee px-4 py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-2 text-sm"
-              >
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                NEAR ME
-              </button>
-            )}
+            <button onClick={handleNearMe}
+              className="bg-atomic-orange text-midnight-navy font-bungee px-4 py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-2 text-sm"
+            >
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              NEAR ME
+            </button>
 
             {/* Search */}
             <button onClick={() => setShowSearch((v) => !v)} title="Search places"
@@ -1725,17 +1726,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     Current Route
                   </p>
 
-                  {user && (
-                    <button
-                      onClick={() => { setShowHamburger(false); setSaveRouteError(''); setShowSaveRouteModal(true); }}
-                      className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                    >
-                      <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                      </svg>
-                      SAVE ROUTE
-                    </button>
-                  )}
+                  <button
+                    onClick={() => { setShowHamburger(false); if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); } else { onShowLogin(); } }}
+                    className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                  >
+                    <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    SAVE ROUTE
+                  </button>
 
                   <button
                     onClick={() => { setShowHamburger(false); handleClearRoute(); }}

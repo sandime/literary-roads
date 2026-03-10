@@ -55,6 +55,12 @@ function AppInner() {
     setScreen('stateSelector');
   };
 
+  const handleNearMeFromSelector = () => {
+    setSelectedStates([]);
+    routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: false, pendingNearMe: true };
+    setScreen('map');
+  };
+
   const handleSelectStopFromSelector = (item) => {
     setSelectedStates([]);
     routeStateRef.current = {
@@ -137,6 +143,7 @@ function AppInner() {
           onShowCredits={handleShowCredits}
           onLoadSavedRoute={handleLoadSavedRoute}
           onSelectStop={handleSelectStopFromSelector}
+          onNearMe={handleNearMeFromSelector}
         />
       )}
       {screen === 'map' && (

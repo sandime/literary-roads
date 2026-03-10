@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
+import { searchPlacesByText } from '../utils/googlePlaces';
 import RoadTrip from './RoadTrip';
 import { subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 
@@ -30,7 +32,7 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe }) => {
   const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
@@ -41,22 +43,56 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   const [showMyRoutes, setShowMyRoutes] = useState(false);
   const [savedRoutes, setSavedRoutes]   = useState([]);
   const [tripItems, setTripItems]       = useState([]);
+  const [showSearch, setShowSearch]     = useState(false);
+  const [showInfoMenu, setShowInfoMenu] = useState(false);
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchDropdownPos, setSearchDropdownPos] = useState({});
+  const [showSearchDrop, setShowSearchDrop] = useState(false);
 
   // Refs keep event-handler closures from going stale
-  const selectedRef = useRef(new Set()); // mirrors selectedStates
-  const layersRef   = useRef({});        // { stateName: leafletLayer }
-  const userMenuRef = useRef(null);
+  const selectedRef    = useRef(new Set()); // mirrors selectedStates
+  const layersRef      = useRef({});        // { stateName: leafletLayer }
+  const userMenuRef    = useRef(null);
+  const infoMenuRef    = useRef(null);
+  const searchInputRef = useRef(null);
+  const searchDropRef  = useRef(null);
+  const searchDebounce = useRef(null);
 
-  // Close dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const close = (e) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
-        setShowUserMenu(false);
-      }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setShowUserMenu(false);
+      if (infoMenuRef.current && !infoMenuRef.current.contains(e.target)) setShowInfoMenu(false);
+      if (
+        searchDropRef.current && !searchDropRef.current.contains(e.target) &&
+        searchInputRef.current && !searchInputRef.current.contains(e.target)
+      ) setShowSearchDrop(false);
     };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, []);
+
+  // Search debounce
+  useEffect(() => {
+    clearTimeout(searchDebounce.current);
+    if (!searchQuery || searchQuery.length < 2) { setSearchResults([]); setShowSearchDrop(false); return; }
+    searchDebounce.current = setTimeout(async () => {
+      setSearchLoading(true);
+      const res = await searchPlacesByText(searchQuery);
+      setSearchResults(res);
+      if (res.length > 0 && searchInputRef.current) {
+        const r = searchInputRef.current.getBoundingClientRect();
+        setSearchDropdownPos({ top: r.bottom + 4, left: r.left, width: r.width });
+        setShowSearchDrop(true);
+      } else {
+        setShowSearchDrop(false);
+      }
+      setSearchLoading(false);
+    }, 300);
+    return () => clearTimeout(searchDebounce.current);
+  }, [searchQuery]);
 
   useEffect(() => {
     if (!user) { setSavedRoutes([]); return; }
@@ -141,160 +177,240 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
     onStateSelect([...selectedStates]);
   };
 
+  const clearSelections = () => {
+    setSelectedStates(new Set());
+    selectedRef.current = new Set();
+    Object.values(layersRef.current).forEach(l => l.setStyle(DEFAULT_STYLE));
+  };
+
+  const handleSearchSelect = (place) => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchDrop(false);
+    setShowSearch(false);
+    onSelectStop?.(place);
+  };
+
   const panelVisible = selectedStates.size > 0;
 
   return (
     <div className="h-screen w-full relative bg-midnight-navy overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
-        <div className="flex items-center">
-          {/* Hamburger (mobile only) */}
-          <button
-            onClick={() => setShowHamburger(true)}
-            className="md:hidden flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5 mr-1"
+      <div className={`absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4`}>
+        <style>{`
+          @keyframes lr-dropdown-in {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+
+        {/* ── Mobile header ── */}
+        <div className="flex items-center md:hidden">
+          <button onClick={() => setShowHamburger(true)}
+            className="flex-shrink-0 text-starlight-turquoise hover:text-atomic-orange transition-colors p-1.5 mr-1"
             aria-label="Open menu"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+          <h1 className="flex-1 text-center text-starlight-turquoise font-bungee text-[15px] drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight px-2">
+            THE LITERARY ROADS
+          </h1>
+          <div className="flex-shrink-0 flex items-center gap-1 ml-2">
+            <button onClick={() => setShowMyRoutes(true)} title="My Trip"
+              className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              <span className="font-bungee text-[9px] leading-tight">MY TRIP</span>
+              {(tripItems.length > 0 || savedRoutes.length > 0) && (
+                <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {tripItems.length + savedRoutes.length > 9 ? '9+' : tripItems.length + savedRoutes.length}
+                </span>
+              )}
+            </button>
+            <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <button onClick={user ? () => setShowUserMenu(v => !v) : onShowLogin}
+                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5"
+              >
+                {user?.photoURL ? (
+                  <img src={user.photoURL} className="w-5 h-5 rounded-full"
+                    style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} alt="avatar" />
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                )}
+                <span className="font-bungee text-[9px] leading-tight">{user ? 'LOG' : 'LOG IN'}</span>
+              </button>
+              {user && showUserMenu && (
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, minWidth:'160px', zIndex:9999, background:'#0D0E1A', border:'1.5px solid #40E0D0', borderRadius:'10px', boxShadow:'0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)', overflow:'hidden', animation:'lr-dropdown-in 0.18s ease' }}>
+                  <div style={{ padding:'10px 14px 8px', borderBottom:'1px solid rgba(64,224,208,0.15)' }}>
+                    <p className="font-bungee" style={{ fontSize:'10px', color:'#40E0D0', letterSpacing:'0.06em' }}>{user.displayName || 'Literary Traveler'}</p>
+                    <p className="font-special-elite" style={{ fontSize:'9px', color:'rgba(192,192,192,0.4)', marginTop:'2px' }}>{user.email}</p>
+                  </div>
+                  <button onClick={() => { setShowUserMenu(false); onShowProfile(); }} className="font-bungee w-full text-left"
+                    style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#40E0D0', background:'transparent', border:'none', cursor:'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background='rgba(64,224,208,0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                  >VIEW PROFILE</button>
+                  <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
+                  <button onClick={async () => { setShowUserMenu(false); await logout(); }} className="font-bungee w-full text-left"
+                    style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                  >SIGN OUT</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-          {/* Title block */}
-          <div className="flex-1 text-center">
-            <h1 className="text-starlight-turquoise font-bungee text-[15px] md:text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
+        {/* ── Desktop header: 3-column ── */}
+        <div className="hidden md:block relative">
+
+          {/* Left: Home */}
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <button onClick={clearSelections} title="Reset selections"
+              className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Center: Title */}
+          <div className="text-center py-1">
+            <h1 className="text-starlight-turquoise font-bungee text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
               THE LITERARY ROADS
             </h1>
-            <p className="text-atomic-orange font-special-elite text-xs md:text-sm mt-0.5">
+            <p className="text-atomic-orange font-special-elite text-sm mt-1">
               {selectedStates.size === 0
                 ? 'Click states to select your journey'
                 : `${selectedStates.size} state${selectedStates.size > 1 ? 's' : ''} selected — click more or continue`}
             </p>
           </div>
 
-          {/* Right nav icons */}
-          <div className="flex-shrink-0 flex items-center gap-1 md:gap-2 ml-2">
+          {/* Right: NEAR ME | SEARCH | MY TRIP | HIGHWAY SNACKS | AFTERWORD | PROFILE */}
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
 
-            {/* My Trip / Saved Routes */}
-            <button
-              onClick={() => setShowMyRoutes(true)}
-              title="My Trip"
-              className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            {/* Near Me */}
+            <button onClick={() => onNearMe?.()}
+              className="bg-atomic-orange text-midnight-navy font-bungee px-4 py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-2 text-sm"
             >
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span className="font-bungee text-[9px] leading-tight md:hidden">MY TRIP</span>
-              {savedRoutes.length > 0 && (
-                <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                  {savedRoutes.length > 9 ? '9+' : savedRoutes.length}
+              NEAR ME
+            </button>
+
+            {/* Search toggle */}
+            <button onClick={() => setShowSearch(v => !v)} title="Search places"
+              className={`flex flex-col items-center transition-colors p-1 ${showSearch ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
+
+            {/* My Trip */}
+            <button onClick={() => setShowMyRoutes(true)} title="My Road Trip"
+              className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+              </svg>
+              {(tripItems.length > 0 || savedRoutes.length > 0) && (
+                <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
+                  {tripItems.length + savedRoutes.length > 9 ? '9+' : tripItems.length + savedRoutes.length}
                 </span>
               )}
             </button>
 
             {/* Highway Snacks */}
-            <button
-              onClick={onShowResources}
-              title="Highway Snacks"
-              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+            <button onClick={onShowResources} title="Highway Snacks"
+              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
-              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
               </svg>
-              <span className="md:hidden font-bungee text-[9px] leading-tight">SNACKS</span>
-              <span className="hidden md:inline font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
+              <span className="font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
             </button>
+
+            {/* AFTERWORD dropdown */}
+            <div ref={infoMenuRef} style={{ position: 'relative' }}>
+              <button onClick={() => setShowInfoMenu(v => !v)} title="Afterword"
+                className="flex flex-col items-center transition-colors p-1"
+                style={{ color: showInfoMenu ? '#FF4E00' : '#40E0D0' }}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <span className="font-bungee text-[10px] leading-tight tracking-wide">AFTERWORD</span>
+              </button>
+              {showInfoMenu && (
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, minWidth:'170px', zIndex:9999, background:'#0D0E1A', border:'1.5px solid rgba(255,78,0,0.45)', borderRadius:'10px', overflow:'hidden', boxShadow:'0 0 20px rgba(255,78,0,0.2), 0 8px 32px rgba(0,0,0,0.7)', animation:'lr-dropdown-in 0.18s ease' }}>
+                  {[
+                    { label: 'CODE OF ETHICS', action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
+                    { label: 'CREDITS',        action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
+                  ].map(({ label, action }, i) => (
+                    <button key={label} onClick={action} className="font-bungee w-full text-left"
+                      style={{ display:'flex', alignItems:'center', padding:'10px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', borderTop: i > 0 ? '1px solid rgba(255,78,0,0.12)' : 'none', cursor:'pointer', transition:'background 0.15s' }}
+                      onMouseEnter={e => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
+                      onMouseLeave={e => e.currentTarget.style.background='transparent'}
+                    >{label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Profile / Login */}
             <div ref={userMenuRef} style={{ position: 'relative' }}>
-              <button
-                onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
+              <button onClick={user ? () => setShowUserMenu(v => !v) : onShowLogin}
                 title={user ? "Traveler's Log" : 'Log In'}
-                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5 md:p-1"
+                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
               >
                 {user?.photoURL ? (
-                  <img src={user.photoURL} className="w-5 h-5 md:w-6 md:h-6 rounded-full"
-                    style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} alt="avatar" />
+                  <img src={user.photoURL} className="w-6 h-6 rounded-full" alt="avatar"
+                    style={{ border:'1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
                 ) : (
-                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 )}
-                <span className="md:hidden font-bungee text-[9px] leading-tight">
-                  {user ? 'LOG' : 'LOG IN'}
-                </span>
               </button>
-
-              {/* Dropdown */}
               {user && showUserMenu && (
-                <div style={{
-                  position: 'absolute', top: 'calc(100% + 6px)', right: 0,
-                  minWidth: '160px', zIndex: 9999,
-                  background: '#0D0E1A',
-                  border: '1.5px solid #40E0D0',
-                  borderRadius: '10px',
-                  boxShadow: '0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)',
-                  overflow: 'hidden',
-                  animation: 'lr-dropdown-in 0.18s ease',
-                }}>
-                  <style>{`
-                    @keyframes lr-dropdown-in {
-                      from { opacity: 0; transform: translateY(-6px); }
-                      to   { opacity: 1; transform: translateY(0); }
-                    }
-                  `}</style>
-
-                  {/* User info */}
-                  <div style={{ padding: '10px 14px 8px', borderBottom: '1px solid rgba(64,224,208,0.15)' }}>
-                    <p className="font-bungee" style={{ fontSize: '10px', color: '#40E0D0', letterSpacing: '0.06em', lineHeight: 1.2 }}>
-                      {user.displayName || 'Literary Traveler'}
-                    </p>
-                    <p className="font-special-elite" style={{ fontSize: '9px', color: 'rgba(192,192,192,0.4)', marginTop: '2px' }}>
-                      {user.email}
-                    </p>
+                <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, minWidth:'160px', zIndex:9999, background:'#0D0E1A', border:'1.5px solid #40E0D0', borderRadius:'10px', boxShadow:'0 0 24px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.7)', overflow:'hidden', animation:'lr-dropdown-in 0.18s ease' }}>
+                  <div style={{ padding:'10px 14px 8px', borderBottom:'1px solid rgba(64,224,208,0.15)' }}>
+                    <p className="font-bungee" style={{ fontSize:'10px', color:'#40E0D0', letterSpacing:'0.06em', lineHeight:1.2 }}>{user.displayName || 'Literary Traveler'}</p>
+                    <p className="font-special-elite" style={{ fontSize:'9px', color:'rgba(192,192,192,0.4)', marginTop:'2px' }}>{user.email}</p>
                   </div>
-
-                  {/* View Profile */}
-                  <button
-                    onClick={() => { setShowUserMenu(false); onShowProfile(); }}
-                    className="font-bungee w-full text-left"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '11px 14px', fontSize: '11px', letterSpacing: '0.05em',
-                      color: '#40E0D0', background: 'transparent', border: 'none',
-                      cursor: 'pointer', transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(64,224,208,0.08)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  <button onClick={() => { setShowUserMenu(false); onShowProfile(); }} className="font-bungee w-full text-left"
+                    style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#40E0D0', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background='rgba(64,224,208,0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     VIEW PROFILE
                   </button>
-
-                  <div style={{ height: '1px', background: 'rgba(64,224,208,0.1)', margin: '0 10px' }} />
-
-                  {/* Sign Out */}
-                  <button
-                    onClick={async () => { setShowUserMenu(false); await logout(); }}
-                    className="font-bungee w-full text-left"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '11px 14px', fontSize: '11px', letterSpacing: '0.05em',
-                      color: '#FF4E00', background: 'transparent', border: 'none',
-                      cursor: 'pointer', transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,78,0,0.08)'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
+                  <button onClick={async () => { setShowUserMenu(false); await logout(); }} className="font-bungee w-full text-left"
+                    style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.background='transparent'}
                   >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink: 0 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                     SIGN OUT
                   </button>
@@ -303,10 +419,56 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
             </div>
           </div>
         </div>
+
+        {/* Search bar row (desktop, when open) */}
+        {showSearch && (
+          <div className="hidden md:block max-w-2xl mx-auto w-full pb-1.5">
+            <div className="relative">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search bookstores, cafes, landmarks…"
+                className="w-full bg-black/60 border-2 border-starlight-turquoise/70 text-paper-white font-special-elite px-3 py-2 pr-8 rounded-lg focus:outline-none focus:border-starlight-turquoise"
+                style={{ fontSize: '0.875rem' }}
+                autoFocus
+              />
+              {searchLoading && (
+                <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
+                  <div className="w-3.5 h-3.5 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            {showSearchDrop && searchResults.length > 0 && createPortal(
+              <ul ref={searchDropRef}
+                style={{ position:'fixed', top: searchDropdownPos.top, left: searchDropdownPos.left, width: searchDropdownPos.width, zIndex:9999 }}
+                className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg overflow-hidden shadow-[0_0_20px_rgba(64,224,208,0.3)]"
+              >
+                {searchResults.map((place, i) => (
+                  <li key={place.id} onPointerDown={() => handleSearchSelect(place)} style={{ touchAction:'manipulation' }}
+                    className={`px-3 py-2.5 cursor-pointer transition-colors hover:bg-starlight-turquoise/10 ${i > 0 ? 'border-t border-starlight-turquoise/20' : ''}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm flex-shrink-0">
+                        {{ bookstore:'📚', cafe:'☕', landmark:'🌲', drivein:'🎬' }[place.type] || '📍'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-special-elite text-paper-white text-sm truncate">{place.name}</p>
+                        <p className="font-special-elite text-chrome-silver text-xs truncate">{place.address}</p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>,
+              document.body
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Map ── */}
-      <div className="h-full pt-16 md:pt-20">
+      <div className={`h-full pt-16 ${showSearch ? 'md:pt-[128px]' : 'md:pt-20'}`}>
         <MapContainer
           center={US_CENTER}
           zoom={US_ZOOM}
