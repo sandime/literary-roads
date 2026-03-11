@@ -1,7 +1,46 @@
 import { useState } from 'react';
 import MyRoutes from '../components/MyRoutes';
 
-const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute, onShareRoute }) => {
+const TYPE_BADGE = {
+  bookstore: '📚 BOOKSTORE', cafe: '☕ COFFEE SHOP', landmark: '🌲 LANDMARK',
+  drivein: '🎬 DRIVE-IN', festival: '🎪 FESTIVAL', museum: '🏛️ MUSEUM',
+  park: '🌿 PARK', restaurant: '🍽️ RESTAURANT',
+};
+
+const StopCard = ({ item, onSelect, onRemove, badge }) => (
+  <div
+    onClick={() => onSelect?.(item)}
+    className="bg-black/40 border border-starlight-turquoise/40 hover:border-starlight-turquoise rounded-lg p-4 relative transition-colors cursor-pointer"
+  >
+    <button
+      onClick={(e) => { e.stopPropagation(); onRemove(); }}
+      className="absolute top-3 right-3 text-chrome-silver/60 hover:text-atomic-orange transition-colors"
+      title="Remove"
+    >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <div className="flex items-start gap-3 pr-6">
+      <div className="w-6 h-6 rounded-full bg-starlight-turquoise/20 border border-starlight-turquoise text-starlight-turquoise font-bungee text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
+        {badge}
+      </div>
+      <div className="flex-1 min-w-0">
+        {TYPE_BADGE[item.type] && (
+          <div className="mb-1">
+            <span className="text-chrome-silver/60 font-bungee text-[10px]">{TYPE_BADGE[item.type]}</span>
+          </div>
+        )}
+        <h3 className="text-starlight-turquoise font-bungee text-sm leading-tight mb-0.5 truncate">{item.name}</h3>
+        {item.address && (
+          <p className="text-chrome-silver font-special-elite text-xs truncate">{item.address}</p>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute, onShareRoute, savedStops = [], onRemoveSaved }) => {
   const [activeTab, setActiveTab] = useState('stops');
 
   return (
@@ -27,7 +66,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
           </h1>
           <p className="text-atomic-orange font-special-elite text-xs mt-0.5">
             {activeTab === 'stops'
-              ? `${items.length} stop${items.length !== 1 ? 's' : ''} planned`
+              ? `${items.length + savedStops.length} stop${(items.length + savedStops.length) !== 1 ? 's' : ''} saved`
               : `${savedRoutes.length} saved route${savedRoutes.length !== 1 ? 's' : ''}`}
           </p>
         </div>
@@ -61,9 +100,9 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
           }}
         >
           MY STOPS
-          {items.length > 0 && (
+          {(items.length + savedStops.length) > 0 && (
             <span className="ml-1.5 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-4 h-4 rounded-full inline-flex items-center justify-center leading-none">
-              {items.length > 9 ? '9+' : items.length}
+              {(items.length + savedStops.length) > 9 ? '9+' : items.length + savedStops.length}
             </span>
           )}
         </button>
@@ -91,7 +130,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
 
         {/* MY STOPS tab */}
         {activeTab === 'stops' && (
-          items.length === 0 ? (
+          items.length === 0 && savedStops.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-16">
               <svg className="w-16 h-16 text-starlight-turquoise/25 mb-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -99,7 +138,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
               </svg>
               <p className="text-paper-white font-bungee text-xl mb-2">NO STOPS YET</p>
               <p className="text-chrome-silver font-special-elite text-sm max-w-xs">
-                Tap any pin on the map to open it, then tap "+ ADD TO TRIP" to save it here.
+                Tap any pin on the map, then tap "💾 SAVE TO MY ROAD TRIP" to bookmark it here.
               </p>
               <button
                 onClick={onClose}
@@ -110,65 +149,34 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
             </div>
           ) : (
             <div className="space-y-3 pb-4">
-              {items.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={() => onSelectStop?.(item)}
-                  className="bg-black/40 border border-starlight-turquoise/40 hover:border-starlight-turquoise rounded-lg p-4 relative transition-colors cursor-pointer"
-                >
-                  {/* Remove */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onRemove(item.id); }}
-                    className="absolute top-3 right-3 text-chrome-silver/60 hover:text-atomic-orange transition-colors"
-                    title="Remove stop"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
 
-                  <div className="flex items-start gap-3 pr-6">
-                    {/* Stop number */}
-                    <div className="w-6 h-6 rounded-full bg-atomic-orange text-midnight-navy font-bungee text-xs flex items-center justify-center flex-shrink-0 mt-0.5">
-                      {index + 1}
-                    </div>
+              {/* ── Permanently saved stops ── */}
+              {savedStops.length > 0 && (
+                <>
+                  <p className="text-starlight-turquoise font-bungee text-xs tracking-widest pt-1 pb-0.5">
+                    💾 SAVED PLACES ({savedStops.length})
+                  </p>
+                  {savedStops.map((item) => (
+                    <StopCard key={item.id} item={item} onSelect={onSelectStop}
+                      onRemove={() => onRemoveSaved?.(item.id)} badgeColor="starlight-turquoise" badge="💾" />
+                  ))}
+                </>
+              )}
 
-                    <div className="flex-1 min-w-0">
-                      {/* Type badge */}
-                      <div className="mb-1">
-                        {item.type === 'bookstore' && (
-                          <span className="text-atomic-orange font-bungee text-xs">📚 BOOKSTORE</span>
-                        )}
-                        {item.type === 'cafe' && (
-                          <span className="text-starlight-turquoise font-bungee text-xs">☕ COFFEE SHOP</span>
-                        )}
-                        {item.type === 'landmark' && (
-                          <span className="text-paper-white font-bungee text-xs">🌲 LITERARY LANDMARK</span>
-                        )}
-                      </div>
-
-                      {/* Name */}
-                      <h3 className="text-starlight-turquoise font-bungee text-base leading-tight mb-1">
-                        {item.name}
-                      </h3>
-
-                      {/* Address */}
-                      {item.address && (
-                        <p className="text-chrome-silver font-special-elite text-xs mb-1 truncate">
-                          {item.address}
-                        </p>
-                      )}
-
-                      {/* Description */}
-                      {item.description && (
-                        <p className="text-paper-white/70 font-special-elite text-xs leading-relaxed line-clamp-2">
-                          {item.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {/* ── Trip bag items (from ADD TO TRIP, if any remain) ── */}
+              {items.length > 0 && (
+                <>
+                  {savedStops.length > 0 && (
+                    <p className="text-chrome-silver/50 font-bungee text-xs tracking-widest pt-2 pb-0.5">
+                      THIS SESSION
+                    </p>
+                  )}
+                  {items.map((item, index) => (
+                    <StopCard key={item.id} item={item} onSelect={onSelectStop}
+                      onRemove={() => onRemove(item.id)} badgeColor="atomic-orange" badge={index + 1} />
+                  ))}
+                </>
+              )}
             </div>
           )
         )}

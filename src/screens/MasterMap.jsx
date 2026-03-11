@@ -14,6 +14,7 @@ import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../uti
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
+import { subscribeSavedStops, saveStop, unsaveStop } from '../utils/savedStops';
 import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
 import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn, requestHonkNotifPermission, showBrowserHonkNotification } from '../utils/honkUtils';
 import RoadTrip from './RoadTrip';
@@ -757,6 +758,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [currentRouteStops, setCurrentRouteStops] = useState([]);
   const currentRouteStopIds = useMemo(() => new Set(currentRouteStops.map(s => s.id)), [currentRouteStops]);
 
+  // Permanent bookmarks — users/{uid}/savedStops subcollection
+  const [savedStops, setSavedStops] = useState([]);
+  const savedStopIds = useMemo(() => new Set(savedStops.map(s => s.id)), [savedStops]);
+
+  const handleSaveStop = (location) => {
+    if (!user) { onShowLogin(); return; }
+    saveStop(user.uid, location).catch(err => console.error('[savedStops] save error:', err));
+  };
+
+  const handleUnsaveStop = (locationId) => {
+    if (!user) return;
+    unsaveStop(user.uid, locationId).catch(err => console.error('[savedStops] unsave error:', err));
+  };
+
   const handleRouteStopToggle = (location) => {
     setCurrentRouteStops(prev =>
       currentRouteStopIds.has(location.id)
@@ -817,6 +832,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => {
     if (!user) { setSavedRoutes([]); return; }
     return subscribeToSavedRoutes(user.uid, setSavedRoutes);
+  }, [user]);
+
+  // Saved stops (permanent bookmarks): stream from Firestore
+  useEffect(() => {
+    if (!user) { setSavedStops([]); return; }
+    return subscribeSavedStops(user.uid, setSavedStops);
   }, [user]);
 
   // Incoming honk notifications
@@ -2631,7 +2652,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </button>
             </div>
 
-            {/* Row 2: Park Here — bookstores, cafes & drive-ins, logged-in users only */}
+            {/* Row 2: Save to My Road Trip — all location types, login required */}
+            <button
+              onClick={() => savedStopIds.has(selectedLocation.id)
+                ? handleUnsaveStop(selectedLocation.id)
+                : handleSaveStop(selectedLocation)}
+              className={`w-full font-bungee text-xs py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                savedStopIds.has(selectedLocation.id)
+                  ? 'bg-starlight-turquoise/15 border border-starlight-turquoise text-starlight-turquoise'
+                  : 'bg-transparent border border-chrome-silver/30 text-chrome-silver/70 hover:border-starlight-turquoise hover:text-starlight-turquoise'
+              }`}
+            >
+              {savedStopIds.has(selectedLocation.id) ? '✓ SAVED TO MY ROAD TRIP' : '💾 SAVE TO MY ROAD TRIP'}
+            </button>
+
+            {/* Row 3: Park Here — bookstores, cafes & drive-ins, logged-in users only */}
             {user && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe' || selectedLocation.type === 'drivein') && (() => {
               const carsHere = locationCars[selectedLocation.id] || [];
               const parked = carsHere.find(c => c.userId === user.uid);
@@ -2693,6 +2728,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           onDeleteRoute={handleDeleteRoute}
           onRenameRoute={handleRenameRoute}
           onShareRoute={(r) => { setShareRouteData(r); setShowShareModal(true); }}
+          savedStops={savedStops}
+          onRemoveSaved={handleUnsaveStop}
         />
       )}
 
