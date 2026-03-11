@@ -11,6 +11,7 @@ export const VISIT_MINUTES = {
   bookstore: 60, cafe: 30, landmark: 45, drivein: 120,
   museum: 90, art_gallery: 75, park: 45, nature: 45,
   restaurant: 60, scenic: 30, music: 45, garden: 45, observatory: 60,
+  flea: 60, antique: 60, historical: 45,
 };
 
 const AVG_SPEED_MPH = 35;
@@ -242,7 +243,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
 
   // Fetch all categories in parallel.
   // Each call uses ONLY verified Google Places (New) v1 type names.
-  const [literary, museums, wildlife, nature, restaurants, music, garden, observatory] = await Promise.all([
+  const [literary, museums, wildlife, nature, restaurants, music, garden, observatory, flea, antique, historical] = await Promise.all([
     fetchLiterary(startCoords, radius),
     // Cultural — verified types only (history_museum/science_museum are NOT valid v1 types)
     fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['museum', 'art_gallery'], 'museum'),
@@ -260,6 +261,12 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['garden_center'], 'garden'),
     // Observatories & planetariums (educational)
     fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['observatory', 'planetarium'], 'observatory'),
+    // Flea markets
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['flea_market'], 'flea'),
+    // Antique stores
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['antique_store'], 'antique'),
+    // Historical landmarks
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['historical_landmark'], 'historical'),
   ]);
 
   // Split literary pool by subtype
@@ -281,6 +288,9 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const musiPool  = rotate(music);
   const gardPool  = rotate(garden);
   const obsvPool  = rotate(observatory);
+  const fleaPool  = rotate(flea);
+  const antqPool  = rotate(antique);
+  const histPool  = rotate(historical);
 
   const stops   = [];
   const usedIds = new Set(excludedIds);
@@ -289,7 +299,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const MAX_PER_TYPE = {
     cafe: 1, bookstore: 1, restaurant: 1, drivein: 1,
     museum: 2, scenic: 2, park: 2, landmark: 2,
-    music: 1, garden: 1, observatory: 1,
+    music: 1, garden: 1, observatory: 1, flea: 1, antique: 1, historical: 2,
   };
 
   const pick = (pool, type) => {
@@ -321,6 +331,9 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     { pool: musiPool,  type: 'music'       },
     { pool: gardPool,  type: 'garden'      },
     { pool: obsvPool,  type: 'observatory' },
+    { pool: fleaPool,  type: 'flea'        },
+    { pool: antqPool,  type: 'antique'     },
+    { pool: histPool,  type: 'historical'  },
     // Second-pass for long trips
     { pool: musePool,  type: 'museum'      },
     { pool: wildPool,  type: 'scenic'      },
@@ -328,7 +341,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     { pool: landPool,  type: 'landmark'    },
   ];
 
-  let vi = variant % 7; // start offset within first 7 unique types
+  let vi = variant % 10; // start offset within first 10 unique types
   let noPickStreak = 0;
   while (stops.length < target && noPickStreak < varietyPools.length) {
     const { pool, type } = varietyPools[vi % varietyPools.length];
