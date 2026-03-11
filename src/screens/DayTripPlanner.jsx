@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
 import { autocompleteAddress, geocodeCity, reverseGeocode } from '../utils/googlePlaces';
 import { saveRoute } from '../utils/savedRoutes';
-import { generateDayTrip, VISIT_MINUTES, RADIUS_MILES } from '../utils/dayTripAlgorithm';
+import { generateDayTrip, buildRoute, VISIT_MINUTES, RADIUS_MILES } from '../utils/dayTripAlgorithm';
 
 // Fix default Leaflet icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️', scenic: '🏞️' };
+const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️', scenic: '🦁', music: '🎵', garden: '🪴', observatory: '🔭' };
 
 const makeStopMarker = (num) => L.divIcon({
   className: '',
@@ -130,6 +130,11 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [variant, setVariant]         = useState(0);
   const [excludedIds, setExcludedIds] = useState(new Set());
 
+  // Checkbox / update-route state
+  const [checkedIds, setCheckedIds]         = useState(new Set());
+  const [activeTrip, setActiveTrip]         = useState(null); // route for checked stops
+  const [isUpdatingRoute, setIsUpdatingRoute] = useState(false);
+
   const mapRef = useRef(null);
 
   const handleSelectSuggestion = async (desc) => {
@@ -203,6 +208,8 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       setTrip(result);
       setVariant(nextVariant);
       setExcludedIds(nextExcluded);
+      setCheckedIds(new Set(result.stops.map(s => s.id)));
+      setActiveTrip(result);
       setStep('result');
     } catch (e) {
       console.error('[DayTripPlanner] generation error:', e);
@@ -228,22 +235,46 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     setTripCount(1);
     setVariant(0);
     setExcludedIds(new Set());
+    setCheckedIds(new Set());
+    setActiveTrip(null);
     setGpsError('');
     setStep('input');
   };
 
+  const toggleStop = (id) => {
+    setCheckedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); } else { next.add(id); }
+      return next;
+    });
+  };
+
+  const handleUpdateRoute = async () => {
+    if (!trip || !startCoords) return;
+    const selected = trip.stops.filter(s => checkedIds.has(s.id));
+    if (!selected.length) return;
+    setIsUpdatingRoute(true);
+    try {
+      const result = await buildRoute(startCoords, selected);
+      if (result) setActiveTrip(result);
+    } finally {
+      setIsUpdatingRoute(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) { onShowLogin(); return; }
+    const routeData = activeTrip || trip;
     setSaving(true);
     try {
       await saveRoute(user.uid, {
         routeName: `Day Trip from ${startText}`,
-        notes: `${RADIUS_MILES[duration]}-mile radius · ${trip.stops.length} stops`,
+        notes: `${RADIUS_MILES[duration]}-mile radius · ${routeData.stops.length} stops`,
         startCity: startText,
         endCity:   startText,
         selectedStates: [],
-        routeCoordinates: trip.routeCoordinates,
-        stops: trip.stops,
+        routeCoordinates: routeData.routeCoordinates,
+        stops: routeData.stops,
       });
       setSaved(true);
     } catch (e) {
@@ -254,11 +285,12 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   const handleLoadOnMap = () => {
+    const routeData = activeTrip || trip;
     onLoadTrip({
       startCity:        startText,
       endCity:          startText,
-      route:            trip.routeCoordinates,
-      visibleLocations: trip.stops,
+      route:            routeData.routeCoordinates,
+      visibleLocations: routeData.stops,
       showPlanner:      false,
     });
   };
@@ -273,9 +305,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   }, [step, trip]);
 
   const DURATION_OPTIONS = [
-    { key: 'quick',   label: 'Quick',    sub: '30 min – 1 hr',  stops: 2, radius: 20  },
-    { key: 'halfDay', label: 'Half Day', sub: '1–3 hours',       stops: 3, radius: 60  },
-    { key: 'fullDay', label: 'Full Day', sub: '3–5 hours',       stops: 5, radius: 120 },
+    { key: 'quick',   label: 'Quick',    sub: '30 min – 1 hr',  stops: '2–3',  radius: 20  },
+    { key: 'halfDay', label: 'Half Day', sub: '1–3 hours',      stops: '4–6',  radius: 60  },
+    { key: 'fullDay', label: 'Full Day', sub: '3–5 hours',      stops: '7–10', radius: 120 },
   ];
 
   const formatDuration = (mins) => {
@@ -449,10 +481,10 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         )}
 
         {/* ══ STEP 3: RESULT ══ */}
-        {step === 'result' && trip && (
+        {step === 'result' && trip && activeTrip && (
           <div className="lr-fade">
 
-            {/* Map */}
+            {/* Map — uses activeTrip (checked stops only) */}
             <div className="h-56 md:h-72 w-full">
               <MapContainer
                 center={trip.startCoords}
@@ -464,86 +496,104 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                   attribution='&copy; OpenStreetMap contributors'
                 />
-                <Polyline positions={trip.routeCoordinates}
+                <Polyline positions={activeTrip.routeCoordinates}
                   pathOptions={{ color: '#FF4E00', weight: 4, opacity: 0.85 }}
                 />
-                {/* Start marker */}
                 <Marker position={trip.startCoords} icon={makeStartMarker()} />
-                {/* Stop markers */}
-                {trip.stops.map((stop, i) => (
+                {activeTrip.stops.map((stop, i) => (
                   <Marker key={stop.id} position={stop.coords} icon={makeStopMarker(i + 1)} />
                 ))}
               </MapContainer>
             </div>
 
-            {/* Schedule */}
-            <div className="px-4 py-4 space-y-0">
+            {/* Hint: tap to include/exclude stops */}
+            <div className="px-4 pt-3 pb-1">
+              <p className="text-chrome-silver/50 font-special-elite text-xs">
+                Tap stops to include or exclude them, then tap <span className="text-starlight-turquoise">UPDATE ROUTE</span>.
+              </p>
+            </div>
 
-              {/* Start */}
-              <div className="flex items-center gap-3 py-2">
+            {/* Stop list — all generated candidates with checkboxes */}
+            <div className="px-4 pb-2 space-y-2">
+
+              {/* Start row */}
+              <div className="flex items-center gap-3 py-1">
                 <div className="w-8 h-8 rounded-full bg-starlight-turquoise/20 border-2 border-starlight-turquoise flex items-center justify-center text-sm flex-shrink-0">🚗</div>
                 <div>
                   <p className="text-starlight-turquoise font-bungee text-sm">START</p>
-                  <p className="text-chrome-silver font-special-elite text-xs">{startText} · {trip.schedule.startTime}</p>
+                  <p className="text-chrome-silver font-special-elite text-xs">{startText} · {activeTrip.schedule.startTime}</p>
                 </div>
               </div>
 
-              {trip.schedule.items.map((item, i) => (
-                <div key={item.stop.id}>
-                  {/* Drive segment */}
-                  <div className="flex items-center gap-3 py-1 ml-4">
-                    <div className="w-0.5 h-6 bg-atomic-orange/40 mx-auto" style={{ marginLeft: 12 }} />
-                    <p className="text-chrome-silver/50 font-special-elite text-xs">
-                      🚗 {item.driveMins} min drive · {item.miles.toFixed(1)} mi
-                    </p>
-                  </div>
+              {trip.stops.map((stop, i) => {
+                const checked  = checkedIds.has(stop.id);
+                // Find schedule item in activeTrip (may not exist if unchecked)
+                const schItem  = activeTrip.schedule.items.find(it => it.stop.id === stop.id);
+                return (
+                  <button
+                    key={stop.id}
+                    type="button"
+                    onClick={() => toggleStop(stop.id)}
+                    className={`w-full text-left rounded-xl p-3 flex items-start gap-3 border transition-all ${
+                      checked
+                        ? 'bg-black/40 border-starlight-turquoise/30'
+                        : 'bg-black/20 border-starlight-turquoise/10 opacity-50'
+                    }`}
+                  >
+                    {/* Checkbox */}
+                    <div className={`w-5 h-5 rounded border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition-all ${
+                      checked ? 'bg-starlight-turquoise border-starlight-turquoise' : 'border-chrome-silver/40'
+                    }`}>
+                      {checked && <span className="text-midnight-navy text-[10px] font-bold">✓</span>}
+                    </div>
 
-                  {/* Stop card */}
-                  <div className="bg-black/40 border border-starlight-turquoise/25 rounded-xl p-3 flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-atomic-orange flex items-center justify-center font-bungee text-midnight-navy text-sm flex-shrink-0">
+                    {/* Stop number badge */}
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bungee text-midnight-navy text-xs flex-shrink-0 ${
+                      checked ? 'bg-atomic-orange' : 'bg-chrome-silver/30'
+                    }`}>
                       {i + 1}
                     </div>
+
+                    {/* Stop details */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-paper-white font-bungee text-sm leading-tight truncate">
-                          {item.stop.name}
+                          {stop.name}
                         </span>
-                        <span className="text-xs">{TYPE_EMOJI[item.stop.type]}</span>
+                        <span className="text-xs">{TYPE_EMOJI[stop.type] ?? '📍'}</span>
                       </div>
                       <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5 truncate">
-                        {item.stop.address}
+                        {stop.address}
                       </p>
-                      <div className="flex items-center gap-3 mt-1 text-xs font-special-elite">
-                        <span className="text-starlight-turquoise">Arrive {item.arrivalTime}</span>
-                        <span className="text-chrome-silver/40">·</span>
-                        <span className="text-chrome-silver/60">Spend ~{item.visitMins} min</span>
-                      </div>
+                      {checked && schItem && (
+                        <div className="flex items-center gap-2 mt-1 text-xs font-special-elite">
+                          <span className="text-starlight-turquoise">Arrive {schItem.arrivalTime}</span>
+                          <span className="text-chrome-silver/30">·</span>
+                          <span className="text-chrome-silver/50">~{schItem.visitMins} min</span>
+                          <span className="text-chrome-silver/30">·</span>
+                          <span className="text-chrome-silver/50">{schItem.driveMins} min drive</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </div>
-              ))}
+                  </button>
+                );
+              })}
 
               {/* Return */}
-              <div className="flex items-center gap-3 py-1 ml-4">
-                <div className="w-0.5 h-6 bg-atomic-orange/40" style={{ marginLeft: 12 }} />
-                <p className="text-chrome-silver/50 font-special-elite text-xs">
-                  🚗 {trip.schedule.returnMins} min back to start
-                </p>
-              </div>
-              <div className="flex items-center gap-3 py-2">
+              <div className="flex items-center gap-3 py-1">
                 <div className="w-8 h-8 rounded-full bg-starlight-turquoise/20 border-2 border-starlight-turquoise flex items-center justify-center text-sm flex-shrink-0">🏁</div>
                 <div>
                   <p className="text-starlight-turquoise font-bungee text-sm">BACK HOME</p>
-                  <p className="text-chrome-silver font-special-elite text-xs">{trip.schedule.returnTime}</p>
+                  <p className="text-chrome-silver font-special-elite text-xs">{activeTrip.schedule.returnTime}</p>
                 </div>
               </div>
 
-              {/* Trip summary chips */}
-              <div className="flex gap-2 flex-wrap py-2">
+              {/* Summary chips */}
+              <div className="flex gap-2 flex-wrap py-1">
                 {[
-                  `🕐 ${formatDuration(trip.schedule.totalMinutes)}`,
-                  `📍 ${trip.schedule.totalMiles} miles`,
-                  `🛑 ${trip.stops.length} stops`,
+                  `🕐 ${formatDuration(activeTrip.schedule.totalMinutes)}`,
+                  `📍 ${activeTrip.schedule.totalMiles} mi`,
+                  `✅ ${checkedIds.size} of ${trip.stops.length} stops`,
                 ].map(chip => (
                   <span key={chip} className="bg-starlight-turquoise/10 border border-starlight-turquoise/30 text-starlight-turquoise font-special-elite text-xs px-3 py-1 rounded-full">
                     {chip}
@@ -554,8 +604,21 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
             {/* Action buttons */}
             <div className="px-4 pb-8 space-y-3">
-              <button onClick={handleLoadOnMap}
-                className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg flex items-center justify-center gap-2"
+
+              {/* UPDATE ROUTE — shown when selection differs from activeTrip */}
+              {checkedIds.size > 0 && checkedIds.size !== activeTrip.stops.length && (
+                <button onClick={handleUpdateRoute} disabled={isUpdatingRoute}
+                  className="w-full bg-starlight-turquoise text-midnight-navy font-bungee py-3 rounded-xl hover:bg-paper-white transition-all shadow-lg disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {isUpdatingRoute
+                    ? <><div className="w-4 h-4 border-2 border-midnight-navy border-t-transparent rounded-full animate-spin" /> UPDATING…</>
+                    : `↺ UPDATE ROUTE (${checkedIds.size} stop${checkedIds.size !== 1 ? 's' : ''})`
+                  }
+                </button>
+              )}
+
+              <button onClick={handleLoadOnMap} disabled={checkedIds.size === 0}
+                className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -569,7 +632,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                   ✓ SAVED TO YOUR ROUTES
                 </div>
               ) : (
-                <button onClick={handleSave} disabled={saving}
+                <button onClick={handleSave} disabled={saving || checkedIds.size === 0}
                   className="w-full border-2 border-starlight-turquoise text-starlight-turquoise font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise hover:text-midnight-navy transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {saving ? (

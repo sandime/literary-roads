@@ -3,13 +3,14 @@ import { getMapboxRoute } from './mapbox';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
-// Total stop targets per duration (excluding optional drive-in)
-const STOP_TARGETS = { quick: 2, halfDay: 4, fullDay: 6 };
+// Generate MORE stops than strictly needed — user picks which to visit via checkboxes
+// quick: 3 candidates | halfDay: 6 candidates | fullDay: 9 candidates (+optional drivein)
+const STOP_TARGETS = { quick: 3, halfDay: 6, fullDay: 9 };
 
 export const VISIT_MINUTES = {
   bookstore: 60, cafe: 30, landmark: 45, drivein: 120,
   museum: 90, art_gallery: 75, park: 45, nature: 45,
-  restaurant: 60, scenic: 30,
+  restaurant: 60, scenic: 30, music: 45, garden: 45, observatory: 60,
 };
 
 const AVG_SPEED_MPH = 35;
@@ -39,10 +40,14 @@ const segmentMiles = (pts) => {
 };
 
 // ── Google Places fetch helpers ──────────────────────────────────────────────
+// Only uses Google Places (New) API v1 verified type names.
+// Invalid types cause the entire batch to fail silently — keep types to known-good ones.
 
 const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabel) => {
   const key = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
   if (!key) return [];
+  const radius = Math.min(radiusMeters, 50000);
+  console.log(`[DayTrip] fetching ${typeLabel} | types: [${includedTypes.join(', ')}] | radius: ${(radius / 1609).toFixed(1)} mi`);
   try {
     const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
       method: 'POST',
@@ -55,16 +60,17 @@ const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabe
         includedTypes,
         maxResultCount: 10,
         locationRestriction: {
-          circle: {
-            center: { latitude: lat, longitude: lng },
-            radius: Math.min(radiusMeters, 50000),
-          },
+          circle: { center: { latitude: lat, longitude: lng }, radius },
         },
       }),
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      console.warn(`[DayTrip] ${typeLabel} API error ${res.status}:`, errBody?.error?.message ?? errBody);
+      return [];
+    }
     const data = await res.json();
-    return (data.places || [])
+    const places = (data.places || [])
       .map(p => ({
         id:      p.id,
         name:    p.displayName?.text || 'Unnamed',
@@ -75,7 +81,10 @@ const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabe
         coords:  p.location ? [p.location.latitude, p.location.longitude] : null,
       }))
       .filter(p => p.coords);
-  } catch {
+    console.log(`[DayTrip] ${typeLabel} → ${places.length} places: ${places.map(p => p.name).join(', ')}`);
+    return places;
+  } catch (err) {
+    console.error(`[DayTrip] ${typeLabel} fetch exception:`, err);
     return [];
   }
 };
@@ -101,10 +110,13 @@ const fetchLiterary = async (center, radiusMiles) => {
     points.map(pt => searchNearbyPlaces(pt[0], pt[1], searchR).catch(() => []))
   );
   const seen = new Set();
-  return batches.flat()
+  const results = batches.flat()
     .filter(p => { if (!p?.id || seen.has(p.id)) return false; seen.add(p.id); return true; })
     .map(p => ({ ...p, coords: p.coords ?? (p.lat != null ? [p.lat, p.lng] : null) }))
     .filter(p => p.coords);
+  console.log(`[DayTrip] literary → ${results.length} places by type:`,
+    Object.fromEntries(['cafe','bookstore','landmark','drivein'].map(t => [t, results.filter(p => p.type === t).length])));
+  return results;
 };
 
 // ── Stop selection helpers ────────────────────────────────────────────────────
@@ -115,7 +127,6 @@ const tagDistance = (places, origin) =>
     .filter(p => isFinite(p._distMiles))
     .sort((a, b) => a._distMiles - b._distMiles);
 
-// Rotate pool by n positions so regenerate gives different candidates
 const rotatePool = (pool, n) => {
   if (!pool.length || n === 0) return pool;
   const offset = n % pool.length;
@@ -124,7 +135,6 @@ const rotatePool = (pool, n) => {
 
 // ── Routing helpers ──────────────────────────────────────────────────────────
 
-// Use overview=full for short city segments — simplified is too coarse at city scale
 const getSegment = async (from, to) => {
   if (!from || !to) return [from || to, to || from].filter(Boolean);
   const seg = await getMapboxRoute(from[0], from[1], to[0], to[1], true);
@@ -135,7 +145,6 @@ const getSegment = async (from, to) => {
   ]);
 };
 
-// Nearest-neighbor ordering — minimizes zigzagging
 const nearestNeighbor = (start, stops) => {
   const ordered = [];
   const remaining = [...stops];
@@ -195,30 +204,62 @@ const buildSchedule = (stops, segments) => {
   };
 };
 
+// ── buildRoute: recompute route for a user-selected subset of stops ────────────
+// Called when user checks/unchecks stops and clicks UPDATE ROUTE.
+export const buildRoute = async (startCoords, stops) => {
+  if (!stops.length) return null;
+  // Preserve drive-in at end
+  const driveIns = stops.filter(s => s.type === 'drivein');
+  const others   = stops.filter(s => s.type !== 'drivein');
+  const ordered  = [...nearestNeighbor(startCoords, others), ...driveIns];
+  const waypoints = [startCoords, ...ordered.map(s => s.coords), startCoords];
+  const segments  = await Promise.all(
+    waypoints.slice(0, -1).map((pt, i) => getSegment(pt, waypoints[i + 1]))
+  );
+  return {
+    stops:            ordered,
+    routeCoordinates: segments.flat(),
+    segments,
+    schedule:         buildSchedule(ordered, segments),
+  };
+};
+
 // ── Main export ───────────────────────────────────────────────────────────────
-// Stop selection rules by duration:
-//   quick:   1 cafe (required) + 0-1 variety — NO restaurant, NO drivein
-//   halfDay: 1 cafe + 1 bookstore + 1 restaurant + 1 variety — drivein excluded
-//   fullDay: 1 cafe + 1 bookstore + 1 restaurant + 3 variety + optional drivein LAST
+// Generates MORE stops than strictly needed so the user can choose their itinerary.
+// Stop selection rules:
+//   quick:   1 cafe (required) + 2 variety — NO restaurant, NO drivein
+//   halfDay: 1 cafe + 1 bookstore + 1 restaurant + 3 variety — NO drivein
+//   fullDay: 1 cafe + 1 bookstore + 1 restaurant + 6 variety + optional drivein LAST
 //
-// variant:     integer >= 0, increments on each regenerate to rotate candidate pools
-// excludedIds: Set of place IDs already shown this session
+// Google Places (New) API v1 type names only — invalid types cause silent batch failures.
+// Verified valid types: museum, art_gallery, zoo, aquarium, park, national_park,
+//   botanical_garden, restaurant, music_store, garden_center, observatory, planetarium
 export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set()) => {
   const radius  = RADIUS_MILES[duration];
   const rMeters = Math.min(radius * 1609.34, 50000);
 
-  // Fetch all categories in parallel (skip restaurant for quick trips)
-  const [literary, cultural, scenic, nature, meal] = await Promise.all([
+  console.log(`[DayTrip] generating ${duration} trip from [${startCoords}] variant=${variant}`);
+
+  // Fetch all categories in parallel.
+  // Each call uses ONLY verified Google Places (New) v1 type names.
+  const [literary, museums, wildlife, nature, restaurants, music, garden, observatory] = await Promise.all([
     fetchLiterary(startCoords, radius),
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
-      ['museum', 'art_gallery', 'history_museum', 'science_museum'], 'museum'),
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
-      ['tourist_attraction', 'viewpoint', 'zoo', 'aquarium'], 'scenic'),
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
-      ['park', 'botanical_garden', 'national_park', 'nature_reserve'], 'park'),
+    // Cultural — verified types only (history_museum/science_museum are NOT valid v1 types)
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['museum', 'art_gallery'], 'museum'),
+    // Wildlife — zoo and aquarium are valid v1 types
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['zoo', 'aquarium'], 'scenic'),
+    // Nature — park, national_park, botanical_garden are valid v1 types
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['park', 'national_park', 'botanical_garden'], 'park'),
+    // Meal — skip for quick trips
     duration !== 'quick'
       ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['restaurant'], 'restaurant')
       : Promise.resolve([]),
+    // Music stores
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['music_store'], 'music'),
+    // Plant nurseries / garden centers
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['garden_center'], 'garden'),
+    // Observatories & planetariums (educational)
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['observatory', 'planetarium'], 'observatory'),
   ]);
 
   // Split literary pool by subtype
@@ -227,47 +268,67 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const landmarks  = literary.filter(p => p.type === 'landmark');
   const driveins   = literary.filter(p => p.type === 'drivein');
 
-  // Sort by distance, then rotate for variant so regenerate gives different picks
+  // Sort by distance, rotate for variant so regenerate yields different picks
   const rotate = (pool) => rotatePool(tagDistance(pool, startCoords), variant);
   const cafePool  = rotate(cafes);
   const bookPool  = rotate(bookstores);
   const landPool  = rotate(landmarks);
   const drivePool = rotate(driveins);
-  const cultPool  = rotate(cultural);
-  const scenPool  = rotate(scenic);
+  const musePool  = rotate(museums);
+  const wildPool  = rotate(wildlife);
   const parkPool  = rotate(nature);
-  const mealPool  = rotate(meal);
+  const mealPool  = rotate(restaurants);
+  const musiPool  = rotate(music);
+  const gardPool  = rotate(garden);
+  const obsvPool  = rotate(observatory);
 
   const stops   = [];
   const usedIds = new Set(excludedIds);
-  const typesPicked = new Set(); // enforce 1 of each type
+  // How many of each type we've picked — allow 1 of guaranteed types, up to 2 of variety
+  const typeCounts = {};
+  const MAX_PER_TYPE = {
+    cafe: 1, bookstore: 1, restaurant: 1, drivein: 1,
+    museum: 2, scenic: 2, park: 2, landmark: 2,
+    music: 1, garden: 1, observatory: 1,
+  };
 
-  // Pick the first available item from a pool that hasn't been used or type-picked
   const pick = (pool, type) => {
-    if (typesPicked.has(type)) return false;
+    const max = MAX_PER_TYPE[type] ?? 2;
+    if ((typeCounts[type] || 0) >= max) return false;
     const p = pool.find(p => !usedIds.has(p.id));
     if (!p) return false;
     usedIds.add(p.id);
-    typesPicked.add(type);
+    typeCounts[type] = (typeCounts[type] || 0) + 1;
     stops.push(p);
     return true;
   };
 
-  // STEP 1: Guaranteed priority picks (in order)
-  pick(cafePool, 'cafe');                                    // Always: 1 coffee shop
-  if (duration !== 'quick') pick(bookPool, 'bookstore');     // half/full day: 1 bookstore
-  if (duration !== 'quick') pick(mealPool, 'restaurant');    // half/full day: 1 restaurant
-
-  // STEP 2: Fill remaining slots with one-of-each variety
-  // Cycle through variety types; stop when target reached or all pools exhausted
   const target = STOP_TARGETS[duration];
+
+  // STEP 1: Guaranteed priority picks
+  pick(cafePool, 'cafe');                                 // Always: 1 coffee shop
+  if (duration !== 'quick') pick(bookPool, 'bookstore'); // half/full: 1 bookstore
+  if (duration !== 'quick') pick(mealPool, 'restaurant');// half/full: 1 restaurant
+
+  // STEP 2: Fill remaining slots cycling through ALL variety pools
+  // Ordering: museum → wildlife → park → landmark → music → garden → observatory
+  // → 2nd museum → 2nd wildlife → 2nd park → 2nd landmark (for fullDay overflow)
   const varietyPools = [
-    { pool: cultPool, type: 'museum'   },
-    { pool: scenPool, type: 'scenic'   },
-    { pool: parkPool, type: 'park'     },
-    { pool: landPool, type: 'landmark' },
+    { pool: musePool,  type: 'museum'      },
+    { pool: wildPool,  type: 'scenic'      },
+    { pool: parkPool,  type: 'park'        },
+    { pool: landPool,  type: 'landmark'    },
+    { pool: musiPool,  type: 'music'       },
+    { pool: gardPool,  type: 'garden'      },
+    { pool: obsvPool,  type: 'observatory' },
+    // Second-pass for long trips
+    { pool: musePool,  type: 'museum'      },
+    { pool: wildPool,  type: 'scenic'      },
+    { pool: parkPool,  type: 'park'        },
+    { pool: landPool,  type: 'landmark'    },
   ];
-  let vi = variant % varietyPools.length;
+
+  let vi = variant % 7; // start offset within first 7 unique types
   let noPickStreak = 0;
   while (stops.length < target && noPickStreak < varietyPools.length) {
     const { pool, type } = varietyPools[vi % varietyPools.length];
@@ -275,13 +336,15 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     vi++;
   }
 
+  console.log(`[DayTrip] selected ${stops.length} stops:`,
+    stops.map(s => `${s.type}:${s.name}`).join(' | '));
+
   if (!stops.length) return null;
 
-  // STEP 3: Order non-drivein stops by nearest-neighbor (minimize zigzagging)
-  const ordered = nearestNeighbor(startCoords, stops);
+  // STEP 3: Nearest-neighbor ordering (drive-ins always last)
+  const ordered = [...nearestNeighbor(startCoords, stops)];
 
-  // STEP 4: For full-day trips, optionally append a drive-in as the very last stop
-  // (drive-ins run in the evening — always the final destination, never mid-route)
+  // STEP 4: For full-day trips, optionally append a drive-in as the final stop
   if (duration === 'fullDay') {
     const driveIn = drivePool.find(p => !usedIds.has(p.id));
     if (driveIn) ordered.push(driveIn);
@@ -293,10 +356,10 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   );
 
   return {
-    stops: ordered,
+    stops:            ordered,
     routeCoordinates: segments.flat(),
     segments,
-    schedule: buildSchedule(ordered, segments),
+    schedule:         buildSchedule(ordered, segments),
     duration,
     startCoords,
   };
