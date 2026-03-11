@@ -10,6 +10,7 @@ import { MAP_CONFIG } from '../config/config';
 import { searchAlongRoute, geocodeCity, getPlaceCoords, searchNearbyPlaces, autocompleteCity, searchPlacesByText } from '../utils/googlePlaces';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
+import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
@@ -365,6 +366,29 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
           <line x1="20" y1="24" x2="20" y2="32" stroke="#E040FB" stroke-width="2" stroke-linecap="round"/>
           <!-- Base -->
           <line x1="14" y1="32" x2="26" y2="32" stroke="#E040FB" stroke-width="2.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `,
+
+    // SPARKLE STAR — Literary Book Festivals (Purple/Violet)
+    festival: `
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-purple-${uid}">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-purple-${uid})" class="neon-marker">
+          <!-- 8-point star -->
+          <path d="M 20 7 L 22.5 15.5 L 31 13 L 25.5 19.5 L 33 22 L 25.5 24.5 L 28 33 L 20.5 27.5 L 18 36 L 15.5 28 L 7 31 L 12.5 24.5 L 5 22 L 12.5 19.5 L 8 12 L 17.5 14.5 Z"
+                fill="none" stroke="#B044FB" stroke-width="2" stroke-linejoin="round"/>
+          <!-- Center circle -->
+          <circle cx="20" cy="21" r="3" fill="none" stroke="#B044FB" stroke-width="1.5"/>
         </g>
       </svg>
     `,
@@ -1182,11 +1206,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const places = await searchNearbyPlaces(latitude, longitude, 10);
+        const [places, nearFestivals] = await Promise.all([
+          searchNearbyPlaces(latitude, longitude, 10),
+          Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 75)),
+        ]);
 
         setMapCenter([latitude, longitude]);
         setMapZoom(12);
-        setVisibleLocations(places);
+        setVisibleLocations([...places, ...nearFestivals]);
         setShowPlanner(false);
         setRoute([]);
         setLoading(false);
@@ -1275,8 +1302,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         }
       };
 
+      const festivals = getLiteraryFestivalsAlongRoute(allTripPoints, 100);
       const phase1Locations = [];
-      mergeInto(phase1Locations, [...curatedLandmarks, ...places, ...destPlaces]);
+      mergeInto(phase1Locations, [...curatedLandmarks, ...festivals, ...places, ...destPlaces]);
       setVisibleLocations(phase1Locations);
 
       // Fit map to route immediately
@@ -2415,6 +2443,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {selectedLocation.type === 'drivein' && (
                   <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#E040FB', borderColor: '#E040FB' }}>🎬 DRIVE-IN</span>
                 )}
+                {selectedLocation.type === 'festival' && (
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#B044FB', borderColor: '#B044FB' }}>🎪 BOOK FESTIVAL</span>
+                )}
                 {starburstIds.has(selectedLocation.id) && (
                   <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
                 )}
@@ -2424,14 +2455,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </h2>
             </div>
 
-            {/* Pit stop rating */}
-            <PitStopRating
-              key={selectedLocation.id}
-              locationId={selectedLocation.id}
-              user={user}
-              onShowLogin={onShowLogin}
-              onStarburstChange={handleStarburstChange}
-            />
+            {/* Pit stop rating — not shown for festivals (they're events, not permanent venues) */}
+            {selectedLocation.type !== 'festival' && (
+              <PitStopRating
+                key={selectedLocation.id}
+                locationId={selectedLocation.id}
+                user={user}
+                onShowLogin={onShowLogin}
+                onStarburstChange={handleStarburstChange}
+              />
+            )}
 
             {/* Tab bar — bookstores & cafes only */}
             {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
@@ -2459,8 +2492,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </div>
             )}
 
-            {/* Tab: Info (or full content for landmarks) */}
-            {(selectedLocation.type === 'landmark' || shelfTab === 'info') && (
+            {/* Tab: Info (or full content for landmarks + festivals) */}
+            {(selectedLocation.type === 'landmark' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
               <div>
                 <p className="text-paper-white font-special-elite text-sm mb-2 line-clamp-3 md:line-clamp-none">
                   {selectedLocation.description}
@@ -2485,6 +2518,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </div>
                 )}
 
+                {/* Festival-specific: dates and schedule */}
+                {selectedLocation.type === 'festival' && selectedLocation.typicalMonth && (
+                  <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
+                    <span className="flex-shrink-0">📅</span>
+                    <span>
+                      <span className="text-paper-white">{selectedLocation.typicalMonth}</span>
+                      {selectedLocation.recurringPattern && (
+                        <span className="text-chrome-silver/60"> · {selectedLocation.recurringPattern}</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+
                 {selectedLocation.url && (
                   <a
                     href={selectedLocation.url}
@@ -2493,7 +2539,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
                   >
                     <span>
-                      {selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' :
+                      {selectedLocation.type === 'festival' ? 'Visit Festival Website' :
+                       selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' :
                        selectedLocation.type === 'drivein' ? 'Visit website' : 'Read more on Wikipedia'}
                     </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2517,8 +2564,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </p>
                 )}
 
-                {/* Landmarks keep Guestbook inline */}
-                {selectedLocation.type === 'landmark' && (
+                {/* Landmarks keep Guestbook inline (festivals are events, not permanent venues) */}
+                {selectedLocation.type === 'landmark' && selectedLocation.type !== 'festival' && (
                   <Guestbook
                     key={selectedLocation.id}
                     locationId={selectedLocation.id}
