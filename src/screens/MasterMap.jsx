@@ -23,6 +23,7 @@ import HitchhikerTale from '../components/HitchhikerTale';
 import PostcardStudio from '../components/PostcardStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
+import TripProgressPanel from '../components/TripProgressPanel';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -579,6 +580,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [starburstIds, setStarburstIds] = useState(new Set());
   const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
+  const [activeTripStops, setActiveTripStops] = useState(saved.tripStops ?? []);
   const [showUserMenu, setShowUserMenu]   = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHamburger, setShowHamburger] = useState(false);
@@ -1299,6 +1301,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     if (routeStateRef) {
       routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
     }
+    setActiveTripStops([]);
     // Go back to the state selector — that's the 50-state interactive map
     onHome();
   };
@@ -2189,8 +2192,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </>
       )}
 
-      {/* Route Info */}
-      {route.length > 0 && !selectedLocation && (
+      {/* Day Trip Progress Panel */}
+      {activeTripStops.length > 0 && route.length > 0 && !selectedLocation && (
+        <div className="absolute bottom-4 md:bottom-8 inset-x-3 md:inset-x-8 z-[1000] max-w-lg mx-auto">
+          <TripProgressPanel
+            stops={activeTripStops}
+            startCoords={activeTripStops[0]?.coords ?? null}
+            onDismiss={() => setActiveTripStops([])}
+          />
+        </div>
+      )}
+
+      {/* Route Info — shown when no day trip panel */}
+      {route.length > 0 && !selectedLocation && activeTripStops.length === 0 && (
         <div className="absolute bottom-4 md:bottom-8 inset-x-4 z-[1000] flex justify-center">
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">

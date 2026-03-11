@@ -15,6 +15,25 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+// ── Navigation URL builders ───────────────────────────────────────────────────
+const buildGoogleMapsUrl = (startCoords, stops) => {
+  if (!stops.length || !startCoords) return null;
+  const origin = `${startCoords[0]},${startCoords[1]}`;
+  const waypoints = stops.slice(0, 9).map(s => `${s.coords[0]},${s.coords[1]}`).join('|');
+  const params = new URLSearchParams({ api: '1', origin, destination: origin, travelmode: 'driving' });
+  if (waypoints) params.set('waypoints', waypoints);
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
+const buildAppleMapsUrl = (startCoords, stops) => {
+  if (!stops.length || !startCoords) return null;
+  const saddr = `${startCoords[0]},${startCoords[1]}`;
+  const daddr = `${stops[0].coords[0]},${stops[0].coords[1]}`;
+  return `https://maps.apple.com/?saddr=${saddr}&daddr=${daddr}&dirflg=d`;
+};
+
+const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
 const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️', scenic: '🦁', music: '🎵', garden: '🪴', observatory: '🔭', flea: '🏪', antique: '🪑', historical: '🏛️' };
 
 const makeStopMarker = (num) => L.divIcon({
@@ -129,6 +148,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [tripCount, setTripCount]     = useState(1);
   const [variant, setVariant]         = useState(0);
   const [excludedIds, setExcludedIds] = useState(new Set());
+
+  // Navigation modal
+  const [showNavModal, setShowNavModal] = useState(false);
 
   // Checkbox / update-route state
   const [checkedIds, setCheckedIds]         = useState(new Set());
@@ -286,11 +308,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
   const handleLoadOnMap = () => {
     const routeData = activeTrip || trip;
+    setShowNavModal(false);
     onLoadTrip({
       startCity:        startText,
       endCity:          startText,
       route:            routeData.routeCoordinates,
       visibleLocations: routeData.stops,
+      tripStops:        routeData.stops, // ordered list for progress tracker
       showPlanner:      false,
     });
   };
@@ -617,15 +641,15 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 </button>
               )}
 
-              <button onClick={handleLoadOnMap} disabled={checkedIds.size === 0}
+              <button onClick={() => setShowNavModal(true)} disabled={checkedIds.size === 0}
                 className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 flex items-center justify-center gap-2"
+                style={{ boxShadow: checkedIds.size > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none' }}
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                START NAVIGATION
+                🗺️ NAVIGATE THIS TRIP
               </button>
+              <p className="text-chrome-silver/40 font-special-elite text-xs text-center -mt-1">
+                Opens navigation with all {checkedIds.size} selected stops
+              </p>
 
               {saved ? (
                 <div className="w-full border border-starlight-turquoise text-starlight-turquoise font-bungee py-3.5 rounded-xl text-center text-sm">
@@ -675,6 +699,86 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           >
             GENERATE DAY TRIP →
           </button>
+        </div>
+      )}
+
+      {/* ── Navigation modal ── */}
+      {showNavModal && activeTrip && (
+        <div
+          className="fixed inset-0 z-[2000] flex items-end justify-center"
+          style={{ background: 'rgba(0,0,0,0.65)' }}
+          onClick={() => setShowNavModal(false)}
+        >
+          <div
+            className="w-full max-w-lg bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl px-5 pt-5 pb-8 space-y-3"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="mb-1">
+              <h3 className="text-starlight-turquoise font-bungee text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
+                NAVIGATE YOUR TRIP
+              </h3>
+              <p className="text-chrome-silver/60 font-special-elite text-xs">
+                {checkedIds.size} stop{checkedIds.size !== 1 ? 's' : ''} · ~{activeTrip.schedule.totalMiles} mi · starts and ends at your location
+              </p>
+            </div>
+
+            {/* Google Maps — primary */}
+            {(() => {
+              const url = buildGoogleMapsUrl(startCoords, activeTrip.stops);
+              return url ? (
+                <a href={url} target="_blank" rel="noopener noreferrer"
+                  className="w-full flex items-center gap-3 bg-[#4285F4]/15 border-2 border-[#4285F4]/60 hover:border-[#4285F4] text-paper-white font-bungee py-3.5 px-4 rounded-xl transition-all"
+                >
+                  <span className="text-xl">🗺️</span>
+                  <div className="flex-1 text-left">
+                    <span className="block text-sm">Google Maps</span>
+                    <span className="block text-chrome-silver/50 font-special-elite text-xs normal-case font-normal">
+                      All {activeTrip.stops.length} stops pre-loaded · turn-by-turn navigation
+                    </span>
+                  </div>
+                  <span className="text-[#4285F4] font-special-elite text-xs">Recommended</span>
+                </a>
+              ) : null;
+            })()}
+
+            {/* Apple Maps — iOS only */}
+            {isIOS() && (() => {
+              const url = buildAppleMapsUrl(startCoords, activeTrip.stops);
+              return url ? (
+                <a href={url} target="_blank" rel="noopener noreferrer"
+                  className="w-full flex items-center gap-3 bg-black/30 border border-chrome-silver/20 hover:border-chrome-silver/50 text-paper-white font-bungee py-3 px-4 rounded-xl transition-all"
+                >
+                  <span className="text-xl">🍎</span>
+                  <div className="flex-1 text-left">
+                    <span className="block text-sm">Apple Maps</span>
+                    <span className="block text-chrome-silver/40 font-special-elite text-xs normal-case font-normal">
+                      First stop only · multi-stop not supported
+                    </span>
+                  </div>
+                </a>
+              ) : null;
+            })()}
+
+            {/* Load in App */}
+            <button onClick={handleLoadOnMap}
+              className="w-full flex items-center gap-3 bg-starlight-turquoise/10 border border-starlight-turquoise/30 hover:border-starlight-turquoise/70 text-paper-white font-bungee py-3 px-4 rounded-xl transition-all"
+            >
+              <span className="text-xl">📍</span>
+              <div className="flex-1 text-left">
+                <span className="block text-sm">View in Literary Roads</span>
+                <span className="block text-chrome-silver/40 font-special-elite text-xs normal-case font-normal">
+                  Shows stops on the book map · in-app progress tracker
+                </span>
+              </div>
+            </button>
+
+            <button onClick={() => setShowNavModal(false)}
+              className="w-full text-chrome-silver/50 hover:text-chrome-silver font-special-elite text-sm py-2"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
     </div>

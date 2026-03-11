@@ -126,9 +126,9 @@ function AppInner() {
     setScreen('dayTripPlanner');
   };
 
-  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner }) => {
+  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops }) => {
     setSelectedStates([]);
-    const ref = { startCity, endCity, route, visibleLocations, showPlanner };
+    const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [] };
     if (route?.length > 0) {
       const lats = route.map(p => p[0]);
       const lngs = route.map(p => p[1]);
