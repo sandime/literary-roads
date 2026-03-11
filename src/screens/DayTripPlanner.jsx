@@ -95,7 +95,7 @@ const LocationInput = ({ value, onChange, onSelect, placeholder }) => {
               onPointerDown={() => { onSelect(s.label || s.display || s); setShowDrop(false); }}
               className="px-3 py-2.5 cursor-pointer hover:bg-starlight-turquoise/10 text-paper-white font-special-elite text-sm border-b border-starlight-turquoise/10 last:border-0"
             >
-              {s.display || s.label || s}
+              {s.label || s.display || s}
             </li>
           ))}
         </ul>
@@ -115,13 +115,17 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [startText, setStartText]   = useState('');
   const [startCoords, setStartCoords] = useState(null);
   const [duration, setDuration]     = useState('halfDay');
-  const types = { bookstore: true, cafe: true, landmark: true, drivein: true };
 
   // Result state
   const [trip, setTrip]       = useState(null);
   const [genError, setGenError] = useState('');
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
+
+  // Regenerate tracking
+  const [tripCount, setTripCount]     = useState(1);
+  const [variant, setVariant]         = useState(0);
+  const [excludedIds, setExcludedIds] = useState(new Set());
 
   const mapRef = useRef(null);
 
@@ -137,24 +141,28 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       const coords = await geocodeCity(startText, null);
       if (!coords) { setGenError('Please enter a valid starting location.'); return; }
       setStartCoords([coords.lat, coords.lng]);
-      await doGenerate([coords.lat, coords.lng]);
+      setTripCount(1);
+      await doGenerate([coords.lat, coords.lng], 0, new Set());
     } else {
-      await doGenerate(startCoords);
+      setTripCount(1);
+      await doGenerate(startCoords, 0, new Set());
     }
   };
 
-  const doGenerate = async (coords) => {
+  const doGenerate = async (coords, nextVariant = 0, nextExcluded = new Set()) => {
     setGenError('');
     setStep('generating');
     setSaved(false);
     try {
-      const result = await generateDayTrip(coords, duration);
+      const result = await generateDayTrip(coords, duration, nextVariant, nextExcluded);
       if (!result || !result.stops.length) {
         setGenError('No locations found nearby. Try a different city or wider time range.');
         setStep('input');
         return;
       }
       setTrip(result);
+      setVariant(nextVariant);
+      setExcludedIds(nextExcluded);
       setStep('result');
     } catch (e) {
       console.error('[DayTripPlanner] generation error:', e);
@@ -163,9 +171,23 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     }
   };
 
+  // Regenerate in-place: accumulate shown stop IDs, advance variant
   const handleRegenerate = () => {
+    if (!startCoords) { setStep('input'); return; }
+    const nextExcluded = new Set(excludedIds);
+    trip?.stops?.forEach(s => nextExcluded.add(s.id));
+    const nextVariant = variant + 1;
+    setTripCount(c => c + 1);
+    doGenerate(startCoords, nextVariant, nextExcluded);
+  };
+
+  // Back to input (full reset)
+  const handleBackToInput = () => {
     setTrip(null);
     setSaved(false);
+    setTripCount(1);
+    setVariant(0);
+    setExcludedIds(new Set());
     setStep('input');
   };
 
@@ -232,7 +254,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3 flex items-center gap-3">
-        <button onClick={step === 'result' ? handleRegenerate : onBack}
+        <button onClick={step === 'result' ? handleBackToInput : onBack}
           className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
           style={{ minWidth:40, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
         >
@@ -242,7 +264,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         </button>
         <div className="flex-1">
           <h1 className="text-starlight-turquoise font-bungee text-lg leading-tight drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
-            {step === 'result' ? 'YOUR DAY TRIP' : 'PLAN A DAY TRIP'}
+            {step === 'result' ? `DAY TRIP #${tripCount}` : 'PLAN A DAY TRIP'}
           </h1>
           {step === 'result' && trip && (
             <p className="text-chrome-silver font-special-elite text-xs mt-0.5">
@@ -254,7 +276,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           <button onClick={handleRegenerate}
             className="text-atomic-orange hover:text-starlight-turquoise transition-colors font-bungee text-xs border border-atomic-orange hover:border-starlight-turquoise px-3 py-1.5 rounded-full flex-shrink-0"
           >
-            ↺ REDO
+            ↺ NEW TRIP
           </button>
         )}
       </div>

@@ -5,22 +5,22 @@ export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
 // How many of each category to target per duration
 const TARGETS = {
-  quick:   { literary: 2, cultural: 0, nature: 0, meal: 0 },
-  halfDay: { literary: 2, cultural: 1, nature: 0, meal: 0 },
-  fullDay: { literary: 3, cultural: 1, nature: 1, meal: 1 },
+  quick:   { literary: 2, cultural: 0, scenic: 0, nature: 0, meal: 0 },
+  halfDay: { literary: 2, cultural: 1, scenic: 1, nature: 0, meal: 0 },
+  fullDay: { literary: 3, cultural: 1, scenic: 1, nature: 1, meal: 1 },
 };
 
 // Max of any single type in one trip
 const TYPE_LIMITS = {
   bookstore: 2, cafe: 2, landmark: 2, drivein: 1,
   museum: 1, art_gallery: 1, park: 2, nature: 2,
-  restaurant: 1,
+  restaurant: 1, scenic: 1, zoo: 1, aquarium: 1,
 };
 
 export const VISIT_MINUTES = {
   bookstore: 60, cafe: 30, landmark: 45, drivein: 120,
   museum: 90, art_gallery: 75, park: 45, nature: 45,
-  restaurant: 60,
+  restaurant: 60, scenic: 30, zoo: 90, aquarium: 90,
 };
 
 const AVG_SPEED_MPH = 35;
@@ -52,6 +52,7 @@ const segmentMiles = (pts) => {
 // ── Google Places fetch helpers ──────────────────────────────────────────────
 
 // Fetch a single category directly from Google Places (New) API
+// Returns up to 10 candidates so rotation has enough variety
 const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabel) => {
   const key = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
   if (!key) return [];
@@ -65,7 +66,7 @@ const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabe
       },
       body: JSON.stringify({
         includedTypes,
-        maxResultCount: 5,
+        maxResultCount: 10,
         locationRestriction: {
           circle: {
             center: { latitude: lat, longitude: lng },
@@ -127,11 +128,19 @@ const tagDistance = (places, origin) =>
     .filter(p => isFinite(p._distMiles))
     .sort((a, b) => a._distMiles - b._distMiles);
 
-// Pick up to `n` from a pool, respecting the per-type limit
-const pickFromPool = (pool, n, typeCounts) => {
+// Rotate pool by `n` positions so regenerate gives different candidates
+const rotatePool = (pool, n) => {
+  if (!pool.length || n === 0) return pool;
+  const offset = n % pool.length;
+  return [...pool.slice(offset), ...pool.slice(0, offset)];
+};
+
+// Pick up to `n` from a pool, respecting per-type limits and excluded IDs
+const pickFromPool = (pool, n, typeCounts, excludedIds) => {
   const picked = [];
   for (const p of pool) {
     if (picked.length >= n) break;
+    if (excludedIds.has(p.id)) continue;
     const limit = TYPE_LIMITS[p.type] ?? 2;
     if ((typeCounts[p.type] || 0) >= limit) continue;
     typeCounts[p.type] = (typeCounts[p.type] || 0) + 1;
@@ -142,9 +151,10 @@ const pickFromPool = (pool, n, typeCounts) => {
 
 // ── Routing helpers ──────────────────────────────────────────────────────────
 
+// Use overview=full for short city segments — simplified is too coarse at city scale
 const getSegment = async (from, to) => {
   if (!from || !to) return [from || to, to || from].filter(Boolean);
-  const seg = await getMapboxRoute(from[0], from[1], to[0], to[1]);
+  const seg = await getMapboxRoute(from[0], from[1], to[0], to[1], true);
   if (seg?.length > 1) return seg;
   return Array.from({ length: 10 }, (_, i) => [
     from[0] + (to[0] - from[0]) * i / 9,
@@ -194,55 +204,78 @@ const buildSchedule = (stops, segments) => {
 };
 
 // ── Main export ───────────────────────────────────────────────────────────────
-export const generateDayTrip = async (startCoords, duration) => {
+// variant: integer >= 0, increments on each regenerate to rotate candidate pools
+// excludedIds: Set of place IDs already shown, skipped on regenerate
+export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set()) => {
   const radius  = RADIUS_MILES[duration];
   const targets = TARGETS[duration];
   const rMeters = Math.min(radius * 1609.34, 50000);
 
   // Fetch all categories in parallel
-  const [literary, cultural, nature, meal] = await Promise.all([
+  const [literary, cultural, scenic, nature, meal] = await Promise.all([
     fetchLiterary(startCoords, radius),
     targets.cultural > 0
-      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['museum', 'art_gallery'], 'museum')
+      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
+          ['museum', 'art_gallery', 'history_museum', 'science_museum'], 'museum')
+      : Promise.resolve([]),
+    targets.scenic > 0
+      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
+          ['tourist_attraction', 'viewpoint', 'zoo', 'aquarium'], 'scenic')
       : Promise.resolve([]),
     targets.nature > 0
-      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['park', 'botanical_garden', 'national_park'], 'park')
+      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
+          ['park', 'botanical_garden', 'national_park', 'nature_reserve'], 'park')
       : Promise.resolve([]),
     targets.meal > 0
       ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['restaurant'], 'restaurant')
       : Promise.resolve([]),
   ]);
 
-  // Tag distances
-  const litDist  = tagDistance(literary, startCoords);
-  const cultDist = tagDistance(cultural, startCoords);
-  const natDist  = tagDistance(nature,   startCoords);
-  const mealDist = tagDistance(meal,     startCoords);
+  // Tag distances, then rotate each pool by variant so regenerate yields different picks
+  const litDist  = rotatePool(tagDistance(literary, startCoords), variant);
+  const cultDist = rotatePool(tagDistance(cultural, startCoords), variant);
+  const scenDist = rotatePool(tagDistance(scenic,   startCoords), variant);
+  const natDist  = rotatePool(tagDistance(nature,   startCoords), variant);
+  const mealDist = rotatePool(tagDistance(meal,     startCoords), variant);
 
-  // Pick stops per category respecting type limits
+  // Pick stops per category respecting type limits and excluding already-seen stops
   const typeCounts = {};
   const stops = [
-    ...pickFromPool(litDist,  targets.literary,  typeCounts),
-    ...pickFromPool(cultDist, targets.cultural,  typeCounts),
-    ...pickFromPool(natDist,  targets.nature,    typeCounts),
-    ...pickFromPool(mealDist, targets.meal,      typeCounts),
+    ...pickFromPool(litDist,  targets.literary,  typeCounts, excludedIds),
+    ...pickFromPool(cultDist, targets.cultural,  typeCounts, excludedIds),
+    ...pickFromPool(scenDist, targets.scenic,    typeCounts, excludedIds),
+    ...pickFromPool(natDist,  targets.nature,    typeCounts, excludedIds),
+    ...pickFromPool(mealDist, targets.meal,      typeCounts, excludedIds),
   ];
 
   if (!stops.length) return null;
 
-  // Sort stops by distance for an efficient loop
-  stops.sort((a, b) => a._distMiles - b._distMiles);
+  // Order stops using nearest-neighbor to minimize zigzagging
+  const ordered = [];
+  const remaining = [...stops];
+  let current = startCoords;
+  while (remaining.length) {
+    let bestIdx = 0;
+    let bestDist = haversine(current, remaining[0].coords);
+    for (let i = 1; i < remaining.length; i++) {
+      const d = haversine(current, remaining[i].coords);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    }
+    ordered.push(remaining[bestIdx]);
+    current = remaining[bestIdx].coords;
+    remaining.splice(bestIdx, 1);
+  }
 
-  const waypoints = [startCoords, ...stops.map(s => s.coords), startCoords];
+  const waypoints = [startCoords, ...ordered.map(s => s.coords), startCoords];
   const segments  = await Promise.all(
     waypoints.slice(0, -1).map((pt, i) => getSegment(pt, waypoints[i + 1]))
   );
 
   return {
-    stops,
+    stops: ordered,
     routeCoordinates: segments.flat(),
     segments,
-    schedule: buildSchedule(stops, segments),
+    schedule: buildSchedule(ordered, segments),
     duration,
     startCoords,
   };

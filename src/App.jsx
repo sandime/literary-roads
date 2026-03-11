@@ -128,7 +128,25 @@ function AppInner() {
 
   const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner }) => {
     setSelectedStates([]);
-    routeStateRef.current = { startCity, endCity, route, visibleLocations, showPlanner };
+    const ref = { startCity, endCity, route, visibleLocations, showPlanner };
+    if (route?.length > 0) {
+      const lats = route.map(p => p[0]);
+      const lngs = route.map(p => p[1]);
+      const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+      const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+      const maxDiff = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
+      let zoom = 10;
+      if (maxDiff > 10) zoom = 6;
+      else if (maxDiff > 5) zoom = 7;
+      else if (maxDiff > 2) zoom = 8;
+      else if (maxDiff > 1) zoom = 9;
+      else if (maxDiff > 0.5) zoom = 10;
+      else if (maxDiff > 0.2) zoom = 11;
+      else zoom = 12;
+      ref.mapCenter = [midLat, midLng];
+      ref.mapZoom   = zoom;
+    }
+    routeStateRef.current = ref;
     setScreen('map');
   };
 

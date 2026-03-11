@@ -2,10 +2,12 @@
 const MAPBOX_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 // Get real driving route between two points
-export const getMapboxRoute = async (startLat, startLng, endLat, endLng) => {
+// overviewFull=true returns full road geometry (better for short city segments)
+export const getMapboxRoute = async (startLat, startLng, endLat, endLng, overviewFull = false) => {
   try {
+    const overview = overviewFull ? 'full' : 'simplified';
     const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${startLng},${startLat};${endLng},${endLat}?` +
-      `geometries=geojson&overview=simplified&` +
+      `geometries=geojson&overview=${overview}&` +
       `access_token=${MAPBOX_ACCESS_TOKEN}`;
 
     const response = await fetch(url);
