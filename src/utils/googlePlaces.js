@@ -511,6 +511,55 @@ export const autocompleteCity = async (input, regionCodes = ['US']) => {
   }
 };
 
+// Autocomplete for precise addresses (street addresses, neighborhoods, landmarks)
+export const autocompleteAddress = async (input, regionCodes = ['US']) => {
+  if (!input || input.length < 2) return [];
+  try {
+    const response = await fetch(
+      'https://places.googleapis.com/v1/places:autocomplete',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        },
+        body: JSON.stringify({
+          input,
+          includedRegionCodes: regionCodes,
+          // No includedPrimaryTypes — returns addresses, businesses, neighborhoods
+        }),
+      }
+    );
+    const data = await response.json();
+    if (!data.suggestions) return [];
+    return data.suggestions
+      .filter(s => s.placePrediction)
+      .slice(0, 6)
+      .map(s => {
+        const pred = s.placePrediction;
+        const text = pred.text?.text || '';
+        return { id: pred.placeId, display: text, label: text, placeId: pred.placeId };
+      });
+  } catch (err) {
+    console.error('Address autocomplete error:', err);
+    return [];
+  }
+};
+
+// Reverse geocode coordinates to a human-readable address string
+export const reverseGeocode = async (lat, lng) => {
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_PLACES_API_KEY}`
+    );
+    const data = await response.json();
+    if (data.results?.length > 0) return data.results[0].formatted_address;
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  } catch {
+    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+  }
+};
+
 // Text search for bookstores, cafes, and landmarks anywhere in the US
 export const searchPlacesByText = async (query) => {
   if (!query || query.length < 2) return [];

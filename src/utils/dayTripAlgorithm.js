@@ -3,24 +3,13 @@ import { getMapboxRoute } from './mapbox';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
-// How many of each category to target per duration
-const TARGETS = {
-  quick:   { literary: 2, cultural: 0, scenic: 0, nature: 0, meal: 0 },
-  halfDay: { literary: 2, cultural: 1, scenic: 1, nature: 0, meal: 0 },
-  fullDay: { literary: 3, cultural: 1, scenic: 1, nature: 1, meal: 1 },
-};
-
-// Max of any single type in one trip
-const TYPE_LIMITS = {
-  bookstore: 2, cafe: 2, landmark: 2, drivein: 1,
-  museum: 1, art_gallery: 1, park: 2, nature: 2,
-  restaurant: 1, scenic: 1, zoo: 1, aquarium: 1,
-};
+// Total stop targets per duration (excluding optional drive-in)
+const STOP_TARGETS = { quick: 2, halfDay: 4, fullDay: 6 };
 
 export const VISIT_MINUTES = {
   bookstore: 60, cafe: 30, landmark: 45, drivein: 120,
   museum: 90, art_gallery: 75, park: 45, nature: 45,
-  restaurant: 60, scenic: 30, zoo: 90, aquarium: 90,
+  restaurant: 60, scenic: 30,
 };
 
 const AVG_SPEED_MPH = 35;
@@ -51,8 +40,6 @@ const segmentMiles = (pts) => {
 
 // ── Google Places fetch helpers ──────────────────────────────────────────────
 
-// Fetch a single category directly from Google Places (New) API
-// Returns up to 10 candidates so rotation has enough variety
 const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabel) => {
   const key = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
   if (!key) return [];
@@ -99,9 +86,9 @@ const fetchLiterary = async (center, radiusMiles) => {
   const points  = [center];
 
   if (radiusMiles > GOOGLE_MAX_RADIUS_MILES) {
-    const off    = radiusMiles * 0.5;
-    const latD   = off / 69;
-    const lngD   = off / (69 * Math.cos(center[0] * Math.PI / 180));
+    const off  = radiusMiles * 0.5;
+    const latD = off / 69;
+    const lngD = off / (69 * Math.cos(center[0] * Math.PI / 180));
     points.push(
       [center[0] + latD, center[1]],
       [center[0] - latD, center[1]],
@@ -120,7 +107,7 @@ const fetchLiterary = async (center, radiusMiles) => {
     .filter(p => p.coords);
 };
 
-// ── Stop selection ───────────────────────────────────────────────────────────
+// ── Stop selection helpers ────────────────────────────────────────────────────
 
 const tagDistance = (places, origin) =>
   places
@@ -128,25 +115,11 @@ const tagDistance = (places, origin) =>
     .filter(p => isFinite(p._distMiles))
     .sort((a, b) => a._distMiles - b._distMiles);
 
-// Rotate pool by `n` positions so regenerate gives different candidates
+// Rotate pool by n positions so regenerate gives different candidates
 const rotatePool = (pool, n) => {
   if (!pool.length || n === 0) return pool;
   const offset = n % pool.length;
   return [...pool.slice(offset), ...pool.slice(0, offset)];
-};
-
-// Pick up to `n` from a pool, respecting per-type limits and excluded IDs
-const pickFromPool = (pool, n, typeCounts, excludedIds) => {
-  const picked = [];
-  for (const p of pool) {
-    if (picked.length >= n) break;
-    if (excludedIds.has(p.id)) continue;
-    const limit = TYPE_LIMITS[p.type] ?? 2;
-    if ((typeCounts[p.type] || 0) >= limit) continue;
-    typeCounts[p.type] = (typeCounts[p.type] || 0) + 1;
-    picked.push(p);
-  }
-  return picked;
 };
 
 // ── Routing helpers ──────────────────────────────────────────────────────────
@@ -160,6 +133,25 @@ const getSegment = async (from, to) => {
     from[0] + (to[0] - from[0]) * i / 9,
     from[1] + (to[1] - from[1]) * i / 9,
   ]);
+};
+
+// Nearest-neighbor ordering — minimizes zigzagging
+const nearestNeighbor = (start, stops) => {
+  const ordered = [];
+  const remaining = [...stops];
+  let current = start;
+  while (remaining.length) {
+    let bestIdx = 0;
+    let bestDist = haversine(current, remaining[0].coords);
+    for (let i = 1; i < remaining.length; i++) {
+      const d = haversine(current, remaining[i].coords);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    }
+    ordered.push(remaining[bestIdx]);
+    current = remaining[bestIdx].coords;
+    remaining.splice(bestIdx, 1);
+  }
+  return ordered;
 };
 
 // ── Schedule ─────────────────────────────────────────────────────────────────
@@ -204,66 +196,95 @@ const buildSchedule = (stops, segments) => {
 };
 
 // ── Main export ───────────────────────────────────────────────────────────────
-// variant: integer >= 0, increments on each regenerate to rotate candidate pools
-// excludedIds: Set of place IDs already shown, skipped on regenerate
+// Stop selection rules by duration:
+//   quick:   1 cafe (required) + 0-1 variety — NO restaurant, NO drivein
+//   halfDay: 1 cafe + 1 bookstore + 1 restaurant + 1 variety — drivein excluded
+//   fullDay: 1 cafe + 1 bookstore + 1 restaurant + 3 variety + optional drivein LAST
+//
+// variant:     integer >= 0, increments on each regenerate to rotate candidate pools
+// excludedIds: Set of place IDs already shown this session
 export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set()) => {
   const radius  = RADIUS_MILES[duration];
-  const targets = TARGETS[duration];
   const rMeters = Math.min(radius * 1609.34, 50000);
 
-  // Fetch all categories in parallel
+  // Fetch all categories in parallel (skip restaurant for quick trips)
   const [literary, cultural, scenic, nature, meal] = await Promise.all([
     fetchLiterary(startCoords, radius),
-    targets.cultural > 0
-      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
-          ['museum', 'art_gallery', 'history_museum', 'science_museum'], 'museum')
-      : Promise.resolve([]),
-    targets.scenic > 0
-      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
-          ['tourist_attraction', 'viewpoint', 'zoo', 'aquarium'], 'scenic')
-      : Promise.resolve([]),
-    targets.nature > 0
-      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
-          ['park', 'botanical_garden', 'national_park', 'nature_reserve'], 'park')
-      : Promise.resolve([]),
-    targets.meal > 0
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
+      ['museum', 'art_gallery', 'history_museum', 'science_museum'], 'museum'),
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
+      ['tourist_attraction', 'viewpoint', 'zoo', 'aquarium'], 'scenic'),
+    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters,
+      ['park', 'botanical_garden', 'national_park', 'nature_reserve'], 'park'),
+    duration !== 'quick'
       ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['restaurant'], 'restaurant')
       : Promise.resolve([]),
   ]);
 
-  // Tag distances, then rotate each pool by variant so regenerate yields different picks
-  const litDist  = rotatePool(tagDistance(literary, startCoords), variant);
-  const cultDist = rotatePool(tagDistance(cultural, startCoords), variant);
-  const scenDist = rotatePool(tagDistance(scenic,   startCoords), variant);
-  const natDist  = rotatePool(tagDistance(nature,   startCoords), variant);
-  const mealDist = rotatePool(tagDistance(meal,     startCoords), variant);
+  // Split literary pool by subtype
+  const cafes      = literary.filter(p => p.type === 'cafe');
+  const bookstores = literary.filter(p => p.type === 'bookstore');
+  const landmarks  = literary.filter(p => p.type === 'landmark');
+  const driveins   = literary.filter(p => p.type === 'drivein');
 
-  // Pick stops per category respecting type limits and excluding already-seen stops
-  const typeCounts = {};
-  const stops = [
-    ...pickFromPool(litDist,  targets.literary,  typeCounts, excludedIds),
-    ...pickFromPool(cultDist, targets.cultural,  typeCounts, excludedIds),
-    ...pickFromPool(scenDist, targets.scenic,    typeCounts, excludedIds),
-    ...pickFromPool(natDist,  targets.nature,    typeCounts, excludedIds),
-    ...pickFromPool(mealDist, targets.meal,      typeCounts, excludedIds),
+  // Sort by distance, then rotate for variant so regenerate gives different picks
+  const rotate = (pool) => rotatePool(tagDistance(pool, startCoords), variant);
+  const cafePool  = rotate(cafes);
+  const bookPool  = rotate(bookstores);
+  const landPool  = rotate(landmarks);
+  const drivePool = rotate(driveins);
+  const cultPool  = rotate(cultural);
+  const scenPool  = rotate(scenic);
+  const parkPool  = rotate(nature);
+  const mealPool  = rotate(meal);
+
+  const stops   = [];
+  const usedIds = new Set(excludedIds);
+  const typesPicked = new Set(); // enforce 1 of each type
+
+  // Pick the first available item from a pool that hasn't been used or type-picked
+  const pick = (pool, type) => {
+    if (typesPicked.has(type)) return false;
+    const p = pool.find(p => !usedIds.has(p.id));
+    if (!p) return false;
+    usedIds.add(p.id);
+    typesPicked.add(type);
+    stops.push(p);
+    return true;
+  };
+
+  // STEP 1: Guaranteed priority picks (in order)
+  pick(cafePool, 'cafe');                                    // Always: 1 coffee shop
+  if (duration !== 'quick') pick(bookPool, 'bookstore');     // half/full day: 1 bookstore
+  if (duration !== 'quick') pick(mealPool, 'restaurant');    // half/full day: 1 restaurant
+
+  // STEP 2: Fill remaining slots with one-of-each variety
+  // Cycle through variety types; stop when target reached or all pools exhausted
+  const target = STOP_TARGETS[duration];
+  const varietyPools = [
+    { pool: cultPool, type: 'museum'   },
+    { pool: scenPool, type: 'scenic'   },
+    { pool: parkPool, type: 'park'     },
+    { pool: landPool, type: 'landmark' },
   ];
+  let vi = variant % varietyPools.length;
+  let noPickStreak = 0;
+  while (stops.length < target && noPickStreak < varietyPools.length) {
+    const { pool, type } = varietyPools[vi % varietyPools.length];
+    if (pick(pool, type)) { noPickStreak = 0; } else { noPickStreak++; }
+    vi++;
+  }
 
   if (!stops.length) return null;
 
-  // Order stops using nearest-neighbor to minimize zigzagging
-  const ordered = [];
-  const remaining = [...stops];
-  let current = startCoords;
-  while (remaining.length) {
-    let bestIdx = 0;
-    let bestDist = haversine(current, remaining[0].coords);
-    for (let i = 1; i < remaining.length; i++) {
-      const d = haversine(current, remaining[i].coords);
-      if (d < bestDist) { bestDist = d; bestIdx = i; }
-    }
-    ordered.push(remaining[bestIdx]);
-    current = remaining[bestIdx].coords;
-    remaining.splice(bestIdx, 1);
+  // STEP 3: Order non-drivein stops by nearest-neighbor (minimize zigzagging)
+  const ordered = nearestNeighbor(startCoords, stops);
+
+  // STEP 4: For full-day trips, optionally append a drive-in as the very last stop
+  // (drive-ins run in the evening — always the final destination, never mid-route)
+  if (duration === 'fullDay') {
+    const driveIn = drivePool.find(p => !usedIds.has(p.id));
+    if (driveIn) ordered.push(driveIn);
   }
 
   const waypoints = [startCoords, ...ordered.map(s => s.coords), startCoords];

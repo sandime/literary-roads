@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
-import { autocompleteCity, geocodeCity } from '../utils/googlePlaces';
+import { autocompleteAddress, geocodeCity, reverseGeocode } from '../utils/googlePlaces';
 import { saveRoute } from '../utils/savedRoutes';
 import { generateDayTrip, VISIT_MINUTES, RADIUS_MILES } from '../utils/dayTripAlgorithm';
 
@@ -15,7 +15,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️' };
+const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️', scenic: '🏞️' };
 
 const makeStopMarker = (num) => L.divIcon({
   className: '',
@@ -46,8 +46,8 @@ const FitBounds = ({ coords }) => {
   return null;
 };
 
-// Simple city autocomplete input — inline dropdown, no portal
-const LocationInput = ({ value, onChange, onSelect, placeholder }) => {
+// Address autocomplete input — full street addresses, not just cities
+const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showDrop, setShowDrop]       = useState(false);
   const containerRef = useRef(null);
@@ -57,7 +57,7 @@ const LocationInput = ({ value, onChange, onSelect, placeholder }) => {
     clearTimeout(debounceRef.current);
     if (!value || value.length < 2) { setSuggestions([]); setShowDrop(false); return; }
     debounceRef.current = setTimeout(async () => {
-      const res = await autocompleteCity(value, ['US']);
+      const res = await autocompleteAddress(value, ['US']);
       const list = res || [];
       setSuggestions(list);
       setShowDrop(list.length > 0);
@@ -112,9 +112,12 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [step, setStep] = useState('input'); // 'input' | 'generating' | 'result'
 
   // Input state
-  const [startText, setStartText]   = useState('');
+  const [startText, setStartText]     = useState('');
   const [startCoords, setStartCoords] = useState(null);
-  const [duration, setDuration]     = useState('halfDay');
+  const [duration, setDuration]       = useState('halfDay');
+  const [locationMode, setLocationMode] = useState('address'); // 'address' | 'gps'
+  const [gpsLoading, setGpsLoading]   = useState(false);
+  const [gpsError, setGpsError]       = useState('');
 
   // Result state
   const [trip, setTrip]       = useState(null);
@@ -131,14 +134,51 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
   const handleSelectSuggestion = async (desc) => {
     setStartText(desc);
-    const coords = await geocodeCity(desc, null);
+    setStartCoords(null);
+    const coords = await geocodeCity(desc);
     if (coords) setStartCoords([coords.lat, coords.lng]);
+  };
+
+  const handleUseGPS = () => {
+    setLocationMode('gps');
+    setGpsLoading(true);
+    setGpsError('');
+    setStartCoords(null);
+    setStartText('');
+    if (!navigator.geolocation) {
+      setGpsError('GPS is not available on this device.');
+      setGpsLoading(false);
+      setLocationMode('address');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setStartCoords([latitude, longitude]);
+        const addr = await reverseGeocode(latitude, longitude);
+        setStartText(addr);
+        setGpsLoading(false);
+      },
+      () => {
+        setGpsError('Could not get location. Enter an address instead.');
+        setGpsLoading(false);
+        setLocationMode('address');
+      },
+      { timeout: 10000, enableHighAccuracy: false }
+    );
+  };
+
+  const handleSwitchToAddress = () => {
+    setLocationMode('address');
+    setStartCoords(null);
+    setStartText('');
+    setGpsError('');
   };
 
   const handleGenerate = async () => {
     if (!startCoords) {
       // Try geocoding what's typed
-      const coords = await geocodeCity(startText, null);
+      const coords = await geocodeCity(startText);
       if (!coords) { setGenError('Please enter a valid starting location.'); return; }
       setStartCoords([coords.lat, coords.lng]);
       setTripCount(1);
@@ -188,6 +228,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     setTripCount(1);
     setVariant(0);
     setExcludedIds(new Set());
+    setGpsError('');
     setStep('input');
   };
 
@@ -293,16 +334,67 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
                 STARTING FROM
               </label>
-              <LocationInput
-                value={startText}
-                onChange={setStartText}
-                onSelect={handleSelectSuggestion}
-                placeholder="City, neighborhood, or address…"
-              />
-              {startCoords && (
-                <p className="text-starlight-turquoise/60 font-special-elite text-xs mt-1">
-                  ✓ Location found
-                </p>
+
+              {/* Mode: GPS or Address */}
+              <div className="space-y-2 mb-3">
+
+                {/* GPS option */}
+                <button
+                  type="button"
+                  onClick={handleUseGPS}
+                  disabled={gpsLoading}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
+                    locationMode === 'gps'
+                      ? 'border-starlight-turquoise bg-starlight-turquoise/10'
+                      : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/40'
+                  }`}
+                >
+                  <span className="text-lg flex-shrink-0">
+                    {gpsLoading ? (
+                      <span className="inline-block w-5 h-5 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" />
+                    ) : '📍'}
+                  </span>
+                  <span className="text-paper-white font-special-elite text-sm flex-1">
+                    {gpsLoading
+                      ? 'Getting your location…'
+                      : locationMode === 'gps' && startCoords
+                        ? <span className="truncate block max-w-[220px]">{startText || 'Current location'}</span>
+                        : 'Use my current location'}
+                  </span>
+                  {locationMode === 'gps' && startCoords && (
+                    <span className="text-starlight-turquoise font-bungee text-xs flex-shrink-0">✓</span>
+                  )}
+                </button>
+
+                {gpsError && (
+                  <p className="text-atomic-orange font-special-elite text-xs px-1">{gpsError}</p>
+                )}
+
+                {/* Address option */}
+                <button
+                  type="button"
+                  onClick={handleSwitchToAddress}
+                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
+                    locationMode === 'address'
+                      ? 'border-starlight-turquoise bg-starlight-turquoise/10'
+                      : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/40'
+                  }`}
+                >
+                  <span className="text-lg flex-shrink-0">🔍</span>
+                  <span className="text-paper-white font-special-elite text-sm">Enter an address</span>
+                </button>
+              </div>
+
+              {locationMode === 'address' && (
+                <AddressInput
+                  value={startText}
+                  onChange={(v) => { setStartText(v); setStartCoords(null); }}
+                  onSelect={handleSelectSuggestion}
+                  placeholder="123 Main St, Louisville, KY…"
+                />
+              )}
+              {locationMode === 'address' && startCoords && (
+                <p className="text-starlight-turquoise/60 font-special-elite text-xs mt-1">✓ Location confirmed</p>
               )}
             </div>
 
@@ -511,11 +603,11 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           )}
           <button
             onClick={handleGenerate}
-            disabled={!startText}
+            disabled={!startText || gpsLoading}
             className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-base"
             style={{
               minHeight: 56,
-              boxShadow: startText ? '0 0 20px rgba(255,78,0,0.4)' : 'none',
+              boxShadow: (startText && !gpsLoading) ? '0 0 20px rgba(255,78,0,0.4)' : 'none',
             }}
           >
             GENERATE DAY TRIP →
