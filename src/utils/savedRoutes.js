@@ -18,13 +18,14 @@ const stripUndefined = (value) => {
   return value;
 };
 
-export const saveRoute = async (userId, { routeName, notes, startCity, endCity, selectedStates, routeCoordinates, stops }) => {
+export const saveRoute = async (userId, { routeName, notes, startCity, endCity, selectedStates, routeCoordinates, stops, myStops }) => {
   const bookstoreCount = stops.filter(s => s.type === 'bookstore').length;
   const cafeCount      = stops.filter(s => s.type === 'cafe').length;
   const landmarkCount  = stops.filter(s => s.type === 'landmark').length;
 
   // Strip undefined values so Firestore doesn't reject the write
-  const cleanStops = stripUndefined(stops);
+  const cleanStops   = stripUndefined(stops);
+  const cleanMyStops = myStops?.length ? stripUndefined(myStops) : [];
 
   const payload = {
     routeName,
@@ -35,6 +36,7 @@ export const saveRoute = async (userId, { routeName, notes, startCity, endCity, 
     // Firestore doesn't support nested arrays ([[lat,lng],...]), so stringify
     routeCoordinates: JSON.stringify(routeCoordinates),
     stops: cleanStops,
+    myStops: cleanMyStops,
     bookstoreCount,
     cafeCount,
     landmarkCount,

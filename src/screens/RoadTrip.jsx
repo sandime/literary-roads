@@ -99,7 +99,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
               </svg>
               <p className="text-paper-white font-bungee text-xl mb-2">NO STOPS YET</p>
               <p className="text-chrome-silver font-special-elite text-sm max-w-xs">
-                Tap "+ Add to Trip" on any landmark, bookstore, or café to build your literary road trip.
+                Tap any pin on the map to open it, then tap "+ ADD TO TRIP" to save it here.
               </p>
               <button
                 onClick={onClose}

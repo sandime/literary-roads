@@ -24,6 +24,7 @@ import PostcardStudio from '../components/PostcardStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
 import TripProgressPanel from '../components/TripProgressPanel';
+import NavigateModal from '../components/NavigateModal';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -242,11 +243,15 @@ const createLandmarkClusterIcon = (cluster) => {
 };
 
 // Custom Googie-style neon outline icons
-const createCustomIcon = (type, hasStarburst = false) => {
+const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
   const uid = ++_iconUid;
   const glowBoost = hasStarburst ? 'filter:drop-shadow(0 0 10px rgba(255,210,0,0.9));' : '';
   const starburstOverlay = hasStarburst
     ? `<img src="/literary-roads/images/starburst-rating.png" alt="" style="position:absolute;top:-14px;right:-14px;width:40px;height:40px;z-index:10;" />`
+    : '';
+  // Gold star badge on pins that are in "My Stops"
+  const inTripOverlay = inTrip
+    ? `<div style="position:absolute;top:-8px;left:-8px;width:20px;height:20px;background:#FFD700;border-radius:50%;border:2px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:10px;z-index:11;box-shadow:0 0 8px rgba(255,215,0,0.9)">⭐</div>`
     : '';
   const icons = {
     // OAK TREE - Historic Literary Landmarks (Neon Green)
@@ -387,7 +392,7 @@ const createCustomIcon = (type, hasStarburst = false) => {
 
   const isSearch = type === 'search';
   return L.divIcon({
-    html: `<div style="position:relative;display:inline-block;${glowBoost}">${icons[type] || icons.cafe}${starburstOverlay}</div>`,
+    html: `<div style="position:relative;display:inline-block;${glowBoost}">${icons[type] || icons.cafe}${starburstOverlay}${inTripOverlay}</div>`,
     className: 'custom-googie-marker',
     iconSize: isSearch ? [32, 40] : [40, 40],
     iconAnchor: isSearch ? [16, 40] : [20, 40],
@@ -587,6 +592,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showSearch, setShowSearch] = useState(false);
   const [searchTarget, setSearchTarget] = useState(null);
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
+  const [showMyStopsNavigate, setShowMyStopsNavigate] = useState(false);
   const [pendingSavePrompt, setPendingSavePrompt]   = useState(!!saved.pendingSavePrompt);
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
@@ -694,6 +700,46 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => { if (routeStateRef) routeStateRef.current.persistedLocation = selectedLocation; }, [selectedLocation, routeStateRef]);
 
   const tripIds = useMemo(() => new Set(tripItems.map((i) => i.id)), [tripItems]);
+
+  // Sort stops by their geographic position along the route polyline (nearest-to-start first)
+  const sortStopsAlongRoute = (stops, routePoints) => {
+    if (!routePoints?.length || stops.length <= 1) return stops;
+    // Build cumulative distance array for the route
+    const cumDist = [0];
+    for (let i = 1; i < routePoints.length; i++) {
+      const [la1, lo1] = routePoints[i - 1];
+      const [la2, lo2] = routePoints[i];
+      const R = 3958.8, dLat = (la2 - la1) * Math.PI / 180, dLon = (lo2 - lo1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) ** 2 + Math.cos(la1 * Math.PI / 180) * Math.cos(la2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+      cumDist.push(cumDist[i - 1] + R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+    const posOf = (stop) => {
+      const [slat, slng] = stop.coords ?? (stop.lat != null ? [stop.lat, stop.lng] : [0, 0]);
+      let minD = Infinity, bestPos = 0;
+      for (let i = 0; i < routePoints.length; i++) {
+        const [la, lo] = routePoints[i];
+        const dLat = (la - slat) * Math.PI / 180, dLon = (lo - slng) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(slat * Math.PI / 180) * Math.cos(la * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+        const d = 3958.8 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        if (d < minD) { minD = d; bestPos = cumDist[i]; }
+      }
+      return bestPos;
+    };
+    return [...stops].sort((a, b) => posOf(a) - posOf(b));
+  };
+
+  // Route-specific stops for THIS navigation session — separate from the global Road Trip bag.
+  // Resets when route is cleared or a different route is loaded.
+  const [currentRouteStops, setCurrentRouteStops] = useState([]);
+  const currentRouteStopIds = useMemo(() => new Set(currentRouteStops.map(s => s.id)), [currentRouteStops]);
+
+  const handleRouteStopToggle = (location) => {
+    setCurrentRouteStops(prev =>
+      currentRouteStopIds.has(location.id)
+        ? prev.filter(s => s.id !== location.id)
+        : [...prev, location]
+    );
+  };
 
   // Smart placeholder city hints: first selected state → start, last selected state → end
   const cityHint = useMemo(() => {
@@ -812,6 +858,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       if (routeStateRef) {
         routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
       }
+      setCurrentRouteStops([]);
     }
     prevUserRef.current = user;
   }, [user, routeStateRef]);
@@ -883,6 +930,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         selectedStates,
         routeCoordinates: route,
         stops: visibleLocations,
+        myStops: currentRouteStops,
       });
       console.log('[MasterMap] handleSaveRoute — success, closing modal');
       setShowSaveRouteModal(false);
@@ -911,6 +959,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSearchTarget(null);
     setShowPlanner(false);
     setShowRoadTrip(false);
+    setCurrentRouteStops([]); // fresh My Stops for this new route
 
     const pts = coords;
     if (pts.length > 0) {
@@ -1303,6 +1352,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
     }
     setActiveTripStops([]);
+    setCurrentRouteStops([]);
     // Go back to the state selector — that's the 50-state interactive map
     onHome();
   };
@@ -1450,6 +1500,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 >
                   SAVE ROUTE
                 </button>
+                {currentRouteStops.length > 0 && (
+                  <button
+                    onClick={() => setShowMyStopsNavigate(true)}
+                    className="font-bungee text-[11px] leading-tight tracking-wide text-[#FFD700] hover:text-starlight-turquoise transition-colors border border-[#FFD700]/60 hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
+                    style={{ boxShadow: '0 0 6px rgba(255,215,0,0.25)' }}
+                  >
+                    ⭐ MY STOPS ({currentRouteStops.length})
+                  </button>
+                )}
                 <button
                   onClick={handleClearRoute}
                   className="font-bungee text-[11px] leading-tight tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
@@ -1512,6 +1571,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
                   {tripItems.length > 9 ? '9+' : tripItems.length}
                 </span>
+              )}
+              {/* Gold star badge when My Stops are selected for navigation */}
+              {currentRouteStops.length > 0 && (
+                <span className="absolute -top-1 -left-1 text-[10px] leading-none">⭐</span>
               )}
             </button>
 
@@ -1889,7 +1952,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <Marker
                   key={location.id}
                   position={[location.lat, location.lng]}
-                  icon={createCustomIcon('landmark', starburstIds.has(location.id))}
+                  icon={createCustomIcon('landmark', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                   eventHandlers={{ click: () => setSelectedLocation(location) }}
                 />
               ))
@@ -1917,7 +1980,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <Marker
                   key={location.id}
                   position={[location.lat, location.lng]}
-                  icon={createCustomIcon(location.type, starburstIds.has(location.id))}
+                  icon={createCustomIcon(location.type, starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                   eventHandlers={{ click: () => setSelectedLocation(location) }}
                 />
               )
@@ -2218,7 +2281,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       {/* Day Trip Progress Panel */}
       {activeTripStops.length > 0 && route.length > 0 && !selectedLocation && (
-        <div className="absolute bottom-4 md:bottom-8 inset-x-3 md:inset-x-8 z-[1000] max-w-lg mx-auto">
+        <div style={{ position: 'fixed', left: 12, right: 12, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, maxWidth: '32rem', margin: '0 auto' }}>
           <TripProgressPanel
             stops={activeTripStops}
             startCoords={activeTripStops[0]?.coords ?? null}
@@ -2227,9 +2290,42 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
       )}
 
-      {/* Route Info — shown when no day trip panel */}
-      {route.length > 0 && !selectedLocation && activeTripStops.length === 0 && (
-        <div className="absolute bottom-4 md:bottom-8 inset-x-4 z-[1000] flex justify-center">
+      {/* My Stops chip — fixed positioning so iOS Safari toolbar can't obscure it */}
+      {currentRouteStops.length > 0 && !selectedLocation && activeTripStops.length === 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            left: 12, right: 12,
+            bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+            zIndex: 1000,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <div className="bg-midnight-navy/97 border-2 rounded-xl px-3 py-2.5 flex items-center gap-3 shadow-2xl max-w-lg w-full md:w-auto"
+            style={{ borderColor: 'rgba(255,215,0,0.7)' }}>
+
+            {/* Counter — desktop only (stars on map give enough feedback on mobile) */}
+            <span className="hidden md:block font-special-elite text-sm flex-1 leading-tight" style={{ color: '#FFD700' }}>
+              ⭐ {currentRouteStops.length} stop{currentRouteStops.length !== 1 ? 's' : ''} in My Stops
+            </span>
+
+            {/* Button — full-width with full label on mobile, compact on desktop */}
+            <button
+              onClick={() => setShowMyStopsNavigate(true)}
+              className="flex-1 md:flex-none bg-atomic-orange text-midnight-navy font-bungee rounded-lg hover:bg-starlight-turquoise transition-colors"
+              style={{ minHeight: 44, padding: '10px 14px', boxShadow: '0 0 12px rgba(255,78,0,0.4)', fontSize: '0.8rem' }}
+            >
+              <span className="md:hidden">🗺️ NAVIGATE MY STOPS</span>
+              <span className="hidden md:inline">NAVIGATE →</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Route Info — shown when no My Stops and no day trip panel */}
+      {route.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
+        <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
               Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
@@ -2477,14 +2573,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 DIRECTIONS
               </a>
               <button
-                onClick={() => handleTripToggle(selectedLocation)}
+                onClick={() => handleRouteStopToggle(selectedLocation)}
                 className={`px-3 border-2 font-bungee text-xs py-1.5 rounded-lg transition-all ${
-                  tripIds.has(selectedLocation.id)
-                    ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange'
-                    : 'bg-transparent border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
+                  currentRouteStopIds.has(selectedLocation.id)
+                    ? 'bg-[#FFD700]/15 border-[#FFD700]/80 text-[#FFD700] hover:bg-atomic-orange/15 hover:border-atomic-orange hover:text-atomic-orange'
+                    : 'bg-transparent border-[#FFD700]/50 text-[#FFD700]/70 hover:bg-[#FFD700]/10 hover:border-[#FFD700] hover:text-[#FFD700]'
                 }`}
               >
-                {tripIds.has(selectedLocation.id) ? '✓ IN TRIP' : '+ TRIP'}
+                {currentRouteStopIds.has(selectedLocation.id) ? '✓ MY STOPS' : '⭐ MY STOPS'}
               </button>
             </div>
 
@@ -2581,6 +2677,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         <ShareRouteModal
           route={shareRouteData}
           onClose={() => { setShowShareModal(false); setShareRouteData(null); }}
+        />
+      )}
+
+      {/* ── Navigate My Stops modal (from header button) ── */}
+      {showMyStopsNavigate && currentRouteStops.length > 0 && (
+        <NavigateModal
+          items={sortStopsAlongRoute(currentRouteStops, route)}
+          onClose={() => setShowMyStopsNavigate(false)}
         />
       )}
     </div>
