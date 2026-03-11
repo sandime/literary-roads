@@ -152,6 +152,31 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   // Navigation modal
   const [showNavModal, setShowNavModal] = useState(false);
 
+  // Pending-save banner (shown after trip is restored post-sign-in)
+  const [pendingDaySave, setPendingDaySave] = useState(false);
+
+  // On mount: restore any day trip that was saved to localStorage before sign-in
+  useEffect(() => {
+    if (!user) return;
+    try {
+      const raw = localStorage.getItem('lr_pending_day_trip');
+      if (!raw) return;
+      localStorage.removeItem('lr_pending_day_trip');
+      const pending = JSON.parse(raw);
+      if (Date.now() - pending.timestamp >= 30 * 60 * 1000 || !pending.trip) return;
+      setStartText(pending.startText || '');
+      setStartCoords(pending.startCoords || null);
+      setDuration(pending.duration || 'halfDay');
+      setTrip(pending.trip);
+      const restoredActiveTrip = pending.activeTrip || pending.trip;
+      setActiveTrip(restoredActiveTrip);
+      setCheckedIds(new Set(pending.checkedIds || restoredActiveTrip.stops.map(s => s.id)));
+      setTripCount(pending.tripCount || 1);
+      setPendingDaySave(true);
+      setStep('result');
+    } catch {}
+  }, [user]); // eslint-disable-line
+
   // Checkbox / update-route state
   const [checkedIds, setCheckedIds]         = useState(new Set());
   const [activeTrip, setActiveTrip]         = useState(null); // route for checked stops
@@ -285,7 +310,24 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   const handleSave = async () => {
-    if (!user) { onShowLogin(); return; }
+    if (!user) {
+      // Persist the generated trip so it survives sign-in and can be saved immediately after
+      try {
+        const routeData = activeTrip || trip;
+        localStorage.setItem('lr_pending_day_trip', JSON.stringify({
+          startText,
+          startCoords,
+          duration,
+          trip,
+          activeTrip:  routeData,
+          checkedIds:  Array.from(checkedIds),
+          tripCount,
+          timestamp:   Date.now(),
+        }));
+      } catch {}
+      onShowLogin();
+      return;
+    }
     const routeData = activeTrip || trip;
     setSaving(true);
     try {
@@ -351,7 +393,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3 flex items-center gap-3">
-        <button onClick={step === 'result' ? handleBackToInput : onBack}
+        <button onClick={onBack}
           className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
           style={{ minWidth:40, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
         >
@@ -370,11 +412,19 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           )}
         </div>
         {step === 'result' && (
-          <button onClick={handleRegenerate}
-            className="text-atomic-orange hover:text-starlight-turquoise transition-colors font-bungee text-xs border border-atomic-orange hover:border-starlight-turquoise px-3 py-1.5 rounded-full flex-shrink-0"
-          >
-            ↺ NEW TRIP
-          </button>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button onClick={handleBackToInput}
+              className="text-chrome-silver/50 hover:text-chrome-silver transition-colors font-bungee text-xs border border-chrome-silver/20 hover:border-chrome-silver/50 px-2 py-1.5 rounded-full"
+              title="Back to input"
+            >
+              ✏️
+            </button>
+            <button onClick={handleRegenerate}
+              className="text-atomic-orange hover:text-starlight-turquoise transition-colors font-bungee text-xs border border-atomic-orange hover:border-starlight-turquoise px-3 py-1.5 rounded-full"
+            >
+              ↺ NEW
+            </button>
+          </div>
         )}
       </div>
 
@@ -529,6 +579,27 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 ))}
               </MapContainer>
             </div>
+
+            {/* Restored trip banner — shown after sign-in recovery */}
+            {pendingDaySave && (
+              <div className="mx-4 mt-3 bg-starlight-turquoise/10 border border-starlight-turquoise/50 rounded-xl px-3 py-2.5 flex items-center gap-3">
+                <span className="text-starlight-turquoise text-base flex-shrink-0">✓</span>
+                <p className="text-paper-white font-special-elite text-sm flex-1 leading-tight">
+                  Welcome back! Your trip was restored.
+                </p>
+                <button
+                  onClick={() => { setPendingDaySave(false); handleSave(); }}
+                  className="bg-atomic-orange text-midnight-navy font-bungee text-xs px-3 py-1.5 rounded-lg flex-shrink-0 hover:bg-starlight-turquoise transition-colors"
+                >
+                  SAVE
+                </button>
+                <button onClick={() => setPendingDaySave(false)}
+                  className="text-chrome-silver/40 hover:text-chrome-silver flex-shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             {/* Hint: tap to include/exclude stops */}
             <div className="px-4 pt-3 pb-1">

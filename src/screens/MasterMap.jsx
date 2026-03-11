@@ -587,6 +587,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showSearch, setShowSearch] = useState(false);
   const [searchTarget, setSearchTarget] = useState(null);
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
+  const [pendingSavePrompt, setPendingSavePrompt]   = useState(!!saved.pendingSavePrompt);
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
@@ -2190,6 +2191,29 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             </div>
           </div>
         </>
+      )}
+
+      {/* Restored-route banner — shown once after sign-in when a pending route was recovered */}
+      {pendingSavePrompt && route.length > 0 && user && (
+        <div className="absolute top-14 md:top-[84px] inset-x-3 z-[999] flex justify-center pointer-events-none">
+          <div className="bg-midnight-navy border-2 border-starlight-turquoise rounded-xl px-4 py-2.5 flex items-center gap-3 shadow-2xl max-w-lg w-full pointer-events-auto">
+            <span className="text-starlight-turquoise text-base flex-shrink-0">✓</span>
+            <p className="text-paper-white font-special-elite text-sm flex-1 leading-tight">
+              Your route was preserved! Ready to save it?
+            </p>
+            <button
+              onClick={() => { setSaveRouteError(''); setShowSaveRouteModal(true); setPendingSavePrompt(false); }}
+              className="bg-atomic-orange text-midnight-navy font-bungee text-xs px-3 py-1.5 rounded-lg flex-shrink-0 hover:bg-starlight-turquoise transition-colors"
+            >
+              SAVE
+            </button>
+            <button onClick={() => setPendingSavePrompt(false)}
+              className="text-chrome-silver/40 hover:text-chrome-silver flex-shrink-0 text-lg leading-none"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Day Trip Progress Panel */}

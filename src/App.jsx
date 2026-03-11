@@ -91,6 +91,20 @@ function AppInner() {
   };
 
   const handleShowLogin = () => {
+    // Preserve any plotted route in localStorage so it survives sign-in / registration
+    const { route, startCity, endCity, visibleLocations } = routeStateRef.current;
+    if (route?.length > 0) {
+      try {
+        localStorage.setItem('lr_pending_route', JSON.stringify({
+          route,
+          startCity:        startCity        || '',
+          endCity:          endCity          || '',
+          visibleLocations: visibleLocations || [],
+          selectedStates:   selectedStates   || [],
+          timestamp: Date.now(),
+        }));
+      } catch {}
+    }
     setPreviousScreen(screen);
     setScreen('login');
   };
@@ -158,6 +172,27 @@ function AppInner() {
   };
 
   const handleLoginSuccess = () => {
+    // Restore any route that was saved before sign-in (within the last 30 min)
+    try {
+      const raw = localStorage.getItem('lr_pending_route');
+      if (raw) {
+        const pending = JSON.parse(raw);
+        const THIRTY_MIN = 30 * 60 * 1000;
+        if (Date.now() - pending.timestamp < THIRTY_MIN && pending.route?.length > 0) {
+          routeStateRef.current = {
+            ...routeStateRef.current,
+            route:            pending.route,
+            startCity:        pending.startCity        || '',
+            endCity:          pending.endCity          || '',
+            visibleLocations: pending.visibleLocations || [],
+            showPlanner:      false,
+            pendingSavePrompt: true,  // MasterMap shows "save your route?" banner
+          };
+          if (pending.selectedStates?.length) setSelectedStates(pending.selectedStates);
+        }
+        localStorage.removeItem('lr_pending_route');
+      }
+    } catch {}
     setScreen(previousScreen || 'stateSelector');
   };
 
