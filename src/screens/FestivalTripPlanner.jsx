@@ -57,6 +57,16 @@ const makeStartMarker = () => L.divIcon({
   iconSize: [28,28], iconAnchor: [14,14],
 });
 
+// ── Googie atomic starburst accent ────────────────────────────────────────────
+const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
+  const pts = Array.from({ length: 16 }, (_, i) => {
+    const angle = (i * Math.PI) / 8;
+    const r = i % 2 === 0 ? size / 2 : size / 4.5;
+    return `${size / 2 + r * Math.cos(angle)},${size / 2 + r * Math.sin(angle)}`;
+  }).join(' ');
+  return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
+};
+
 // ── Address Autocomplete ───────────────────────────────────────────────────────
 const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
   const [suggestions, setSuggestions] = useState([]);
@@ -528,9 +538,13 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           </svg>
         </button>
         <div className="flex-1">
-          <h1 className="text-starlight-turquoise font-bungee text-lg leading-tight drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
-            FESTIVAL TRIPS
-          </h1>
+          <div className="flex items-center gap-1.5">
+            <Starburst color="#B044FB" size={14} />
+            <h1 className="text-starlight-turquoise font-bungee text-lg leading-tight drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
+              FESTIVAL TRIPS
+            </h1>
+            <Starburst color="#FF4E00" size={10} style={{ opacity: 0.6 }} />
+          </div>
           <p className="text-chrome-silver font-special-elite text-xs mt-0.5">
             {step === 'filter' && 'Find festivals that match your travel window'}
             {step === 'select' && `${filteredFests.length} festivals found · select up to 2`}
@@ -552,7 +566,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ background: 'radial-gradient(ellipse at 20% 10%, rgba(176,68,251,0.04) 0%, transparent 45%), radial-gradient(ellipse at 80% 85%, rgba(64,224,208,0.04) 0%, transparent 45%)' }}>
 
         {/* ══ STEP 1: FILTER ══════════════════════════════════════════════════ */}
         {step === 'filter' && (
@@ -560,7 +574,8 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
             {/* Festival type */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-3">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-3">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                 FESTIVAL TYPE
               </label>
               <div className="space-y-2">
@@ -581,9 +596,13 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               </div>
             </div>
 
+            {/* Neon divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(176,68,251,0.3), rgba(64,224,208,0.2), transparent)', boxShadow: '0 0 4px rgba(176,68,251,0.15)' }} />
+
             {/* Month */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 TRAVEL MONTH
               </label>
               <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
@@ -594,9 +613,13 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               </select>
             </div>
 
+            {/* Neon divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.3), rgba(176,68,251,0.2), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
+
             {/* State/Territory */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
                 STATE/TERRITORY
               </label>
               <select value={filterState} onChange={e => setFilterState(e.target.value)}
@@ -735,9 +758,13 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               ))}
             </div>
 
+            {/* Neon divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(255,78,0,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
+
             {/* Starting from */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 STARTING FROM
               </label>
               <div className="space-y-2 mb-3">
@@ -771,9 +798,13 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               {startCoords && <p className="text-starlight-turquoise/60 font-special-elite text-xs mt-1">✓ Location confirmed</p>}
             </div>
 
+            {/* Neon divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(176,68,251,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
+
             {/* Trip length */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 TRIP LENGTH
               </label>
               <div className="space-y-2">
@@ -1019,27 +1050,36 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
           {step === 'filter' && (
             <button onClick={handleFindFestivals} disabled={filterTypes.size === 0}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 text-base"
-              style={{ minHeight:56, boxShadow: filterTypes.size > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none' }}
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 text-base flex items-center justify-center gap-2"
+              style={{ minHeight:56, boxShadow: filterTypes.size > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none', transition: 'box-shadow 0.15s, background 0.15s, transform 0.1s' }}
+              onMouseEnter={e => { if (filterTypes.size > 0) { e.currentTarget.style.boxShadow = '0 0 36px rgba(255,78,0,0.75), 0 0 60px rgba(255,78,0,0.25)'; e.currentTarget.style.transform = 'scale(1.01)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = filterTypes.size > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
             >
+              <Starburst color="#1A1B2E" size={15} />
               FIND FESTIVALS →
             </button>
           )}
 
           {step === 'select' && (
             <button onClick={() => setStep('preferences')} disabled={selectedFests.length === 0}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 text-base"
-              style={{ minHeight:56, boxShadow: selectedFests.length > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none' }}
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 text-base flex items-center justify-center gap-2"
+              style={{ minHeight:56, boxShadow: selectedFests.length > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none', transition: 'box-shadow 0.15s, background 0.15s, transform 0.1s' }}
+              onMouseEnter={e => { if (selectedFests.length > 0) { e.currentTarget.style.boxShadow = '0 0 36px rgba(255,78,0,0.75), 0 0 60px rgba(255,78,0,0.25)'; e.currentTarget.style.transform = 'scale(1.01)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = selectedFests.length > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
             >
+              {selectedFests.length > 0 && <Starburst color="#1A1B2E" size={15} />}
               {selectedFests.length === 0 ? 'SELECT A FESTIVAL TO CONTINUE' : `PLAN MY TRIP (${selectedFests.length} festival${selectedFests.length > 1 ? 's' : ''}) →`}
             </button>
           )}
 
           {step === 'preferences' && (
             <button onClick={handleGenerate} disabled={!startText || gpsLoading}
-              className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 text-base"
-              style={{ minHeight:56, boxShadow: startText && !gpsLoading ? '0 0 20px rgba(255,78,0,0.4)' : 'none' }}
+              className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 text-base flex items-center justify-center gap-2"
+              style={{ minHeight:56, boxShadow: startText && !gpsLoading ? '0 0 20px rgba(255,78,0,0.4)' : 'none', transition: 'box-shadow 0.15s, background 0.15s, transform 0.1s' }}
+              onMouseEnter={e => { if (startText && !gpsLoading) { e.currentTarget.style.boxShadow = '0 0 36px rgba(255,78,0,0.75), 0 0 60px rgba(255,78,0,0.25)'; e.currentTarget.style.transform = 'scale(1.01)'; } }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = startText && !gpsLoading ? '0 0 20px rgba(255,78,0,0.4)' : 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
             >
+              <Starburst color="#1A1B2E" size={15} />
               BUILD MY ITINERARY →
             </button>
           )}

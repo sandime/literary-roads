@@ -5,6 +5,20 @@ import { db } from '../config/firebase';
 
 const MAX_FAVORITES = 5;
 
+// ── Inline Starburst SVG (Googie atomic accent) ────────────────────────────
+function Starburst({ color = '#FF4E00', size = 32, style = {} }) {
+  const pts = Array.from({ length: 16 }, (_, i) => {
+    const angle = (i * Math.PI) / 8;
+    const r = i % 2 === 0 ? size / 2 : size / 4.5;
+    return `${size / 2 + r * Math.cos(angle)},${size / 2 + r * Math.sin(angle)}`;
+  }).join(' ');
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...style }}>
+      <polygon points={pts} fill={color} opacity="0.9" />
+    </svg>
+  );
+}
+
 // ── Surprise Me ────────────────────────────────────────────────────────────
 
 const GENRES = [
@@ -101,7 +115,19 @@ function SurpriseMe({ user }) {
 
   return (
     <section style={{ marginBottom: '44px' }}>
-      <SectionHeader label="🎲 SURPRISE ME WITH A BOOK!" color="#FF4E00" glowColor="rgba(255,78,0,0.5)" />
+      {/* Googie section header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+        <Starburst color="#FF4E00" size={28} />
+        <h2 style={{
+          fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
+          color: '#FF4E00', letterSpacing: '0.08em', margin: 0,
+          textShadow: '0 0 16px rgba(255,78,0,0.6)',
+        }}>
+          SURPRISE ME WITH A BOOK!
+        </h2>
+        <Starburst color="#FF4E00" size={20} style={{ opacity: 0.5 }} />
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(255,78,0,0.4), transparent)' }} />
+      </div>
 
       {status === 'idle' && (
         <div style={{
@@ -125,7 +151,7 @@ function SurpriseMe({ user }) {
             onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 0 32px rgba(255,78,0,0.7), 0 4px 12px rgba(0,0,0,0.3)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 24px rgba(255,78,0,0.5), 0 4px 12px rgba(0,0,0,0.3)'; }}
           >
-            🎲 SURPRISE ME!
+            SURPRISE ME!
           </button>
         </div>
       )}
@@ -162,7 +188,7 @@ function SurpriseMe({ user }) {
             padding: '12px 24px', cursor: 'pointer',
             boxShadow: '0 0 16px rgba(255,78,0,0.4)',
           }}>
-            🎲 TRY AGAIN
+            TRY AGAIN
           </button>
         </div>
       )}
@@ -181,7 +207,7 @@ function SurpriseMe({ user }) {
             padding: '8px 16px',
             display: 'flex', alignItems: 'center', gap: '8px',
           }}>
-            <span style={{ fontSize: '16px' }}>🎲</span>
+            <Starburst color="#FF4E00" size={16} />
             <span style={{
               fontFamily: 'Bungee, sans-serif', fontSize: '10px',
               color: '#FF4E00', letterSpacing: '0.1em',
@@ -280,7 +306,7 @@ function SurpriseMe({ user }) {
                 onMouseEnter={e => { if (saveStatus !== 'saving') e.currentTarget.style.background = 'rgba(64,224,208,0.1)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
-                {saveStatus === 'saving' ? 'SAVING…' : '🔖 SAVE FOR LATER'}
+                {saveStatus === 'saving' ? 'SAVING…' : 'SAVE FOR LATER'}
               </button>
             ) : (
               <span style={{
@@ -302,7 +328,7 @@ function SurpriseMe({ user }) {
                 boxShadow: '0 0 12px rgba(255,78,0,0.4)',
                 marginLeft: 'auto',
               }}>
-              🎲 SURPRISE ME AGAIN!
+              SURPRISE ME AGAIN!
             </button>
           </div>
         </div>
@@ -437,7 +463,7 @@ function BookDetailModal({ book, onClose, onRemove, onMarkRead }) {
                 borderRadius: '10px', padding: '12px', cursor: markStatus !== 'idle' ? 'default' : 'pointer',
                 transition: 'background .2s',
               }}>
-              {markStatus === 'saving' ? 'SAVING…' : markStatus === 'done' ? '✓ MOVED TO BOOK LOG!' : '📖 MARK AS READ'}
+              {markStatus === 'saving' ? 'SAVING…' : markStatus === 'done' ? '✓ MOVED TO BOOK LOG!' : 'MARK AS READ'}
             </button>
             <button onClick={handleRemove} disabled={removeStatus === 'saving'}
               style={{
@@ -450,7 +476,7 @@ function BookDetailModal({ book, onClose, onRemove, onMarkRead }) {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.08)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
-              {removeStatus === 'saving' ? 'REMOVING…' : '🗑️ REMOVE FROM LIST'}
+              {removeStatus === 'saving' ? 'REMOVING…' : 'REMOVE FROM LIST'}
             </button>
             <button onClick={onClose}
               style={{
@@ -494,12 +520,13 @@ function WantToReadCarousel({ user }) {
     <section style={{ marginBottom: '44px' }}>
       {/* Header row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+        <Starburst color="#40E0D0" size={24} />
         <h2 style={{
           fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
           color: '#40E0D0', letterSpacing: '0.08em', margin: 0,
           textShadow: '0 0 12px rgba(64,224,208,0.5)', whiteSpace: 'nowrap',
         }}>
-          📚 YOUR READING LIST
+          NEXT READS
         </h2>
         {!loading && books.length > 0 && (
           <span style={{
@@ -524,7 +551,7 @@ function WantToReadCarousel({ user }) {
           background: 'rgba(64,224,208,0.03)', border: '1px dashed rgba(64,224,208,0.2)',
           borderRadius: '12px', padding: '24px', textAlign: 'center',
         }}>
-          <p style={{ fontSize: '28px', marginBottom: '8px' }}>📖</p>
+          <Starburst color="rgba(64,224,208,0.3)" size={36} style={{ marginBottom: '8px' }} />
           <p style={{
             fontFamily: 'Special Elite, serif', fontSize: '13px',
             color: 'rgba(200,155,70,0.55)', lineHeight: 1.6, fontStyle: 'italic',
@@ -632,8 +659,10 @@ function BookCarouselCard({ book, onOpen, onRemove, uid }) {
           <div style={{
             width: '100%', height: '100%',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '32px', background: 'rgba(64,224,208,0.05)',
-          }}>📖</div>
+            background: 'rgba(64,224,208,0.05)',
+          }}>
+            <Starburst color="rgba(64,224,208,0.25)" size={40} />
+          </div>
         )}
       </div>
 

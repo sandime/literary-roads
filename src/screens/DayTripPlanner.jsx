@@ -34,6 +34,16 @@ const buildAppleMapsUrl = (startCoords, stops) => {
 
 const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
+// ── Googie atomic starburst accent ────────────────────────────────────────────
+const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
+  const pts = Array.from({ length: 16 }, (_, i) => {
+    const angle = (i * Math.PI) / 8;
+    const r = i % 2 === 0 ? size / 2 : size / 4.5;
+    return `${size / 2 + r * Math.cos(angle)},${size / 2 + r * Math.sin(angle)}`;
+  }).join(' ');
+  return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
+};
+
 const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️', scenic: '🦁', music: '🎵', garden: '🪴', observatory: '🔭', flea: '🏪', antique: '🪑', historical: '🏛️' };
 
 const makeStopMarker = (num) => L.divIcon({
@@ -402,9 +412,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           </svg>
         </button>
         <div className="flex-1">
-          <h1 className="text-starlight-turquoise font-bungee text-lg leading-tight drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
-            {step === 'result' ? `DAY TRIP #${tripCount}` : 'PLAN A DAY TRIP'}
-          </h1>
+          <div className="flex items-center gap-1.5">
+            <Starburst color="#40E0D0" size={14} />
+            <h1 className="text-starlight-turquoise font-bungee text-lg leading-tight drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
+              {step === 'result' ? `DAY TRIP #${tripCount}` : 'PLAN A DAY TRIP'}
+            </h1>
+            <Starburst color="#FF4E00" size={10} style={{ opacity: 0.6 }} />
+          </div>
           {step === 'result' && trip && (
             <p className="text-chrome-silver font-special-elite text-xs mt-0.5">
               {trip.stops.length} stops · ~{formatDuration(trip.schedule.totalMinutes)} · {trip.schedule.totalMiles} mi
@@ -429,7 +443,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ background: 'radial-gradient(ellipse at 15% 10%, rgba(255,78,0,0.05) 0%, transparent 45%), radial-gradient(ellipse at 85% 85%, rgba(64,224,208,0.04) 0%, transparent 45%)' }}>
 
         {/* ══ STEP 1: INPUT ══ */}
         {step === 'input' && (
@@ -437,7 +451,8 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
             {/* Starting location */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 STARTING FROM
               </label>
 
@@ -504,9 +519,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               )}
             </div>
 
+            {/* Neon divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(255,78,0,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
+
             {/* Time available */}
             <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 TIME AVAILABLE
               </label>
               <div className="space-y-2">
@@ -762,12 +781,16 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           <button
             onClick={handleGenerate}
             disabled={!startText || gpsLoading}
-            className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-base"
+            className="w-full bg-atomic-orange text-midnight-navy font-bungee rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed text-base flex items-center justify-center gap-2"
             style={{
               minHeight: 56,
               boxShadow: (startText && !gpsLoading) ? '0 0 20px rgba(255,78,0,0.4)' : 'none',
+              transition: 'box-shadow 0.15s, background 0.15s, transform 0.1s',
             }}
+            onMouseEnter={e => { if (startText && !gpsLoading) { e.currentTarget.style.boxShadow = '0 0 36px rgba(255,78,0,0.75), 0 0 60px rgba(255,78,0,0.25)'; e.currentTarget.style.transform = 'scale(1.01)'; } }}
+            onMouseLeave={e => { e.currentTarget.style.boxShadow = (startText && !gpsLoading) ? '0 0 20px rgba(255,78,0,0.4)' : 'none'; e.currentTarget.style.transform = 'scale(1)'; }}
           >
+            <Starburst color="#1A1B2E" size={15} />
             GENERATE DAY TRIP →
           </button>
         </div>
