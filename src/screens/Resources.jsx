@@ -313,7 +313,8 @@ function SurpriseMe({ user }) {
 
 // ── Want to Read Carousel ──────────────────────────────────────────────────
 
-const CAROUSEL_VISIBLE = 4; // cards shown before "View All" expands
+// Scroll advance distance (≈ 4 card widths + gaps)
+const CAROUSEL_SCROLL_STEP = 620;
 
 function BookDetailModal({ book, onClose, onRemove, onMarkRead }) {
   const [markStatus, setMarkStatus] = useState('idle'); // idle | saving | done
@@ -467,23 +468,17 @@ function BookDetailModal({ book, onClose, onRemove, onMarkRead }) {
 }
 
 function WantToReadCarousel({ user }) {
-  const [books, setBooks]       = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [expanded, setExpanded] = useState(false);
-  const [modal, setModal]       = useState(null); // book object | null
+  const [books, setBooks]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal]   = useState(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    const colRef = collection(db, 'users', user.uid, 'wantToRead');
-    const unsub = onSnapshot(colRef, snap => {
-      const data = snap.docs.map(d => ({
-        id: d.id,
-        _uid: user.uid,
-        ...d.data(),
-      }));
-      // Most recently saved first
-      data.sort((a, b) => (b.savedAt?.toMillis?.() ?? 0) - (a.savedAt?.toMillis?.() ?? 0));
+    const unsub = onSnapshot(collection(db, 'users', user.uid, 'wantToRead'), snap => {
+      const data = snap.docs
+        .map(d => ({ id: d.id, _uid: user.uid, ...d.data() }))
+        .sort((a, b) => (b.savedAt?.toMillis?.() ?? 0) - (a.savedAt?.toMillis?.() ?? 0));
       setBooks(data);
       setLoading(false);
     }, () => setLoading(false));
@@ -491,14 +486,9 @@ function WantToReadCarousel({ user }) {
   }, [user]);
 
   const handleRemove = (id) => setBooks(prev => prev.filter(b => b.id !== id));
-
-  const scrollBy = (dir) => {
-    scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
-  };
+  const doScroll = (dir) => scrollRef.current?.scrollBy({ left: dir * CAROUSEL_SCROLL_STEP, behavior: 'smooth' });
 
   if (!user) return null;
-
-  const visibleBooks = expanded ? books : books.slice(0, CAROUSEL_VISIBLE);
 
   return (
     <section style={{ marginBottom: '44px' }}>
@@ -507,49 +497,31 @@ function WantToReadCarousel({ user }) {
         <h2 style={{
           fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
           color: '#40E0D0', letterSpacing: '0.08em', margin: 0,
-          textShadow: '0 0 12px rgba(64,224,208,0.5)',
-          whiteSpace: 'nowrap',
+          textShadow: '0 0 12px rgba(64,224,208,0.5)', whiteSpace: 'nowrap',
         }}>
           📚 YOUR READING LIST
         </h2>
         {!loading && books.length > 0 && (
           <span style={{
             fontFamily: 'Bungee, sans-serif', fontSize: '10px',
-            color: 'rgba(64,224,208,0.55)', letterSpacing: '0.06em',
-            whiteSpace: 'nowrap',
+            color: 'rgba(64,224,208,0.55)', letterSpacing: '0.06em', whiteSpace: 'nowrap',
           }}>
             ({books.length} saved)
           </span>
         )}
         <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(64,224,208,0.4), transparent)' }} />
-        {!loading && books.length > CAROUSEL_VISIBLE && (
-          <button onClick={() => setExpanded(v => !v)}
-            style={{
-              fontFamily: 'Bungee, sans-serif', fontSize: '10px', letterSpacing: '0.06em',
-              color: '#40E0D0', background: 'transparent', border: 'none',
-              cursor: 'pointer', whiteSpace: 'nowrap',
-              opacity: 0.75,
-            }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-            onMouseLeave={e => { e.currentTarget.style.opacity = '0.75'; }}
-          >
-            {expanded ? '← COLLAPSE' : `VIEW ALL ${books.length} →`}
-          </button>
-        )}
       </div>
 
       {loading ? (
         <p style={{
           fontFamily: 'Special Elite, serif', fontSize: '13px',
-          color: 'rgba(200,155,70,0.5)', fontStyle: 'italic', textAlign: 'center',
-          padding: '16px 0',
+          color: 'rgba(200,155,70,0.5)', fontStyle: 'italic', textAlign: 'center', padding: '16px 0',
         }}>
           Loading your reading list…
         </p>
       ) : books.length === 0 ? (
         <div style={{
-          background: 'rgba(64,224,208,0.03)',
-          border: '1px dashed rgba(64,224,208,0.2)',
+          background: 'rgba(64,224,208,0.03)', border: '1px dashed rgba(64,224,208,0.2)',
           borderRadius: '12px', padding: '24px', textAlign: 'center',
         }}>
           <p style={{ fontSize: '28px', marginBottom: '8px' }}>📖</p>
@@ -560,27 +532,16 @@ function WantToReadCarousel({ user }) {
             No books saved yet! Click Surprise Me to discover your next read.
           </p>
         </div>
-      ) : expanded ? (
-        /* Grid view when expanded */
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-          gap: '12px',
-        }}>
-          {visibleBooks.map(book => (
-            <BookCarouselCard key={book.id} book={book} onOpen={setModal} onRemove={handleRemove} uid={user.uid} />
-          ))}
-        </div>
       ) : (
-        /* Carousel view */
+        /* Carousel — all books, arrows advance ~4 cards */
         <div style={{ position: 'relative' }}>
           {/* Left arrow */}
-          <button onClick={() => scrollBy(-1)}
+          <button onClick={() => doScroll(-1)}
             style={{
-              position: 'absolute', left: '-14px', top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', left: '-14px', top: '45%', transform: 'translateY(-50%)',
               zIndex: 2, background: 'rgba(13,14,26,0.9)', border: '1px solid rgba(64,224,208,0.3)',
               borderRadius: '50%', width: '32px', height: '32px',
-              color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+              color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 10px rgba(64,224,208,0.2)',
             }}>‹</button>
@@ -592,19 +553,19 @@ function WantToReadCarousel({ user }) {
             scrollbarWidth: 'none', msOverflowStyle: 'none',
             paddingBottom: '4px',
           }}>
-            <style>{`.lr-carousel::-webkit-scrollbar { display: none; }`}</style>
-            {visibleBooks.map(book => (
+            <style>{`#lr-wtr-scroll::-webkit-scrollbar { display: none; }`}</style>
+            {books.map(book => (
               <BookCarouselCard key={book.id} book={book} onOpen={setModal} onRemove={handleRemove} uid={user.uid} />
             ))}
           </div>
 
           {/* Right arrow */}
-          <button onClick={() => scrollBy(1)}
+          <button onClick={() => doScroll(1)}
             style={{
-              position: 'absolute', right: '-14px', top: '50%', transform: 'translateY(-50%)',
+              position: 'absolute', right: '-14px', top: '45%', transform: 'translateY(-50%)',
               zIndex: 2, background: 'rgba(13,14,26,0.9)', border: '1px solid rgba(64,224,208,0.3)',
               borderRadius: '50%', width: '32px', height: '32px',
-              color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+              color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 10px rgba(64,224,208,0.2)',
             }}>›</button>
