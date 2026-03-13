@@ -9,6 +9,7 @@ import Odometer from './screens/Odometer';
 import StateSelector from './screens/StateSelector';
 import MasterMap from './screens/MasterMap';
 import DayTripPlanner from './screens/DayTripPlanner';
+import FestivalTripPlanner from './screens/FestivalTripPlanner';
 import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
@@ -140,6 +141,11 @@ function AppInner() {
     setScreen('dayTripPlanner');
   };
 
+  const handleShowFestivalTrip = () => {
+    setPreviousScreen(screen);
+    setScreen('festivalTrip');
+  };
+
   const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops }) => {
     setSelectedStates([]);
     const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [] };
@@ -224,11 +230,19 @@ function AppInner() {
           onShowEthics={handleShowEthics}
           onShowCredits={handleShowCredits}
           onShowDayTrip={handleShowDayTrip}
+          onShowFestivalTrip={handleShowFestivalTrip}
           routeStateRef={routeStateRef}
         />
       )}
       {screen === 'dayTripPlanner' && (
         <DayTripPlanner
+          onBack={handleAuthBack}
+          onLoadTrip={handleLoadDayTrip}
+          onShowLogin={handleShowLogin}
+        />
+      )}
+      {screen === 'festivalTrip' && (
+        <FestivalTripPlanner
           onBack={handleAuthBack}
           onLoadTrip={handleLoadDayTrip}
           onShowLogin={handleShowLogin}

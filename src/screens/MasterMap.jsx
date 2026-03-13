@@ -588,7 +588,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, onShowCredits, onShowDayTrip, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, routeStateRef }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -614,6 +614,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showUserMenu, setShowUserMenu]   = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showHamburger, setShowHamburger] = useState(false);
+  const [showJourneysMenu, setShowJourneysMenu] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchTarget, setSearchTarget] = useState(null);
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
@@ -1589,16 +1590,44 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               NEAR ME
             </button>
 
-            {/* Day Trip Planner */}
-            <button onClick={() => onShowDayTrip?.()} title="Plan a Day Trip"
-              className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-              <span className="font-bungee text-[10px] leading-tight tracking-wide">DAY TRIP</span>
-            </button>
+            {/* Curated Journeys */}
+            <div className="relative">
+              <button onClick={() => setShowJourneysMenu(v => !v)} title="Curated Journeys"
+                className={`flex flex-col items-center transition-colors p-1 ${showJourneysMenu ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <span className="font-bungee text-[10px] leading-tight tracking-wide">JOURNEYS</span>
+              </button>
+              {showJourneysMenu && (
+                <div className="absolute right-0 top-full mt-2 z-[1100] bg-midnight-navy border-2 border-starlight-turquoise rounded-xl shadow-2xl overflow-hidden min-w-[180px]"
+                  style={{ boxShadow: '0 0 24px rgba(64,224,208,0.2)' }}
+                >
+                  <button
+                    onClick={() => { setShowJourneysMenu(false); onShowDayTrip?.(); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors border-b border-starlight-turquoise/20"
+                  >
+                    <span className="text-base flex-shrink-0">🗺️</span>
+                    <div>
+                      <p className="text-paper-white font-bungee text-xs">DAY TRIPS</p>
+                      <p className="text-chrome-silver/60 font-special-elite text-[10px]">Local literary loop</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setShowJourneysMenu(false); onShowFestivalTrip?.(); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors"
+                  >
+                    <span className="text-base flex-shrink-0">🎪</span>
+                    <div>
+                      <p className="text-paper-white font-bungee text-xs">FESTIVAL TRIPS</p>
+                      <p className="text-chrome-silver/60 font-special-elite text-[10px]">Plan around a festival</p>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Search */}
             <button onClick={() => setShowSearch((v) => !v)} title="Search places"
@@ -1833,17 +1862,30 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 )}
               </button>
 
-              {/* Day Trip Planner */}
-              <button
-                onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
-                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-              >
-                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                PLAN A DAY TRIP
-              </button>
+              {/* Curated Journeys */}
+              <div className="border-t border-starlight-turquoise/10">
+                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">CURATED JOURNEYS</p>
+                <button
+                  onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                >
+                  <span className="text-lg flex-shrink-0">🗺️</span>
+                  <div>
+                    <p className="font-bungee text-[13px]">DAY TRIPS</p>
+                    <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Local literary loop</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => { setShowHamburger(false); onShowFestivalTrip?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                >
+                  <span className="text-lg flex-shrink-0">🎪</span>
+                  <div>
+                    <p className="font-bungee text-[13px]">FESTIVAL TRIPS</p>
+                    <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Plan a trip around a festival</p>
+                  </div>
+                </button>
+              </div>
 
               {/* Highway Snacks */}
               <button
