@@ -1,9 +1,720 @@
-import { useState, useEffect } from 'react';
-import { doc, updateDoc, setDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { doc, getDoc, updateDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 
 const MAX_FAVORITES = 5;
+
+// ── Surprise Me ────────────────────────────────────────────────────────────
+
+const GENRES = [
+  'Fiction', 'Mystery & Thriller', 'Romance', 'Science Fiction', 'Fantasy',
+  'Historical Fiction', 'Literary Fiction', 'Memoir & Biography', 'Poetry',
+  'Young Adult', 'Horror', 'Classics',
+];
+
+async function fetchSurpriseBook() {
+  const genre = GENRES[Math.floor(Math.random() * GENRES.length)];
+  const startIndex = Math.floor(Math.random() * 20) * 10; // 0–190
+  const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(genre)}&startIndex=${startIndex}&maxResults=10&printType=books&langRestrict=en`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('fetch failed');
+  const data = await res.json();
+  const items = (data.items || []).filter(item => item.volumeInfo?.imageLinks?.thumbnail);
+  if (!items.length) throw new Error('no results');
+  const item = items[Math.floor(Math.random() * items.length)];
+  const v = item.volumeInfo;
+  return {
+    id: `g_${item.id}`,
+    title: v.title || 'Unknown Title',
+    author: v.authors?.[0] || 'Unknown Author',
+    description: v.description || '',
+    coverURL: v.imageLinks.thumbnail.replace('http:', 'https:'),
+    averageRating: v.averageRating || null,
+    ratingsCount: v.ratingsCount || null,
+    genre,
+  };
+}
+
+
+function SurpriseMe({ user }) {
+  const [status, setStatus]         = useState('idle'); // idle | loading | result | error
+  const [book, setBook]             = useState(null);
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | duplicate | error
+
+  const handleSurprise = async () => {
+    setStatus('loading');
+    setBook(null);
+    setSaveStatus('idle');
+    try {
+      setBook(await fetchSurpriseBook());
+      setStatus('result');
+    } catch {
+      // Retry once (sometimes startIndex returns empty)
+      try {
+        setBook(await fetchSurpriseBook());
+        setStatus('result');
+      } catch {
+        setStatus('error');
+      }
+    }
+  };
+
+  const handleSaveForLater = async () => {
+    if (!user || !book || saveStatus === 'saving') return;
+    setSaveStatus('saving');
+    try {
+      const docId = book.id.replace(/\//g, '_');
+      const ref = doc(db, 'users', user.uid, 'wantToRead', docId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) { setSaveStatus('duplicate'); return; }
+      await setDoc(ref, {
+        bookTitle:   book.title,
+        bookAuthor:  book.author,
+        bookCover:   book.coverURL || null,
+        genre:       book.genre,
+        description: book.description || '',
+        googleBooksId: book.id,
+        savedAt:     serverTimestamp(),
+        read:        false,
+      });
+      setSaveStatus('saved');
+    } catch {
+      setSaveStatus('error');
+    }
+  };
+
+  const renderStars = (avg, count) => {
+    if (!avg) return null;
+    const full = Math.round(avg);
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+        <span style={{ fontSize: '14px' }}>
+          {'⭐'.repeat(full)}{'☆'.repeat(5 - full)}
+        </span>
+        <span style={{ fontFamily: 'Special Elite, serif', fontSize: '12px', color: 'rgba(200,155,70,0.7)' }}>
+          {avg.toFixed(1)}{count ? ` (${count.toLocaleString()} ratings)` : ''}
+        </span>
+      </div>
+    );
+  };
+
+  return (
+    <section style={{ marginBottom: '44px' }}>
+      <SectionHeader label="🎲 SURPRISE ME WITH A BOOK!" color="#FF4E00" glowColor="rgba(255,78,0,0.5)" />
+
+      {status === 'idle' && (
+        <div style={{
+          background: 'rgba(255,78,0,0.04)',
+          border: '1.5px dashed rgba(255,78,0,0.3)',
+          borderRadius: '14px', padding: '28px 20px', textAlign: 'center',
+        }}>
+          <p style={{
+            fontFamily: 'Special Elite, serif', fontSize: '14px',
+            color: 'rgba(245,245,220,0.65)', marginBottom: '20px', lineHeight: 1.6,
+          }}>
+            Need your next read? Let us surprise you with a random book pick!
+          </p>
+          <button onClick={handleSurprise} style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: '15px', letterSpacing: '0.08em',
+            background: '#FF4E00', color: '#1A1B2E', border: 'none', borderRadius: '12px',
+            padding: '14px 32px', cursor: 'pointer',
+            boxShadow: '0 0 24px rgba(255,78,0,0.5), 0 4px 12px rgba(0,0,0,0.3)',
+            transition: 'transform .1s, box-shadow .1s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.04)'; e.currentTarget.style.boxShadow = '0 0 32px rgba(255,78,0,0.7), 0 4px 12px rgba(0,0,0,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 24px rgba(255,78,0,0.5), 0 4px 12px rgba(0,0,0,0.3)'; }}
+          >
+            🎲 SURPRISE ME!
+          </button>
+        </div>
+      )}
+
+      {status === 'loading' && (
+        <div style={{
+          background: 'rgba(255,78,0,0.04)', border: '1.5px dashed rgba(255,78,0,0.3)',
+          borderRadius: '14px', padding: '40px 20px', textAlign: 'center',
+        }}>
+          <div style={{
+            width: '36px', height: '36px', borderRadius: '50%',
+            border: '3px solid rgba(255,78,0,0.2)', borderTopColor: '#FF4E00',
+            margin: '0 auto 16px',
+            animation: 'lr-spin 0.8s linear infinite',
+          }} />
+          <style>{`@keyframes lr-spin { to { transform: rotate(360deg); } }`}</style>
+          <p style={{ fontFamily: 'Special Elite, serif', fontSize: '13px', color: 'rgba(200,155,70,0.6)', fontStyle: 'italic' }}>
+            Searching the stacks…
+          </p>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div style={{
+          background: 'rgba(255,78,0,0.04)', border: '1.5px dashed rgba(255,78,0,0.3)',
+          borderRadius: '14px', padding: '28px 20px', textAlign: 'center',
+        }}>
+          <p style={{ fontFamily: 'Special Elite, serif', fontSize: '13px', color: 'rgba(200,155,70,0.6)', marginBottom: '16px' }}>
+            Couldn't find a book right now — try again!
+          </p>
+          <button onClick={handleSurprise} style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: '13px', letterSpacing: '0.06em',
+            background: '#FF4E00', color: '#1A1B2E', border: 'none', borderRadius: '10px',
+            padding: '12px 24px', cursor: 'pointer',
+            boxShadow: '0 0 16px rgba(255,78,0,0.4)',
+          }}>
+            🎲 TRY AGAIN
+          </button>
+        </div>
+      )}
+
+      {status === 'result' && book && (
+        <div style={{
+          background: 'rgba(255,255,255,0.03)',
+          border: '1.5px solid rgba(255,78,0,0.35)',
+          borderRadius: '16px', overflow: 'hidden',
+          boxShadow: '0 0 28px rgba(255,78,0,0.12)',
+        }}>
+          {/* Genre badge */}
+          <div style={{
+            background: 'rgba(255,78,0,0.12)',
+            borderBottom: '1px solid rgba(255,78,0,0.2)',
+            padding: '8px 16px',
+            display: 'flex', alignItems: 'center', gap: '8px',
+          }}>
+            <span style={{ fontSize: '16px' }}>🎲</span>
+            <span style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: '10px',
+              color: '#FF4E00', letterSpacing: '0.1em',
+            }}>
+              YOUR SURPRISE BOOK! &nbsp;·&nbsp; Genre: {book.genre}
+            </span>
+          </div>
+
+          {/* Book content */}
+          <div style={{ padding: '20px', display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            {/* Cover */}
+            <div style={{ flexShrink: 0 }}>
+              <img
+                src={book.coverURL}
+                alt={book.title}
+                style={{
+                  width: '110px', height: '165px', objectFit: 'cover',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.6), 0 0 12px rgba(255,78,0,0.2)',
+                }}
+                onError={e => { e.currentTarget.style.display = 'none'; }}
+              />
+            </div>
+
+            {/* Info */}
+            <div style={{ flex: 1, minWidth: '180px' }}>
+              <h3 style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
+                color: '#F5F5DC', letterSpacing: '0.03em',
+                lineHeight: 1.25, marginBottom: '6px',
+              }}>
+                {book.title}
+              </h3>
+              <p style={{
+                fontFamily: 'Special Elite, serif', fontSize: '13px',
+                color: 'rgba(200,155,70,0.75)', marginBottom: '10px',
+              }}>
+                by {book.author}
+              </p>
+
+              {renderStars(book.averageRating, book.ratingsCount) && (
+                <div style={{ marginBottom: '10px' }}>
+                  {renderStars(book.averageRating, book.ratingsCount)}
+                </div>
+              )}
+
+              {book.description && (
+                <p style={{
+                  fontFamily: 'Special Elite, serif', fontSize: '12px',
+                  color: 'rgba(245,245,220,0.6)', lineHeight: 1.6,
+                  display: '-webkit-box', WebkitLineClamp: 4,
+                  WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                }}>
+                  {book.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ padding: '12px 20px 20px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Save for Later */}
+            {saveStatus === 'saved' ? (
+              <span style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: '11px', letterSpacing: '0.06em',
+                color: '#40E0D0', padding: '10px 4px',
+                filter: 'drop-shadow(0 0 6px rgba(64,224,208,0.6))',
+              }}>
+                ✓ SAVED TO READING LIST!
+              </span>
+            ) : saveStatus === 'duplicate' ? (
+              <span style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: '11px',
+                color: 'rgba(255,179,71,0.8)', padding: '10px 4px',
+              }}>
+                ALREADY ON YOUR LIST
+              </span>
+            ) : saveStatus === 'error' ? (
+              <span style={{
+                fontFamily: 'Special Elite, serif', fontSize: '12px',
+                color: '#FF4E00', padding: '10px 0', fontStyle: 'italic',
+              }}>
+                Couldn't save — try again
+              </span>
+            ) : user ? (
+              <button
+                onClick={handleSaveForLater}
+                disabled={saveStatus === 'saving'}
+                style={{
+                  fontFamily: 'Bungee, sans-serif', fontSize: '11px', letterSpacing: '0.06em',
+                  background: 'transparent', color: '#40E0D0',
+                  border: '1.5px solid rgba(64,224,208,0.5)', borderRadius: '8px',
+                  padding: '10px 16px', cursor: saveStatus === 'saving' ? 'default' : 'pointer',
+                  transition: 'background .15s',
+                }}
+                onMouseEnter={e => { if (saveStatus !== 'saving') e.currentTarget.style.background = 'rgba(64,224,208,0.1)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+              >
+                {saveStatus === 'saving' ? 'SAVING…' : '🔖 SAVE FOR LATER'}
+              </button>
+            ) : (
+              <span style={{
+                fontFamily: 'Special Elite, serif', fontSize: '12px',
+                color: 'rgba(200,155,70,0.55)', fontStyle: 'italic',
+                padding: '10px 0',
+              }}>
+                Log in to save this book
+              </span>
+            )}
+
+            {/* Surprise Me Again */}
+            <button onClick={handleSurprise}
+              style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: '11px', letterSpacing: '0.06em',
+                background: '#FF4E00', color: '#1A1B2E',
+                border: 'none', borderRadius: '8px',
+                padding: '10px 14px', cursor: 'pointer',
+                boxShadow: '0 0 12px rgba(255,78,0,0.4)',
+                marginLeft: 'auto',
+              }}>
+              🎲 SURPRISE ME AGAIN!
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+// ── Want to Read Carousel ──────────────────────────────────────────────────
+
+const CAROUSEL_VISIBLE = 4; // cards shown before "View All" expands
+
+function BookDetailModal({ book, onClose, onRemove, onMarkRead }) {
+  const [markStatus, setMarkStatus] = useState('idle'); // idle | saving | done
+  const [removeStatus, setRemoveStatus] = useState('idle');
+
+  const handleMarkRead = async () => {
+    if (markStatus === 'saving') return;
+    setMarkStatus('saving');
+    try {
+      const docId = book.id.replace(/\//g, '_');
+      await setDoc(doc(db, 'users', book._uid, 'booksRead', docId), {
+        bookTitle:     book.bookTitle,
+        bookAuthor:    book.bookAuthor,
+        bookCover:     book.bookCover || null,
+        googleBooksId: book.id,
+        rating: 0,
+        finishedMonth: '',
+        finishedYear: '',
+        format: 'read',
+        timestamp: serverTimestamp(),
+      });
+      await deleteDoc(doc(db, 'users', book._uid, 'wantToRead', docId));
+      setMarkStatus('done');
+      setTimeout(() => { onMarkRead(book.id); onClose(); }, 800);
+    } catch {
+      setMarkStatus('idle');
+    }
+  };
+
+  const handleRemove = async () => {
+    if (removeStatus === 'saving') return;
+    setRemoveStatus('saving');
+    try {
+      const docId = book.id.replace(/\//g, '_');
+      await deleteDoc(doc(db, 'users', book._uid, 'wantToRead', docId));
+      onRemove(book.id);
+      onClose();
+    } catch {
+      setRemoveStatus('idle');
+    }
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000,
+        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#0D0E1A', border: '1.5px solid rgba(64,224,208,0.35)',
+          borderRadius: '16px', maxWidth: '420px', width: '100%',
+          maxHeight: '88vh', overflowY: 'auto',
+          boxShadow: '0 0 40px rgba(64,224,208,0.15), 0 20px 60px rgba(0,0,0,0.7)',
+        }}
+      >
+        {/* Cover hero */}
+        {book.bookCover && (
+          <div style={{ textAlign: 'center', padding: '24px 24px 0', background: 'rgba(255,255,255,0.02)' }}>
+            <img src={book.bookCover} alt={book.bookTitle}
+              style={{
+                height: '180px', borderRadius: '8px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                display: 'inline-block',
+              }}
+            />
+          </div>
+        )}
+
+        {/* Info */}
+        <div style={{ padding: '20px 24px' }}>
+          <h2 style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px,3vw,18px)',
+            color: '#F5F5DC', lineHeight: 1.25, marginBottom: '6px',
+          }}>
+            {book.bookTitle}
+          </h2>
+          <p style={{
+            fontFamily: 'Special Elite, serif', fontSize: '13px',
+            color: 'rgba(200,155,70,0.75)', marginBottom: '10px',
+          }}>
+            by {book.bookAuthor}
+          </p>
+
+          {book.genre && (
+            <span style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.08em',
+              color: '#40E0D0', background: 'rgba(64,224,208,0.1)',
+              border: '1px solid rgba(64,224,208,0.3)', borderRadius: '4px',
+              padding: '2px 8px', display: 'inline-block', marginBottom: '12px',
+            }}>
+              {book.genre}
+            </span>
+          )}
+
+          {book.description && (
+            <p style={{
+              fontFamily: 'Special Elite, serif', fontSize: '12px',
+              color: 'rgba(245,245,220,0.6)', lineHeight: 1.7,
+              marginBottom: '20px',
+              display: '-webkit-box', WebkitLineClamp: 5,
+              WebkitBoxOrient: 'vertical', overflow: 'hidden',
+            }}>
+              {book.description}
+            </p>
+          )}
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <button onClick={handleMarkRead} disabled={markStatus !== 'idle'}
+              style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.06em',
+                background: markStatus === 'done' ? '#40E0D0' : 'rgba(64,224,208,0.15)',
+                color: '#40E0D0', border: '1.5px solid rgba(64,224,208,0.5)',
+                borderRadius: '10px', padding: '12px', cursor: markStatus !== 'idle' ? 'default' : 'pointer',
+                transition: 'background .2s',
+              }}>
+              {markStatus === 'saving' ? 'SAVING…' : markStatus === 'done' ? '✓ MOVED TO BOOK LOG!' : '📖 MARK AS READ'}
+            </button>
+            <button onClick={handleRemove} disabled={removeStatus === 'saving'}
+              style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.06em',
+                background: 'transparent', color: 'rgba(255,78,0,0.7)',
+                border: '1.5px solid rgba(255,78,0,0.3)', borderRadius: '10px',
+                padding: '12px', cursor: removeStatus === 'saving' ? 'default' : 'pointer',
+                transition: 'background .15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.08)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              {removeStatus === 'saving' ? 'REMOVING…' : '🗑️ REMOVE FROM LIST'}
+            </button>
+            <button onClick={onClose}
+              style={{
+                fontFamily: 'Special Elite, serif', fontSize: '13px',
+                background: 'transparent', color: 'rgba(192,192,192,0.4)',
+                border: 'none', cursor: 'pointer', padding: '8px',
+              }}>
+              CLOSE
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WantToReadCarousel({ user }) {
+  const [books, setBooks]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [modal, setModal]       = useState(null); // book object | null
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    const colRef = collection(db, 'users', user.uid, 'wantToRead');
+    const unsub = onSnapshot(colRef, snap => {
+      const data = snap.docs.map(d => ({
+        id: d.id,
+        _uid: user.uid,
+        ...d.data(),
+      }));
+      // Most recently saved first
+      data.sort((a, b) => (b.savedAt?.toMillis?.() ?? 0) - (a.savedAt?.toMillis?.() ?? 0));
+      setBooks(data);
+      setLoading(false);
+    }, () => setLoading(false));
+    return unsub;
+  }, [user]);
+
+  const handleRemove = (id) => setBooks(prev => prev.filter(b => b.id !== id));
+
+  const scrollBy = (dir) => {
+    scrollRef.current?.scrollBy({ left: dir * 300, behavior: 'smooth' });
+  };
+
+  if (!user) return null;
+
+  const visibleBooks = expanded ? books : books.slice(0, CAROUSEL_VISIBLE);
+
+  return (
+    <section style={{ marginBottom: '44px' }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+        <h2 style={{
+          fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
+          color: '#40E0D0', letterSpacing: '0.08em', margin: 0,
+          textShadow: '0 0 12px rgba(64,224,208,0.5)',
+          whiteSpace: 'nowrap',
+        }}>
+          📚 YOUR READING LIST
+        </h2>
+        {!loading && books.length > 0 && (
+          <span style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: '10px',
+            color: 'rgba(64,224,208,0.55)', letterSpacing: '0.06em',
+            whiteSpace: 'nowrap',
+          }}>
+            ({books.length} saved)
+          </span>
+        )}
+        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(64,224,208,0.4), transparent)' }} />
+        {!loading && books.length > CAROUSEL_VISIBLE && (
+          <button onClick={() => setExpanded(v => !v)}
+            style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: '10px', letterSpacing: '0.06em',
+              color: '#40E0D0', background: 'transparent', border: 'none',
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              opacity: 0.75,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = '0.75'; }}
+          >
+            {expanded ? '← COLLAPSE' : `VIEW ALL ${books.length} →`}
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <p style={{
+          fontFamily: 'Special Elite, serif', fontSize: '13px',
+          color: 'rgba(200,155,70,0.5)', fontStyle: 'italic', textAlign: 'center',
+          padding: '16px 0',
+        }}>
+          Loading your reading list…
+        </p>
+      ) : books.length === 0 ? (
+        <div style={{
+          background: 'rgba(64,224,208,0.03)',
+          border: '1px dashed rgba(64,224,208,0.2)',
+          borderRadius: '12px', padding: '24px', textAlign: 'center',
+        }}>
+          <p style={{ fontSize: '28px', marginBottom: '8px' }}>📖</p>
+          <p style={{
+            fontFamily: 'Special Elite, serif', fontSize: '13px',
+            color: 'rgba(200,155,70,0.55)', lineHeight: 1.6, fontStyle: 'italic',
+          }}>
+            No books saved yet! Click Surprise Me to discover your next read.
+          </p>
+        </div>
+      ) : expanded ? (
+        /* Grid view when expanded */
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+          gap: '12px',
+        }}>
+          {visibleBooks.map(book => (
+            <BookCarouselCard key={book.id} book={book} onOpen={setModal} onRemove={handleRemove} uid={user.uid} />
+          ))}
+        </div>
+      ) : (
+        /* Carousel view */
+        <div style={{ position: 'relative' }}>
+          {/* Left arrow */}
+          <button onClick={() => scrollBy(-1)}
+            style={{
+              position: 'absolute', left: '-14px', top: '50%', transform: 'translateY(-50%)',
+              zIndex: 2, background: 'rgba(13,14,26,0.9)', border: '1px solid rgba(64,224,208,0.3)',
+              borderRadius: '50%', width: '32px', height: '32px',
+              color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 10px rgba(64,224,208,0.2)',
+            }}>‹</button>
+
+          <div ref={scrollRef} style={{
+            display: 'flex', gap: '12px',
+            overflowX: 'auto', scrollSnapType: 'x mandatory',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none', msOverflowStyle: 'none',
+            paddingBottom: '4px',
+          }}>
+            <style>{`.lr-carousel::-webkit-scrollbar { display: none; }`}</style>
+            {visibleBooks.map(book => (
+              <BookCarouselCard key={book.id} book={book} onOpen={setModal} onRemove={handleRemove} uid={user.uid} />
+            ))}
+          </div>
+
+          {/* Right arrow */}
+          <button onClick={() => scrollBy(1)}
+            style={{
+              position: 'absolute', right: '-14px', top: '50%', transform: 'translateY(-50%)',
+              zIndex: 2, background: 'rgba(13,14,26,0.9)', border: '1px solid rgba(64,224,208,0.3)',
+              borderRadius: '50%', width: '32px', height: '32px',
+              color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 10px rgba(64,224,208,0.2)',
+            }}>›</button>
+        </div>
+      )}
+
+      {modal && (
+        <BookDetailModal
+          book={modal}
+          onClose={() => setModal(null)}
+          onRemove={(id) => { handleRemove(id); setModal(null); }}
+          onMarkRead={(id) => { handleRemove(id); setModal(null); }}
+        />
+      )}
+    </section>
+  );
+}
+
+function BookCarouselCard({ book, onOpen, onRemove, uid }) {
+  const [removing, setRemoving] = useState(false);
+
+  const handleRemove = async (e) => {
+    e.stopPropagation();
+    if (removing) return;
+    setRemoving(true);
+    try {
+      await deleteDoc(doc(db, 'users', uid, 'wantToRead', book.id));
+      onRemove(book.id);
+    } catch {
+      setRemoving(false);
+    }
+  };
+
+  return (
+    <div
+      onClick={() => onOpen(book)}
+      style={{
+        flexShrink: 0,
+        width: 'clamp(110px, 22vw, 140px)',
+        scrollSnapAlign: 'start',
+        cursor: 'pointer',
+        position: 'relative',
+      }}
+    >
+      {/* Cover */}
+      <div style={{
+        width: '100%', aspectRatio: '2/3',
+        borderRadius: '8px', overflow: 'hidden',
+        background: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(64,224,208,0.15)',
+        marginBottom: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+        transition: 'box-shadow .2s, transform .2s',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(64,224,208,0.3)'; e.currentTarget.style.transform = 'scale(1.02)'; }}
+        onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'scale(1)'; }}
+      >
+        {book.bookCover ? (
+          <img src={book.bookCover} alt={book.bookTitle}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.style.background = 'rgba(64,224,208,0.08)'; }}
+          />
+        ) : (
+          <div style={{
+            width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '32px', background: 'rgba(64,224,208,0.05)',
+          }}>📖</div>
+        )}
+      </div>
+
+      {/* Remove × */}
+      <button
+        onClick={handleRemove}
+        title="Remove from list"
+        style={{
+          position: 'absolute', top: '4px', right: '4px',
+          width: '20px', height: '20px', borderRadius: '50%',
+          background: 'rgba(13,14,26,0.85)', border: '1px solid rgba(255,78,0,0.4)',
+          color: 'rgba(255,78,0,0.7)', fontSize: '11px', lineHeight: 1,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          opacity: removing ? 0.4 : 0.7,
+          transition: 'opacity .15s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = removing ? '0.4' : '0.7'; }}
+      >
+        ×
+      </button>
+
+      {/* Title + author */}
+      <p style={{
+        fontFamily: 'Bungee, sans-serif', fontSize: '10px',
+        color: '#F5F5DC', letterSpacing: '0.02em',
+        lineHeight: 1.3, marginBottom: '3px',
+        overflow: 'hidden', display: '-webkit-box',
+        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      }}>
+        {book.bookTitle}
+      </p>
+      <p style={{
+        fontFamily: 'Special Elite, serif', fontSize: '10px',
+        color: 'rgba(200,155,70,0.6)', lineHeight: 1.3,
+        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
+      }}>
+        {book.bookAuthor}
+      </p>
+    </div>
+  );
+}
 
 // ── Coming-soon sections ───────────────────────────────────────────────────
 const COMING_SOON = [
@@ -368,6 +1079,12 @@ export default function Resources({ onBack }) {
         }}>
           Fuel for the literary road — podcasts, trivia, and reading adventures
         </p>
+
+        {/* ── SURPRISE ME ── */}
+        <SurpriseMe user={user} />
+
+        {/* ── WANT TO READ CAROUSEL ── */}
+        <WantToReadCarousel user={user} />
 
         {/* ── YOUR FAVORITES ── */}
         {user && favPodcasts.length > 0 && (
