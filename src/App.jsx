@@ -14,6 +14,7 @@ import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
 import BookLog from './screens/BookLog';
+import About from './screens/About';
 import Ethics from './screens/Ethics';
 import Credits from './screens/Credits';
 import EthicsModal from './components/EthicsModal';
@@ -121,6 +122,11 @@ function AppInner() {
     setScreen('resources');
   };
 
+  const handleShowAbout = () => {
+    setPreviousScreen(screen);
+    setScreen('about');
+  };
+
   const handleShowEthics = () => {
     setPreviousScreen(screen);
     setScreen('ethics');
@@ -212,6 +218,7 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowResources={handleShowResources}
           onShowBookLog={handleShowBookLog}
+          onShowAbout={handleShowAbout}
           onShowEthics={handleShowEthics}
           onShowCredits={handleShowCredits}
           onLoadSavedRoute={handleLoadSavedRoute}
@@ -228,6 +235,7 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
+          onShowAbout={handleShowAbout}
           onShowEthics={handleShowEthics}
           onShowCredits={handleShowCredits}
           onShowDayTrip={handleShowDayTrip}
@@ -268,6 +276,9 @@ function AppInner() {
       )}
       {screen === 'resources' && (
         <Resources onBack={handleAuthBack} />
+      )}
+      {screen === 'about' && (
+        <About onBack={handleAuthBack} />
       )}
       {screen === 'ethics' && (
         <Ethics onBack={handleAuthBack} />

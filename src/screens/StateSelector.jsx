@@ -33,7 +33,7 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe, onShowDayTrip, onShowFestivalTrip }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe, onShowDayTrip, onShowFestivalTrip }) => {
   const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
@@ -417,6 +417,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
               {showInfoMenu && (
                 <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, minWidth:'170px', zIndex:9999, background:'#0D0E1A', border:'1.5px solid rgba(255,78,0,0.45)', borderRadius:'10px', overflow:'hidden', boxShadow:'0 0 20px rgba(255,78,0,0.2), 0 8px 32px rgba(0,0,0,0.7)', animation:'lr-dropdown-in 0.18s ease' }}>
                   {[
+                    { label: 'ABOUT',          action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
                     { label: 'CODE OF ETHICS', action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
                     { label: 'CREDITS',        action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
                   ].map(({ label, action }, i) => (
@@ -665,8 +666,6 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                 { label: 'MY TRIP', icon: 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z', action: () => { setShowHamburger(false); setShowMyRoutes(true); } },
                 { label: 'HIGHWAY SNACKS', icon: 'M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3', action: () => { setShowHamburger(false); onShowResources?.(); } },
                 ...(user && onShowBookLog ? [{ label: 'BOOK LOG', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253', action: () => { setShowHamburger(false); onShowBookLog(); } }] : []),
-                { label: 'CODE OF ETHICS', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', action: () => { setShowHamburger(false); onShowEthics?.(); } },
-                { label: 'CREDITS', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', action: () => { setShowHamburger(false); onShowCredits?.(); } },
               ].map(({ label, icon, action }) => (
                 <button key={label} onClick={action}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
@@ -687,6 +686,23 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                 <button onClick={() => { setShowHamburger(false); onShowFestivalTrip?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <span className="text-base">🎪</span> FESTIVAL TRIPS
+                </button>
+              </div>
+
+              {/* Afterword section */}
+              <div className="border-t border-starlight-turquoise/10">
+                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">AFTERWORD</p>
+                <button onClick={() => { setShowHamburger(false); onShowAbout?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <span className="text-base">📖</span> ABOUT
+                </button>
+                <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <span className="text-base">📜</span> CODE OF ETHICS
+                </button>
+                <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <span className="text-base">⭐</span> CREDITS
                 </button>
               </div>
             </nav>
