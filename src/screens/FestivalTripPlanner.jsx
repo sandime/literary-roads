@@ -16,12 +16,13 @@ L.Icon.Default.mergeOptions({
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const ALL_STATES = ['AK','AL','AR','AZ','CA','CO','CT','DC','DE','FL','GA','HI','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY'];
+const ALL_STATES = ['AK','AL','AR','AZ','CA','CO','CT','DC','DE','FL','GA','HI','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY'];
 const TYPE_LABELS = {
   general:            { label: '📚 Book Festivals',        color: '#40E0D0' },
   poetry:             { label: '🎭 Poetry & Spoken Word',  color: '#B044FB' },
   genre:              { label: '🔍 Genre Specific',        color: '#FF4E00' },
   'writers-conference':{ label: '✍️ Writers\' Conferences', color: '#F5F5DC' },
+  children:           { label: '📖 Children\'s & YA',      color: '#FFB347' },
 };
 const SIZE_BADGES = {
   major:    { label: 'MAJOR',    bg: 'bg-atomic-orange/20 border-atomic-orange/60',     text: 'text-atomic-orange' },
@@ -68,7 +69,7 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
     clearTimeout(debounceRef.current);
     if (!v || v.length < 2) { setSuggestions([]); setShowDrop(false); return; }
     debounceRef.current = setTimeout(async () => {
-      const res = await autocompleteAddress(v, ['US']);
+      const res = await autocompleteAddress(v, ['US', 'PR']);
       if (res?.length) { setSuggestions(res); setShowDrop(true); }
     }, 250);
   };
@@ -331,7 +332,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   // Filter state
   const [filterMonth, setFilterMonth] = useState('Any');
   const [filterState, setFilterState] = useState('Any');
-  const [filterTypes, setFilterTypes] = useState(new Set(['general','poetry','genre','writers-conference']));
+  const [filterTypes, setFilterTypes] = useState(new Set(['general','poetry','genre','writers-conference','children']));
   const [filteredFests, setFilteredFests] = useState([]);
 
   // Selection state
@@ -593,15 +594,15 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               </select>
             </div>
 
-            {/* State */}
+            {/* State/Territory */}
             <div>
               <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
-                STATE
+                STATE/TERRITORY
               </label>
               <select value={filterState} onChange={e => setFilterState(e.target.value)}
                 className="w-full bg-black/50 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2.5 rounded-lg focus:outline-none focus:border-starlight-turquoise"
               >
-                <option value="Any">Any state</option>
+                <option value="Any">Any state or territory</option>
                 {ALL_STATES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>

@@ -39,7 +39,7 @@ const AddrInput = ({ value, onChange, onSelect, placeholder, disabled }) => {
     clearTimeout(debounceRef.current);
     if (!value || value.length < 2) { setSuggestions([]); setShow(false); return; }
     debounceRef.current = setTimeout(async () => {
-      const list = (await autocompleteAddress(value, ['US'])) || [];
+      const list = (await autocompleteAddress(value, ['US', 'PR'])) || [];
       setSuggestions(list);
       setShow(list.length > 0);
     }, 250);
