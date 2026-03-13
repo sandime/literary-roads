@@ -218,6 +218,7 @@ function AppInner() {
           onSelectStop={handleSelectStopFromSelector}
           onNearMe={handleNearMeFromSelector}
           onShowDayTrip={handleShowDayTrip}
+          onShowFestivalTrip={handleShowFestivalTrip}
         />
       )}
       {screen === 'map' && (
