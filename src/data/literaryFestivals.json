@@ -9,8 +9,17 @@
     "description": "Library of Congress flagship festival at the Walter E. Washington Convention Center; free, one-day celebration of reading.",
     "website": "https://www.loc.gov/events/national-book-festival/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – first Saturday of September",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 first Saturday of September",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "library",
+      "family",
+      "free"
+    ],
+    "genre": null
   },
   {
     "id": "la-times-festival-of-books",
@@ -22,8 +31,17 @@
     "description": "The nation's largest public book festival, held on the USC campus over two days with hundreds of authors and exhibitors.",
     "website": "https://events.latimes.com/festivalofbooks/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – last weekend of April",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 last weekend of April",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "celebrity-authors",
+      "major",
+      "usc"
+    ],
+    "genre": null
   },
   {
     "id": "miami-book-fair",
@@ -35,8 +53,17 @@
     "description": "Eight-day fair at Miami Dade College drawing 550+ authors from 35+ countries; one of the most important literary events in the Americas.",
     "website": "https://www.miamibookfair.com/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – third week of November",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 third week of November",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "international",
+      "reading",
+      "major",
+      "multilingual"
+    ],
+    "genre": null
   },
   {
     "id": "texas-book-festival",
@@ -48,8 +75,17 @@
     "description": "Annual two-day festival around the Texas State Capitol featuring 250+ authors, a street fair, and a Saturday Lit Crawl.",
     "website": "https://texasbookfestival.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – second weekend of November",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 second weekend of November",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "texas",
+      "outdoor",
+      "state-capitol"
+    ],
+    "genre": null
   },
   {
     "id": "southern-festival-of-books",
@@ -61,8 +97,16 @@
     "description": "Free two-day festival at Bicentennial Mall and the Tennessee State Museum celebrating Southern literature and authors.",
     "website": "https://www.sofestofbooks.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – third weekend of October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 third weekend of October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-lit",
+      "free",
+      "nashville"
+    ],
+    "genre": null
   },
   {
     "id": "brooklyn-book-festival",
@@ -74,8 +118,17 @@
     "description": "New York City's largest free literary event, spanning nine days with 500+ authors, the East Coast's biggest book market, and five boroughs.",
     "website": "https://brooklynbookfestival.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – mid to late September",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 mid to late September",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "nyc",
+      "free",
+      "major",
+      "publishers"
+    ],
+    "genre": null
   },
   {
     "id": "tucson-festival-of-books",
@@ -87,8 +140,17 @@
     "description": "Free two-day festival on the University of Arizona campus with 300+ authors, science exhibitions, and family programming.",
     "website": "https://tucsonfestivalofbooks.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – second weekend of March",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 second weekend of March",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "university",
+      "family",
+      "science"
+    ],
+    "genre": null
   },
   {
     "id": "printers-row-lit-fest",
@@ -100,8 +162,17 @@
     "description": "Free outdoor book fair in Chicago's historic Printers Row neighborhood; the Midwest's premier street literary festival.",
     "website": "https://printersrowlitfest.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – first weekend of September",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 first weekend of September",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "chicago",
+      "outdoor",
+      "free",
+      "historic-neighborhood"
+    ],
+    "genre": null
   },
   {
     "id": "savannah-book-festival",
@@ -113,8 +184,16 @@
     "description": "Four-day festival in historic downtown Savannah with 40+ authors presenting at venues surrounding Telfair and Chippewa Squares.",
     "website": "https://www.savannahbookfestival.org/",
     "typicalMonth": "February",
-    "recurringPattern": "Annual – second weekend of February",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 second weekend of February",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-lit",
+      "historic-venue",
+      "georgia"
+    ],
+    "genre": null
   },
   {
     "id": "baltimore-book-festival",
@@ -126,8 +205,16 @@
     "description": "Free two-day festival in Baltimore's Waverly neighborhood featuring 80+ authors, six stages, literary panels, and youth programming.",
     "website": "https://baltimorebookfest.com/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – second weekend of September",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 second weekend of September",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "mid-atlantic",
+      "outdoor"
+    ],
+    "genre": null
   },
   {
     "id": "decatur-book-festival",
@@ -139,8 +226,17 @@
     "description": "Free two-day festival in downtown Decatur with 100+ national and local authors, a street fair, and cooking demonstrations.",
     "website": "https://www.decaturbookfestival.com/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – first weekend of October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 first weekend of October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "outdoor",
+      "georgia",
+      "street-fair"
+    ],
+    "genre": null
   },
   {
     "id": "virginia-festival-of-the-book",
@@ -152,8 +248,17 @@
     "description": "Four-day literary festival at the University of Virginia celebrating authors, ideas, and the literary arts across Charlottesville.",
     "website": "https://www.vabook.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – third week of March",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 third week of March",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "university",
+      "readings",
+      "virginia",
+      "uva"
+    ],
+    "genre": null
   },
   {
     "id": "thrillerfest",
@@ -165,8 +270,17 @@
     "description": "Annual conference of the International Thriller Writers at the New York Hilton Midtown; workshops, panels, and the ITW Award ceremony.",
     "website": "https://thrillerfest.com/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – late June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 late June",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "thriller",
+      "crime",
+      "suspense",
+      "awards",
+      "itw"
+    ],
+    "genre": "thriller"
   },
   {
     "id": "bouchercon",
@@ -174,12 +288,21 @@
     "city": "New Orleans",
     "state": "LA",
     "lat": 29.9547,
-    "lng": -90.0700,
+    "lng": -90.07,
     "description": "The world's largest mystery fan convention, rotating cities annually; the 2025 edition returns to New Orleans in September.",
     "website": "https://www.bouchercon.com/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – rotating city, typically late August/September",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 rotating city, typically late August/September",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "mystery",
+      "crime",
+      "detective",
+      "awards",
+      "rotating"
+    ],
+    "genre": "mystery"
   },
   {
     "id": "portland-book-festival",
@@ -191,8 +314,16 @@
     "description": "Annual one-day festival (formerly Wordstock) across ten stages in Portland's South Park Blocks, presented by Literary Arts.",
     "website": "https://literary-arts.org/about/programs/portland-book-festival/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – second Saturday of November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 second Saturday of November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "literary-arts",
+      "portland",
+      "free"
+    ],
+    "genre": null
   },
   {
     "id": "litquake-lit-crawl-sf",
@@ -204,8 +335,17 @@
     "description": "SF's two-week literary festival culminating in Lit Crawl, the world's largest free pop-up lit event with 250+ authors roaming the Mission District.",
     "website": "https://www.litquake.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – mid to late October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 mid to late October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "lit-crawl",
+      "san-francisco",
+      "outdoor",
+      "free"
+    ],
+    "genre": null
   },
   {
     "id": "key-west-literary-seminar",
@@ -213,12 +353,21 @@
     "city": "Key West",
     "state": "FL",
     "lat": 24.5551,
-    "lng": -81.7800,
+    "lng": -81.78,
     "description": "Intimate four-day seminar exploring a single literary theme each year, drawing writers and readers to the Key West Amphitheater.",
     "website": "https://www.kwls.org/",
     "typicalMonth": "January",
-    "recurringPattern": "Annual – second week of January",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 second week of January",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "literary-fiction",
+      "intensive",
+      "island",
+      "intimate"
+    ],
+    "genre": null
   },
   {
     "id": "sun-valley-writers-conference",
@@ -226,12 +375,21 @@
     "city": "Sun Valley",
     "state": "ID",
     "lat": 43.6969,
-    "lng": -114.3510,
+    "lng": -114.351,
     "description": "Prestigious three-day gathering of leading authors and thinkers at the Sun Valley Resort Pavilion in the Idaho mountains.",
     "website": "https://svwc.com/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – third weekend of July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 third weekend of July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "literary-fiction",
+      "nonfiction",
+      "mountain",
+      "idaho"
+    ],
+    "genre": null
   },
   {
     "id": "nantucket-book-festival",
@@ -243,8 +401,17 @@
     "description": "Four-day island literary festival with free public events featuring bestselling and Pulitzer Prize-winning authors each June.",
     "website": "https://www.nantucketbookfestival.org/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – second week of June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 second week of June",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "island",
+      "free",
+      "celebrity-authors",
+      "massachusetts"
+    ],
+    "genre": null
   },
   {
     "id": "new-orleans-book-festival",
@@ -256,8 +423,17 @@
     "description": "Free four-day festival on Tulane University's uptown campus with 90+ panels, culinary symposia, and family programming.",
     "website": "https://bookfest.tulane.edu/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – late March",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 late March",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "university",
+      "free",
+      "culinary",
+      "new-orleans"
+    ],
+    "genre": null
   },
   {
     "id": "boston-book-festival",
@@ -265,12 +441,21 @@
     "city": "Boston",
     "state": "MA",
     "lat": 42.3496,
-    "lng": -71.0780,
+    "lng": -71.078,
     "description": "Free one-day festival in Copley Square with 200+ authors presenting across the Boston Public Library and surrounding historic churches.",
     "website": "https://bostonbookfest.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – last Saturday of October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 last Saturday of October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "copley-square",
+      "historic-venue",
+      "massachusetts"
+    ],
+    "genre": null
   },
   {
     "id": "louisville-book-festival",
@@ -282,8 +467,16 @@
     "description": "Free one-day festival at the Kentucky International Convention Center with 100+ authors celebrating reading and storytelling.",
     "website": "https://www.louisvillebookfestival.com/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – second Saturday of October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 second Saturday of October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "kentucky",
+      "convention-center"
+    ],
+    "genre": null
   },
   {
     "id": "pen-world-voices-festival",
@@ -291,12 +484,21 @@
     "city": "New York",
     "state": "NY",
     "lat": 40.7308,
-    "lng": -74.0020,
+    "lng": -74.002,
     "description": "PEN America's international literary festival celebrating writers from 35+ countries with events in Manhattan's Greenwich Village.",
     "website": "https://worldvoices.pen.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – late April to early May",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 late April to early May",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "international",
+      "social-justice",
+      "free-speech",
+      "pen-america"
+    ],
+    "genre": null
   },
   {
     "id": "twin-cities-book-festival",
@@ -304,12 +506,21 @@
     "city": "Saint Paul",
     "state": "MN",
     "lat": 44.9537,
-    "lng": -93.0900,
+    "lng": -93.09,
     "description": "Rain Taxi's annual all-day book fair at Union Depot with 130+ publishers, literary organizations, and author events for all ages.",
     "website": "https://twincitiesbookfestival.com/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – second Saturday of November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 second Saturday of November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "small-press",
+      "publishers",
+      "midwest",
+      "rain-taxi"
+    ],
+    "genre": null
   },
   {
     "id": "kentucky-book-festival",
@@ -321,8 +532,16 @@
     "description": "Free all-day festival at Joseph-Beth Booksellers in Lexington with 150+ authors celebrating books and literacy in the Commonwealth.",
     "website": "https://kybookfestival.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – first Saturday of November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 first Saturday of November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "kentucky",
+      "independent-bookstore"
+    ],
+    "genre": null
   },
   {
     "id": "harlem-book-fair",
@@ -334,21 +553,40 @@
     "description": "The nation's largest African American book fair on 135th Street in Harlem, celebrating Black literature, culture, and intellectual life each July.",
     "website": "https://www.qbr.com/harlem-book-fair/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – third Saturday of July",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 third Saturday of July",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "african-american",
+      "black-lit",
+      "free",
+      "community",
+      "harlem"
+    ],
+    "genre": null
   },
   {
     "id": "bronx-book-fair",
     "name": "Bronx Book Fair",
     "city": "Bronx",
     "state": "NY",
-    "lat": 40.8170,
+    "lat": 40.817,
     "lng": -73.9249,
     "description": "Annual one-day celebration of books and literacy at Hostos Community College in the South Bronx, with local and national authors, free admission.",
     "website": "https://bronxbookfair.com/",
     "typicalMonth": "May",
-    "recurringPattern": "Annual – May",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "community",
+      "new-york",
+      "bronx"
+    ],
+    "genre": null
   },
   {
     "id": "queens-book-festival",
@@ -360,8 +598,17 @@
     "description": "Free annual festival in Jamaica, Queens celebrating the borough's diverse literary voices with author readings, panels, and family programming.",
     "website": "https://queensbookfestival.com/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "community",
+      "new-york",
+      "diverse"
+    ],
+    "genre": null
   },
   {
     "id": "nyc-poetry-festival",
@@ -369,12 +616,22 @@
     "city": "New York (Governors Island)",
     "state": "NY",
     "lat": 40.6896,
-    "lng": -74.0170,
+    "lng": -74.017,
     "description": "Free two-day outdoor poetry festival on Governors Island featuring 200+ poets, publishers, and literary magazines in a stunning harbor setting.",
     "website": "https://www.nycpoetryfestival.com/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – last weekend of July",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 last weekend of July",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "outdoor",
+      "free",
+      "publishers",
+      "new-york",
+      "governors-island"
+    ],
+    "genre": null
   },
   {
     "id": "chautauqua-literary-arts",
@@ -386,8 +643,17 @@
     "description": "Summer-long literary arts programming at the historic Chautauqua Institution, including author readings, the Chautauqua Prize, and writing workshops.",
     "website": "https://www.chq.org/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – summer season (June–August)",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 summer season (June\u2013August)",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "books",
+      "workshop",
+      "summer",
+      "community",
+      "historic"
+    ],
+    "genre": null
   },
   {
     "id": "vermont-book-festival",
@@ -399,8 +665,16 @@
     "description": "Multi-day festival celebrating Vermont authors and the state's vibrant literary culture with readings, panels, and a bustling book fair in Burlington.",
     "website": "https://www.vermontbookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "new-england",
+      "vermont-authors",
+      "regional"
+    ],
+    "genre": null
   },
   {
     "id": "bread-loaf-writers-conference",
@@ -408,12 +682,22 @@
     "city": "Ripton",
     "state": "VT",
     "lat": 44.0154,
-    "lng": -73.0270,
+    "lng": -73.027,
     "description": "America's oldest and most prestigious writers' conference, held each August in the Green Mountains; founded by Robert Frost in 1926 at Middlebury College.",
     "website": "https://www.middlebury.edu/bread-loaf-conferences/bl_writers/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – third week of August",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 third week of August",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "fiction",
+      "poetry",
+      "nonfiction",
+      "prestigious",
+      "founded-1926"
+    ],
+    "genre": null
   },
   {
     "id": "new-hampshire-literary-festival",
@@ -425,8 +709,16 @@
     "description": "Annual two-day celebration of New Hampshire authors and literature, with panel discussions, readings, and a book fair at Concord venues.",
     "website": "https://nhwriters.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "new-england",
+      "authors",
+      "regional"
+    ],
+    "genre": null
   },
   {
     "id": "free-library-literary-festival",
@@ -438,8 +730,16 @@
     "description": "Philadelphia's premier literary gathering hosted by the Free Library, featuring award-winning authors across fiction, nonfiction, poetry, and children's literature.",
     "website": "https://libraryfestival.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "philadelphia",
+      "free",
+      "library"
+    ],
+    "genre": null
   },
   {
     "id": "delaware-book-festival",
@@ -451,8 +751,16 @@
     "description": "Free annual festival at Legislative Mall in Dover with Delaware authors and national guests, presented by the Delaware Division of Libraries.",
     "website": "https://delawarebookfestival.com/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "library",
+      "delaware"
+    ],
+    "genre": null
   },
   {
     "id": "garden-state-book-festival",
@@ -464,8 +772,17 @@
     "description": "New Jersey's largest literary event for teens and young adults, bringing 50+ YA and middle-grade authors to Garden State Arts Center.",
     "website": "https://gsbookfestival.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "regional",
+    "primaryType": "genre",
+    "tags": [
+      "books",
+      "ya",
+      "teen",
+      "new-jersey",
+      "young-adult"
+    ],
+    "genre": "young-adult"
   },
   {
     "id": "dodge-poetry-festival",
@@ -477,8 +794,18 @@
     "description": "The largest poetry event in North America, held biennially at NJPAC in Newark with 100+ poets, 18,000+ attendees, and four days of readings and workshops.",
     "website": "https://www.dodgepoetry.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Biennial – even-numbered years, October",
-    "size": "major"
+    "recurringPattern": "Biennial \u2013 even-numbered years, October",
+    "size": "major",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "major",
+      "biennial",
+      "public",
+      "free",
+      "new-jersey"
+    ],
+    "genre": null
   },
   {
     "id": "malice-domestic",
@@ -490,8 +817,17 @@
     "description": "Annual mystery fan convention in suburban DC celebrating the traditional mystery, honoring the Agatha Awards, and connecting readers with authors.",
     "website": "https://www.malicedomestic.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – late April/early May",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 late April/early May",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "mystery",
+      "cozy-mystery",
+      "traditional-mystery",
+      "awards",
+      "maryland"
+    ],
+    "genre": "mystery"
   },
   {
     "id": "split-this-rock",
@@ -503,8 +839,17 @@
     "description": "Biennial festival in Washington, DC celebrating socially engaged poetry; features 200+ poets, workshops, and the Poem of the Week gallery.",
     "website": "https://www.splitthisrock.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Biennial – even-numbered years, April",
-    "size": "specialty"
+    "recurringPattern": "Biennial \u2013 even-numbered years, April",
+    "size": "specialty",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "social-justice",
+      "activism",
+      "biennial",
+      "dc"
+    ],
+    "genre": null
   },
   {
     "id": "hurston-wright-writers-week",
@@ -516,8 +861,17 @@
     "description": "Intensive summer writing workshop and awards celebration for Black writers of African descent, honoring the legacy of Zora Neale Hurston and Richard Wright.",
     "website": "https://www.hurstonwright.org/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – summer",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 summer",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "black-writers",
+      "african-american",
+      "awards",
+      "dc"
+    ],
+    "genre": null
   },
   {
     "id": "tennessee-williams-literary-festival",
@@ -529,8 +883,17 @@
     "description": "Five-day festival in the French Quarter honoring the playwright's legacy with author readings, a Stanley and Stella shouting contest, and literary walking tours.",
     "website": "https://www.tennesseewilliams.net/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – last week of March",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 last week of March",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-lit",
+      "new-orleans",
+      "playwright",
+      "french-quarter"
+    ],
+    "genre": null
   },
   {
     "id": "mississippi-book-festival",
@@ -542,8 +905,17 @@
     "description": "Free one-day literary lawn party on the grounds of the Mississippi State Capitol celebrating the state's rich storytelling tradition.",
     "website": "https://www.msbookfestival.com/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – third Saturday of August",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 third Saturday of August",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-lit",
+      "free",
+      "outdoor",
+      "state-capitol"
+    ],
+    "genre": null
   },
   {
     "id": "oxford-conference-for-the-book",
@@ -555,8 +927,17 @@
     "description": "Three-day academic and popular literary conference at the University of Mississippi exploring books, publishing, and Southern literature.",
     "website": "https://www.oxfordconferenceforthebook.com/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – March",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 March",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "academic",
+      "southern-lit",
+      "faulkner",
+      "ole-miss"
+    ],
+    "genre": null
   },
   {
     "id": "arkansas-book-festival",
@@ -568,8 +949,17 @@
     "description": "Free one-day festival at the Arkansas Studies Institute and Fulbright Library celebrating Arkansas authors and readers across all genres.",
     "website": "https://www.arkansashumanities.org/arkansas-book-festival/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "southern-lit",
+      "regional",
+      "library"
+    ],
+    "genre": null
   },
   {
     "id": "alabama-book-festival",
@@ -577,12 +967,21 @@
     "city": "Montgomery",
     "state": "AL",
     "lat": 32.3668,
-    "lng": -86.3000,
+    "lng": -86.3,
     "description": "Free one-day outdoor festival on the grounds of the Old Alabama Town complex featuring 70+ authors, booksellers, and a children's programming area.",
     "website": "https://www.alabamabookfestival.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – third Saturday of April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 third Saturday of April",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "outdoor",
+      "southern-lit",
+      "historic-venue"
+    ],
+    "genre": null
   },
   {
     "id": "north-carolina-literary-festival",
@@ -594,8 +993,17 @@
     "description": "Biennial statewide celebration of North Carolina writers hosted by UNC-Chapel Hill, featuring readings, workshops, and a book fair across the university campus.",
     "website": "https://ncarts.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Biennial – even-numbered years, spring",
-    "size": "regional"
+    "recurringPattern": "Biennial \u2013 even-numbered years, spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "university",
+      "statewide",
+      "biennial",
+      "unc"
+    ],
+    "genre": null
   },
   {
     "id": "south-carolina-book-festival",
@@ -607,8 +1015,16 @@
     "description": "Free two-day festival at the Columbia Metropolitan Convention Center with 100+ authors, celebrity chefs, and the SC Fiction Project readings.",
     "website": "https://www.scbookfestival.org/",
     "typicalMonth": "February",
-    "recurringPattern": "Annual – third weekend of February",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 third weekend of February",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "southeast",
+      "columbia"
+    ],
+    "genre": null
   },
   {
     "id": "tallahassee-book-festival",
@@ -620,8 +1036,17 @@
     "description": "Free one-day outdoor festival on the historic Kleman Plaza featuring Florida authors, storytelling for children, poetry slams, and independent booksellers.",
     "website": "https://www.tallahasseebookfestival.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – March",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 March",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "outdoor",
+      "florida",
+      "library"
+    ],
+    "genre": null
   },
   {
     "id": "jacksonville-book-festival",
@@ -633,8 +1058,16 @@
     "description": "Multi-day literary celebration in downtown Jacksonville featuring panel discussions, author signings, and events at the Jacksonville Main Library.",
     "website": "https://www.jaxbookfestival.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "florida",
+      "library",
+      "multi-day"
+    ],
+    "genre": null
   },
   {
     "id": "pensacola-book-festival",
@@ -646,8 +1079,16 @@
     "description": "Annual free festival at the Pensacola Bay Center celebrating Gulf Coast authors and literacy with readings, booksellers, and family programming.",
     "website": "https://pensacolabookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "gulf-coast",
+      "florida"
+    ],
+    "genre": null
   },
   {
     "id": "west-virginia-book-festival",
@@ -659,8 +1100,17 @@
     "description": "Three-day festival at the Charleston Civic Center celebrating Appalachian and national literature with author readings, a book sale, and children's events.",
     "website": "https://wvbookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "appalachian",
+      "regional",
+      "civic-center"
+    ],
+    "genre": null
   },
   {
     "id": "sewanee-writers-conference",
@@ -672,8 +1122,18 @@
     "description": "Highly selective 12-day conference at the University of the South in Sewanee, TN, offering workshops in fiction, poetry, and playwriting with celebrated faculty.",
     "website": "https://sewaneewriters.org/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "fiction",
+      "poetry",
+      "playwriting",
+      "prestigious",
+      "selective"
+    ],
+    "genre": null
   },
   {
     "id": "thomas-wolfe-festival",
@@ -685,8 +1145,17 @@
     "description": "Annual October festival in Asheville honoring native son Thomas Wolfe with readings at the Thomas Wolfe Memorial, author events, and literary tours.",
     "website": "https://wolfememorial.com/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "literary-fiction",
+      "historic",
+      "appalachian",
+      "north-carolina"
+    ],
+    "genre": null
   },
   {
     "id": "flannery-oconnor-festival",
@@ -698,8 +1167,17 @@
     "description": "Annual symposium at Georgia College celebrating Flannery O'Connor's work and legacy, with scholarly panels, readings, and tours of her Andalusia Farm.",
     "website": "https://www.gcsu.edu/flanneryfestival",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-gothic",
+      "literary-fiction",
+      "academic",
+      "georgia"
+    ],
+    "genre": null
   },
   {
     "id": "carolina-mountains-literary-festival",
@@ -711,8 +1189,17 @@
     "description": "Intimate three-day literary festival in the Blue Ridge Mountains of western NC, featuring 30+ authors in a beautiful small-town Appalachian setting.",
     "website": "https://www.carolinamountainslitfest.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 September",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "appalachian",
+      "mountain",
+      "intimate",
+      "north-carolina"
+    ],
+    "genre": null
   },
   {
     "id": "hindman-appalachian-writers",
@@ -720,12 +1207,21 @@
     "city": "Hindman",
     "state": "KY",
     "lat": 37.3384,
-    "lng": -83.0210,
+    "lng": -83.021,
     "description": "Week-long writing workshop and literary celebration at Hindman Settlement School in the Kentucky mountains, one of the oldest regional Appalachian literary gatherings.",
     "website": "https://www.hindmansettlement.org/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – late July/early August",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 late July/early August",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "appalachian",
+      "regional",
+      "kentucky",
+      "community"
+    ],
+    "genre": null
   },
   {
     "id": "wisconsin-book-festival",
@@ -737,8 +1233,17 @@
     "description": "Five-day free literary festival hosted by the Madison Public Library featuring 100+ authors across fiction, memoir, poetry, and children's literature.",
     "website": "https://www.wisconsinbookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "library",
+      "midwest",
+      "madison"
+    ],
+    "genre": null
   },
   {
     "id": "ohioana-book-festival",
@@ -750,8 +1255,17 @@
     "description": "Free one-day celebration of Ohio authors and books at the Ohioana Library in Columbus, presenting the Ohioana Book Awards and featuring 100+ Ohio writers.",
     "website": "https://www.ohioana.org/programs/ohioana-book-festival/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "ohio-authors",
+      "awards",
+      "ohio"
+    ],
+    "genre": null
   },
   {
     "id": "iowa-city-book-festival",
@@ -763,8 +1277,17 @@
     "description": "Annual fall festival in the UNESCO City of Literature celebrating the written word with author events across Iowa City's independent bookshops and cultural venues.",
     "website": "https://iowacitybookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "unesco",
+      "city-of-literature",
+      "iowa",
+      "indie-bookstores"
+    ],
+    "genre": null
   },
   {
     "id": "ann-arbor-book-festival",
@@ -772,12 +1295,21 @@
     "city": "Ann Arbor",
     "state": "MI",
     "lat": 42.2808,
-    "lng": -83.7430,
+    "lng": -83.743,
     "description": "Annual literary celebration in Ann Arbor featuring author readings and a streetfair of independent publishers and booksellers in the heart of this literary college town.",
     "website": "https://www.aabookfestival.org/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "college-town",
+      "midwest",
+      "publishers",
+      "michigan"
+    ],
+    "genre": null
   },
   {
     "id": "festival-of-faith-and-writing",
@@ -789,8 +1321,18 @@
     "description": "Biennial gathering at Calvin University exploring the intersection of literature and faith with 100+ authors including Pulitzer and National Book Award winners.",
     "website": "https://calvin.edu/go/festival-of-faith-writing/",
     "typicalMonth": "April",
-    "recurringPattern": "Biennial – even-numbered years, April",
-    "size": "specialty"
+    "recurringPattern": "Biennial \u2013 even-numbered years, April",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "faith",
+      "religion",
+      "literary-fiction",
+      "biennial",
+      "calvin"
+    ],
+    "genre": null
   },
   {
     "id": "kenyon-review-writers-workshop",
@@ -802,8 +1344,18 @@
     "description": "Intensive summer workshop at Kenyon College for adult writers of poetry, fiction, and nonfiction, with faculty drawn from the Kenyon Review editorial community.",
     "website": "https://www.kenyonreview.org/workshops/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "fiction",
+      "poetry",
+      "nonfiction",
+      "literary-magazine",
+      "ohio"
+    ],
+    "genre": null
   },
   {
     "id": "south-dakota-festival-of-books",
@@ -815,8 +1367,17 @@
     "description": "Annual three-day free literary festival presented by South Dakota Humanities Council at South Dakota State University with 50+ authors and family programming.",
     "website": "https://www.sdhumanities.org/programs/sd-festival-of-books/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 September",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "great-plains",
+      "humanities",
+      "sdsu"
+    ],
+    "genre": null
   },
   {
     "id": "kansas-book-festival",
@@ -824,12 +1385,21 @@
     "city": "Topeka",
     "state": "KS",
     "lat": 39.0489,
-    "lng": -95.6780,
+    "lng": -95.678,
     "description": "Annual free literary festival at the Kansas State Capitol and Topeka & Shawnee County Public Library celebrating Kansas authors and literary culture.",
     "website": "https://www.kansasbookfestival.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "midwest",
+      "humanities",
+      "kansas"
+    ],
+    "genre": null
   },
   {
     "id": "southern-kentucky-book-fest",
@@ -841,8 +1411,17 @@
     "description": "Annual free book festival at the Knicely Conference Center in Bowling Green, featuring 100+ authors and presented by the Warren County Public Library.",
     "website": "https://sokybookfest.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "kentucky",
+      "library",
+      "bowling-green"
+    ],
+    "genre": null
   },
   {
     "id": "montana-festival-of-the-book",
@@ -850,12 +1429,21 @@
     "city": "Missoula",
     "state": "MT",
     "lat": 46.8721,
-    "lng": -113.9940,
+    "lng": -113.994,
     "description": "Annual four-day fall festival celebrating Montana's rich literary tradition in the college-town atmosphere of Missoula, with readings, panels, and bookstore events.",
     "website": "https://www.montanabookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "mountain-west",
+      "regional",
+      "missoula",
+      "university-of-montana"
+    ],
+    "genre": null
   },
   {
     "id": "san-antonio-book-festival",
@@ -867,8 +1455,17 @@
     "description": "Free one-day festival at the Central Library and Travis Park with 150+ authors celebrating San Antonio's diverse literary culture and Texas storytelling.",
     "website": "https://www.sanantoniobookfestival.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "texas",
+      "diverse",
+      "library"
+    ],
+    "genre": null
   },
   {
     "id": "north-texas-book-festival",
@@ -880,8 +1477,17 @@
     "description": "Annual free fall festival at Denton's Emily Fowler Central Library celebrating North Texas authors, independent publishers, and family reading.",
     "website": "https://www.ntbookfest.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "texas",
+      "library",
+      "denton"
+    ],
+    "genre": null
   },
   {
     "id": "el-paso-book-festival",
@@ -889,12 +1495,21 @@
     "city": "El Paso",
     "state": "TX",
     "lat": 31.7619,
-    "lng": -106.4850,
+    "lng": -106.485,
     "description": "Bilingual literary celebration on the US-Mexico border showcasing Borderlands authors in English and Spanish, with a focus on border culture and identity.",
     "website": "https://elpasotexas.gov/library/el-paso-book-festival/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – spring",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "bilingual",
+      "border",
+      "spanish",
+      "texas"
+    ],
+    "genre": null
   },
   {
     "id": "phoenix-book-festival",
@@ -902,12 +1517,20 @@
     "city": "Phoenix",
     "state": "AZ",
     "lat": 33.4484,
-    "lng": -112.0740,
+    "lng": -112.074,
     "description": "Annual free festival at Burton Barr Central Library celebrating Arizona authors and readers with author talks, panels, and a children's literacy fair.",
     "website": "https://www.azbookfestival.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – March",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 March",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "arizona",
+      "library"
+    ],
+    "genre": null
   },
   {
     "id": "albuquerque-book-festival",
@@ -919,8 +1542,16 @@
     "description": "Annual free literary festival celebrating the diverse literary voices of New Mexico and the Southwest, held at the Albuquerque Convention Center.",
     "website": "https://www.abqbookfestival.org/",
     "typicalMonth": "May",
-    "recurringPattern": "Annual – May",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "new-mexico",
+      "southwest"
+    ],
+    "genre": null
   },
   {
     "id": "taos-summer-writers-conference",
@@ -932,8 +1563,18 @@
     "description": "Week-long intensive writing conference in the mountains of northern New Mexico at the University of New Mexico Taos campus; fiction, poetry, and creative nonfiction.",
     "website": "https://taoswrites.unm.edu/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "fiction",
+      "poetry",
+      "nonfiction",
+      "southwest",
+      "unm"
+    ],
+    "genre": null
   },
   {
     "id": "utah-humanities-book-festival",
@@ -941,12 +1582,21 @@
     "city": "Salt Lake City",
     "state": "UT",
     "lat": 40.7608,
-    "lng": -111.8910,
+    "lng": -111.891,
     "description": "Annual statewide literary celebration presented by Utah Humanities, with author events at libraries and cultural venues across Salt Lake City and Utah.",
     "website": "https://utahhumanities.org/book-festival/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "utah",
+      "humanities",
+      "statewide"
+    ],
+    "genre": null
   },
   {
     "id": "aspen-summer-words",
@@ -958,8 +1608,17 @@
     "description": "Annual five-day writing retreat and literary festival presented by Aspen Words in the Rocky Mountains, with readings, craft seminars, and the Aspen Words Literary Prize.",
     "website": "https://www.aspenwords.org/programs/summer-words/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "literary-fiction",
+      "awards",
+      "mountain",
+      "aspen-words"
+    ],
+    "genre": null
   },
   {
     "id": "pikes-peak-writers-conference",
@@ -971,8 +1630,17 @@
     "description": "Annual three-day conference for genre fiction writers in Colorado Springs featuring agents, editors, and bestselling authors in a workshop-intensive setting.",
     "website": "https://www.pikespeakwriters.com/ppwc/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "genre-fiction",
+      "agents",
+      "editors",
+      "colorado"
+    ],
+    "genre": null
   },
   {
     "id": "nevada-humanities-book-festival",
@@ -984,8 +1652,17 @@
     "description": "Annual free literary festival presented by Nevada Humanities at the National Automobile Museum in Reno celebrating Nevada authors and the literary arts.",
     "website": "https://nevadahumanities.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "nevada",
+      "humanities",
+      "reno"
+    ],
+    "genre": null
   },
   {
     "id": "bay-area-book-festival",
@@ -997,8 +1674,18 @@
     "description": "Free two-day festival in downtown Berkeley bringing together 300+ authors, 100+ exhibitors, and 30,000+ book lovers for the West Coast's premier literary celebration.",
     "website": "https://www.baybookfest.org/",
     "typicalMonth": "May",
-    "recurringPattern": "Annual – first weekend of June",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 first weekend of June",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "major",
+      "california",
+      "publishers",
+      "berkeley"
+    ],
+    "genre": null
   },
   {
     "id": "san-diego-festival-of-books",
@@ -1010,8 +1697,17 @@
     "description": "Annual free literary festival celebrating San Diego authors and the region's diverse reading culture at the San Diego Library and Balboa Park venues.",
     "website": "https://www.sdfestivalofbooks.com/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "california",
+      "authors",
+      "san-diego"
+    ],
+    "genre": null
   },
   {
     "id": "sacramento-book-fair",
@@ -1023,8 +1719,17 @@
     "description": "Annual gathering of independent booksellers, small presses, and literary organizations celebrating books and reading culture in California's capital.",
     "website": "https://www.sacramentobookfair.com/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – spring",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "small-press",
+      "california",
+      "publishers",
+      "sacramento"
+    ],
+    "genre": null
   },
   {
     "id": "santa-barbara-book-festival",
@@ -1036,8 +1741,16 @@
     "description": "Annual celebration of books and ideas at Santa Barbara's independent bookshops, the Santa Barbara Public Library, and the historic Lobero Theatre.",
     "website": "https://sbthp.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "california",
+      "coastal",
+      "santa-barbara"
+    ],
+    "genre": null
   },
   {
     "id": "willamette-writers-conference",
@@ -1045,12 +1758,22 @@
     "city": "Portland",
     "state": "OR",
     "lat": 45.5152,
-    "lng": -122.6900,
+    "lng": -122.69,
     "description": "One of the largest writer's conferences on the West Coast, held each August in Portland with 100+ sessions, an agent/editor pitch room, and keynote authors.",
     "website": "https://willamettewriters.org/wwcon/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 August",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "genre-fiction",
+      "agents",
+      "editors",
+      "oregon",
+      "large"
+    ],
+    "genre": null
   },
   {
     "id": "tin-house-summer-workshop",
@@ -1062,8 +1785,18 @@
     "description": "Prestigious week-long workshop at Reed College with fiction, poetry, and nonfiction tracks; one of the most competitive summer literary programs in the country.",
     "website": "https://tinhouse.com/workshop/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "literary-fiction",
+      "poetry",
+      "prestigious",
+      "intensive",
+      "reed"
+    ],
+    "genre": null
   },
   {
     "id": "seattle-book-festival",
@@ -1075,8 +1808,17 @@
     "description": "Annual literary event hosted by Hugo House across Seattle venues featuring Northwest authors, publisher showcases, and an inclusive celebration of Seattle's reading culture.",
     "website": "https://hugohouse.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "pacific-northwest",
+      "seattle",
+      "hugo-house",
+      "literary-arts"
+    ],
+    "genre": null
   },
   {
     "id": "port-townsend-writers-conference",
@@ -1088,8 +1830,18 @@
     "description": "Week-long summer conference at Centrum's Fort Worden State Park on the Olympic Peninsula; intimate workshops in fiction, poetry, and creative nonfiction since 1974.",
     "website": "https://centrum.org/programs/writers-conference/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "fiction",
+      "poetry",
+      "intimate",
+      "historic",
+      "centrum"
+    ],
+    "genre": null
   },
   {
     "id": "clarion-west-writers-workshop",
@@ -1101,8 +1853,18 @@
     "description": "Intensive six-week speculative fiction workshop in Seattle's Capitol Hill, one of the most competitive SF/fantasy writing programs in the world.",
     "website": "https://www.clarionwest.org/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June/July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 June/July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "sci-fi",
+      "fantasy",
+      "speculative",
+      "intensive",
+      "seattle"
+    ],
+    "genre": "sci-fi"
   },
   {
     "id": "locus-awards-weekend",
@@ -1114,8 +1876,17 @@
     "description": "Annual science fiction and fantasy awards weekend presenting the Locus Awards, voted on by readers of Locus Magazine; includes panels, readings, and a gala ceremony.",
     "website": "https://locusmag.com/locus-awards/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "sci-fi",
+      "fantasy",
+      "awards",
+      "readers-choice",
+      "locus-magazine"
+    ],
+    "genre": "sci-fi"
   },
   {
     "id": "alaska-book-festival",
@@ -1127,8 +1898,17 @@
     "description": "Annual celebration of Alaskan literature and literary culture at the Anchorage Museum, featuring Alaska Native storytellers, adventure writers, and nature authors.",
     "website": "https://www.alaskabookfestival.org/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 August",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "alaska",
+      "native-voices",
+      "nature-writing",
+      "anchorage"
+    ],
+    "genre": null
   },
   {
     "id": "hawaii-book-and-music-festival",
@@ -1140,8 +1920,18 @@
     "description": "Annual free outdoor festival on the grounds of Honolulu Hale celebrating Pacific Island literature, local authors, and Hawaii's unique multicultural storytelling traditions.",
     "website": "https://www.hawaiibookandmusicfestival.org/",
     "typicalMonth": "May",
-    "recurringPattern": "Annual – May",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "hawaii",
+      "pacific-island",
+      "multicultural",
+      "honolulu"
+    ],
+    "genre": null
   },
   {
     "id": "lambda-literary-awards",
@@ -1153,8 +1943,17 @@
     "description": "Annual awards gala and literary celebration honoring the best LGBTQ+ books of the year, presented by Lambda Literary in New York City.",
     "website": "https://www.lambdaliterary.org/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "lgbtq",
+      "queer-lit",
+      "awards",
+      "diversity",
+      "new-york"
+    ],
+    "genre": "lgbtq"
   },
   {
     "id": "edgar-awards-weekend",
@@ -1162,12 +1961,21 @@
     "city": "New York",
     "state": "NY",
     "lat": 40.7549,
-    "lng": -73.9840,
+    "lng": -73.984,
     "description": "Annual Mystery Writers of America awards banquet presenting the Edgar Allan Poe Awards for best mystery fiction, nonfiction, and children's mystery writing.",
     "website": "https://mysterywriters.org/mwa-awards/edgar-awards/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – late April",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 late April",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "mystery",
+      "crime",
+      "awards",
+      "mwa",
+      "edgar-allan-poe"
+    ],
+    "genre": "mystery"
   },
   {
     "id": "scbwi-summer-conference",
@@ -1179,8 +1987,17 @@
     "description": "The Society of Children's Book Writers and Illustrators' flagship annual conference in LA with agents, editors, and 1,000+ children's book creators.",
     "website": "https://www.scbwi.org/events/annual-summer-conference/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 August",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "children",
+      "ya",
+      "illustrators",
+      "publishing",
+      "los-angeles"
+    ],
+    "genre": "children"
   },
   {
     "id": "awp-conference",
@@ -1192,8 +2009,18 @@
     "description": "The largest literary conference in North America with 12,000+ attendees, 2,000+ events, and a massive bookfair of literary presses; rotates to major US cities annually.",
     "website": "https://www.awpwriter.org/awp_conference/",
     "typicalMonth": "February",
-    "recurringPattern": "Annual – February/March, rotating US cities",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 February/March, rotating US cities",
+    "size": "major",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "academic",
+      "literary-magazines",
+      "major",
+      "publishing",
+      "rotating"
+    ],
+    "genre": null
   },
   {
     "id": "left-coast-crime",
@@ -1205,8 +2032,17 @@
     "description": "Annual mystery fan convention rotating among West Coast cities, celebrating crime fiction with author panels, awards, and the Lefty Award ceremony.",
     "website": "https://www.leftcoastcrime.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – March/April, rotating West Coast cities",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 March/April, rotating West Coast cities",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "mystery",
+      "crime",
+      "awards",
+      "west-coast",
+      "rotating"
+    ],
+    "genre": "mystery"
   },
   {
     "id": "world-fantasy-convention",
@@ -1214,12 +2050,21 @@
     "city": "Various (rotating)",
     "state": "NY",
     "lat": 40.7128,
-    "lng": -74.0060,
+    "lng": -74.006,
     "description": "Annual fantasy and horror literature convention rotating US and international cities, presenting the World Fantasy Awards and gathering the genre's top authors and editors.",
     "website": "https://www.worldfantasy.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November, rotating cities",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 November, rotating cities",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "fantasy",
+      "horror",
+      "awards",
+      "rotating",
+      "world-fantasy-award"
+    ],
+    "genre": "fantasy"
   },
   {
     "id": "nebula-awards-conference",
@@ -1231,8 +2076,18 @@
     "description": "Annual Science Fiction and Fantasy Writers of America conference presenting the Nebula Awards, rotating among US cities; includes craft panels and an awards banquet.",
     "website": "https://nebulas.sfwa.org/",
     "typicalMonth": "May",
-    "recurringPattern": "Annual – May, rotating cities",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 May, rotating cities",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "sci-fi",
+      "fantasy",
+      "awards",
+      "sfwa",
+      "rotating",
+      "nebula"
+    ],
+    "genre": "sci-fi"
   },
   {
     "id": "romance-writers-conference",
@@ -1244,8 +2099,18 @@
     "description": "Annual conference of romance writers presenting the RITA Awards and Golden Heart Awards, with agent and editor appointments and craft workshops.",
     "website": "https://www.rwa.org/rwa/public/events/annual-conference.aspx",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – July, rotating US cities",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 July, rotating US cities",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "romance",
+      "awards",
+      "agents",
+      "editors",
+      "rotating",
+      "rita-award"
+    ],
+    "genre": "romance"
   },
   {
     "id": "words-and-music-new-orleans",
@@ -1257,8 +2122,17 @@
     "description": "Faulkner Society's annual November festival in the French Quarter pairing literature with New Orleans food and music; features emerging and established fiction writers.",
     "website": "https://www.wordsandmusic.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 November",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "new-orleans",
+      "music",
+      "french-quarter",
+      "literary-fiction"
+    ],
+    "genre": null
   },
   {
     "id": "houston-poetry-fest",
@@ -1270,8 +2144,17 @@
     "description": "Annual two-day festival at Evelyn's Park Conservancy celebrating poetry with 100+ poets, open-mic events, slam competitions, and readings for all ages.",
     "website": "https://www.houstonpoetryfest.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "free",
+      "outdoor",
+      "texas",
+      "houston"
+    ],
+    "genre": null
   },
   {
     "id": "nebraskaland-days-book-festival",
@@ -1283,8 +2166,17 @@
     "description": "Annual literary celebration presented by Nebraska Humanities at the Nebraska State Capitol celebrating Nebraska authors and the state's literary heritage.",
     "website": "https://nebraskahumanities.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "nebraska",
+      "humanities",
+      "free",
+      "lincoln"
+    ],
+    "genre": null
   },
   {
     "id": "north-dakota-book-festival",
@@ -1296,8 +2188,17 @@
     "description": "Annual literary event presented by North Dakota Humanities celebrating Great Plains authors, indigenous storytellers, and regional literary voices.",
     "website": "https://ndhumanities.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "great-plains",
+      "humanities",
+      "free",
+      "bismarck"
+    ],
+    "genre": null
   },
   {
     "id": "heartland-book-festival",
@@ -1309,8 +2210,16 @@
     "description": "Annual celebration of authors and books in Kansas City, featuring Midwest writers and national guests at the Kansas City Public Library's central branch.",
     "website": "https://www.kclibrary.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "midwest",
+      "kansas-city",
+      "library"
+    ],
+    "genre": null
   },
   {
     "id": "vona-voices-workshop",
@@ -1322,8 +2231,17 @@
     "description": "Summer writing workshop for writers of color at the University of Miami, offering intensive fiction, poetry, creative nonfiction, and screenwriting tracks.",
     "website": "https://vonavoices.org/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 June",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "writers-of-color",
+      "diverse",
+      "intensive",
+      "miami"
+    ],
+    "genre": null
   },
   {
     "id": "suncoast-literary-festival",
@@ -1335,21 +2253,39 @@
     "description": "Annual multi-day literary celebration on Florida's Gulf Coast featuring national bestselling authors, local Florida writers, and programming at Sarasota venues.",
     "website": "https://www.suncoastliteraryfestival.com/",
     "typicalMonth": "January",
-    "recurringPattern": "Annual – January",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 January",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "florida",
+      "gulf-coast",
+      "celebrity-authors",
+      "sarasota"
+    ],
+    "genre": null
   },
   {
     "id": "wordplay-minneapolis",
-    "name": "Wordplay – A Festival of Minnesota Lit",
+    "name": "Wordplay \u2013 A Festival of Minnesota Lit",
     "city": "Minneapolis",
     "state": "MN",
     "lat": 44.9778,
-    "lng": -93.2650,
+    "lng": -93.265,
     "description": "Annual one-day free literary festival at Open Book in Minneapolis celebrating Minnesota authors, the Minnesota Book Awards, and the state's vibrant literary scene.",
     "website": "https://www.mnbookfestival.org/",
     "typicalMonth": "May",
-    "recurringPattern": "Annual – May",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "minnesota",
+      "awards",
+      "indie-publishers"
+    ],
+    "genre": null
   },
   {
     "id": "vermont-college-of-fine-arts-symposium",
@@ -1361,8 +2297,17 @@
     "description": "Annual public literary symposium hosted by Vermont College of Fine Arts MFA programs, featuring VCFA faculty and alumni who are leading writers in their fields.",
     "website": "https://vcfa.edu/",
     "typicalMonth": "July",
-    "recurringPattern": "Annual – summer residency, January and July",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 summer residency, January and July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "mfa",
+      "literary-fiction",
+      "poetry",
+      "vermont"
+    ],
+    "genre": null
   },
   {
     "id": "rocky-mountain-fiction-writers",
@@ -1374,8 +2319,18 @@
     "description": "Annual fall conference for fiction writers in Denver featuring agents, editors, and bestselling authors; one of the top regional writing conferences in the Mountain West.",
     "website": "https://rmfw.org/conference/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 September",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "genre-fiction",
+      "agents",
+      "editors",
+      "colorado",
+      "denver"
+    ],
+    "genre": null
   },
   {
     "id": "richmond-book-arts-festival",
@@ -1383,12 +2338,21 @@
     "city": "Richmond",
     "state": "VA",
     "lat": 37.5407,
-    "lng": -77.4360,
+    "lng": -77.436,
     "description": "Annual celebration of book arts, handmade books, and literary culture at the Valentine Museum in Richmond, with printmakers, bookbinders, and authors.",
     "website": "https://thevalentine.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "book-arts",
+      "printing",
+      "virginia",
+      "richmond"
+    ],
+    "genre": null
   },
   {
     "id": "nashville-book-festival",
@@ -1400,8 +2364,17 @@
     "description": "Annual free one-day event at the Nashville Public Library celebrating books and reading with Nashville authors, national guests, and family programming.",
     "website": "https://library.nashville.org/events/nashville-book-festival",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 September",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "tennessee",
+      "library",
+      "nashville"
+    ],
+    "genre": null
   },
   {
     "id": "memphis-book-fair",
@@ -1409,25 +2382,44 @@
     "city": "Memphis",
     "state": "TN",
     "lat": 35.1495,
-    "lng": -90.0490,
+    "lng": -90.049,
     "description": "Annual literary celebration in Memphis featuring local and national authors, small presses, and literary organizations celebrating the Mississippi Delta's storytelling heritage.",
     "website": "https://www.memphisbookfair.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "memphis",
+      "delta",
+      "tennessee",
+      "regional"
+    ],
+    "genre": null
   },
   {
     "id": "atlanta-book-fair",
     "name": "Atlanta Book Fair at MOCA GA",
     "city": "Atlanta",
     "state": "GA",
-    "lat": 33.7490,
-    "lng": -84.3880,
+    "lat": 33.749,
+    "lng": -84.388,
     "description": "Annual free book fair at the Museum of Contemporary Art of Georgia celebrating Atlanta's independent publishers, small presses, and literary community.",
     "website": "https://www.atlbookfair.com/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "small-press",
+      "free",
+      "georgia",
+      "atlanta",
+      "moca"
+    ],
+    "genre": null
   },
   {
     "id": "detroit-lit-fest",
@@ -1439,8 +2431,17 @@
     "description": "Annual celebration of Detroit's literary history and contemporary authors, featuring readings at the Detroit Public Library and venues across Midtown.",
     "website": "https://www.detroitliteraryfestival.com/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "detroit",
+      "michigan",
+      "community",
+      "midwest"
+    ],
+    "genre": null
   },
   {
     "id": "columbus-book-festival",
@@ -1452,8 +2453,17 @@
     "description": "Annual literary celebration at COSI and the Columbus Metropolitan Library celebrating books, authors, and Ohio's reading community.",
     "website": "https://www.columbusbookfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "ohio",
+      "library",
+      "free",
+      "columbus"
+    ],
+    "genre": null
   },
   {
     "id": "pittsburgh-book-festival",
@@ -1465,8 +2475,17 @@
     "description": "Annual literary celebration at Carnegie Mellon University and across Pittsburgh venues featuring national and regional authors in fiction, poetry, and nonfiction.",
     "website": "https://www.pittsburghliteraryfestival.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "pennsylvania",
+      "university",
+      "literary-fiction",
+      "pittsburgh"
+    ],
+    "genre": null
   },
   {
     "id": "seattle-lit-crawl",
@@ -1478,8 +2497,18 @@
     "description": "Annual one-night literary pub crawl through Seattle's Capitol Hill neighborhood with dozens of readings in bars, restaurants, and venues; part of the Lit Crawl network.",
     "website": "https://litcrawl.org/seattle/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "lit-crawl",
+      "bar-crawl",
+      "seattle",
+      "free",
+      "capitol-hill"
+    ],
+    "genre": null
   },
   {
     "id": "chicago-humanities-festival",
@@ -1491,8 +2520,19 @@
     "description": "Annual multi-week public festival presenting the world's leading authors, thinkers, and artists at venues across Chicago including Millennium Park and the Chicago Cultural Center.",
     "website": "https://www.chicagohumanities.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October/November",
-    "size": "major"
+    "recurringPattern": "Annual \u2013 October/November",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "ideas",
+      "major",
+      "chicago",
+      "free",
+      "speakers",
+      "multi-week"
+    ],
+    "genre": null
   },
   {
     "id": "miami-literary-week",
@@ -1504,8 +2544,18 @@
     "description": "Annual month-long April celebration placing a poem in front of every Miami-Dade County resident, with 200+ events in parks, galleries, buses, and public spaces.",
     "website": "https://www.omiami.org/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April (entire month)",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April (entire month)",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "community",
+      "free",
+      "miami",
+      "public-art",
+      "month-long"
+    ],
+    "genre": null
   },
   {
     "id": "words-alive-san-diego",
@@ -1517,21 +2567,40 @@
     "description": "Annual literary celebration bringing together San Diego's diverse writing community with readings, workshops, and author talks across the city's cultural venues.",
     "website": "https://www.wordsalive.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "san-diego",
+      "community",
+      "diverse",
+      "literacy"
+    ],
+    "genre": null
   },
   {
     "id": "new-mexico-book-fiesta",
     "name": "New Mexico Book Fiesta",
     "city": "Santa Fe",
     "state": "NM",
-    "lat": 35.6870,
+    "lat": 35.687,
     "lng": -105.9378,
     "description": "Annual free outdoor literary festival on the Santa Fe Plaza celebrating New Mexico's rich literary tradition, Southwest authors, and bilingual storytelling.",
     "website": "https://www.nmhumanities.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "new-mexico",
+      "outdoor",
+      "bilingual",
+      "santa-fe"
+    ],
+    "genre": null
   },
   {
     "id": "shreveport-book-festival",
@@ -1543,8 +2612,17 @@
     "description": "Annual literary festival in northwest Louisiana at the Barnwell Garden and Art Center celebrating regional Southern authors and Louisiana's storytelling traditions.",
     "website": "https://www.shreveportbookfestival.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – spring",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "louisiana",
+      "southern-lit",
+      "outdoor",
+      "shreveport"
+    ],
+    "genre": null
   },
   {
     "id": "oxford-literary-festival",
@@ -1553,24 +2631,42 @@
     "state": "MS",
     "lat": 34.3651,
     "lng": -89.5195,
-    "description": "Annual spring literary weekend in Oxford, MS — Faulkner's hometown — celebrating Southern writing with author talks, square strolling, and Square Books events.",
+    "description": "Annual spring literary weekend in Oxford, MS \u2014 Faulkner's hometown \u2014 celebrating Southern writing with author talks, square strolling, and Square Books events.",
     "website": "https://squarebooks.com/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – spring",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "mississippi",
+      "southern-lit",
+      "faulkner",
+      "square-books"
+    ],
+    "genre": null
   },
   {
     "id": "rocky-mountain-book-festival",
     "name": "Boulder Book Festival",
     "city": "Boulder",
     "state": "CO",
-    "lat": 40.0150,
+    "lat": 40.015,
     "lng": -105.2705,
     "description": "Annual free literary festival at the Boulder Public Library and downtown venues celebrating Colorado authors and the Front Range's vibrant literary community.",
     "website": "https://www.boulderbookstore.net/pages/boulder-book-festival",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "colorado",
+      "free",
+      "boulder",
+      "front-range"
+    ],
+    "genre": null
   },
   {
     "id": "lit-fest-dc",
@@ -1578,12 +2674,21 @@
     "city": "Washington",
     "state": "DC",
     "lat": 38.9089,
-    "lng": -77.0400,
+    "lng": -77.04,
     "description": "Annual free literary festival in Washington, DC celebrating the capital's diverse literary community with author readings at libraries and cultural venues across the city.",
     "website": "https://www.dclit.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "washington-dc",
+      "community",
+      "libraries"
+    ],
+    "genre": null
   },
   {
     "id": "phoenix-lit-fest",
@@ -1591,12 +2696,21 @@
     "city": "Phoenix",
     "state": "AZ",
     "lat": 33.4484,
-    "lng": -112.0740,
+    "lng": -112.074,
     "description": "Annual celebration of Arizona literary arts at Phoenix Center for the Arts, featuring diverse local and national authors across poetry, fiction, and creative nonfiction.",
     "website": "https://phoenixcenterforthearts.org/",
     "typicalMonth": "March",
-    "recurringPattern": "Annual – spring",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "poetry",
+      "arizona",
+      "diverse",
+      "arts-center"
+    ],
+    "genre": null
   },
   {
     "id": "iowa-city-poetry-festival",
@@ -1608,8 +2722,17 @@
     "description": "Annual spring festival in Iowa City blending literature, music, and film across bars, bookstores, and cultural venues in the heart of this UNESCO City of Literature.",
     "website": "https://www.missioncreekfestival.com/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "music",
+      "film",
+      "iowa-city",
+      "multi-arts"
+    ],
+    "genre": null
   },
   {
     "id": "corpus-christi-book-festival",
@@ -1621,8 +2744,17 @@
     "description": "Annual celebration of South Texas and border-region authors at Texas A&M University-Corpus Christi, featuring bilingual literature and Gulf Coast storytelling.",
     "website": "https://www.tamucc.edu/",
     "typicalMonth": "February",
-    "recurringPattern": "Annual – spring",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 spring",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "bilingual",
+      "border",
+      "south-texas",
+      "university"
+    ],
+    "genre": null
   },
   {
     "id": "spokane-bookfest",
@@ -1630,12 +2762,21 @@
     "city": "Spokane",
     "state": "WA",
     "lat": 47.6588,
-    "lng": -117.4260,
+    "lng": -117.426,
     "description": "Annual citywide reading festival in Spokane presenting author events at the Spokane Public Library, bookshops, and cultural venues across the Inland Northwest.",
     "website": "https://www.spokanelibrary.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "pacific-northwest",
+      "library",
+      "inland",
+      "spokane"
+    ],
+    "genre": null
   },
   {
     "id": "oklahoma-book-festival",
@@ -1647,8 +2788,17 @@
     "description": "Annual free literary festival at the State Capitol complex celebrating Oklahoma authors and literacy with readings, workshops, and a book signing fair.",
     "website": "https://www.okbookfestival.org/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "oklahoma",
+      "outdoor",
+      "state-capitol"
+    ],
+    "genre": null
   },
   {
     "id": "fayetteville-roots-festival",
@@ -1660,21 +2810,40 @@
     "description": "Annual roots music and literary arts festival in Fayetteville pairing Southern authors and storytellers with the Ozark mountain music tradition.",
     "website": "https://www.fayettevilleroots.com/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 August",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "music",
+      "roots",
+      "arkansas",
+      "ozarks",
+      "storytelling"
+    ],
+    "genre": null
   },
   {
     "id": "tucson-book-arts-fair",
     "name": "Tucson Book Arts Fair",
     "city": "Tucson",
     "state": "AZ",
-    "lat": 32.2540,
+    "lat": 32.254,
     "lng": -110.9742,
     "description": "Annual celebration of handmade books, letterpress printing, and the book arts at the University of Arizona Center for Creative Photography.",
     "website": "https://www.ccp.arizona.edu/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – fall",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "book-arts",
+      "printmaking",
+      "handmade",
+      "arizona"
+    ],
+    "genre": null
   },
   {
     "id": "black-hills-literary-festival",
@@ -1686,21 +2855,39 @@
     "description": "Annual literary gathering in historic Deadwood, South Dakota celebrating Western American literature, Native American storytelling, and frontier literary traditions.",
     "website": "https://www.deadwood.com/events/",
     "typicalMonth": "June",
-    "recurringPattern": "Annual – summer",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 summer",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "western-american",
+      "native-american",
+      "south-dakota",
+      "frontier"
+    ],
+    "genre": null
   },
   {
     "id": "prairie-lights-literary-series",
     "name": "Prairie Lights Literary Series",
     "city": "Iowa City",
     "state": "IA",
-    "lat": 41.6600,
+    "lat": 41.66,
     "lng": -91.5352,
     "description": "Year-round live readings series at Prairie Lights Books, one of America's great independent bookstores; a landmark literary institution in the Iowa Writers' Workshop community.",
     "website": "https://www.prairielights.com/live",
     "typicalMonth": "Various",
-    "recurringPattern": "Year-round – weekly readings",
-    "size": "specialty"
+    "recurringPattern": "Year-round \u2013 weekly readings",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "readings",
+      "year-round",
+      "iowa-city",
+      "indie-bookstore"
+    ],
+    "genre": null
   },
   {
     "id": "word-festival-cooperstown",
@@ -1712,8 +2899,17 @@
     "description": "Annual three-day literary festival in the pastoral village of Cooperstown, NY featuring award-winning authors in an intimate setting alongside the Baseball Hall of Fame.",
     "website": "https://www.wordfestival.com/",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 April",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "intimate",
+      "small-town",
+      "new-york",
+      "pastoral"
+    ],
+    "genre": null
   },
   {
     "id": "wichita-lit-fest",
@@ -1725,8 +2921,17 @@
     "description": "Annual free literary celebration at Wichita Public Library featuring Kansas authors, national guests, and programming for readers of all ages across the city.",
     "website": "https://www.wichitalibrary.org/events/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "kansas",
+      "library",
+      "wichita"
+    ],
+    "genre": null
   },
   {
     "id": "vermont-studs-terkel-festival",
@@ -1738,8 +2943,17 @@
     "description": "Annual statewide humanities celebration hosted by Vermont Humanities with author talks, book discussions, and literary events across Vermont communities.",
     "website": "https://www.vermonthumanities.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "humanities",
+      "community",
+      "vermont",
+      "statewide"
+    ],
+    "genre": null
   },
   {
     "id": "pasadena-lit-fest",
@@ -1751,8 +2965,17 @@
     "description": "Annual literary celebration at Vroman's Bookstore and Pasadena Central Library, the longest-running independent bookstore event in Southern California.",
     "website": "https://www.vromansbookstore.com/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "california",
+      "bookstore",
+      "southern-california",
+      "vromans"
+    ],
+    "genre": null
   },
   {
     "id": "seattle-poetry-festival",
@@ -1764,34 +2987,61 @@
     "description": "Annual multi-day poetry celebration in Seattle featuring Northwest poets and national voices at venues across the city, celebrating Seattle's status as a poetry capital.",
     "website": "https://www.seattlepoetry.org/festival",
     "typicalMonth": "April",
-    "recurringPattern": "Annual – April (National Poetry Month)",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 April (National Poetry Month)",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "northwest",
+      "national-poetry-month",
+      "free",
+      "seattle"
+    ],
+    "genre": null
   },
   {
     "id": "idaho-book-fest",
     "name": "Idaho Book Festival",
     "city": "Boise",
     "state": "ID",
-    "lat": 43.6150,
+    "lat": 43.615,
     "lng": -116.2023,
     "description": "Annual free literary celebration at the Boise Centre and Boise Public Library featuring Idaho authors and national writers celebrating the Gem State's literary heritage.",
     "website": "https://www.idahohumanities.org/programs/idaho-book-festival/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "idaho",
+      "humanities",
+      "boise"
+    ],
+    "genre": null
   },
   {
     "id": "roanoke-book-festival",
     "name": "Roanoke Regional Book Festival",
     "city": "Roanoke",
     "state": "VA",
-    "lat": 37.2710,
+    "lat": 37.271,
     "lng": -79.9414,
     "description": "Annual literary celebration in Virginia's Blue Ridge mountain city featuring Appalachian authors and regional writers at the Taubman Museum of Art.",
     "website": "https://www.roanokebookfest.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "appalachian",
+      "blue-ridge",
+      "virginia",
+      "museum"
+    ],
+    "genre": null
   },
   {
     "id": "st-pete-book-festival",
@@ -1799,12 +3049,21 @@
     "city": "St. Petersburg",
     "state": "FL",
     "lat": 27.7731,
-    "lng": -82.6400,
+    "lng": -82.64,
     "description": "Annual free two-day festival in downtown St. Petersburg celebrating Florida and national authors with readings at Williams Park and literary venues across the city.",
     "website": "https://stpetebookfest.com/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "florida",
+      "downtown",
+      "st-petersburg"
+    ],
+    "genre": null
   },
   {
     "id": "orlando-book-festival",
@@ -1816,8 +3075,17 @@
     "description": "Annual literary event at the Orange County Library System celebrating Central Florida authors and offering free author talks, workshops, and a book fair.",
     "website": "https://www.ocls.info/programs-events/book-festival",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "florida",
+      "library",
+      "orlando"
+    ],
+    "genre": null
   },
   {
     "id": "greater-lehigh-book-fest",
@@ -1829,8 +3097,17 @@
     "description": "Annual free book festival at Steel Stacks in Bethlehem celebrating Pennsylvania authors and the written word in the historic Lehigh Valley.",
     "website": "https://www.steelstacks.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "pennsylvania",
+      "steel-stacks",
+      "bethlehem"
+    ],
+    "genre": null
   },
   {
     "id": "san-francisco-lit-fest",
@@ -1842,8 +3119,17 @@
     "description": "Annual celebration of San Francisco's legendary literary culture at venues from North Beach to the Mission, honoring the city's Beat Generation legacy and contemporary voices.",
     "website": "https://www.cityarts.net/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "beat-generation",
+      "literary-history",
+      "san-francisco",
+      "north-beach"
+    ],
+    "genre": null
   },
   {
     "id": "cape-cod-literary-festival",
@@ -1855,8 +3141,17 @@
     "description": "Annual summer literary gathering on Cape Cod featuring award-winning authors in the historic town of Chatham, celebrating New England storytelling and the sea.",
     "website": "https://www.capecodliteraryfestival.org/",
     "typicalMonth": "August",
-    "recurringPattern": "Annual – summer",
-    "size": "specialty"
+    "recurringPattern": "Annual \u2013 summer",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "new-england",
+      "coastal",
+      "summer",
+      "massachusetts"
+    ],
+    "genre": null
   },
   {
     "id": "los-angeles-literary-festival",
@@ -1868,8 +3163,17 @@
     "description": "Annual fall celebration of LA's diverse literary voices at the Hammer Museum and Westside venues, separate from the spring Times Festival of Books.",
     "website": "https://www.hammer.ucla.edu/programs-events",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "los-angeles",
+      "hammer-museum",
+      "fall",
+      "university"
+    ],
+    "genre": null
   },
   {
     "id": "chicago-translation-festival",
@@ -1881,8 +3185,17 @@
     "description": "Annual festival celebrating literature in translation and the diverse immigrant and international voices that make Chicago one of America's most literary cities.",
     "website": "https://www.chicagoliteraryhall.org/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "translation",
+      "international",
+      "diverse",
+      "chicago"
+    ],
+    "genre": null
   },
   {
     "id": "denver-book-fair",
@@ -1894,8 +3207,18 @@
     "description": "Annual gathering of independent publishers, zine makers, and art book creators at the Denver Art Museum celebrating artist books and literary art objects.",
     "website": "https://www.denverartmuseum.org/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "book-arts",
+      "zines",
+      "small-press",
+      "colorado",
+      "dam"
+    ],
+    "genre": null
   },
   {
     "id": "connecticut-book-awards",
@@ -1907,8 +3230,17 @@
     "description": "Annual celebration of Connecticut authors presenting the Connecticut Book Awards with readings, panels, and a book fair at the Connecticut State Library in Hartford.",
     "website": "https://www.ctbookawards.com/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "awards",
+      "connecticut",
+      "authors",
+      "state-library"
+    ],
+    "genre": null
   },
   {
     "id": "maine-festival-of-the-book",
@@ -1920,21 +3252,39 @@
     "description": "Annual literary celebration on the Maine coast featuring Maine authors, small presses, and national voices at the Portland Public Library and Congress Street venues.",
     "website": "https://www.mainehumanities.org/programs/maine-festival-of-the-book/",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "maine",
+      "new-england",
+      "regional",
+      "portland"
+    ],
+    "genre": null
   },
   {
     "id": "rhode-island-book-festival",
     "name": "Rhode Island Book Festival",
     "city": "Providence",
     "state": "RI",
-    "lat": 41.8240,
+    "lat": 41.824,
     "lng": -71.4128,
     "description": "Annual free literary festival at the Providence Public Library and RISD Museum celebrating Rhode Island authors and New England literary culture.",
     "website": "https://www.provlib.org/book-festival/",
     "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 November",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "library",
+      "new-england",
+      "providence"
+    ],
+    "genre": null
   },
   {
     "id": "indiana-humanities-book-festival",
@@ -1946,20 +3296,929 @@
     "description": "Annual free literary event at the Indiana State Library celebrating Indiana authors and the humanities with readings, author talks, and a community book discussion.",
     "website": "https://www.indianahumanities.org/bookfest",
     "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "indiana",
+      "humanities",
+      "indianapolis"
+    ],
+    "genre": null
   },
   {
     "id": "wyoming-book-festival",
     "name": "Wyoming Book Festival",
     "city": "Cheyenne",
     "state": "WY",
-    "lat": 41.1400,
+    "lat": 41.14,
     "lng": -104.8202,
     "description": "Annual free literary festival presented by Wyoming Humanities at the Wyoming State Library, celebrating Western American literature and Wyoming's storied frontier heritage.",
     "website": "https://www.wyominghumanities.org/wyoming-book-festival/",
     "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "regional"
+    "recurringPattern": "Annual \u2013 September",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "western-american",
+      "wyoming",
+      "humanities"
+    ],
+    "genre": null
+  },
+  {
+    "id": "national-cowboy-poetry-gathering",
+    "name": "National Cowboy Poetry Gathering",
+    "city": "Elko",
+    "state": "NV",
+    "lat": 40.8324,
+    "lng": -115.7631,
+    "description": "Week-long celebration of Western heritage through cowboy poetry, music, storytelling, and crafts at the Western Folklife Center; the premier event of its kind since 1985.",
+    "website": "https://www.westernfolklife.org/national-cowboy-poetry-gathering/",
+    "typicalMonth": "January",
+    "recurringPattern": "Annual \u2013 last week of January",
+    "size": "major",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "music",
+      "storytelling",
+      "crafts",
+      "folk",
+      "nevada"
+    ],
+    "genre": null
+  },
+  {
+    "id": "durango-cowboy-poetry-gathering",
+    "name": "Durango Cowboy Poetry Gathering",
+    "city": "Durango",
+    "state": "CO",
+    "lat": 37.2753,
+    "lng": -107.8801,
+    "description": "Annual four-day gathering in the mountain town of Durango celebrating cowboy poets, Western musicians, and the ranching culture of the Southwest.",
+    "website": "https://www.durangocowboygathering.org/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual \u2013 first weekend of October",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "music",
+      "colorado",
+      "mountain",
+      "folk",
+      "ranch-culture"
+    ],
+    "genre": null
+  },
+  {
+    "id": "montana-cowboy-poetry-gathering",
+    "name": "Montana Cowboy Poetry Gathering",
+    "city": "Lewistown",
+    "state": "MT",
+    "lat": 47.0639,
+    "lng": -109.4281,
+    "description": "Annual summer gathering in the heart of Montana's cattle country, featuring cowboy poets, Western musicians, and storytellers from across the Northern Rockies.",
+    "website": "https://www.montanacowboypoetry.com/",
+    "typicalMonth": "August",
+    "recurringPattern": "Annual \u2013 August",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "music",
+      "montana",
+      "northern-rockies",
+      "ranch-culture"
+    ],
+    "genre": null
+  },
+  {
+    "id": "nebraska-sandhills-cowboy-poetry",
+    "name": "Nebraska Sandhills Cowboy Poetry Gathering",
+    "city": "Ainsworth",
+    "state": "NE",
+    "lat": 42.5522,
+    "lng": -99.8609,
+    "description": "Annual celebration of Great Plains ranch culture through cowboy poetry and Western music in the Sandhills of north-central Nebraska.",
+    "website": "https://www.cowboypoetry.com/nbsandh.htm",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual \u2013 March",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "nebraska",
+      "sandhills",
+      "great-plains",
+      "folk",
+      "ranch-culture"
+    ],
+    "genre": null
+  },
+  {
+    "id": "alpine-cowboy-poetry-gathering",
+    "name": "Alpine Cowboy Poetry Gathering",
+    "city": "Alpine",
+    "state": "TX",
+    "lat": 30.3579,
+    "lng": -103.6607,
+    "description": "Annual cowboy poetry celebration at Sul Ross State University in the Big Bend region, honoring the ranch culture and storytelling traditions of the Trans-Pecos.",
+    "website": "https://www.cowboypoetry.com/",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual \u2013 February",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "texas",
+      "big-bend",
+      "ranch-culture",
+      "desert",
+      "folk"
+    ],
+    "genre": null
+  },
+  {
+    "id": "arizona-cowboy-poets-gathering",
+    "name": "Arizona Cowboy Poets Gathering",
+    "city": "Prescott",
+    "state": "AZ",
+    "lat": 34.54,
+    "lng": -112.4685,
+    "description": "Annual gathering in historic Prescott celebrating the cowboy poetry tradition of the Southwest, held in the town once called the 'Cowboy Capital of the World.'",
+    "website": "https://www.azcowboypoets.org/",
+    "typicalMonth": "August",
+    "recurringPattern": "Annual \u2013 August",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "arizona",
+      "southwest",
+      "historic",
+      "folk",
+      "ranch-culture"
+    ],
+    "genre": null
+  },
+  {
+    "id": "santa-clarita-cowboy-poetry-roundup",
+    "name": "Santa Clarita Cowboy Poetry Roundup",
+    "city": "Santa Clarita",
+    "state": "CA",
+    "lat": 34.3917,
+    "lng": -118.5426,
+    "description": "Annual February gathering in the Santa Clarita Valley celebrating Western heritage, cowboy poetry, and the ranching history of Southern California.",
+    "website": "https://www.cowboypoetry.com/santaclari.htm",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual \u2013 February",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "california",
+      "southern-california",
+      "folk",
+      "ranch-culture"
+    ],
+    "genre": null
+  },
+  {
+    "id": "pendleton-cowboy-poetry-gathering",
+    "name": "Pendleton Cowboy Poetry Gathering",
+    "city": "Pendleton",
+    "state": "OR",
+    "lat": 45.6721,
+    "lng": -118.7886,
+    "description": "Annual gathering in Pendleton, Oregon \u2014 home of the famous Pendleton Round-Up \u2014 celebrating Northwest cowboy poetry and Western American storytelling traditions.",
+    "website": "https://www.pendletoncowboypoetry.org/",
+    "typicalMonth": "June",
+    "recurringPattern": "Annual \u2013 June",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "oregon",
+      "pacific-northwest",
+      "folk",
+      "ranch-culture",
+      "pendleton-round-up"
+    ],
+    "genre": null
+  },
+  {
+    "id": "idaho-cowboy-poetry-gathering",
+    "name": "Idaho Cowboy Poetry Gathering",
+    "city": "Nampa",
+    "state": "ID",
+    "lat": 43.5407,
+    "lng": -116.5635,
+    "description": "Annual Idaho gathering honoring the Basque and ranching heritage of the Treasure Valley through cowboy poetry, traditional music, and Western storytelling.",
+    "website": "https://www.idahocowboypoetry.com/",
+    "typicalMonth": "November",
+    "recurringPattern": "Annual \u2013 November",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "cowboy-poetry",
+      "western",
+      "idaho",
+      "basque-heritage",
+      "folk",
+      "ranch-culture",
+      "treasure-valley"
+    ],
+    "genre": null
+  },
+  {
+    "id": "national-poetry-slam",
+    "name": "National Poetry Slam",
+    "city": "Various (rotating)",
+    "state": "IL",
+    "lat": 41.8827,
+    "lng": -87.6233,
+    "description": "Annual championship of performance poetry featuring teams from 80+ cities competing over five days; the world's largest spoken word competition. Rotates among major US cities.",
+    "website": "https://poetryslam.com/",
+    "typicalMonth": "August",
+    "recurringPattern": "Annual \u2013 August, rotating US cities",
+    "size": "major",
+    "primaryType": "poetry",
+    "tags": [
+      "slam",
+      "spoken-word",
+      "performance",
+      "competition",
+      "rotating",
+      "teams",
+      "major"
+    ],
+    "genre": null
+  },
+  {
+    "id": "austin-international-poetry-festival",
+    "name": "Austin International Poetry Festival",
+    "city": "Austin",
+    "state": "TX",
+    "lat": 30.2672,
+    "lng": -97.7431,
+    "description": "The world's largest non-competitive poetry festival, held annually in April in Austin with 500+ poets from 50+ countries reading at venues across the city.",
+    "website": "https://aipf.org/",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual \u2013 April",
+    "size": "major",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "international",
+      "non-competitive",
+      "readings",
+      "slam",
+      "spoken-word",
+      "free",
+      "austin",
+      "major"
+    ],
+    "genre": null
+  },
+  {
+    "id": "louder-than-a-bomb",
+    "name": "Louder Than a Bomb",
+    "city": "Chicago",
+    "state": "IL",
+    "lat": 41.8827,
+    "lng": -87.6233,
+    "description": "The world's largest youth poetry festival, run by Young Chicago Authors, featuring 120+ Chicago high school teams in a month-long celebration of spoken word poetry.",
+    "website": "https://youngchicagoauthors.org/louder-than-a-bomb/",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual \u2013 February/March",
+    "size": "major",
+    "primaryType": "poetry",
+    "tags": [
+      "slam",
+      "youth",
+      "spoken-word",
+      "competition",
+      "chicago",
+      "high-school",
+      "community",
+      "major"
+    ],
+    "genre": null
+  },
+  {
+    "id": "brave-new-voices",
+    "name": "Brave New Voices International Teen Poetry Slam",
+    "city": "Various (rotating)",
+    "state": "CA",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "description": "Annual international teen slam poetry festival hosted by Youth Speaks, featuring young poets from cities worldwide competing and collaborating over a week-long event.",
+    "website": "https://www.youthspeaks.org/brave-new-voices/",
+    "typicalMonth": "July",
+    "recurringPattern": "Annual \u2013 July, rotating US cities",
+    "size": "major",
+    "primaryType": "poetry",
+    "tags": [
+      "slam",
+      "youth",
+      "teen",
+      "spoken-word",
+      "competition",
+      "international",
+      "rotating",
+      "youth-speaks"
+    ],
+    "genre": null
+  },
+  {
+    "id": "women-of-world-poetry-slam",
+    "name": "Women of the World Poetry Slam",
+    "city": "Various (rotating)",
+    "state": "NY",
+    "lat": 40.7128,
+    "lng": -74.006,
+    "description": "Annual international women's slam poetry championship featuring women poets from 150+ cities competing over five days; the premier gathering of women's voices in slam poetry.",
+    "website": "https://wowps.com/",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual \u2013 March, rotating US cities",
+    "size": "specialty",
+    "primaryType": "poetry",
+    "tags": [
+      "slam",
+      "women",
+      "spoken-word",
+      "competition",
+      "rotating",
+      "international",
+      "feminist"
+    ],
+    "genre": null
+  },
+  {
+    "id": "individual-world-poetry-slam",
+    "name": "Individual World Poetry Slam",
+    "city": "Various (rotating)",
+    "state": "TX",
+    "lat": 30.2672,
+    "lng": -97.7431,
+    "description": "Annual solo slam poetry championship \u2014 'the iWPS' \u2014 featuring the top individual slam poets in North America competing over four days. Rotates among US cities.",
+    "website": "https://www.individualworldpoetryslam.com/",
+    "typicalMonth": "November",
+    "recurringPattern": "Annual \u2013 November, rotating US cities",
+    "size": "specialty",
+    "primaryType": "poetry",
+    "tags": [
+      "slam",
+      "spoken-word",
+      "competition",
+      "individual",
+      "rotating",
+      "championship"
+    ],
+    "genre": null
+  },
+  {
+    "id": "nuyorican-poetry-series",
+    "name": "Nuyorican Poets Cafe Friday Night Slam",
+    "city": "New York",
+    "state": "NY",
+    "lat": 40.7267,
+    "lng": -73.9842,
+    "description": "The birthplace of slam poetry \u2014 the legendary Nuyorican Poets Cafe on East 3rd Street hosts its iconic Friday Night Slam year-round, a landmark of spoken word culture since 1973.",
+    "website": "https://www.nuyorican.org/",
+    "typicalMonth": "Various",
+    "recurringPattern": "Year-round \u2013 weekly Friday Night Slam",
+    "size": "specialty",
+    "primaryType": "poetry",
+    "tags": [
+      "slam",
+      "spoken-word",
+      "latino",
+      "nuyorican",
+      "historic",
+      "year-round",
+      "nyc",
+      "east-village"
+    ],
+    "genre": null
+  },
+  {
+    "id": "sunken-garden-poetry-festival",
+    "name": "Sunken Garden Poetry Festival",
+    "city": "Farmington",
+    "state": "CT",
+    "lat": 41.7198,
+    "lng": -72.8371,
+    "description": "Annual summer poetry series at the beautiful Sunken Garden at Hill-Stead Museum in Farmington, CT \u2014 reading poetry al fresco in one of New England's most scenic settings since 1992.",
+    "website": "https://www.hillstead.org/sunken-garden-poetry-festival/",
+    "typicalMonth": "June",
+    "recurringPattern": "Annual \u2013 June through August, weekly readings",
+    "size": "specialty",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "outdoor",
+      "historic-venue",
+      "connecticut",
+      "new-england",
+      "gardens",
+      "summer-series"
+    ],
+    "genre": null
+  },
+  {
+    "id": "pittsburgh-poetry-festival",
+    "name": "Pittsburgh Poetry Festival",
+    "city": "Pittsburgh",
+    "state": "PA",
+    "lat": 40.4406,
+    "lng": -79.9959,
+    "description": "Annual free spring poetry celebration in Pittsburgh featuring local and national poets at Carnegie Library and venues across the Steel City.",
+    "website": "https://www.pittsburghpoetry.com/",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual \u2013 April (National Poetry Month)",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "free",
+      "pittsburgh",
+      "pennsylvania",
+      "national-poetry-month",
+      "community"
+    ],
+    "genre": null
+  },
+  {
+    "id": "los-angeles-poetry-festival",
+    "name": "Los Angeles Poetry Festival",
+    "city": "Los Angeles",
+    "state": "CA",
+    "lat": 34.0522,
+    "lng": -118.2437,
+    "description": "Annual multi-day celebration of poetry in Los Angeles with readings, open mics, and workshops at venues across the city, honoring LA's diverse and vibrant poetry community.",
+    "website": "https://www.lapoetryfestival.com/",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual \u2013 April (National Poetry Month)",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "los-angeles",
+      "california",
+      "free",
+      "diverse",
+      "multi-venue",
+      "national-poetry-month"
+    ],
+    "genre": null
+  },
+  {
+    "id": "chicago-poetry-festival",
+    "name": "Chicago Poetry Festival",
+    "city": "Chicago",
+    "state": "IL",
+    "lat": 41.8827,
+    "lng": -87.6233,
+    "description": "Annual fall festival celebrating Chicago's rich poetry heritage with readings at bars, galleries, and cultural venues across the city's literary neighborhoods.",
+    "website": "https://www.chicagopoetryfestival.com/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual \u2013 October",
+    "size": "regional",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "chicago",
+      "illinois",
+      "free",
+      "multi-venue",
+      "community"
+    ],
+    "genre": null
+  },
+  {
+    "id": "ashland-poetry-festival",
+    "name": "Ashland University Poetry Festival",
+    "city": "Ashland",
+    "state": "OH",
+    "lat": 40.8681,
+    "lng": -82.3182,
+    "description": "Annual poetry festival hosted by Ashland University, publisher of Ashland Poetry Press, celebrating the art of poetry with national poets in a small-town Ohio setting.",
+    "website": "https://www.ashland.edu/academics/arts-and-humanities/english/ashland-poetry-press",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual \u2013 April",
+    "size": "specialty",
+    "primaryType": "poetry",
+    "tags": [
+      "poetry",
+      "ohio",
+      "university",
+      "ashland-poetry-press",
+      "academic",
+      "readings"
+    ],
+    "genre": null
+  },
+  {
+    "id": "desert-nights-rising-stars",
+    "name": "Desert Nights, Rising Stars Writers Conference",
+    "city": "Tempe",
+    "state": "AZ",
+    "lat": 33.4255,
+    "lng": -111.94,
+    "description": "Annual writers' conference at Arizona State University's Tempe campus celebrating poetry and fiction, with workshops, agent meetings, and national faculty.",
+    "website": "https://english.asu.edu/content/desert-nights-rising-stars",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual \u2013 February",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "poetry",
+      "fiction",
+      "arizona",
+      "asu",
+      "university",
+      "agents"
+    ],
+    "genre": null
+  },
+  {
+    "id": "worldcon",
+    "name": "World Science Fiction Convention (Worldcon)",
+    "city": "Various (rotating)",
+    "state": "CA",
+    "lat": 37.7749,
+    "lng": -122.4194,
+    "description": "The world's oldest and most prestigious science fiction convention presenting the Hugo Awards, rotating among international cities each year since 1939.",
+    "website": "https://www.worldcon.org/",
+    "typicalMonth": "August",
+    "recurringPattern": "Annual \u2013 August, rotating US and international cities",
+    "size": "major",
+    "primaryType": "genre",
+    "tags": [
+      "sci-fi",
+      "fantasy",
+      "hugo-award",
+      "awards",
+      "major",
+      "rotating",
+      "international",
+      "speculative-fiction"
+    ],
+    "genre": "sci-fi"
+  },
+  {
+    "id": "killer-nashville",
+    "name": "Killer Nashville",
+    "city": "Nashville",
+    "state": "TN",
+    "lat": 36.1627,
+    "lng": -86.7816,
+    "description": "Annual mystery and thriller writers' conference in Nashville presenting the Silver Falchion Awards and offering workshops, agent pitches, and panels for crime writers.",
+    "website": "https://www.killernashville.com/",
+    "typicalMonth": "August",
+    "recurringPattern": "Annual \u2013 August",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "mystery",
+      "thriller",
+      "crime",
+      "awards",
+      "writers-conference",
+      "nashville",
+      "agents"
+    ],
+    "genre": "mystery"
+  },
+  {
+    "id": "stokercon",
+    "name": "StokerCon",
+    "city": "Various (rotating)",
+    "state": "NY",
+    "lat": 40.7128,
+    "lng": -74.006,
+    "description": "Annual Horror Writers Association convention presenting the Bram Stoker Awards and gathering horror fiction writers, editors, and fans. Rotates among US cities.",
+    "website": "https://www.horror.org/stokercon/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual \u2013 May, rotating US cities",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "horror",
+      "dark-fiction",
+      "bram-stoker-award",
+      "awards",
+      "hwa",
+      "rotating"
+    ],
+    "genre": "horror"
+  },
+  {
+    "id": "readercon",
+    "name": "Readercon",
+    "city": "Quincy",
+    "state": "MA",
+    "lat": 42.2529,
+    "lng": -71.0023,
+    "description": "Annual literary science fiction convention near Boston focused on the literary aspects of speculative fiction; known for its intellectually rigorous panels and strong author presence.",
+    "website": "https://www.readercon.org/",
+    "typicalMonth": "July",
+    "recurringPattern": "Annual \u2013 July",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "sci-fi",
+      "fantasy",
+      "speculative-fiction",
+      "literary",
+      "academic",
+      "small",
+      "intimate",
+      "boston"
+    ],
+    "genre": "sci-fi"
+  },
+  {
+    "id": "capclave",
+    "name": "Capclave",
+    "city": "Rockville",
+    "state": "MD",
+    "lat": 39.084,
+    "lng": -77.1528,
+    "description": "Annual small, literary-focused science fiction convention in the Washington DC area, known for its author-centric programming and the WSFA Small Press Award.",
+    "website": "https://www.capclave.org/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual \u2013 October",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "sci-fi",
+      "fantasy",
+      "speculative-fiction",
+      "literary",
+      "dc-area",
+      "intimate",
+      "wsfa"
+    ],
+    "genre": "sci-fi"
+  },
+  {
+    "id": "yallfest",
+    "name": "YALLfest",
+    "city": "Charleston",
+    "state": "SC",
+    "lat": 32.7765,
+    "lng": -79.9311,
+    "description": "Annual free YA and middle-grade book festival in downtown Charleston with 70+ authors, thousands of fans, and a legendary signing line; one of the biggest YA events in the US.",
+    "website": "https://www.yallfest.org/",
+    "typicalMonth": "November",
+    "recurringPattern": "Annual \u2013 second weekend of November",
+    "size": "major",
+    "primaryType": "genre",
+    "tags": [
+      "ya",
+      "young-adult",
+      "middle-grade",
+      "teen",
+      "free",
+      "charleston",
+      "major",
+      "signing"
+    ],
+    "genre": "young-adult"
+  },
+  {
+    "id": "yallwest",
+    "name": "YALLWest",
+    "city": "Santa Monica",
+    "state": "CA",
+    "lat": 34.0195,
+    "lng": -118.4912,
+    "description": "Annual free West Coast YA and middle-grade book festival at the Santa Monica Civic Auditorium featuring 60+ authors, panels, and a massive book signing.",
+    "website": "https://www.yallwest.com/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual \u2013 May",
+    "size": "regional",
+    "primaryType": "genre",
+    "tags": [
+      "ya",
+      "young-adult",
+      "middle-grade",
+      "teen",
+      "free",
+      "santa-monica",
+      "california",
+      "signing"
+    ],
+    "genre": "young-adult"
+  },
+  {
+    "id": "balticon",
+    "name": "Balticon",
+    "city": "Baltimore",
+    "state": "MD",
+    "lat": 39.284,
+    "lng": -76.6218,
+    "description": "Annual science fiction and fantasy convention presented by the Baltimore Science Fiction Society, with a strong literary track, readings, and the Compton Crook Award for debut SF novels.",
+    "website": "https://www.balticon.org/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual \u2013 Memorial Day weekend",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "sci-fi",
+      "fantasy",
+      "speculative-fiction",
+      "baltimore",
+      "compton-crook-award",
+      "memorial-day"
+    ],
+    "genre": "sci-fi"
+  },
+  {
+    "id": "clarion-ucsd",
+    "name": "Clarion Science Fiction Workshop (UCSD)",
+    "city": "San Diego",
+    "state": "CA",
+    "lat": 32.8801,
+    "lng": -117.234,
+    "description": "Intensive six-week speculative fiction writing workshop at UC San Diego, one of the two premier Clarion programs in the world for aspiring science fiction and fantasy writers.",
+    "website": "https://clarion.ucsd.edu/",
+    "typicalMonth": "June",
+    "recurringPattern": "Annual \u2013 June/July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "sci-fi",
+      "fantasy",
+      "speculative-fiction",
+      "intensive",
+      "ucsd",
+      "prestigious",
+      "selective"
+    ],
+    "genre": "sci-fi"
+  },
+  {
+    "id": "romantic-times-booklovers",
+    "name": "RT BookLovers Convention",
+    "city": "Various (rotating)",
+    "state": "TX",
+    "lat": 29.7604,
+    "lng": -95.3698,
+    "description": "Annual romance readers and writers convention (now BookBonanza) hosting 200+ romance authors for signings, panels, and publisher spotlights. Rotates US cities.",
+    "website": "https://rtbooklovers.com/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual \u2013 May, rotating US cities",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "romance",
+      "readers",
+      "signing",
+      "rotating",
+      "publishers",
+      "fans"
+    ],
+    "genre": "romance"
+  },
+  {
+    "id": "thrilling-mystery-convention",
+    "name": "New England Crime Bake",
+    "city": "Dedham",
+    "state": "MA",
+    "lat": 42.242,
+    "lng": -71.1656,
+    "description": "Annual mystery and thriller writers' conference near Boston presenting the Agatha Award nominations and offering workshops and agent/editor panels for crime writers.",
+    "website": "https://crimebake.org/",
+    "typicalMonth": "November",
+    "recurringPattern": "Annual \u2013 November",
+    "size": "specialty",
+    "primaryType": "genre",
+    "tags": [
+      "mystery",
+      "thriller",
+      "crime",
+      "boston",
+      "writers-conference",
+      "new-england",
+      "agents",
+      "agatha-award"
+    ],
+    "genre": "mystery"
+  },
+  {
+    "id": "left-bank-books-festival",
+    "name": "St. Louis Literary Award Ceremony",
+    "city": "St. Louis",
+    "state": "MO",
+    "lat": 38.627,
+    "lng": -90.1994,
+    "description": "Annual literary award and reading series presented by Saint Louis University honoring a major American author with one of the richest literary prizes in the country.",
+    "website": "https://www.slu.edu/arts-and-sciences/english/st-louis-literary-award/index.php",
+    "typicalMonth": "November",
+    "recurringPattern": "Annual \u2013 November",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "awards",
+      "literary-fiction",
+      "st-louis",
+      "missouri",
+      "university",
+      "prestigious"
+    ],
+    "genre": null
+  },
+  {
+    "id": "nebraskawriters-guild-festival",
+    "name": "Great Plains Writers' Conference",
+    "city": "Omaha",
+    "state": "NE",
+    "lat": 41.2565,
+    "lng": -95.9345,
+    "description": "Annual writers' conference and literary celebration in Omaha honoring Great Plains literature and regional authors across fiction, poetry, and nonfiction.",
+    "website": "https://www.plainswritersconference.org/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "regional",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "great-plains",
+      "fiction",
+      "poetry",
+      "nonfiction",
+      "omaha",
+      "regional"
+    ],
+    "genre": null
+  },
+  {
+    "id": "iowa-writers-workshop-summer",
+    "name": "Iowa Summer Writing Festival",
+    "city": "Iowa City",
+    "state": "IA",
+    "lat": 41.6611,
+    "lng": -91.5302,
+    "description": "Month-long summer festival at the University of Iowa offering week-long and weekend workshops across all genres, open to adult writers at any stage of their career.",
+    "website": "https://iowasummerwritingfestival.org/",
+    "typicalMonth": "June",
+    "recurringPattern": "Annual \u2013 June and July",
+    "size": "specialty",
+    "primaryType": "writers-conference",
+    "tags": [
+      "workshop",
+      "fiction",
+      "poetry",
+      "nonfiction",
+      "iowa",
+      "university",
+      "open-enrollment",
+      "month-long"
+    ],
+    "genre": null
+  },
+  {
+    "id": "chicago-humanities-book-awards",
+    "name": "Carl Sandburg Literary Awards",
+    "city": "Chicago",
+    "state": "IL",
+    "lat": 41.8827,
+    "lng": -87.6233,
+    "description": "Annual awards gala honoring Chicago authors and celebrating the city's contributions to American literature, presented by the Chicago Public Library Foundation.",
+    "website": "https://www.cplfoundation.org/carl-sandburg-literary-awards/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual \u2013 fall",
+    "size": "specialty",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "awards",
+      "chicago",
+      "library",
+      "carl-sandburg",
+      "illinois",
+      "literary-fiction"
+    ],
+    "genre": null
   }
 ]
