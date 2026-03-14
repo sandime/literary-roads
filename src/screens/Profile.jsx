@@ -6,10 +6,20 @@ import { searchBooks } from '../utils/googleBooks';
 import CarSelector from '../components/CarSelector';
 import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
 import { subscribeToTravelStats } from '../utils/travelStats';
-import { subscribeToUserBadges, checkAndAwardBadges, checkAndAwardFoundersBadge, computeBadgeProgress } from '../utils/badgeChecker';
+import { subscribeToUserBadges, checkAndAwardBadges, checkAndAwardFoundersBadge, checkSeasonalBadges, computeBadgeProgress } from '../utils/badgeChecker';
 import { BADGE_COUNT } from '../utils/badgeDefinitions';
 import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { deleteAccount } from '../utils/deleteAccount';
+import {
+  QUEST_PRESETS,
+  computeQuestStats,
+  subscribeToReadingGoal,
+  setReadingGoal,
+  updateReadingGoalValue,
+  archiveAndResetYear,
+  subscribeToQuestHistory,
+  countBooksForYear,
+} from '../utils/readingQuest';
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
@@ -294,6 +304,234 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
   );
 }
 
+// ── Reading Quest: Goal-setting / change modal ──────────────────────────────
+function GoalModal({ currentGoal, booksRead, onSave, onClose }) {
+  const isNew = !currentGoal;
+  const [selected, setSelected] = useState(() => {
+    if (!currentGoal) return 52;
+    const preset = QUEST_PRESETS.find(p => p.value === currentGoal);
+    return preset ? currentGoal : 'custom';
+  });
+  const [customVal, setCustomVal] = useState(() =>
+    currentGoal && !QUEST_PRESETS.find(p => p.value === currentGoal) ? String(currentGoal) : '',
+  );
+
+  const finalGoal = selected === 'custom'
+    ? (parseInt(customVal, 10) || 0)
+    : selected;
+
+  const canSave = finalGoal >= 1;
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        background: 'rgba(5,6,15,0.92)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
+      <div style={{
+        width: '100%', maxWidth: '500px',
+        background: '#0D0E1A',
+        border: '2px solid #40E0D0',
+        borderRadius: '18px 18px 0 0',
+        padding: '20px 24px 36px',
+        boxShadow: '0 0 40px rgba(64,224,208,0.2)',
+      }}>
+        <div style={{ width: '36px', height: '4px', background: 'rgba(64,224,208,0.3)', borderRadius: '2px', margin: '0 auto 18px' }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <h3 className="font-bungee" style={{ color: '#40E0D0', fontSize: '14px', letterSpacing: '0.06em', textShadow: '0 0 10px rgba(64,224,208,0.5)' }}>
+            {isNew ? 'SET YOUR READING QUEST' : 'CHANGE YOUR READING GOAL'}
+          </h3>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: '1.5px solid rgba(64,224,208,0.4)',
+            borderRadius: '50%', width: '28px', height: '28px',
+            color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>×</button>
+        </div>
+
+        <p className="font-special-elite" style={{ fontSize: '12px', color: 'rgba(192,192,192,0.55)', marginBottom: '4px' }}>
+          How many books do you want to read in {new Date().getFullYear()}?
+        </p>
+        {!isNew && (
+          <p className="font-special-elite" style={{ fontSize: '11px', color: 'rgba(255,78,0,0.7)', marginBottom: '14px' }}>
+            Current: {currentGoal} books · Progress: {booksRead}/{currentGoal}
+          </p>
+        )}
+        {isNew && <div style={{ marginBottom: '14px' }} />}
+
+        {/* Preset options */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+          {QUEST_PRESETS.map(p => (
+            <button
+              key={p.value}
+              onClick={() => setSelected(p.value)}
+              className="font-special-elite"
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '10px 14px', borderRadius: '10px', cursor: 'pointer',
+                background: selected === p.value ? 'rgba(64,224,208,0.1)' : 'rgba(255,255,255,0.04)',
+                border: `1.5px solid ${selected === p.value ? '#40E0D0' : 'rgba(255,255,255,0.1)'}`,
+                transition: 'all 0.15s',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
+                  border: `2px solid ${selected === p.value ? '#40E0D0' : 'rgba(192,192,192,0.3)'}`,
+                  background: selected === p.value ? '#40E0D0' : 'transparent',
+                  boxShadow: selected === p.value ? '0 0 6px rgba(64,224,208,0.6)' : 'none',
+                }} />
+                <span className="font-bungee" style={{ fontSize: '11px', color: selected === p.value ? '#40E0D0' : '#F5F5DC', letterSpacing: '0.04em' }}>
+                  {p.label}
+                </span>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '12px', color: selected === p.value ? '#FF4E00' : 'rgba(192,192,192,0.5)' }}>
+                  {p.value} books
+                </span>
+                <span style={{ display: 'block', fontSize: '10px', color: 'rgba(192,192,192,0.35)' }}>
+                  {p.sub}
+                </span>
+              </div>
+            </button>
+          ))}
+
+          {/* Custom option */}
+          <button
+            onClick={() => setSelected('custom')}
+            className="font-special-elite"
+            style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '10px 14px', borderRadius: '10px', cursor: 'pointer',
+              background: selected === 'custom' ? 'rgba(255,78,0,0.08)' : 'rgba(255,255,255,0.04)',
+              border: `1.5px solid ${selected === 'custom' ? '#FF4E00' : 'rgba(255,255,255,0.1)'}`,
+              transition: 'all 0.15s',
+            }}
+          >
+            <div style={{
+              width: '14px', height: '14px', borderRadius: '50%', flexShrink: 0,
+              border: `2px solid ${selected === 'custom' ? '#FF4E00' : 'rgba(192,192,192,0.3)'}`,
+              background: selected === 'custom' ? '#FF4E00' : 'transparent',
+              boxShadow: selected === 'custom' ? '0 0 6px rgba(255,78,0,0.6)' : 'none',
+            }} />
+            <span className="font-bungee" style={{ fontSize: '11px', color: selected === 'custom' ? '#FF4E00' : '#F5F5DC', letterSpacing: '0.04em' }}>
+              CUSTOM
+            </span>
+            {selected === 'custom' && (
+              <input
+                type="number"
+                min="1"
+                max="9999"
+                value={customVal}
+                onChange={e => setCustomVal(e.target.value)}
+                onClick={e => e.stopPropagation()}
+                placeholder="# books"
+                style={{
+                  marginLeft: 'auto',
+                  width: '80px', padding: '4px 8px',
+                  background: 'rgba(255,78,0,0.1)',
+                  border: '1px solid rgba(255,78,0,0.5)',
+                  borderRadius: '6px', color: '#FF4E00',
+                  fontFamily: 'Bungee, sans-serif', fontSize: '12px',
+                  outline: 'none',
+                }}
+              />
+            )}
+          </button>
+        </div>
+
+        <button
+          onClick={() => canSave && onSave(finalGoal)}
+          disabled={!canSave}
+          className="font-bungee"
+          style={{
+            width: '100%', padding: '13px',
+            background: canSave ? '#FF4E00' : 'rgba(80,80,80,0.4)',
+            color: '#1A1B2E', border: 'none', borderRadius: '10px',
+            fontSize: '13px', letterSpacing: '0.1em', cursor: canSave ? 'pointer' : 'not-allowed',
+            boxShadow: canSave ? '0 0 16px rgba(255,78,0,0.45)' : 'none',
+            transition: 'background 0.2s',
+          }}
+        >
+          {isNew ? 'START QUEST' : 'UPDATE GOAL'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Reading Quest: Past quests history modal ────────────────────────────────
+function QuestHistoryModal({ history, onClose }) {
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 300,
+        background: 'rgba(5,6,15,0.92)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '24px 16px',
+      }}
+    >
+      <div style={{
+        width: '100%', maxWidth: '420px',
+        background: '#0D0E1A',
+        border: '2px solid rgba(64,224,208,0.5)',
+        borderRadius: '18px',
+        padding: '24px',
+        boxShadow: '0 0 40px rgba(64,224,208,0.15)',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+          <h3 className="font-bungee" style={{ color: '#40E0D0', fontSize: '14px', letterSpacing: '0.06em', textShadow: '0 0 10px rgba(64,224,208,0.5)' }}>
+            READING QUEST HISTORY
+          </h3>
+          <button onClick={onClose} style={{
+            background: 'transparent', border: '1.5px solid rgba(64,224,208,0.4)',
+            borderRadius: '50%', width: '28px', height: '28px',
+            color: '#40E0D0', fontSize: '16px', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>×</button>
+        </div>
+
+        {history.length === 0 ? (
+          <p className="font-special-elite text-sm text-center" style={{ color: 'rgba(192,192,192,0.4)', padding: '20px 0' }}>
+            No past quests yet.
+          </p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {history.map(h => (
+              <div key={h.year} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '12px 14px', borderRadius: '10px',
+                background: 'rgba(255,255,255,0.04)',
+                border: `1px solid ${h.completed ? 'rgba(255,215,0,0.3)' : 'rgba(255,255,255,0.08)'}`,
+              }}>
+                <div>
+                  <span className="font-bungee" style={{ fontSize: '13px', color: h.completed ? '#FFD700' : '#F5F5DC', letterSpacing: '0.04em' }}>
+                    {h.year}
+                  </span>
+                  <span className="font-special-elite" style={{ marginLeft: '8px', fontSize: '12px', color: 'rgba(192,192,192,0.6)' }}>
+                    {h.booksRead}/{h.goal} books
+                  </span>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '14px' }}>{h.completed ? '🏆' : '📚'}</span>
+                  <span className="font-bungee" style={{ marginLeft: '6px', fontSize: '11px', color: h.completed ? '#FFD700' : 'rgba(192,192,192,0.5)' }}>
+                    {h.percentComplete}%
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Profile component ──────────────────────────────────────────────────
 export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedStates = [] }) {
   const { user } = useAuth();
@@ -305,7 +543,7 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
   const [travelStats, setTravelStats]       = useState(null);
-  const [readingStats, setReadingStats]     = useState({ booksRead: 0, fiveCat: 0, nextReads: 0 });
+  const [readingStats, setReadingStats]     = useState({ booksRead: 0, fiveCat: 0, nextReads: 0, questBooksRead: 0 });
   const [earnedBadgeData, setEarnedBadgeData] = useState([]);
   const [newBadges, setNewBadges]             = useState([]);
   const [showBookModal, setShowBookModal]     = useState(false);
@@ -315,6 +553,12 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   const [deleteError, setDeleteError]         = useState('');
   const [selectedCar, setSelectedCar] = useState(null);
   const [activeCheckIn, setActiveCheckIn] = useState(null); // { locationId, checkInId } | null
+  // Reading Quest
+  const [readingGoal, setReadingGoalState] = useState(null); // { goal, year } | null
+  const [showGoalModal, setShowGoalModal]   = useState(false);
+  const [showQuestHistory, setShowQuestHistory] = useState(false);
+  const [questHistory, setQuestHistory]     = useState([]);
+  const yearResetDoneRef = useRef(false);
 
   // Real-time sync: onSnapshot fires immediately on mount and on any cross-device change
   useEffect(() => {
@@ -343,15 +587,20 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
     return subscribeToTravelStats(user.uid, setTravelStats);
   }, [user]);
 
-  // Reading stats: booksRead count + 5-cat count + wantToRead count
+  // Reading stats: booksRead count + 5-cat count + wantToRead count + quest count
   useEffect(() => {
     if (!user) return;
+    const thisYear = new Date().getFullYear();
     let booksData = [], wantSize = 0;
-    const emit = () => setReadingStats({
-      booksRead: booksData.length,
-      fiveCat:   booksData.filter(d => d.rating === 5).length,
-      nextReads: wantSize,
-    });
+    const emit = () => {
+      const questCount = booksData.filter(d => d.finishedYear === thisYear).length;
+      setReadingStats({
+        booksRead:       booksData.length,
+        fiveCat:         booksData.filter(d => d.rating === 5).length,
+        nextReads:       wantSize,
+        questBooksRead:  questCount,
+      });
+    };
     const unsubBooks = onSnapshot(
       collection(db, 'users', user.uid, 'booksRead'),
       snap => { booksData = snap.docs.map(d => d.data()); emit(); },
@@ -364,6 +613,40 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
     );
     return () => { unsubBooks(); unsubWant(); };
   }, [user]);
+
+  // Reading Goal subscription + yearly reset
+  useEffect(() => {
+    if (!user) return;
+    const unsub = subscribeToReadingGoal(user.uid, async (data) => {
+      if (!data) { setReadingGoalState(null); return; }
+      const thisYear = new Date().getFullYear();
+      // Auto-archive and reset if goal is from a prior year (runs once per session)
+      if (data.year < thisYear && !yearResetDoneRef.current) {
+        yearResetDoneRef.current = true;
+        try {
+          const lastYearBooks = await countBooksForYear(user.uid, data.year);
+          await archiveAndResetYear(user.uid, data.year, data.goal, lastYearBooks);
+        } catch (err) { console.error('[Profile] year reset:', err); }
+        return; // subscription will fire again with the new doc
+      }
+      setReadingGoalState(data);
+    });
+    return unsub;
+  }, [user]);
+
+  // Quest history subscription
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToQuestHistory(user.uid, setQuestHistory);
+  }, [user]);
+
+  // Seasonal badge check when quest progress changes
+  useEffect(() => {
+    if (!user || !readingGoal || readingStats.questBooksRead === undefined) return;
+    checkSeasonalBadges(user.uid, readingStats.questBooksRead, readingGoal.goal).then(newly => {
+      if (newly.length > 0) setNewBadges(newly);
+    });
+  }, [user, readingStats.questBooksRead, readingGoal]);
 
   useEffect(() => {
     if (!user) return;
@@ -403,6 +686,15 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
         if (badge) setNewBadges([badge]);
       });
     }
+  };
+
+  const handleSaveGoal = async (goal) => {
+    if (!user) return;
+    try {
+      if (readingGoal) await updateReadingGoalValue(user.uid, goal);
+      else             await setReadingGoal(user.uid, goal);
+      setShowGoalModal(false);
+    } catch (err) { console.error('[Profile] save goal:', err); }
   };
 
   const handleRemoveBook = async (id) => {
@@ -572,6 +864,144 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
         </div>
 
       </div>
+
+      {/* ── Reading Quest widget ── */}
+      {user && (() => {
+        const thisYear = new Date().getFullYear();
+        const questBooks = readingStats.questBooksRead ?? 0;
+        const stats = readingGoal ? computeQuestStats(questBooks, readingGoal.goal) : null;
+
+        return (
+          <div className="w-full max-w-lg rounded-xl p-4 mb-5"
+            style={{ background: '#1E1F33', border: '1px solid rgba(64,224,208,0.3)' }}>
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-bungee text-xs"
+                style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em' }}>
+                YOUR READING QUEST
+              </h2>
+              <span className="font-bungee text-[10px] px-2 py-0.5 rounded-full"
+                style={{ background: 'rgba(64,224,208,0.08)', border: '1px solid rgba(64,224,208,0.2)', color: 'rgba(64,224,208,0.6)' }}>
+                {thisYear}
+              </span>
+            </div>
+
+            {/* No goal set */}
+            {!readingGoal && (
+              <div className="text-center py-3">
+                <p className="font-special-elite text-sm mb-4" style={{ color: 'rgba(192,192,192,0.5)', lineHeight: 1.6, fontStyle: 'italic' }}>
+                  Set a yearly reading goal and track your progress one book at a time.
+                </p>
+                <button
+                  onClick={() => setShowGoalModal(true)}
+                  className="font-bungee text-xs px-5 py-2.5 rounded-lg"
+                  style={{
+                    background: '#FF4E00', color: '#1A1B2E',
+                    border: 'none', cursor: 'pointer', letterSpacing: '0.08em',
+                    boxShadow: '0 0 14px rgba(255,78,0,0.45)',
+                  }}
+                >
+                  START YOUR QUEST
+                </button>
+              </div>
+            )}
+
+            {/* Goal set — show progress */}
+            {readingGoal && stats && (
+              <>
+                <p className="font-special-elite text-sm mb-3" style={{ color: 'rgba(245,245,220,0.75)', lineHeight: 1.4 }}>
+                  <span className="font-bungee" style={{ color: '#FF4E00', fontSize: '13px' }}>
+                    {thisYear} Challenge:
+                  </span>{' '}
+                  {readingGoal.goal} Books
+                </p>
+
+                {/* Progress bar */}
+                <div style={{ marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+                    <span className="font-bungee text-[10px]" style={{ color: 'rgba(192,192,192,0.45)', letterSpacing: '0.05em' }}>
+                      {stats.pct}% COMPLETE
+                    </span>
+                    <span className="font-bungee text-xs" style={{ color: '#40E0D0', textShadow: '0 0 6px rgba(64,224,208,0.5)' }}>
+                      {questBooks}/{readingGoal.goal}
+                    </span>
+                  </div>
+                  <div style={{
+                    height: '10px', borderRadius: '5px', overflow: 'hidden',
+                    background: 'rgba(255,255,255,0.07)',
+                    boxShadow: '0 0 6px rgba(0,0,0,0.4) inset',
+                  }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${stats.pct}%`,
+                      background: 'linear-gradient(90deg, #FF4E00, #40E0D0)',
+                      borderRadius: '5px',
+                      boxShadow: '0 0 8px rgba(64,224,208,0.5)',
+                      transition: 'width 0.6s ease',
+                    }} />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '8px 12px', borderRadius: '8px', marginBottom: '12px',
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                }}>
+                  <span style={{ fontSize: '1.1rem' }}>{stats.statusEmoji}</span>
+                  <div>
+                    <p className="font-bungee text-[11px]" style={{ color: '#F5F5DC', letterSpacing: '0.03em' }}>
+                      {stats.status}
+                    </p>
+                    {stats.remaining > 0 && (
+                      <p className="font-special-elite text-[10px]" style={{ color: 'rgba(192,192,192,0.5)', marginTop: '1px' }}>
+                        {stats.remaining} {stats.remaining === 1 ? 'book' : 'books'} to go by Dec 31
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => setShowGoalModal(true)}
+                    className="font-bungee text-[10px] flex-1 py-2 rounded-lg transition-all"
+                    style={{ border: '1px solid rgba(192,192,192,0.25)', color: 'rgba(192,192,192,0.6)', background: 'transparent', letterSpacing: '0.06em', cursor: 'pointer' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(192,192,192,0.5)'; e.currentTarget.style.color = '#F5F5DC'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(192,192,192,0.25)'; e.currentTarget.style.color = 'rgba(192,192,192,0.6)'; }}
+                  >
+                    CHANGE GOAL
+                  </button>
+                  <button
+                    onClick={onShowBookLog}
+                    className="font-bungee text-[10px] flex-1 py-2 rounded-lg transition-all"
+                    style={{ border: '1px solid rgba(255,78,0,0.5)', color: '#FF4E00', background: 'transparent', letterSpacing: '0.06em', cursor: 'pointer' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.12)'; e.currentTarget.style.borderColor = '#FF4E00'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,78,0,0.5)'; }}
+                  >
+                    LOG A BOOK
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Past quests link */}
+            {questHistory.length > 0 && (
+              <button
+                onClick={() => setShowQuestHistory(true)}
+                className="font-special-elite w-full text-center mt-3 text-[11px] transition-colors"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(64,224,208,0.4)', textDecoration: 'underline' }}
+                onMouseEnter={e => { e.currentTarget.style.color = '#40E0D0'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(64,224,208,0.4)'; }}
+              >
+                View Past Quests
+              </button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* ── Badges section ── */}
       {user && (() => {
@@ -828,6 +1258,24 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
           onAdd={handleAddBook}
           onRemove={handleRemoveBook}
           onClose={() => setShowBookModal(false)}
+        />
+      )}
+
+      {/* Reading Quest goal modal */}
+      {showGoalModal && (
+        <GoalModal
+          currentGoal={readingGoal?.goal ?? null}
+          booksRead={readingStats.questBooksRead ?? 0}
+          onSave={handleSaveGoal}
+          onClose={() => setShowGoalModal(false)}
+        />
+      )}
+
+      {/* Reading Quest history modal */}
+      {showQuestHistory && (
+        <QuestHistoryModal
+          history={questHistory}
+          onClose={() => setShowQuestHistory(false)}
         />
       )}
 

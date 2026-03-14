@@ -145,9 +145,17 @@ export default function Badges({ onBack }) {
     .sort((a, b) => b.pct - a.pct);
   const locked     = allProgress.filter(b => !earnedIds.has(b.id) && b.pct === 0);
 
-  // Enrich badge with earned status (+ serialNumber for founders-circle) for the tile
+  const currentYear = new Date().getFullYear();
+
+  // Enrich badge with earned status (+ year-check for seasonal, serialNumber for founders)
   const enrich = (b) => {
-    const base = { ...b, earned: earnedIds.has(b.id) };
+    let earnedThisContext = earnedIds.has(b.id);
+    // Seasonal badges can be re-earned each year — only "earned" if earned this year
+    if (b.seasonal) {
+      const data = earnedBadgeData.find(d => d.badgeId === b.id);
+      earnedThisContext = earnedThisContext && data?.year === currentYear;
+    }
+    const base = { ...b, earned: earnedThisContext };
     if (b.id === 'founders-circle') {
       const data = earnedBadgeData.find(d => d.badgeId === 'founders-circle');
       return { ...base, serialNumber: data?.serialNumber };

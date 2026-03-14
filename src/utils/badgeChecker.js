@@ -74,6 +74,60 @@ export function subscribeToUserBadges(userId, callback) {
   );
 }
 
+// ── Award seasonal reading-quest badges ──────────────────────────────────────
+// Call after booksReadThisYear changes. Returns array of newly-awarded badge defs.
+export async function checkSeasonalBadges(userId, booksReadThisYear, goal) {
+  if (!goal || booksReadThisYear === undefined) return [];
+  try {
+    const now         = new Date();
+    const currentYear = now.getFullYear();
+    const month       = now.getMonth(); // 0-indexed
+
+    const earnedSnap     = await getDocs(collection(db, 'users', userId, 'badges'));
+    const earnedThisYear = new Set(
+      earnedSnap.docs
+        .filter(d => d.data().year === currentYear)
+        .map(d => d.id),
+    );
+
+    const SEASONAL_IDS = ['spring-reader', 'summer-scholar', 'fall-bibliophile', 'winter-wanderer'];
+    const newlyEarned  = [];
+
+    for (const badge of BADGES.filter(b => b.seasonal && b.id !== 'year-round-reader')) {
+      if (month > badge.endMonth) continue;           // past the quarterly deadline
+      if (earnedThisYear.has(badge.id)) continue;     // already earned this year
+      if (booksReadThisYear < Math.ceil(goal * badge.threshold)) continue;
+
+      await setDoc(doc(db, 'users', userId, 'badges', badge.id), {
+        badgeId:  badge.id,
+        earnedAt: serverTimestamp(),
+        year:     currentYear,
+        progress: booksReadThisYear,
+      });
+      earnedThisYear.add(badge.id); // for year-round check below
+      newlyEarned.push(badge);
+    }
+
+    // Year-Round Reader — all 4 seasonal badges earned in same year
+    if (!earnedThisYear.has('year-round-reader') &&
+        SEASONAL_IDS.every(id => earnedThisYear.has(id))) {
+      const yrBadge = BADGE_MAP['year-round-reader'];
+      await setDoc(doc(db, 'users', userId, 'badges', 'year-round-reader'), {
+        badgeId:  'year-round-reader',
+        earnedAt: serverTimestamp(),
+        year:     currentYear,
+        progress: booksReadThisYear,
+      });
+      newlyEarned.push(yrBadge);
+    }
+
+    return newlyEarned;
+  } catch (err) {
+    console.error('[badgeChecker] seasonal:', err);
+    return [];
+  }
+}
+
 // ── Award Founder's Circle badge ──────────────────────────────────────────────
 // Call after user saves a favorite book. Returns badge definition if newly awarded, else null.
 export async function checkAndAwardFoundersBadge(userId, founderEligible, favBookCount) {
