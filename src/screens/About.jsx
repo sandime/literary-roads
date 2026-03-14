@@ -359,6 +359,47 @@ export default function About({ onBack }) {
           </div>
         </div>
 
+        {/* ── Contact Us ── */}
+        <div style={{
+          background: 'rgba(64,224,208,0.05)',
+          border: '1px solid rgba(64,224,208,0.25)',
+          borderRadius: '14px',
+          padding: '24px 20px',
+          marginBottom: '20px',
+          textAlign: 'center',
+        }}>
+          {/* Neon rule above */}
+          <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(64,224,208,0.4), transparent)', marginBottom: '18px' }} />
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '10px' }}>
+            <Starburst color="#40E0D0" size={12} />
+            <h2 className="font-bungee" style={{ fontSize: '15px', color: '#40E0D0', letterSpacing: '0.1em', textShadow: '0 0 12px rgba(64,224,208,0.7)' }}>
+              CONTACT US
+            </h2>
+            <Starburst color="#40E0D0" size={12} />
+          </div>
+
+          <p className="font-special-elite" style={{ fontSize: '14px', color: 'rgba(245,245,220,0.8)', lineHeight: 1.7, marginBottom: '12px' }}>
+            Questions, comments, or compliments?
+          </p>
+
+          <p className="font-special-elite" style={{ fontSize: '14px', color: 'rgba(245,245,220,0.75)', marginBottom: '14px' }}>
+            Email us at{' '}
+            <a
+              href="mailto:LiteraryRoads@gmail.com"
+              className="font-special-elite transition-colors"
+              style={{ color: '#40E0D0', textDecoration: 'underline', fontSize: '14px', textShadow: '0 0 8px rgba(64,224,208,0.4)' }}
+              onMouseEnter={e => { e.currentTarget.style.color = '#FF4E00'; e.currentTarget.style.textShadow = '0 0 8px rgba(255,78,0,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = '#40E0D0'; e.currentTarget.style.textShadow = '0 0 8px rgba(64,224,208,0.4)'; }}
+            >
+              LiteraryRoads@gmail.com
+            </a>
+          </p>
+
+          {/* Neon rule below */}
+          <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(64,224,208,0.4), transparent)', marginTop: '4px' }} />
+        </div>
+
         {/* ── International Waitlist ── */}
         <InternationalWaitlist />
 
