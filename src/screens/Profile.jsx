@@ -6,7 +6,7 @@ import { searchBooks } from '../utils/googleBooks';
 import CarSelector from '../components/CarSelector';
 import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
 import { subscribeToTravelStats } from '../utils/travelStats';
-import { subscribeToUserBadges, checkAndAwardBadges, computeBadgeProgress } from '../utils/badgeChecker';
+import { subscribeToUserBadges, checkAndAwardBadges, checkAndAwardFoundersBadge, computeBadgeProgress } from '../utils/badgeChecker';
 import { BADGE_COUNT } from '../utils/badgeDefinitions';
 import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { deleteAccount } from '../utils/deleteAccount';
@@ -301,6 +301,7 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
+  const [founderEligible, setFounderEligible] = useState(false);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
   const [travelStats, setTravelStats]       = useState(null);
@@ -325,6 +326,7 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
         if (!snap.exists()) return;
         const data = snap.data();
         setFavoriteBooks(data.favoriteBooks || []);
+        setFounderEligible(data.founderEligible === true);
         setTripCount((data.trip || []).length);
         setVisitedCount((data.visitedStates || []).length);
         setSelectedCar(data.selectedCar || null);
@@ -395,6 +397,12 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
     const updated = [...favoriteBooks, book];
     setFavoriteBooks(updated);
     await saveBooks(updated);
+    // Check Founder's Circle — eligible users earn it when they add their first favorite book
+    if (founderEligible && updated.length === 1) {
+      checkAndAwardFoundersBadge(user.uid, founderEligible, updated.length).then(badge => {
+        if (badge) setNewBadges([badge]);
+      });
+    }
   };
 
   const handleRemoveBook = async (id) => {

@@ -1,8 +1,8 @@
 import { db } from '../config/firebase';
 import {
-  collection, getDocs, setDoc, doc, onSnapshot, serverTimestamp,
+  collection, getDocs, getDoc, setDoc, doc, onSnapshot, serverTimestamp,
 } from 'firebase/firestore';
-import { BADGES } from './badgeDefinitions';
+import { BADGES, BADGE_MAP } from './badgeDefinitions';
 
 // ── Fetch combined stats from Firestore ──────────────────────────────────────
 async function fetchCombinedStats(userId) {
@@ -44,6 +44,7 @@ export async function checkAndAwardBadges(userId) {
     const newlyEarned = [];
 
     for (const badge of BADGES) {
+      if (badge.custom) continue; // handled separately
       if (earnedIds.has(badge.id)) continue;
       const current = stats[badge.stat] || 0;
       if (current >= badge.required) {
@@ -73,10 +74,40 @@ export function subscribeToUserBadges(userId, callback) {
   );
 }
 
+// ── Award Founder's Circle badge ──────────────────────────────────────────────
+// Call after user saves a favorite book. Returns badge definition if newly awarded, else null.
+export async function checkAndAwardFoundersBadge(userId, founderEligible, favBookCount) {
+  if (!founderEligible || favBookCount < 1) return null;
+  try {
+    const badgeRef  = doc(db, 'users', userId, 'badges', 'founders-circle');
+    const badgeSnap = await getDoc(badgeRef);
+    if (badgeSnap.exists()) return null; // already earned
+
+    const userSnap    = await getDoc(doc(db, 'users', userId));
+    const accountNumber = userSnap.data()?.accountNumber || 0;
+
+    await setDoc(badgeRef, {
+      badgeId:      'founders-circle',
+      earnedAt:     serverTimestamp(),
+      serialNumber: accountNumber,
+      progress:     1,
+    });
+
+    return BADGE_MAP['founders-circle'];
+  } catch (err) {
+    console.error('[badgeChecker] founders badge:', err);
+    return null;
+  }
+}
+
 // ── Compute progress for every badge from a combined stats object ─────────────
 // Returns array of badge objects enriched with { current, pct, earned }
 export function computeBadgeProgress(stats) {
   return BADGES.map(badge => {
+    if (badge.custom) {
+      // Custom badges have no stat-based progress — shown as locked until earned
+      return { ...badge, current: 0, pct: 0, earned: false };
+    }
     const current = (stats && stats[badge.stat]) || 0;
     const pct     = Math.min(100, Math.round((current / badge.required) * 100));
     return { ...badge, current, pct, earned: current >= badge.required };

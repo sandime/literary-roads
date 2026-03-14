@@ -33,9 +33,24 @@ function BadgeDetailModal({ badge, onClose }) {
             {badge.description}
           </p>
           {badge.earned ? (
-            <p className="font-bungee text-[10px] tracking-widest mb-5"
-              style={{ color: badge.color, textShadow: `0 0 8px ${badge.color}` }}>
-              EARNED
+            <div className="mb-5 text-center">
+              <p className="font-bungee text-[10px] tracking-widest"
+                style={{ color: badge.color, textShadow: `0 0 8px ${badge.color}` }}>
+                EARNED
+              </p>
+              {badge.serialNumber && (
+                <p className="font-special-elite text-xs mt-1"
+                  style={{ color: 'rgba(245,245,220,0.6)' }}>
+                  Charter Member #{badge.serialNumber}
+                </p>
+              )}
+            </div>
+          ) : badge.custom ? (
+            <p className="font-special-elite text-xs mb-5 text-center"
+              style={{ color: 'rgba(192,192,192,0.45)', lineHeight: 1.5 }}>
+              {badge.id === 'founders-circle'
+                ? 'Reserved for the first 100 members'
+                : 'Special badge — check back soon'}
             </p>
           ) : (
             <div className="w-full mb-5">
@@ -130,8 +145,15 @@ export default function Badges({ onBack }) {
     .sort((a, b) => b.pct - a.pct);
   const locked     = allProgress.filter(b => !earnedIds.has(b.id) && b.pct === 0);
 
-  // Enrich badge with earned status for the tile
-  const enrich = (b) => ({ ...b, earned: earnedIds.has(b.id) });
+  // Enrich badge with earned status (+ serialNumber for founders-circle) for the tile
+  const enrich = (b) => {
+    const base = { ...b, earned: earnedIds.has(b.id) };
+    if (b.id === 'founders-circle') {
+      const data = earnedBadgeData.find(d => d.badgeId === 'founders-circle');
+      return { ...base, serialNumber: data?.serialNumber };
+    }
+    return base;
+  };
 
   return (
     <div className="min-h-screen bg-midnight-navy text-paper-white overflow-y-auto">

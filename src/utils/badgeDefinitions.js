@@ -1,7 +1,22 @@
 // All badge definitions — static, never written to Firestore
 // stat: key on the stats object from travelStats.js (now includes booksLogged)
+// custom: true — badge has special award logic, not a simple stat >= required check
 
 export const BADGES = [
+  // ── FOUNDER'S CIRCLE (first 100 accounts + 1 favorite book) ─────────────
+  {
+    id: 'founders-circle',
+    category: 'founders',
+    name: "Founder's Circle",
+    description: 'One of the first 100 book lovers on The Literary Roads. Add a favorite book to your profile to claim this badge.',
+    shareText: "I'm a Founding Member of The Literary Roads! Charter member from day one. 🏆",
+    icon: '🏆',
+    color: '#FFD700',
+    stat: null,     // custom award logic — see badgeChecker.checkAndAwardFoundersBadge
+    required: null,
+    custom: true,
+  },
+
   // ── TRAVEL (total check-ins) ─────────────────────────────────────────────
   {
     id: 'first-stop',

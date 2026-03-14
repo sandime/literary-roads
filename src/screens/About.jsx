@@ -236,8 +236,8 @@ export default function About({ onBack }) {
               src="/literary-roads/images/icon-1024.png"
               alt="The Literary Roads"
               style={{
-                width: 'clamp(80px, 14vw, 130px)',
-                height: 'clamp(80px, 14vw, 130px)',
+                width: 'clamp(120px, 18vw, 200px)',
+                height: 'clamp(120px, 18vw, 200px)',
                 borderRadius: '22%',
                 display: 'inline-block',
                 filter: 'drop-shadow(0 0 18px rgba(64,224,208,0.7)) drop-shadow(0 0 36px rgba(255,78,0,0.4))',
