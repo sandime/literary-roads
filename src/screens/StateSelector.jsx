@@ -33,7 +33,7 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe, onShowDayTrip, onShowFestivalTrip }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe, onShowDayTrip, onShowFestivalTrip, onShowBadges }) => {
   const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
@@ -675,6 +675,14 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                   {label}
                 </button>
               ))}
+
+              {/* Badges — logged-in only */}
+              {user && onShowBadges && (
+                <button onClick={() => { setShowHamburger(false); onShowBadges(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <span className="text-lg flex-shrink-0">🏅</span> BADGES
+                </button>
+              )}
 
               {/* Curated Journeys section */}
               <div className="border-t border-starlight-turquoise/10">

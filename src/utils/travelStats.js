@@ -2,32 +2,42 @@ import { db } from '../config/firebase';
 import { collection, onSnapshot } from 'firebase/firestore';
 
 export const subscribeToTravelStats = (userId, callback) => {
-  const ref = collection(db, 'users', userId, 'checkInHistory');
-  return onSnapshot(
-    ref,
-    (snap) => {
-      const entries = snap.docs.map(d => d.data());
+  let checkInEntries = [];
+  let booksLoggedCount = 0;
 
-      const uniqueLocations = new Set(entries.map(e => e.locationId)).size;
-      const statesExplored  = new Set(entries.map(e => e.state).filter(Boolean)).size;
+  const emit = () => {
+    const uniqueLocations = new Set(checkInEntries.map(e => e.locationId)).size;
+    const statesExplored  = new Set(checkInEntries.map(e => e.state).filter(Boolean)).size;
+    const counts = checkInEntries.reduce((acc, e) => {
+      const t = e.locationType || 'bookstore';
+      acc[t] = (acc[t] || 0) + 1;
+      return acc;
+    }, {});
 
-      const counts = entries.reduce((acc, e) => {
-        const t = e.locationType || 'bookstore';
-        acc[t] = (acc[t] || 0) + 1;
-        return acc;
-      }, {});
+    callback({
+      totalCheckIns:     checkInEntries.length,
+      uniqueLocations,
+      bookstoresVisited: counts.bookstore   || 0,
+      cafesVisited:      counts.cafe        || 0,
+      festivalsAttended: counts.festival    || 0,
+      landmarksVisited:  counts.landmark    || 0,
+      driveInsVisited:   counts['drive-in'] || 0,
+      statesExplored,
+      booksLogged:       booksLoggedCount,
+    });
+  };
 
-      callback({
-        totalCheckIns:      entries.length,
-        uniqueLocations,
-        bookstoresVisited:  counts.bookstore   || 0,
-        cafesVisited:       counts.cafe        || 0,
-        festivalsAttended:  counts.festival    || 0,
-        landmarksVisited:   counts.landmark    || 0,
-        driveInsVisited:    counts['drive-in'] || 0,
-        statesExplored,
-      });
-    },
-    (err) => console.error('[travelStats] subscribe error:', err),
+  const unsubCheckIns = onSnapshot(
+    collection(db, 'users', userId, 'checkInHistory'),
+    (snap) => { checkInEntries = snap.docs.map(d => d.data()); emit(); },
+    (err) => console.error('[travelStats] checkInHistory error:', err),
   );
+
+  const unsubBooks = onSnapshot(
+    collection(db, 'users', userId, 'booksRead'),
+    (snap) => { booksLoggedCount = snap.size; emit(); },
+    (err) => console.error('[travelStats] booksRead error:', err),
+  );
+
+  return () => { unsubCheckIns(); unsubBooks(); };
 };

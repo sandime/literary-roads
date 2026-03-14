@@ -17,12 +17,13 @@ import BookLog from './screens/BookLog';
 import About from './screens/About';
 import Ethics from './screens/Ethics';
 import Credits from './screens/Credits';
+import Badges from './screens/Badges';
 import EthicsModal from './components/EthicsModal';
 import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics' | 'credits'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics' | 'credits' | 'badges'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
   // Tracks where Profile was opened from (map or stateSelector) — never clobbered by sub-navigation
@@ -152,6 +153,11 @@ function AppInner() {
     setScreen('festivalTrip');
   };
 
+  const handleShowBadges = () => {
+    setPreviousScreen(screen);
+    setScreen('badges');
+  };
+
   const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops }) => {
     setSelectedStates([]);
     const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [] };
@@ -226,6 +232,7 @@ function AppInner() {
           onNearMe={handleNearMeFromSelector}
           onShowDayTrip={handleShowDayTrip}
           onShowFestivalTrip={handleShowFestivalTrip}
+          onShowBadges={handleShowBadges}
         />
       )}
       {screen === 'map' && (
@@ -240,6 +247,7 @@ function AppInner() {
           onShowCredits={handleShowCredits}
           onShowDayTrip={handleShowDayTrip}
           onShowFestivalTrip={handleShowFestivalTrip}
+          onShowBadges={handleShowBadges}
           routeStateRef={routeStateRef}
         />
       )}
@@ -268,8 +276,12 @@ function AppInner() {
         <Profile
           onBack={handleProfileBack}
           onShowBookLog={handleShowBookLog}
+          onShowBadges={handleShowBadges}
           selectedStates={selectedStates}
         />
+      )}
+      {screen === 'badges' && (
+        <Badges onBack={handleAuthBack} />
       )}
       {screen === 'bookLog' && (
         <BookLog onBack={handleAuthBack} />

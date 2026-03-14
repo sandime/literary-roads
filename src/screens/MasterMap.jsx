@@ -16,6 +16,8 @@ import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStor
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 import { subscribeSavedStops, saveStop, unsaveStop } from '../utils/savedStops';
 import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
+import { checkAndAwardBadges, subscribeToUserBadges } from '../utils/badgeChecker';
+import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn, requestHonkNotifPermission, showBrowserHonkNotification } from '../utils/honkUtils';
 import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
@@ -588,7 +590,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, routeStateRef }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -630,6 +632,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [locationCars, setLocationCars] = useState({});  // { [locationId]: Car[] }
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInError, setCheckInError] = useState('');
+  const [newBadges, setNewBadges]           = useState([]);
+  const [earnedBadgeData, setEarnedBadgeData] = useState([]);
   const [honkingLocationId, setHonkingLocationId] = useState(null);
   const [honkToast, setHonkToast] = useState(null);   // { fromName, locationName }
   const [honkMessage, setHonkMessage] = useState(''); // rate-limit feedback
@@ -833,6 +837,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => {
     if (!user) { setSavedRoutes([]); return; }
     return subscribeToSavedRoutes(user.uid, setSavedRoutes);
+  }, [user]);
+
+  // Badge subscription for earned count (hamburger badge count)
+  useEffect(() => {
+    if (!user) { setEarnedBadgeData([]); return; }
+    return subscribeToUserBadges(user.uid, setEarnedBadgeData);
   }, [user]);
 
   // Saved stops (permanent bookmarks): stream from Firestore
@@ -1052,6 +1062,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       console.log('[MasterMap] check-in success, doc:', ref.id);
       // Ask for browser notification permission so honks are heard even when tab is backgrounded
       requestHonkNotifPermission();
+      // Check for newly earned badges after parking
+      checkAndAwardBadges(user.uid).then(newly => {
+        if (newly.length > 0) setNewBadges(newly);
+      });
     } catch (err) {
       console.error('[MasterMap] check-in FAILED:', err.code, err.message);
       if (err.code === 'permission-denied') {
@@ -1908,6 +1922,22 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 </svg>
                 HIGHWAY SNACKS
               </button>
+
+              {/* Badges — logged-in only */}
+              {user && onShowBadges && (
+                <button
+                  onClick={() => { setShowHamburger(false); onShowBadges(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                >
+                  <span className="text-lg flex-shrink-0">🏅</span>
+                  BADGES
+                  {earnedBadgeData.length > 0 && (
+                    <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] px-1.5 py-0.5 rounded-full leading-none">
+                      {earnedBadgeData.length}
+                    </span>
+                  )}
+                </button>
+              )}
 
               {/* Afterword section */}
               <div className="border-t border-starlight-turquoise/10">
@@ -2814,6 +2844,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         <NavigateModal
           items={sortStopsAlongRoute(currentRouteStops, route)}
           onClose={() => setShowMyStopsNavigate(false)}
+        />
+      )}
+
+      {/* ── Badge unlock celebration ── */}
+      {newBadges.length > 0 && (
+        <BadgeUnlockModal
+          badges={newBadges}
+          onClose={() => setNewBadges([])}
+          onViewAll={onShowBadges}
         />
       )}
     </div>

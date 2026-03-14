@@ -6,6 +6,9 @@ import { searchBooks } from '../utils/googleBooks';
 import CarSelector from '../components/CarSelector';
 import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
 import { subscribeToTravelStats } from '../utils/travelStats';
+import { subscribeToUserBadges, checkAndAwardBadges, computeBadgeProgress } from '../utils/badgeChecker';
+import { BADGE_COUNT } from '../utils/badgeDefinitions';
+import BadgeUnlockModal from '../components/BadgeUnlockModal';
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
@@ -291,7 +294,7 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
 }
 
 // ── Main Profile component ──────────────────────────────────────────────────
-export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) {
+export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedStates = [] }) {
   const { user } = useAuth();
 
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
@@ -299,7 +302,9 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
-  const [travelStats, setTravelStats] = useState(null);
+  const [travelStats, setTravelStats]     = useState(null);
+  const [earnedBadgeData, setEarnedBadgeData] = useState([]);
+  const [newBadges, setNewBadges]         = useState([]);
   const [showBookModal, setShowBookModal] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
   const [activeCheckIn, setActiveCheckIn] = useState(null); // { locationId, checkInId } | null
@@ -329,6 +334,19 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
     if (!user) return;
     return subscribeToTravelStats(user.uid, setTravelStats);
   }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToUserBadges(user.uid, setEarnedBadgeData);
+  }, [user]);
+
+  // Check for newly earned badges when travelStats updates
+  useEffect(() => {
+    if (!user || !travelStats) return;
+    checkAndAwardBadges(user.uid).then(newly => {
+      if (newly.length > 0) setNewBadges(newly);
+    });
+  }, [user, travelStats]);
 
   const saveBooks = async (books) => {
     if (!user) return;
@@ -489,6 +507,106 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
         </button>
       </div>
 
+      {/* ── Badges section ── */}
+      {user && (() => {
+        const earnedIds     = new Set(earnedBadgeData.map(b => b.badgeId));
+        const allProgress   = computeBadgeProgress(travelStats);
+        const earnedBadges  = allProgress.filter(b => earnedIds.has(b.id));
+        const nextBadge     = allProgress
+          .filter(b => !earnedIds.has(b.id) && b.pct > 0)
+          .sort((a, b) => b.pct - a.pct)[0] || null;
+        // Most recent 6 (last earned first — use earnedBadgeData order isn't guaranteed, use definition order for now)
+        const recentBadges = earnedBadges.slice(-6).reverse();
+
+        return (
+          <div className="w-full max-w-lg rounded-xl p-4 mb-5"
+            style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+            {/* Header row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="font-bungee text-sm"
+                  style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em' }}>
+                  BADGES EARNED
+                </h2>
+                <span className="font-bungee text-[10px] px-1.5 py-0.5 rounded-full"
+                  style={{ background: '#40E0D020', border: '1px solid #40E0D040', color: '#40E0D0' }}>
+                  {earnedBadges.length}
+                </span>
+              </div>
+              {onShowBadges && (
+                <button onClick={onShowBadges}
+                  className="font-bungee text-[10px] px-3 py-1.5 rounded-full transition-all"
+                  style={{ border: '1px solid rgba(64,224,208,0.4)', color: '#40E0D0', background: 'transparent', letterSpacing: '0.04em' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(64,224,208,0.1)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
+                  VIEW ALL
+                </button>
+              )}
+            </div>
+
+            {/* Badge icons grid */}
+            {recentBadges.length > 0 ? (
+              <div className="grid grid-cols-6 gap-2 mb-4">
+                {recentBadges.map(badge => (
+                  <div key={badge.id} className="flex flex-col items-center gap-1">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                      style={{
+                        background: `radial-gradient(circle, ${badge.color}22, ${badge.color}08)`,
+                        border: `1.5px solid ${badge.color}60`,
+                        boxShadow: `0 0 8px ${badge.color}40`,
+                        fontSize: '1.25rem',
+                      }}>
+                      {badge.icon}
+                    </div>
+                    <span className="font-bungee text-[7px] text-center leading-tight"
+                      style={{ color: badge.color, maxWidth: '40px' }}>
+                      {badge.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="font-special-elite text-xs mb-4 text-center"
+                style={{ color: 'rgba(192,192,192,0.4)', lineHeight: 1.5 }}>
+                No badges yet — park at a bookstore to start!
+              </p>
+            )}
+
+            {/* Next badge progress */}
+            {nextBadge && (
+              <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: '1.1rem' }}>{nextBadge.icon}</span>
+                    <div>
+                      <p className="font-bungee text-[10px] leading-tight"
+                        style={{ color: nextBadge.color, letterSpacing: '0.03em' }}>
+                        NEXT: {nextBadge.name}
+                      </p>
+                      <p className="font-special-elite text-[9px]"
+                        style={{ color: 'rgba(192,192,192,0.45)' }}>
+                        Just {nextBadge.required - nextBadge.current} more to go!
+                      </p>
+                    </div>
+                  </div>
+                  <span className="font-bungee text-[10px]"
+                    style={{ color: 'rgba(192,192,192,0.4)' }}>
+                    {nextBadge.current}/{nextBadge.required}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                  <div className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${nextBadge.pct}%`,
+                      background: `linear-gradient(90deg, ${nextBadge.color}80, ${nextBadge.color})`,
+                    }} />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ── Favorite Books ── (above stops so it's always visible on mobile) */}
       <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
         <div className="flex items-center justify-between mb-3">
@@ -622,6 +740,15 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
           onAdd={handleAddBook}
           onRemove={handleRemoveBook}
           onClose={() => setShowBookModal(false)}
+        />
+      )}
+
+      {/* Badge unlock celebration */}
+      {newBadges.length > 0 && (
+        <BadgeUnlockModal
+          badges={newBadges}
+          onClose={() => setNewBadges([])}
+          onViewAll={onShowBadges}
         />
       )}
     </div>

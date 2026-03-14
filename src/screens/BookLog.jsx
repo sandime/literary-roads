@@ -3,6 +3,8 @@ import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimest
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
+import { checkAndAwardBadges } from '../utils/badgeChecker';
+import BadgeUnlockModal from '../components/BadgeUnlockModal';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -444,6 +446,7 @@ export default function BookLog({ onBack }) {
   const [saveError, setSaveError] = useState('');
   const [editingEntry, setEditingEntry] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
+  const [newBadges, setNewBadges]   = useState([]);
   const [sortOrder, setSortOrder] = useState(
     () => localStorage.getItem('booklog-sort') ?? 'date'
   );
@@ -502,6 +505,10 @@ export default function BookLog({ onBack }) {
         },
       );
       resetForm();
+      // Check for newly earned badges after logging a book
+      checkAndAwardBadges(user.uid).then(newly => {
+        if (newly.length > 0) setNewBadges(newly);
+      });
     } catch (err) {
       console.error('[BookLog] save:', err);
       setSaveError('Could not save. Try again.');
@@ -832,6 +839,14 @@ export default function BookLog({ onBack }) {
           </>
         )}
       </div>
+
+      {/* Badge unlock celebration */}
+      {newBadges.length > 0 && (
+        <BadgeUnlockModal
+          badges={newBadges}
+          onClose={() => setNewBadges([])}
+        />
+      )}
     </div>
   );
 }
