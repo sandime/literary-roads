@@ -17,6 +17,20 @@ function Starburst({ color = '#FF4E00', size = 48, style = {} }) {
   );
 }
 
+// ── Neon feature name highlight ───────────────────────────────────────────────
+function Highlight({ children, color = '#40E0D0' }) {
+  return (
+    <span className="font-bungee" style={{
+      color,
+      textShadow: `0 0 10px ${color}66`,
+      fontSize: '0.92em',
+      letterSpacing: '0.03em',
+    }}>
+      {children}
+    </span>
+  );
+}
+
 // ── International Waitlist ────────────────────────────────────────────────────
 const COUNTRIES = [
   { code: 'Canada',    flag: '🇨🇦', label: 'Canada' },
@@ -100,7 +114,6 @@ function InternationalWaitlist() {
 
       {status === 'success' ? (
         <div style={{ textAlign: 'center', padding: '16px 0' }}>
-          <p style={{ fontSize: '28px', marginBottom: '10px' }}>🎉</p>
           <p className="font-bungee" style={{ fontSize: '13px', color: '#40E0D0', letterSpacing: '0.06em', marginBottom: '8px' }}>
             YOU'RE ON THE LIST!
           </p>
@@ -180,18 +193,6 @@ function InternationalWaitlist() {
   );
 }
 
-// ── Feature row ───────────────────────────────────────────────────────────────
-function FeatureRow({ icon, text }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '10px' }}>
-      <span style={{ fontSize: '16px', flexShrink: 0, marginTop: '1px' }}>{icon}</span>
-      <p className="font-special-elite" style={{ fontSize: '14px', color: 'rgba(245,245,220,0.8)', lineHeight: 1.6, margin: 0 }}>
-        {text}
-      </p>
-    </div>
-  );
-}
-
 // ── About screen ──────────────────────────────────────────────────────────────
 export default function About({ onBack }) {
   return (
@@ -222,135 +223,143 @@ export default function About({ onBack }) {
 
       <div style={{ maxWidth: '640px', margin: '0 auto', padding: '0 16px 60px' }}>
 
-        {/* Hero */}
-        <div style={{ textAlign: 'center', padding: '36px 0 28px', position: 'relative' }}>
-          {/* Starburst accents */}
+        {/* ── Hero ── */}
+        <div style={{ textAlign: 'center', padding: '36px 0 24px', position: 'relative' }}>
           <Starburst color="#FF4E00" size={36} style={{ position: 'absolute', top: 28, left: 0, opacity: 0.7 }} />
           <Starburst color="#40E0D0" size={28} style={{ position: 'absolute', top: 50, left: 30, opacity: 0.5 }} />
           <Starburst color="#FF4E00" size={36} style={{ position: 'absolute', top: 28, right: 0, opacity: 0.7 }} />
           <Starburst color="#40E0D0" size={28} style={{ position: 'absolute', top: 50, right: 30, opacity: 0.5 }} />
 
-          <p className="font-bungee" style={{
-            fontSize: '11px', color: '#FF4E00', letterSpacing: '0.18em',
-            marginBottom: '10px', opacity: 0.8,
-          }}>
-            ✦ THE STORY ✦
-          </p>
           <h2 className="font-bungee" style={{
             fontSize: 'clamp(20px, 5vw, 28px)',
             background: 'linear-gradient(135deg, #40E0D0 0%, #FF69B4 50%, #FF4E00 100%)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
-            lineHeight: 1.25, marginBottom: '16px', letterSpacing: '0.06em',
+            lineHeight: 1.25, marginBottom: '18px', letterSpacing: '0.06em',
           }}>
-            THE LITERARY ROADS
+            ABOUT THE LITERARY ROADS
           </h2>
           <div style={{ width: '80px', height: '3px', margin: '0 auto',
             background: 'linear-gradient(to right, #FF4E00, #40E0D0, #FF4E00)',
             borderRadius: '2px', boxShadow: '0 0 10px rgba(64,224,208,0.5)' }} />
         </div>
 
-        {/* Main intro */}
+        {/* ── Hook ── */}
         <div style={{
           background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(64,224,208,0.15)',
-          borderRadius: '16px', padding: '24px', marginBottom: '20px',
+          border: '1px solid rgba(64,224,208,0.18)',
+          borderRadius: '16px', padding: '22px 24px', marginBottom: '16px',
         }}>
           <p className="font-special-elite" style={{
-            fontSize: '15px', color: 'rgba(245,245,220,0.9)', lineHeight: 1.85,
+            fontSize: '15px', color: 'rgba(245,245,220,0.92)', lineHeight: 1.85, fontStyle: 'italic',
           }}>
-            The Literary Roads is more than an app — it's a celebration of the open road, the love of books, and the community that connects them.
+            If you're the type of person who plans road trips around great coffee shops, you'll love The Literary Roads.
           </p>
         </div>
 
+        {/* ── Mission ── */}
         <div style={{
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(255,78,0,0.15)',
-          borderRadius: '16px', padding: '24px', marginBottom: '20px',
-        }}>
-          <p className="font-special-elite" style={{
-            fontSize: '14px', color: 'rgba(245,245,220,0.8)', lineHeight: 1.85,
-          }}>
-            We believe every road trip should be a story, every mile a new chapter, and every stop an opportunity to discover something beautiful: a bookstore tucked into a small town, a coffee shop where locals gather, a literary festival that brings readers together, or a landmark that honors the writers who shaped our culture.
-          </p>
-        </div>
-
-        <div style={{
-          background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(64,224,208,0.15)',
-          borderRadius: '16px', padding: '24px', marginBottom: '20px',
-        }}>
-          <p className="font-special-elite" style={{
-            fontSize: '14px', color: 'rgba(245,245,220,0.8)', lineHeight: 1.85,
-          }}>
-            Whether you're planning a cross-country adventure or a weekend getaway, The Literary Roads helps you find the bookstores, cafes, landmarks, and festivals that make the journey unforgettable.
-          </p>
-        </div>
-
-        {/* Mission */}
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(255,78,0,0.08) 0%, rgba(255,105,180,0.06) 100%)',
-          border: '2px solid rgba(255,78,0,0.3)',
-          borderRadius: '16px', padding: '24px', marginBottom: '20px', textAlign: 'center',
+          background: 'linear-gradient(135deg, rgba(255,78,0,0.09) 0%, rgba(255,105,180,0.06) 100%)',
+          border: '2px solid rgba(255,78,0,0.35)',
+          borderRadius: '16px', padding: '22px 24px', marginBottom: '16px', textAlign: 'center',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '12px' }}>
-            <Starburst color="#FF4E00" size={22} />
-            <h3 className="font-bungee" style={{ fontSize: '12px', color: '#FF4E00', letterSpacing: '0.12em',
+            <Starburst color="#FF4E00" size={20} />
+            <h3 className="font-bungee" style={{ fontSize: '11px', color: '#FF4E00', letterSpacing: '0.14em',
               textShadow: '0 0 12px rgba(255,78,0,0.7)' }}>
               OUR MISSION
             </h3>
-            <Starburst color="#FF4E00" size={22} />
+            <Starburst color="#FF4E00" size={20} />
           </div>
           <p className="font-special-elite" style={{
-            fontSize: '15px', color: 'rgba(245,245,220,0.9)', lineHeight: 1.8, fontStyle: 'italic',
+            fontSize: '14px', color: 'rgba(245,245,220,0.9)', lineHeight: 1.85,
           }}>
-            Support independent bookstores, celebrate literary culture, and inspire readers to explore the world one book at a time.
+            Support independent bookstores, celebrate literary culture, and inspire readers to explore the world one book—and one road trip—at a time.
           </p>
         </div>
 
-        {/* Features */}
+        {/* ── Main body ── */}
         <div style={{
           background: 'rgba(255,255,255,0.025)',
-          border: '1px solid rgba(64,224,208,0.15)',
-          borderRadius: '16px', padding: '24px', marginBottom: '20px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-            <Starburst color="#40E0D0" size={20} />
-            <h3 className="font-bungee" style={{ fontSize: '12px', color: '#40E0D0', letterSpacing: '0.1em',
-              textShadow: '0 0 10px rgba(64,224,208,0.6)' }}>
-              FEATURES
-            </h3>
-          </div>
-          <FeatureRow icon="🗺️" text="Route planning through all 50 states + Puerto Rico" />
-          <FeatureRow icon="📚" text="Discover bookstores, coffee shops, literary landmarks, festivals & drive-ins" />
-          <FeatureRow icon="🎪" text="Curated day trips and festival road trips" />
-          <FeatureRow icon="✍️" text="Community features: guestbooks, collaborative tales, book recommendations" />
-          <FeatureRow icon="📸" text="Share your journey with postcard selfies" />
-          <FeatureRow icon="🧭" text="Navigate with ease using Google Maps integration" />
-        </div>
-
-        {/* Built with love */}
-        <div style={{
-          textAlign: 'center',
-          background: 'rgba(255,105,180,0.05)',
-          border: '1px solid rgba(255,105,180,0.2)',
-          borderRadius: '16px', padding: '24px', marginBottom: '24px',
+          border: '1px solid rgba(255,78,0,0.15)',
+          borderRadius: '16px', padding: '22px 24px', marginBottom: '16px',
         }}>
           <p className="font-special-elite" style={{
-            fontSize: '14px', color: 'rgba(245,245,220,0.8)', lineHeight: 1.85,
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
           }}>
-            Built with love for readers, travelers, and the independent bookstores that make our communities vibrant.
+            The Literary Roads celebrates the open road, the love of books, a perfectly brewed cup of coffee (or tea), and the community that connects them all.
           </p>
-          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '8px', opacity: 0.6 }}>
-            <Starburst color="#FF4E00" size={16} />
-            <Starburst color="#40E0D0" size={20} />
-            <Starburst color="#FF69B4" size={14} />
-            <Starburst color="#40E0D0" size={20} />
-            <Starburst color="#FF4E00" size={16} />
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
+          }}>
+            Every stop is an opportunity to discover something beautiful: an indie bookstore tucked into a small town, a cozy coffee shop where locals gather, a literary festival bringing readers together, a landmark honoring the writers who shaped our culture, or a drive-in theater. (Yes — there are still many drive-ins across the country!)
+          </p>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, margin: 0,
+          }}>
+            Whether you're planning a cross-country adventure or a weekend getaway, The Literary Roads helps you map your journey. Explore routes, save favorites, bookmark individual stops, and when you're ready — click navigate and hit the road.
+          </p>
+        </div>
+
+        {/* ── Features ── */}
+        <div style={{
+          background: 'rgba(64,224,208,0.03)',
+          border: '1px solid rgba(64,224,208,0.18)',
+          borderRadius: '16px', padding: '22px 24px', marginBottom: '16px',
+        }}>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
+          }}>
+            <Highlight>CURATED JOURNEYS</Highlight> make planning effortless. Generate a day trip complete with coffee shops, bookstores, restaurants, and local attractions. Planning to attend a literary festival? We'll help you route the journey and discover all the best stops along the way.
+          </p>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, margin: 0,
+          }}>
+            The app doubles as your <Highlight>BOOK LOG</Highlight>. Track what you've read, rate books with our signature cat ratings, and never forget a favorite. Need inspiration? Click "Surprise Me" in <Highlight>HIGHWAY SNACKS</Highlight> for your next great read, or explore curated literary podcast recommendations like our favorite, <em>What Should I Read Next?</em>
+          </p>
+        </div>
+
+        {/* ── Playful features ── */}
+        <div style={{
+          background: 'rgba(255,105,180,0.03)',
+          border: '1px solid rgba(255,105,180,0.18)',
+          borderRadius: '16px', padding: '22px 24px', marginBottom: '16px',
+        }}>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, margin: 0,
+          }}>
+            <Highlight color="#FF69B4">MAKE YOUR JOURNEY PLAYFUL.</Highlight> Choose a retro car, truck, or motorcycle, then "park" it on the map when you arrive at coffee shops and bookstores. You might spot other travelers — tap their car to honk and flash your headlights! They'll get a friendly hello. Snap a selfie and frame it with a Literary Roads postcard filter to share on social media. Start a <Highlight color="#FF69B4">HITCHHIKER'S TALE</Highlight> by writing a sentence or two and giving it a title — other travelers can continue the story. Leave book recommendations in location guestbooks for fellow readers to discover.
+          </p>
+        </div>
+
+        {/* ── Coverage + thanks ── */}
+        <div style={{
+          textAlign: 'center',
+          background: 'rgba(255,210,0,0.04)',
+          border: '1px solid rgba(255,210,0,0.15)',
+          borderRadius: '16px', padding: '20px 24px', marginBottom: '24px',
+        }}>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.8)', lineHeight: 1.85, marginBottom: '14px',
+          }}>
+            We cover all 50 <Highlight color="#FFD700">STATES AND PUERTO RICO</Highlight>, with Canada, the UK, Ireland, and Australia coming soon.
+          </p>
+          <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(255,210,0,0.25), transparent)', marginBottom: '14px' }} />
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.7)', lineHeight: 1.85, fontStyle: 'italic',
+          }}>
+            Thanks for joining the journey.
+          </p>
+          <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'center', gap: '8px', opacity: 0.55 }}>
+            <Starburst color="#FF4E00" size={14} />
+            <Starburst color="#40E0D0" size={18} />
+            <Starburst color="#FF69B4" size={12} />
+            <Starburst color="#40E0D0" size={18} />
+            <Starburst color="#FF4E00" size={14} />
           </div>
         </div>
 
-        {/* International Waitlist */}
+        {/* ── International Waitlist ── */}
         <InternationalWaitlist />
 
         {/* Footer */}
@@ -358,7 +367,7 @@ export default function About({ onBack }) {
           <p className="font-bungee" style={{
             fontSize: '11px', color: 'rgba(255,210,0,0.35)', letterSpacing: '0.12em',
           }}>
-            🚗 &nbsp; HAPPY TRAILS &nbsp; 🚗
+            HAPPY TRAILS
           </p>
         </div>
 

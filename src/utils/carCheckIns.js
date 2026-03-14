@@ -5,16 +5,23 @@ import {
 } from 'firebase/firestore';
 
 export const CAR_TYPES = {
-  convertible: { label: 'Classic Convertible', file: 'car-icon-convertible.png' },
-  rocket:      { label: 'Rocket Coupe',        file: 'car-icon-black-fins.png'  },
-  woody:       { label: 'Woody Wagon',          file: 'car-icon-woody.png'       },
-  bookbus:     { label: 'Book Bus',             file: 'car-icon-bookbus.png'     },
-  truck:       { label: 'Road Truck',           file: 'car-icon-truck.png'       },
-  ghia:        { label: 'Karmann Ghia',         file: 'car-icon-ghia.png'        },
+  convertible: { label: 'Classic Convertible', file: 'car-icon-convertible.png'  },
+  rocket:      { label: 'Rocket Coupe',        file: 'car-icon-black-fins.png'   },
+  woody:       { label: 'Woody Wagon',         file: 'car-icon-woody.png'        },
+  bookbus:     { label: 'Book Bus',            file: 'car-icon-bookbus.png'      },
+  truck:       { label: 'Road Truck',          file: 'car-icon-truck.png'        },
+  ghia:        { label: 'Karmann Ghia',        file: 'car-icon-ghia.png'         },
+  pinkmoto:    { label: 'Pink Moto',           file: 'car-icon-pink moto.png'    },
+  pinkstud:    { label: 'Pink Studebaker',     file: 'car-icon-pink-stud.png'    },
+  creamstud:   { label: 'Cream Studebaker',    file: 'car-icon-cream-stud.png'   },
+  orangevw:    { label: 'Orange VW Bus',       file: 'car-icon-orange-vw.png'    },
 };
 
-export const carImgSrc = (carType) =>
-  `/literary-roads/images/cars/${CAR_TYPES[carType]?.file ?? CAR_TYPES.convertible.file}`;
+// encodeURIComponent handles filenames with spaces (e.g. "car-icon-pink moto.png")
+export const carImgSrc = (carType) => {
+  const file = CAR_TYPES[carType]?.file ?? CAR_TYPES.convertible.file;
+  return `/literary-roads/images/cars/${encodeURIComponent(file)}`;
+};
 
 export const saveSelectedCar = (userId, carType) =>
   setDoc(doc(db, 'users', userId), { selectedCar: carType }, { merge: true });
