@@ -1032,6 +1032,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setCheckInError('');
     console.log('[MasterMap] handleCheckIn — location:', selectedLocation.id, 'car:', userCar, 'user:', user.uid);
     try {
+      // Extract city + state from formatted address, e.g. "123 Main St, Louisville, KY 40202"
+      const addrMatch = (selectedLocation.address || '').match(/,\s*([^,]+),\s*([A-Z]{2})(?:\s|,|$)/);
+      const locationMeta = {
+        locationName: selectedLocation.name || '',
+        locationType: selectedLocation.type || 'bookstore',
+        city:  addrMatch ? addrMatch[1].trim() : '',
+        state: addrMatch ? addrMatch[2].trim() : '',
+      };
       const ref = await checkIn(
         user.uid,
         user.displayName || 'Literary Traveler',
@@ -1039,6 +1047,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         selectedLocation.id,
         selectedLocation.lat,
         selectedLocation.lng,
+        locationMeta,
       );
       console.log('[MasterMap] check-in success, doc:', ref.id);
       // Ask for browser notification permission so honks are heard even when tab is backgrounded

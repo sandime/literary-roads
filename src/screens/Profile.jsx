@@ -5,6 +5,7 @@ import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
 import CarSelector from '../components/CarSelector';
 import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
+import { subscribeToTravelStats } from '../utils/travelStats';
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
@@ -298,6 +299,7 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
+  const [travelStats, setTravelStats] = useState(null);
   const [showBookModal, setShowBookModal] = useState(false);
   const [selectedCar, setSelectedCar] = useState(null);
   const [activeCheckIn, setActiveCheckIn] = useState(null); // { locationId, checkInId } | null
@@ -321,6 +323,11 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
       (err) => console.error('[Profile] snapshot:', err),
     );
     return unsub;
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    return subscribeToTravelStats(user.uid, setTravelStats);
   }, [user]);
 
   const saveBooks = async (books) => {
@@ -420,12 +427,39 @@ export default function Profile({ onBack, onShowBookLog, selectedStates = [] }) 
 
       {/* Stats + Book Log row */}
       <div className="w-full max-w-lg grid grid-cols-2 gap-3 mb-5">
-        {/* Stops Saved stat */}
-        <div className="rounded-xl p-4 flex flex-col items-center gap-1"
+        {/* YOUR JOURNEY SO FAR */}
+        <div className="rounded-xl p-4"
           style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-          <span className="text-2xl">📍</span>
-          <span className="font-bungee text-2xl" style={{ color: '#FF4E00', textShadow: '0 0 10px rgba(255,78,0,0.5)' }}>{tripCount}</span>
-          <span className="font-special-elite text-chrome-silver text-xs text-center">Stops Saved</span>
+          <p className="font-bungee text-xs mb-3 text-center"
+            style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em' }}>
+            YOUR JOURNEY SO FAR
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="font-bungee text-lg" style={{ color: '#FF4E00', textShadow: '0 0 8px rgba(255,78,0,0.4)' }}>
+                {travelStats?.bookstoresVisited ?? 0}
+              </span>
+              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>Bookstores<br/>Visited</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="font-bungee text-lg" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.4)' }}>
+                {travelStats?.cafesVisited ?? 0}
+              </span>
+              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>Coffee Shops<br/>Discovered</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="font-bungee text-lg" style={{ color: '#FF4E00', textShadow: '0 0 8px rgba(255,78,0,0.4)' }}>
+                {travelStats?.festivalsAttended ?? 0}
+              </span>
+              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>Festivals<br/>Attended</span>
+            </div>
+            <div className="flex flex-col items-center gap-0.5">
+              <span className="font-bungee text-lg" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.4)' }}>
+                {travelStats?.statesExplored ?? 0}
+              </span>
+              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>States<br/>Explored</span>
+            </div>
+          </div>
         </div>
 
         {/* BOOK LOG — image button */}

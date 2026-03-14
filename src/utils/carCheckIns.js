@@ -26,7 +26,8 @@ export const carImgSrc = (carType) => {
 export const saveSelectedCar = (userId, carType) =>
   setDoc(doc(db, 'users', userId), { selectedCar: carType }, { merge: true });
 
-export const checkIn = async (userId, userName, carType, locationId, lat, lng) => {
+// locationMeta: { locationName, locationType, city, state } — saved to permanent history
+export const checkIn = async (userId, userName, carType, locationId, lat, lng, locationMeta = {}) => {
   const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
   console.log('[carCheckIns] checking in:', userId, 'at', locationId, 'car:', carType);
 
@@ -58,6 +59,30 @@ export const checkIn = async (userId, userName, carType, locationId, lat, lng) =
   batch.set(userRef, { activeCheckIn: { locationId, checkInId: newCheckInRef.id } }, { merge: true });
 
   await batch.commit();
+
+  // ── Permanent history record (never expires) ──────────────────────────────
+  // Saved separately so a batch failure doesn't block the active check-in
+  try {
+    const { locationName = '', locationType = 'bookstore', city = '', state = '' } = locationMeta;
+    await setDoc(
+      doc(db, 'users', userId, 'checkInHistory', newCheckInRef.id),
+      {
+        locationId,
+        locationName,
+        locationType,
+        city,
+        state,
+        lat,
+        lng,
+        checkedInAt: serverTimestamp(),
+        carUsed: carType,
+      },
+    );
+  } catch (err) {
+    // Non-fatal: history failure should never break the active check-in UX
+    console.error('[carCheckIns] history write failed:', err);
+  }
+
   return newCheckInRef;
 };
 
