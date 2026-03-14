@@ -230,6 +230,21 @@ export default function About({ onBack }) {
           <Starburst color="#FF4E00" size={36} style={{ position: 'absolute', top: 28, right: 0, opacity: 0.7 }} />
           <Starburst color="#40E0D0" size={28} style={{ position: 'absolute', top: 50, right: 30, opacity: 0.5 }} />
 
+          {/* App icon */}
+          <div style={{ marginBottom: '20px' }}>
+            <img
+              src="/literary-roads/images/icon-1024.png"
+              alt="The Literary Roads"
+              style={{
+                width: 'clamp(80px, 14vw, 130px)',
+                height: 'clamp(80px, 14vw, 130px)',
+                borderRadius: '22%',
+                display: 'inline-block',
+                filter: 'drop-shadow(0 0 18px rgba(64,224,208,0.7)) drop-shadow(0 0 36px rgba(255,78,0,0.4))',
+              }}
+            />
+          </div>
+
           <h2 className="font-bungee" style={{
             fontSize: 'clamp(20px, 5vw, 28px)',
             background: 'linear-gradient(135deg, #40E0D0 0%, #FF69B4 50%, #FF4E00 100%)',
