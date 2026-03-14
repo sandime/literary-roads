@@ -11,7 +11,7 @@ export const CAR_TYPES = {
   bookbus:     { label: 'Book Bus',            file: 'car-icon-bookbus.png'      },
   truck:       { label: 'Road Truck',          file: 'car-icon-truck.png'        },
   ghia:        { label: 'Karmann Ghia',        file: 'car-icon-ghia.png'         },
-  pinkmoto:    { label: 'Pink Moto',           file: 'car-icon-pink moto.png'    },
+  pinkmoto:    { label: 'Pink Moto',           file: 'car-icon-pink-moto.png'    },
   pinkstud:    { label: 'Pink Studebaker',     file: 'car-icon-pink-stud.png'    },
   creamstud:   { label: 'Cream Studebaker',    file: 'car-icon-cream-stud.png'   },
   orangevw:    { label: 'Orange VW Bus',       file: 'car-icon-orange-vw.png'    },
