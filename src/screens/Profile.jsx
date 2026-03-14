@@ -9,6 +9,7 @@ import { subscribeToTravelStats } from '../utils/travelStats';
 import { subscribeToUserBadges, checkAndAwardBadges, computeBadgeProgress } from '../utils/badgeChecker';
 import { BADGE_COUNT } from '../utils/badgeDefinitions';
 import BadgeUnlockModal from '../components/BadgeUnlockModal';
+import { deleteAccount } from '../utils/deleteAccount';
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
@@ -304,8 +305,12 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   const [visitedCount, setVisitedCount] = useState(0);
   const [travelStats, setTravelStats]     = useState(null);
   const [earnedBadgeData, setEarnedBadgeData] = useState([]);
-  const [newBadges, setNewBadges]         = useState([]);
-  const [showBookModal, setShowBookModal] = useState(false);
+  const [newBadges, setNewBadges]             = useState([]);
+  const [showBookModal, setShowBookModal]     = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleteLoading, setDeleteLoading]     = useState(false);
+  const [deleteError, setDeleteError]         = useState('');
   const [selectedCar, setSelectedCar] = useState(null);
   const [activeCheckIn, setActiveCheckIn] = useState(null); // { locationId, checkInId } | null
 
@@ -373,6 +378,24 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
     const updated = favoriteBooks.filter((b) => b.id !== id);
     setFavoriteBooks(updated);
     await saveBooks(updated);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await deleteAccount(user.uid);
+      // Auth deletion triggers onAuthStateChanged → user becomes null → App will redirect
+    } catch (err) {
+      console.error('[Profile] delete account:', err);
+      if (err.code === 'auth/requires-recent-login') {
+        setDeleteError('For security, please sign out and sign back in, then try again.');
+      } else {
+        setDeleteError('Something went wrong. Please try again.');
+      }
+      setDeleteLoading(false);
+    }
   };
 
   const handleCarSelect = async (carType) => {
@@ -717,6 +740,28 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
         <CarSelector selectedCar={selectedCar} onSelect={handleCarSelect} />
       </div>
 
+      {/* ── Danger Zone ── */}
+      {user && (
+        <div className="w-full max-w-lg rounded-xl p-5 mb-5"
+          style={{ background: '#1E0A0A', border: '1px solid rgba(220,38,38,0.35)' }}>
+          <h2 className="font-bungee text-sm mb-1" style={{ color: '#DC2626', letterSpacing: '0.06em' }}>
+            DANGER ZONE
+          </h2>
+          <p className="font-special-elite text-xs mb-4" style={{ color: 'rgba(192,192,192,0.5)', lineHeight: 1.5 }}>
+            Permanently delete your account and all associated data. This cannot be undone.
+          </p>
+          <button
+            onClick={() => { setShowDeleteModal(true); setDeleteConfirmText(''); setDeleteError(''); }}
+            className="font-bungee text-xs py-2 px-4 rounded-lg transition-all"
+            style={{ border: '1px solid rgba(220,38,38,0.6)', color: '#DC2626', background: 'transparent', letterSpacing: '0.05em' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(220,38,38,0.12)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            DELETE MY ACCOUNT
+          </button>
+        </div>
+      )}
+
       {/* ALA Attribution */}
       <div className="w-full max-w-lg rounded-xl p-4 mb-5 text-center"
         style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
@@ -750,6 +795,107 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
           onClose={() => setNewBadges([])}
           onViewAll={onShowBadges}
         />
+      )}
+
+      {/* ── Account deletion confirmation modal ── */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[3000] bg-black/80 flex items-center justify-center px-4"
+          onClick={() => { if (!deleteLoading) setShowDeleteModal(false); }}>
+          <div className="w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl"
+            style={{ background: '#0D0E1A', border: '2px solid rgba(220,38,38,0.6)' }}
+            onClick={e => e.stopPropagation()}>
+
+            {/* Red top strip */}
+            <div style={{ height: '3px', background: 'linear-gradient(90deg, transparent, #DC2626, transparent)' }} />
+
+            <div className="px-6 py-6">
+              <h2 className="font-bungee text-base mb-3" style={{ color: '#DC2626', letterSpacing: '0.05em' }}>
+                DELETE ACCOUNT?
+              </h2>
+
+              <p className="font-special-elite text-sm mb-4"
+                style={{ color: 'rgba(245,245,220,0.8)', lineHeight: 1.6 }}>
+                This will permanently delete:
+              </p>
+              <ul className="font-special-elite text-xs mb-4 space-y-1"
+                style={{ color: 'rgba(192,192,192,0.65)', lineHeight: 1.5 }}>
+                {[
+                  'Your profile and login',
+                  'All saved routes and stops',
+                  'Book Log and ratings',
+                  'Check-in history',
+                  'All badges and stats',
+                  'Guestbook posts and Tale contributions',
+                ].map(item => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span style={{ color: '#DC2626', flexShrink: 0 }}>✕</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <p className="font-bungee text-xs mb-4"
+                style={{ color: 'rgba(220,38,38,0.8)', letterSpacing: '0.04em' }}>
+                THIS ACTION CANNOT BE UNDONE.
+              </p>
+
+              {/* Type DELETE confirmation */}
+              <label className="block font-bungee text-[10px] mb-1.5 tracking-widest"
+                style={{ color: 'rgba(192,192,192,0.5)' }}>
+                TYPE DELETE TO CONFIRM
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="DELETE"
+                disabled={deleteLoading}
+                className="w-full rounded-lg px-3 py-2 font-bungee text-sm mb-4 outline-none"
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${deleteConfirmText === 'DELETE' ? '#DC2626' : 'rgba(255,255,255,0.12)'}`,
+                  color: '#F5F5DC',
+                  letterSpacing: '0.08em',
+                }}
+              />
+
+              {deleteError && (
+                <p className="font-special-elite text-xs mb-4"
+                  style={{ color: '#DC2626', lineHeight: 1.5 }}>
+                  {deleteError}
+                </p>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleteLoading}
+                  className="flex-1 font-bungee text-xs py-2.5 rounded-lg border transition-all"
+                  style={{ border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(192,192,192,0.7)', background: 'transparent' }}
+                  onMouseEnter={e => { if (!deleteLoading) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; }}
+                >
+                  CANCEL
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
+                  className="flex-1 font-bungee text-xs py-2.5 rounded-lg transition-all"
+                  style={{
+                    background: deleteConfirmText === 'DELETE' && !deleteLoading ? '#DC2626' : 'rgba(220,38,38,0.2)',
+                    color: deleteConfirmText === 'DELETE' && !deleteLoading ? '#fff' : 'rgba(220,38,38,0.4)',
+                    cursor: deleteConfirmText === 'DELETE' && !deleteLoading ? 'pointer' : 'not-allowed',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {deleteLoading ? 'DELETING...' : 'PERMANENTLY DELETE'}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ height: '3px', background: 'linear-gradient(90deg, transparent, #DC2626, transparent)' }} />
+          </div>
+        </div>
       )}
     </div>
     </div>

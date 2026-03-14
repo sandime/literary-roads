@@ -33,7 +33,7 @@ const SELECTED_STYLE    = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40
 const HOVER_STYLE       = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const HOVER_SEL_STYLE   = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
 
-const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe, onShowDayTrip, onShowFestivalTrip, onShowBadges }) => {
+const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onLoadSavedRoute, onSelectStop, onNearMe, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy }) => {
   const { user, logout } = useAuth();
   const [geoJson, setGeoJson]           = useState(null);
   const [loadError, setLoadError]       = useState(false);
@@ -417,9 +417,10 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
               {showInfoMenu && (
                 <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, minWidth:'170px', zIndex:9999, background:'#0D0E1A', border:'1.5px solid rgba(255,78,0,0.45)', borderRadius:'10px', overflow:'hidden', boxShadow:'0 0 20px rgba(255,78,0,0.2), 0 8px 32px rgba(0,0,0,0.7)', animation:'lr-dropdown-in 0.18s ease' }}>
                   {[
-                    { label: 'ABOUT',          action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
-                    { label: 'CODE OF ETHICS', action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
-                    { label: 'CREDITS',        action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
+                    { label: 'ABOUT',           action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
+                    { label: 'CODE OF ETHICS',  action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
+                    { label: 'PRIVACY POLICY',  action: () => { setShowInfoMenu(false); onShowPrivacy?.(); } },
+                    { label: 'CREDITS',         action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
                   ].map(({ label, action }, i) => (
                     <button key={label} onClick={action} className="font-bungee w-full text-left"
                       style={{ display:'flex', alignItems:'center', padding:'10px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', borderTop: i > 0 ? '1px solid rgba(255,78,0,0.12)' : 'none', cursor:'pointer', transition:'background 0.15s' }}
@@ -707,6 +708,10 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                 <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <span className="text-base">📜</span> CODE OF ETHICS
+                </button>
+                <button onClick={() => { setShowHamburger(false); onShowPrivacy?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <span className="text-base">🔒</span> PRIVACY POLICY
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">

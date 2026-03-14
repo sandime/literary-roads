@@ -590,7 +590,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -1714,9 +1714,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   animation: 'lr-dropdown-in 0.18s ease',
                 }}>
                   {[
-                    { label: 'ABOUT',          action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
-                    { label: 'CODE OF ETHICS', action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
-                    { label: 'CREDITS',        action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
+                    { label: 'ABOUT',           action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
+                    { label: 'CODE OF ETHICS',  action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
+                    { label: 'PRIVACY POLICY',  action: () => { setShowInfoMenu(false); onShowPrivacy?.(); } },
+                    { label: 'CREDITS',         action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
                   ].map(({ label, action }, i) => (
                     <button key={label} onClick={action}
                       className="font-bungee w-full text-left"
@@ -1949,6 +1950,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <span className="text-base">📜</span> CODE OF ETHICS
+                </button>
+                <button onClick={() => { setShowHamburger(false); onShowPrivacy?.(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  <span className="text-base">🔒</span> PRIVACY POLICY
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">

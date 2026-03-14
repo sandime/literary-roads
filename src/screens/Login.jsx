@@ -99,7 +99,7 @@ const CSS = `
   }
 `;
 
-export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
+export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onShowPrivacy, onShowEthics }) {
   const { signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
   const [mode,        setMode]        = useState('login');
   const [email,       setEmail]       = useState('');
@@ -287,6 +287,27 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest }) {
           >
             {loading ? 'LOADING…' : isReg ? 'CREATE ACCOUNT' : 'LOG IN'}
           </button>
+
+          {/* Terms notice — only shown on register */}
+          {isReg && (
+            <p style={{
+              fontFamily: 'Special Elite, serif',
+              fontSize: '11px',
+              color: 'rgba(192,192,192,0.45)',
+              textAlign: 'center',
+              lineHeight: 1.6,
+              marginTop: '12px',
+            }}>
+              By signing up, you agree to our{' '}
+              <button onClick={onShowPrivacy} style={{ background: 'none', border: 'none', padding: 0, color: '#40E0D0', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}>
+                Privacy Policy
+              </button>
+              {' '}and{' '}
+              <button onClick={onShowEthics} style={{ background: 'none', border: 'none', padding: 0, color: '#40E0D0', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}>
+                Code of Ethics
+              </button>.
+            </p>
+          )}
         </form>
 
         {/* Divider */}
