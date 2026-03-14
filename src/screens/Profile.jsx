@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { doc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, onSnapshot, collection } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
@@ -303,7 +303,8 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
-  const [travelStats, setTravelStats]     = useState(null);
+  const [travelStats, setTravelStats]       = useState(null);
+  const [readingStats, setReadingStats]     = useState({ booksRead: 0, fiveCat: 0, nextReads: 0 });
   const [earnedBadgeData, setEarnedBadgeData] = useState([]);
   const [newBadges, setNewBadges]             = useState([]);
   const [showBookModal, setShowBookModal]     = useState(false);
@@ -338,6 +339,28 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   useEffect(() => {
     if (!user) return;
     return subscribeToTravelStats(user.uid, setTravelStats);
+  }, [user]);
+
+  // Reading stats: booksRead count + 5-cat count + wantToRead count
+  useEffect(() => {
+    if (!user) return;
+    let booksData = [], wantSize = 0;
+    const emit = () => setReadingStats({
+      booksRead: booksData.length,
+      fiveCat:   booksData.filter(d => d.rating === 5).length,
+      nextReads: wantSize,
+    });
+    const unsubBooks = onSnapshot(
+      collection(db, 'users', user.uid, 'booksRead'),
+      snap => { booksData = snap.docs.map(d => d.data()); emit(); },
+      err => console.error('[Profile] booksRead:', err),
+    );
+    const unsubWant = onSnapshot(
+      collection(db, 'users', user.uid, 'wantToRead'),
+      snap => { wantSize = snap.size; emit(); },
+      err => console.error('[Profile] wantToRead:', err),
+    );
+    return () => { unsubBooks(); unsubWant(); };
   }, [user]);
 
   useEffect(() => {
@@ -466,68 +489,80 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
         </div>
       </div>
 
-      {/* Stats + Book Log row */}
-      <div className="w-full max-w-lg grid grid-cols-2 gap-3 mb-5">
-        {/* YOUR JOURNEY SO FAR */}
-        <div className="rounded-xl p-4"
-          style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
+      {/* Stats row — two matching boxes */}
+      <div className="w-full max-w-lg grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+
+        {/* ── YOUR JOURNEY SO FAR ── */}
+        <div className="rounded-xl p-4 flex flex-col"
+          style={{ background: '#1E1F33', border: '1px solid rgba(255,78,0,0.35)' }}>
           <p className="font-bungee text-xs mb-3 text-center"
-            style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em' }}>
+            style={{ color: '#FF4E00', textShadow: '0 0 8px rgba(255,78,0,0.5)', letterSpacing: '0.05em' }}>
             YOUR JOURNEY SO FAR
           </p>
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="font-bungee text-lg" style={{ color: '#FF4E00', textShadow: '0 0 8px rgba(255,78,0,0.4)' }}>
-                {travelStats?.bookstoresVisited ?? 0}
-              </span>
-              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>Bookstores<br/>Visited</span>
-            </div>
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="font-bungee text-lg" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.4)' }}>
-                {travelStats?.cafesVisited ?? 0}
-              </span>
-              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>Coffee Shops<br/>Discovered</span>
-            </div>
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="font-bungee text-lg" style={{ color: '#FF4E00', textShadow: '0 0 8px rgba(255,78,0,0.4)' }}>
-                {travelStats?.festivalsAttended ?? 0}
-              </span>
-              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>Festivals<br/>Attended</span>
-            </div>
-            <div className="flex flex-col items-center gap-0.5">
-              <span className="font-bungee text-lg" style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.4)' }}>
-                {travelStats?.statesExplored ?? 0}
-              </span>
-              <span className="font-special-elite text-chrome-silver text-center" style={{ fontSize: '0.6rem', lineHeight: 1.3 }}>States<br/>Explored</span>
-            </div>
+          <div className="flex-1 space-y-2 mb-4">
+            {[
+              { emoji: '📚', value: travelStats?.bookstoresVisited ?? 0, label: 'Bookstores Visited',   color: '#FF4E00' },
+              { emoji: '☕', value: travelStats?.cafesVisited       ?? 0, label: 'Coffee Shops',        color: '#FF4E00' },
+              { emoji: '🎪', value: travelStats?.festivalsAttended  ?? 0, label: 'Festivals Attended',  color: '#FF4E00' },
+              { emoji: '🗺️', value: travelStats?.statesExplored    ?? 0, label: 'States Explored',     color: '#FF4E00' },
+            ].map(({ emoji, value, label, color }) => (
+              <div key={label} className="flex items-center gap-2">
+                <span style={{ fontSize: '0.95rem', flexShrink: 0, width: '1.25rem', textAlign: 'center' }}>{emoji}</span>
+                <span className="font-bungee text-sm" style={{ color, textShadow: `0 0 6px ${color}60`, minWidth: '22px' }}>
+                  {value}
+                </span>
+                <span className="font-special-elite text-chrome-silver" style={{ fontSize: '0.65rem' }}>
+                  {label}
+                </span>
+              </div>
+            ))}
           </div>
+          <button
+            onClick={onShowBadges}
+            className="w-full font-bungee text-[10px] py-2 rounded-lg transition-all"
+            style={{ border: '1px solid rgba(255,78,0,0.5)', color: '#FF4E00', background: 'transparent', letterSpacing: '0.06em' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.12)'; e.currentTarget.style.borderColor = '#FF4E00'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,78,0,0.5)'; }}
+          >
+            VIEW BADGES
+          </button>
         </div>
 
-        {/* BOOK LOG — image button */}
-        <button
-          onClick={onShowBookLog}
-          style={{
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-            transition: 'transform 0.2s ease, filter 0.2s ease',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.transform = 'scale(1.05)';
-            e.currentTarget.style.filter = 'drop-shadow(0 0 10px rgba(64,224,208,0.7))';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.transform = 'scale(1)';
-            e.currentTarget.style.filter = 'none';
-          }}
-        >
-          <img
-            src="/literary-roads/images/book_log.png"
-            alt="Book Log"
-            style={{ width: '120px', display: 'block' }}
-          />
-        </button>
+        {/* ── YOUR READING ── */}
+        <div className="rounded-xl p-4 flex flex-col"
+          style={{ background: '#1E1F33', border: '1px solid rgba(64,224,208,0.35)' }}>
+          <p className="font-bungee text-xs mb-3 text-center"
+            style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em' }}>
+            YOUR READING
+          </p>
+          <div className="flex-1 space-y-2 mb-4">
+            {[
+              { emoji: '📖', value: readingStats.booksRead, label: 'Books Read',       color: '#40E0D0' },
+              { emoji: '⭐', value: readingStats.fiveCat,   label: 'Five-Cat Books',   color: '#40E0D0' },
+              { emoji: '🎲', value: readingStats.nextReads, label: 'Next Reads Saved', color: '#40E0D0' },
+            ].map(({ emoji, value, label, color }) => (
+              <div key={label} className="flex items-center gap-2">
+                <span style={{ fontSize: '0.95rem', flexShrink: 0, width: '1.25rem', textAlign: 'center' }}>{emoji}</span>
+                <span className="font-bungee text-sm" style={{ color, textShadow: `0 0 6px ${color}60`, minWidth: '22px' }}>
+                  {value}
+                </span>
+                <span className="font-special-elite text-chrome-silver" style={{ fontSize: '0.65rem' }}>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={onShowBookLog}
+            className="w-full font-bungee text-[10px] py-2 rounded-lg transition-all"
+            style={{ border: '1px solid rgba(64,224,208,0.5)', color: '#40E0D0', background: 'transparent', letterSpacing: '0.06em' }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(64,224,208,0.12)'; e.currentTarget.style.borderColor = '#40E0D0'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(64,224,208,0.5)'; }}
+          >
+            OPEN BOOK LOG
+          </button>
+        </div>
+
       </div>
 
       {/* ── Badges section ── */}
