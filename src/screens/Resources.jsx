@@ -27,10 +27,13 @@ const GENRES = [
   'Young Adult', 'Horror', 'Classics',
 ];
 
+const BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
+
 async function fetchSurpriseBook() {
   const genre = GENRES[Math.floor(Math.random() * GENRES.length)];
   const startIndex = Math.floor(Math.random() * 20) * 10; // 0–190
-  const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(genre)}&startIndex=${startIndex}&maxResults=10&printType=books&langRestrict=en`;
+  const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
+  const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(genre)}&startIndex=${startIndex}&maxResults=10&printType=books&langRestrict=en${key}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('fetch failed');
   const data = await res.json();

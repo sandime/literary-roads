@@ -1,5 +1,8 @@
+const BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
+
 async function fetchGoogle(query) {
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink)`;
+  const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink)${key}`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
