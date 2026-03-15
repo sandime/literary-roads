@@ -17,7 +17,7 @@ const haversine = (lat1, lng1, lat2, lng2) => {
 // In-session cache keyed by rounded lat/lng + radius (~0.7 mile grid)
 const _mem = new Map();
 const _inflight = new Map();
-const _cacheKey = (lat, lng, r) => `fsp|${lat.toFixed(2)}|${lng.toFixed(2)}|${r}`;
+const _cacheKey = (prefix, lat, lng, r) => `${prefix}|${lat.toFixed(2)}|${lng.toFixed(2)}|${r}`;
 
 const _cached = (key, fn) => {
   if (_mem.has(key)) return Promise.resolve(_mem.get(key));
@@ -33,7 +33,7 @@ const _cached = (key, fn) => {
 // Uses a lat bounding-box query (single-field range — no composite index needed),
 // then filters by haversine to get a true circle.
 export const getNearbyBookstores = async (lat, lng, radiusMiles = 5) => {
-  const key = _cacheKey(lat, lng, radiusMiles);
+  const key = _cacheKey('fsp', lat, lng, radiusMiles);
   return _cached(key, async () => {
     const latDelta = radiusMiles / 69; // ~69 miles per degree of latitude
     try {
@@ -61,6 +61,42 @@ export const getNearbyBookstores = async (lat, lng, radiusMiles = 5) => {
         }));
     } catch (err) {
       console.error('[Firestore] getNearbyBookstores error:', err);
+      return [];
+    }
+  });
+};
+
+// Query coffeeShops within radiusMiles of a point.
+// Same lat bounding-box + haversine pattern as bookstores.
+export const getNearbyCoffeeShops = async (lat, lng, radiusMiles = 5) => {
+  const key = _cacheKey('fsc', lat, lng, radiusMiles);
+  return _cached(key, async () => {
+    const latDelta = radiusMiles / 69;
+    try {
+      const q = query(
+        collection(db, 'coffeeShops'),
+        where('lat', '>=', lat - latDelta),
+        where('lat', '<=', lat + latDelta),
+      );
+      const snap = await getDocs(q);
+      return snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .map(b => ({
+          id:          b.id,
+          name:        b.name,
+          type:        'cafe',
+          lat:         b.lat,
+          lng:         b.lng,
+          address:     [b.address, b.city, b.state].filter(Boolean).join(', ') || '',
+          phone:       b.phone   || '',
+          website:     b.website || '',
+          description: 'Coffee shop',
+          source:      'firestore',
+          coords:      [b.lat, b.lng],
+        }));
+    } catch (err) {
+      console.error('[Firestore] getNearbyCoffeeShops error:', err);
       return [];
     }
   });

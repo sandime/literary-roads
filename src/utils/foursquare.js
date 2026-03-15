@@ -1,8 +1,9 @@
-// Foursquare Places API v3 — replaces Google Places nearby + text search
+// Foursquare Places API — replaces Google Places nearby + text search
 // Free tier: 1,000 calls/day (~30k/month) — no credit card required
 const FS_KEY  = import.meta.env.VITE_FOURSQUARE_API_KEY;
-const FS_BASE = 'https://api.foursquare.com/v3/places/search';
-const FS_FIELDS = 'fsq_id,name,geocodes,location,categories';
+const FS_BASE = 'https://places-api.foursquare.com/places/search';
+const FS_FIELDS = 'fsq_place_id,name,latitude,longitude,location,categories';
+const FS_VERSION = '2025-06-17';
 
 // ── Category IDs (Foursquare Places API v3) ───────────────────────────────────
 export const FS_CAT = {
@@ -82,26 +83,37 @@ const fetchFS = async (params) => {
   const url = new URL(FS_BASE);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
   url.searchParams.set('fields', FS_FIELDS);
+  const headers = {
+    Authorization: `Bearer ${FS_KEY}`,
+    'X-Places-Api-Version': FS_VERSION,
+  };
+  console.log('[Foursquare] GET', url.toString());
+  console.log('[Foursquare] Headers:', JSON.stringify(headers));
   try {
-    const res = await fetch(url.toString(), { headers: { Authorization: FS_KEY } });
+    const res = await fetch(url.toString(), { method: 'GET', headers });
     if (!res.ok) {
-      console.warn('[Foursquare] API error', res.status);
+      console.warn('[Foursquare] API error', res.status, res.statusText);
+      const body = await res.text().catch(() => '');
+      console.warn('[Foursquare] Error body:', body);
       return [];
     }
     const data = await res.json();
     return data.results || [];
   } catch (err) {
-    console.error('[Foursquare] fetch error:', err);
+    console.error('[Foursquare] fetch error:', err.name, err.message);
+    if (err.message === 'Failed to fetch') {
+      console.error('[Foursquare] This is likely a CORS block — the new places-api.foursquare.com endpoint may not allow browser requests.');
+    }
     return [];
   }
 };
 
 const toPlace = (p, type) => {
-  const lat = p.geocodes?.main?.latitude;
-  const lng = p.geocodes?.main?.longitude;
+  const lat = p.latitude;
+  const lng = p.longitude;
   if (!lat || !lng) return null;
   return {
-    id:      p.fsq_id,
+    id:      p.fsq_place_id,
     name:    p.name,
     type,
     lat,
@@ -154,7 +166,7 @@ export const searchNearbyDriveIns = async (lat, lng, radiusMiles = 30) => {
 
 // ── Text search for places (replaces searchPlacesByText) ─────────────────────
 export const foursquareTextSearch = async (query) => {
-  if (!query || query.length < 2) return [];
+  if (!query || query.length < 3) return [];
   const key = `fts|${query.trim().toLowerCase()}`;
   return _cached(key, async () => {
     const results = await fetchFS({ query: query.trim(), near: 'United States', limit: 6 });

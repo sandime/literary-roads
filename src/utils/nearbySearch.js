@@ -1,7 +1,7 @@
-// Combined nearby search: Firestore bookstores + Foursquare cafes/drive-ins
+// Combined nearby search: Firestore bookstores + Firestore coffeeShops + Foursquare drive-ins
 // Drop-in replacement for googlePlaces.searchNearbyPlaces + searchAlongRoute
-import { getNearbyBookstores } from './firestorePlaces';
-import { searchNearbyCafes, searchNearbyDriveIns } from './foursquare';
+import { getNearbyBookstores, getNearbyCoffeeShops } from './firestorePlaces';
+import { searchNearbyDriveIns } from './foursquare';
 
 const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
   const R = 3958.8;
@@ -13,11 +13,11 @@ const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
 };
 
 // Drop-in replacement for googlePlaces.searchNearbyPlaces
-// Combines: Firestore bookstores (free) + Foursquare cafes + Foursquare drive-ins
+// Combines: Firestore bookstores + Firestore coffeeShops + Foursquare drive-ins
 export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
   const [bookstores, cafes, driveIns] = await Promise.all([
     getNearbyBookstores(lat, lng, radiusMiles),
-    searchNearbyCafes(lat, lng, radiusMiles),
+    getNearbyCoffeeShops(lat, lng, radiusMiles),
     // Drive-ins are rare — search a wider radius
     searchNearbyDriveIns(lat, lng, Math.min(radiusMiles * 3, 30)),
   ]);

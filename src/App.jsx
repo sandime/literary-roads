@@ -20,6 +20,7 @@ import Credits from './screens/Credits';
 import Badges from './screens/Badges';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import EthicsModal from './components/EthicsModal';
+import AdminUpload from './screens/AdminUpload';
 import './App.css';
 
 function AppInner() {
@@ -325,6 +326,7 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/route/:routeId" element={<SharedRoutePage />} />
+        <Route path="/admin" element={<AdminUpload />} />
         <Route path="*" element={<AppInner />} />
       </Routes>
     </AuthProvider>

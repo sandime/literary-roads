@@ -1,6 +1,6 @@
 import { getMapboxRoute } from './mapbox';
-import { getNearbyBookstores } from './firestorePlaces';
-import { searchNearbyCafes, searchNearbyDriveIns, foursquareNearby, FS_CAT } from './foursquare';
+import { getNearbyBookstores, getNearbyCoffeeShops } from './firestorePlaces';
+import { searchNearbyDriveIns, foursquareNearby, FS_CAT } from './foursquare';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
@@ -54,7 +54,7 @@ const fetchNearby = async (lat, lng, radiusMiles, categoryIds, typeLabel) => {
   }
 };
 
-// Fetch literary places: Firestore bookstores + Foursquare cafes + Foursquare drive-ins
+// Fetch literary places: Firestore bookstores + Firestore coffeeShops + Foursquare drive-ins
 // Handles large radii via compass sampling (same strategy as before)
 const fetchLiterary = async (center, radiusMiles) => {
   const searchR = Math.min(radiusMiles, MAX_RADIUS_MILES);
@@ -74,7 +74,7 @@ const fetchLiterary = async (center, radiusMiles) => {
 
   const [bookBatches, cafeBatches, driveInBatches] = await Promise.all([
     Promise.all(points.map(pt => getNearbyBookstores(pt[0], pt[1], searchR).catch(() => []))),
-    Promise.all(points.map(pt => searchNearbyCafes(pt[0], pt[1], searchR).catch(() => []))),
+    Promise.all(points.map(pt => getNearbyCoffeeShops(pt[0], pt[1], searchR).catch(() => []))),
     Promise.all(points.map(pt => searchNearbyDriveIns(pt[0], pt[1], searchR * 3).catch(() => []))),
   ]);
 
