@@ -7,7 +7,9 @@ import 'react-leaflet-cluster/lib/assets/MarkerCluster.css';
 import 'react-leaflet-cluster/lib/assets/MarkerCluster.Default.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
-import { searchAlongRoute, geocodeCity, getPlaceCoords, searchNearbyPlaces, autocompleteCity, searchPlacesByText } from '../utils/googlePlaces';
+import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
+import { foursquareTextSearch } from '../utils/foursquare';
+import { searchNearbyPlaces, searchAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
@@ -145,7 +147,7 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
   const select = (s) => {
     skipRef.current = true;
     onChange(s.label);
-    onPlaceSelect?.(s.id);   // pass placeId to parent for accurate geocoding
+    onPlaceSelect?.(s);      // pass full suggestion (includes lat/lng) — no extra geocode needed
     setShowDropdown(false);
     setSuggestions([]);
   };
@@ -164,7 +166,7 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => { onChange(e.target.value); onPlaceSelect?.(null); }}
+        onChange={(e) => { onChange(e.target.value); onPlaceSelect?.(null); /* clears picked coords */ }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         className={className}
@@ -505,7 +507,7 @@ const PlaceSearch = ({ onSelect }) => {
     if (!query || query.length < 2) { setResults([]); setShowResults(false); return; }
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
-      const res = await searchPlacesByText(query);
+      const res = await foursquareTextSearch(query);
       setResults(res);
       if (res.length > 0 && inputRef.current) {
         const r = inputRef.current.getBoundingClientRect();
@@ -596,8 +598,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const saved = routeStateRef?.current ?? {};
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
-  const [startPlaceId, setStartPlaceId] = useState(null);
-  const [endPlaceId, setEndPlaceId] = useState(null);
+  const [startPickedCoords, setStartPickedCoords] = useState(null);
+  const [endPickedCoords,   setEndPickedCoords]   = useState(null);
+  const handleStartPlaceSelect = (s) => setStartPickedCoords(s?.lat ? { lat: s.lat, lng: s.lng } : null);
+  const handleEndPlaceSelect   = (s) => setEndPickedCoords(s?.lat   ? { lat: s.lat, lng: s.lng } : null);
   const [route, setRoute] = useState(saved.route ?? []);
   const [visibleLocations, setVisibleLocations] = useState(saved.visibleLocations ?? []);
   const [showPlanner, setShowPlanner] = useState(saved.showPlanner ?? true);
@@ -1285,10 +1289,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       const startQuery = selectedStates.length === 1 ? `${startCity.trim()}, ${selectedStates[0]}` : startCity.trim();
       const endQuery   = selectedStates.length === 1 ? `${endCity.trim()}, ${selectedStates[0]}`   : endCity.trim();
 
-      // Prefer Place Details (placeId from autocomplete) for accurate coords;
-      // fall back to text geocoding when user typed a city manually.
-      const startCoords = (startPlaceId && await getPlaceCoords(startPlaceId)) || await geocodeCity(startQuery);
-      const endCoords   = (endPlaceId   && await getPlaceCoords(endPlaceId))   || await geocodeCity(endQuery);
+      // Prefer coords from autocomplete selection (no extra API call);
+      // fall back to Mapbox geocoding when user typed a city manually.
+      const startCoords = startPickedCoords || await geocodePlace(startQuery);
+      const endCoords   = endPickedCoords   || await geocodePlace(endQuery);
 
       if (!startCoords) {
         setError(`Could not find "${startCity}". Try adding the state, e.g. "Memphis, TN".`);
@@ -2287,7 +2291,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
-                  onPlaceSelect={setStartPlaceId}
+                  onPlaceSelect={handleStartPlaceSelect}
                   placeholder={cityHint.start ? `Starting city — e.g. ${cityHint.start}` : 'Starting city, e.g. New York City'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
@@ -2296,7 +2300,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
-                  onPlaceSelect={setEndPlaceId}
+                  onPlaceSelect={handleEndPlaceSelect}
                   placeholder={cityHint.end ? `Destination — e.g. ${cityHint.end}` : 'Destination city, e.g. Buffalo'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
@@ -2343,7 +2347,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
-                  onPlaceSelect={setStartPlaceId}
+                  onPlaceSelect={handleStartPlaceSelect}
                   placeholder={cityHint.start ? `e.g., ${cityHint.start}` : 'e.g., New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
@@ -2355,7 +2359,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <CityAutocomplete
                   value={endCity}
                   onChange={setEndCity}
-                  onPlaceSelect={setEndPlaceId}
+                  onPlaceSelect={handleEndPlaceSelect}
                   placeholder={cityHint.end ? `e.g., ${cityHint.end}` : 'e.g., Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}

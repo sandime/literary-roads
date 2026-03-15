@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
-import { autocompleteAddress, geocodeCity, reverseGeocode } from '../utils/googlePlaces';
+import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
 import { saveRoute } from '../utils/savedRoutes';
 import { generateDayTrip, buildRoute, VISIT_MINUTES, RADIUS_MILES } from '../utils/dayTripAlgorithm';
 
@@ -121,7 +121,7 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
         >
           {suggestions.map((s, i) => (
             <li key={i}
-              onPointerDown={() => { onSelect(s.label || s.display || s); setShowDrop(false); }}
+              onPointerDown={() => { onSelect(s); setShowDrop(false); }}
               className="px-3 py-2.5 cursor-pointer hover:bg-starlight-turquoise/10 text-paper-white font-special-elite text-sm border-b border-starlight-turquoise/10 last:border-0"
             >
               {s.label || s.display || s}
@@ -194,11 +194,16 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
   const mapRef = useRef(null);
 
-  const handleSelectSuggestion = async (desc) => {
-    setStartText(desc);
-    setStartCoords(null);
-    const coords = await geocodeCity(desc);
-    if (coords) setStartCoords([coords.lat, coords.lng]);
+  const handleSelectSuggestion = async (suggestion) => {
+    const label = typeof suggestion === 'string' ? suggestion : (suggestion.label || suggestion.display || '');
+    setStartText(label);
+    // Mapbox suggestions already include coordinates — no extra geocode call
+    if (suggestion?.lat && suggestion?.lng) {
+      setStartCoords([suggestion.lat, suggestion.lng]);
+    } else if (typeof suggestion === 'string') {
+      const coords = await geocodePlace(suggestion);
+      if (coords) setStartCoords([coords.lat, coords.lng]);
+    }
   };
 
   const handleUseGPS = () => {
@@ -240,7 +245,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const handleGenerate = async () => {
     if (!startCoords) {
       // Try geocoding what's typed
-      const coords = await geocodeCity(startText);
+      const coords = await geocodePlace(startText);
       if (!coords) { setGenError('Please enter a valid starting location.'); return; }
       setStartCoords([coords.lat, coords.lng]);
       setTripCount(1);

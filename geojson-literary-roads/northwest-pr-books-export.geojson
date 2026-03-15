@@ -1,0 +1,605 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2026-03-15T03:42:21Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/369420836",
+        "building": "commercial",
+        "building:material": "concrete",
+        "height": "5.09",
+        "name": "Librería Educativa - Río Piedras",
+        "roof:material": "concrete",
+        "shop": "books",
+        "source": "CRIM: https://data.pr.gov/en/Permisos-y-Ambiente/Prueba-Data-CRIM/beqv-8tcb",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0555701,
+          18.3987799
+        ]
+      },
+      "id": "way/369420836"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/531420892",
+        "addr:city": "Carolina",
+        "addr:state": "PR",
+        "addr:street": "Avenida Jesús M. Fragoso",
+        "building": "yes",
+        "name": "Librería Contemporánea",
+        "shop": "books",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.9744328,
+          18.3945187
+        ]
+      },
+      "id": "way/531420892"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/531790419",
+        "addr:city": "Hatillo",
+        "addr:postcode": "00659",
+        "addr:state": "PR",
+        "addr:street": "Avenida Miramar",
+        "building": "yes",
+        "name": "The Bookmark",
+        "shop": "books",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.7699217,
+          18.4825339
+        ]
+      },
+      "id": "way/531790419"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/543208558",
+        "books": "comic",
+        "building": "yes",
+        "name": "Comix Megazone",
+        "shop": "books",
+        "website": "http://www.comixmegazone.com/",
+        "@geometry": "center"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.7582815,
+          18.4774099
+        ]
+      },
+      "id": "way/543208558"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/864242558",
+        "name": "La Tertulia",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0526638,
+          18.4015111
+        ]
+      },
+      "id": "node/864242558"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/864874243",
+        "name": "Librería Mágica",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0521424,
+          18.4008053
+        ]
+      },
+      "id": "node/864874243"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/2663823259",
+        "name": "librería la tertulia",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.1158817,
+          18.4642116
+        ]
+      },
+      "id": "node/2663823259"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3087792068",
+        "name": "Euroamericana de Ediciones Corporation",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0605372,
+          18.4366656
+        ]
+      },
+      "id": "node/3087792068"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3267657595",
+        "addr:postcode": "00923",
+        "internet_access": "wlan",
+        "name": "The Bookmark",
+        "opening_hours": "Mo-Fr 09:00-18:00; Sa 10:30-22:00; Su 11:00-18:00",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.067197,
+          18.4458294
+        ]
+      },
+      "id": "node/3267657595"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3406386347",
+        "books": "religion",
+        "name": "Librería Católica Ave María",
+        "religion": "christian",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.7270648,
+          18.4722618
+        ]
+      },
+      "id": "node/3406386347"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3420315839",
+        "name": "Librería Católica Anawim",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.7146445,
+          18.4723741
+        ]
+      },
+      "id": "node/3420315839"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3601574683",
+        "name": "Librería Econolibros",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0521462,
+          18.4007341
+        ]
+      },
+      "id": "node/3601574683"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3601574684",
+        "addr:city": "San Juan",
+        "addr:state": "PR",
+        "addr:street": "Avenida Juan Ponce de León",
+        "name": "Librería Norberto González",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0523242,
+          18.4007394
+        ]
+      },
+      "id": "node/3601574684"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3613065393",
+        "addr:city": "San Juan",
+        "addr:state": "PR",
+        "addr:street": "Avenida Juan Ponce de León",
+        "name": "Librería Fénix",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0523154,
+          18.4008641
+        ]
+      },
+      "id": "node/3613065393"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/3680531985",
+        "name": "Mondo Bizarro",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0522999,
+          18.3991455
+        ]
+      },
+      "id": "node/3680531985"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4157988396",
+        "name": "Casa Isern",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0507508,
+          18.3997703
+        ]
+      },
+      "id": "node/4157988396"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/4158634893",
+        "addr:city": "San Juan",
+        "addr:housenumber": "51",
+        "addr:street": "Calle Robles",
+        "level": "1",
+        "name": "Librería María",
+        "phone": "+1 787-767-8828",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.050989,
+          18.3999664
+        ]
+      },
+      "id": "node/4158634893"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5288414965",
+        "name": "Libreria Luna",
+        "shop": "books",
+        "website": "http://librerialunapr.com"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.1087529,
+          18.3764074
+        ]
+      },
+      "id": "node/5288414965"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/5958166885",
+        "addr:housenumber": "Cabán",
+        "addr:street": "Carretera 2",
+        "name": "Libreria tu regalo",
+        "opening_hours": "Mo-Sa 09:00-05:00, Su closed",
+        "phone": "+1 787-882-2779",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -67.1312261,
+          18.4400055
+        ]
+      },
+      "id": "node/5958166885"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7057375357",
+        "addr:city": "San Juan",
+        "addr:postcode": "00924",
+        "addr:state": "PR",
+        "addr:street": "The Mall of San Juan Boulevard",
+        "name": "Books Boutique",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0268536,
+          18.4122288
+        ]
+      },
+      "id": "node/7057375357"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7078805808",
+        "name": "Librería Crisitana Holyland",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0208987,
+          18.2481547
+        ]
+      },
+      "id": "node/7078805808"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7602915585",
+        "addr:housenumber": "61/2214319",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.1768606,
+          18.4019984
+        ]
+      },
+      "id": "node/7602915585"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7732301127",
+        "name": "Librería Camar",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.8388961,
+          18.1449717
+        ]
+      },
+      "id": "node/7732301127"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7752602151",
+        "name": "Librería Huellas",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -65.9290676,
+          18.3759413
+        ]
+      },
+      "id": "node/7752602151"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7795328433",
+        "name": "MS Books",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0657236,
+          18.3696022
+        ]
+      },
+      "id": "node/7795328433"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/7862572308",
+        "name": "Librería Cristiana La Shekinah",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.1812143,
+          18.4040616
+        ]
+      },
+      "id": "node/7862572308"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9522546517",
+        "addr:city": "Guaynabo",
+        "addr:state": "PR",
+        "addr:street": "Avenida Lomas Verdes",
+        "name": "Pura Vida Books",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0971488,
+          18.378097
+        ]
+      },
+      "id": "node/9522546517"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9656765774",
+        "name": "Casa Norberto",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0745681,
+          18.4225656
+        ]
+      },
+      "id": "node/9656765774"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/9721495171",
+        "name": "Librería Shekinah",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.3210361,
+          18.4113386
+        ]
+      },
+      "id": "node/9721495171"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10000057091",
+        "name": "The Bookmark",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.1057241,
+          18.4091679
+        ]
+      },
+      "id": "node/10000057091"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/10313753495",
+        "name": "Bajo un árbol de carambola",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0755727,
+          18.4514101
+        ]
+      },
+      "id": "node/10313753495"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/12865192301",
+        "addr:housenumber": "400",
+        "addr:street": "Calle Juan Calaf",
+        "name": "El Antiko",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0717093,
+          18.4263764
+        ]
+      },
+      "id": "node/12865192301"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13178937492",
+        "name": "Leo Leo Libros",
+        "shop": "books",
+        "website": "https://www.leoleolibros.com/?srsltid=AfmBOoqUnlv5ARE6e88CR3I8-8KX5O2gd2d52nsXlbbuK4HmsxJqbYBr"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0746451,
+          18.3615446
+        ]
+      },
+      "id": "node/13178937492"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "node/13586051801",
+        "check_date": "2026-02-20",
+        "name": "Librería San Pablo",
+        "shop": "books"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -66.0690983,
+          18.3817395
+        ]
+      },
+      "id": "node/13586051801"
+    }
+  ]
+}

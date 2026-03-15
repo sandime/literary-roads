@@ -46,3 +46,5 @@ scripts/podcasts-discovered.json
 # Firebase service account key — never commit
 scripts/serviceAccount.json
 serviceAccount.json
+service-account.json
+*-service-account.json

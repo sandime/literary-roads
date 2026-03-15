@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { autocompleteAddress, geocodeCity, reverseGeocode } from '../utils/googlePlaces';
+import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
 
 const MAX_WAYPOINTS = 9; // Google Maps URL limit
 
@@ -72,7 +72,7 @@ const AddrInput = ({ value, onChange, onSelect, placeholder, disabled }) => {
         >
           {suggestions.map((s, i) => (
             <li key={i}
-              onPointerDown={() => { onSelect(s.label || s.display || s); setShow(false); }}
+              onPointerDown={() => { onSelect(s); setShow(false); }}
               className="px-3 py-2.5 cursor-pointer hover:bg-starlight-turquoise/10 text-paper-white font-special-elite text-sm border-b border-starlight-turquoise/10 last:border-0"
             >
               {s.label || s.display || s}
@@ -98,18 +98,27 @@ const NavigateModal = ({ items, onClose }) => {
   const waypointStops = items.slice(0, MAX_WAYPOINTS);
   const overflow      = items.length - MAX_WAYPOINTS;
 
-  const handleSelectStart = async (desc) => {
-    setStartText(desc);
-    setStartCoords(null);
-    const c = await geocodeCity(desc);
-    if (c) setStartCoords([c.lat, c.lng]);
+  const handleSelectStart = async (suggestion) => {
+    const label = typeof suggestion === 'string' ? suggestion : (suggestion.label || suggestion.display || '');
+    setStartText(label);
+    // Mapbox suggestions already include coordinates — no extra geocode call needed
+    if (suggestion?.lat && suggestion?.lng) {
+      setStartCoords([suggestion.lat, suggestion.lng]);
+    } else if (typeof suggestion === 'string') {
+      const c = await geocodePlace(suggestion);
+      if (c) setStartCoords([c.lat, c.lng]);
+    }
   };
 
-  const handleSelectEnd = async (desc) => {
-    setEndText(desc);
-    setEndCoords(null);
-    const c = await geocodeCity(desc);
-    if (c) setEndCoords([c.lat, c.lng]);
+  const handleSelectEnd = async (suggestion) => {
+    const label = typeof suggestion === 'string' ? suggestion : (suggestion.label || suggestion.display || '');
+    setEndText(label);
+    if (suggestion?.lat && suggestion?.lng) {
+      setEndCoords([suggestion.lat, suggestion.lng]);
+    } else if (typeof suggestion === 'string') {
+      const c = await geocodePlace(suggestion);
+      if (c) setEndCoords([c.lat, c.lng]);
+    }
   };
 
   const handleUseGPS = () => {

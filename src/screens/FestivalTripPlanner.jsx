@@ -3,7 +3,8 @@ import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
-import { autocompleteAddress, geocodeCity, reverseGeocode, searchNearbyPlaces } from '../utils/googlePlaces';
+import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
+import { searchNearbyPlaces } from '../utils/nearbySearch';
 import { saveRoute } from '../utils/savedRoutes';
 import festivalsData from '../data/literaryFestivals.json';
 
@@ -97,7 +98,7 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
           className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg shadow-2xl"
         >
           {suggestions.map((s, i) => (
-            <li key={i} onPointerDown={() => { onSelect(s.label || s.display || s); setShowDrop(false); }}
+            <li key={i} onPointerDown={() => { onSelect(s); setShowDrop(false); }}
               className="px-3 py-2.5 cursor-pointer hover:bg-starlight-turquoise/10 text-paper-white font-special-elite text-sm border-b border-starlight-turquoise/10 last:border-0"
             >
               {s.label || s.display || s}
@@ -412,11 +413,15 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     : null;
 
   // ── Location ─────────────────────────────────────────────────────────────────
-  const handleSelectAddress = async (desc) => {
-    setStartText(desc);
-    setStartCoords(null);
-    const coords = await geocodeCity(desc);
-    if (coords) setStartCoords([coords.lat, coords.lng]);
+  const handleSelectAddress = async (suggestion) => {
+    const label = typeof suggestion === 'string' ? suggestion : (suggestion.label || suggestion.display || '');
+    setStartText(label);
+    if (suggestion?.lat && suggestion?.lng) {
+      setStartCoords([suggestion.lat, suggestion.lng]);
+    } else if (typeof suggestion === 'string') {
+      const coords = await geocodePlace(suggestion);
+      if (coords) setStartCoords([coords.lat, coords.lng]);
+    }
   };
 
   const handleUseGPS = () => {
@@ -450,7 +455,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const handleGenerate = async () => {
     let coords = startCoords;
     if (!coords) {
-      const g = await geocodeCity(startText);
+      const g = await geocodePlace(startText);
       if (!g) { setGenError('Please enter a valid starting location.'); return; }
       coords = [g.lat, g.lng];
       setStartCoords(coords);

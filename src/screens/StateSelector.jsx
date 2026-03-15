@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { getTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
-import { searchPlacesByText } from '../utils/googlePlaces';
+import { foursquareTextSearch } from '../utils/foursquare';
 import RoadTrip from './RoadTrip';
 import ShareRouteModal from '../components/ShareRouteModal';
 import { subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
@@ -87,7 +87,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
     if (!searchQuery || searchQuery.length < 2) { setSearchResults([]); setShowSearchDrop(false); return; }
     searchDebounce.current = setTimeout(async () => {
       setSearchLoading(true);
-      const res = await searchPlacesByText(searchQuery);
+      const res = await foursquareTextSearch(searchQuery);
       setSearchResults(res);
       if (res.length > 0 && searchInputRef.current) {
         const r = searchInputRef.current.getBoundingClientRect();

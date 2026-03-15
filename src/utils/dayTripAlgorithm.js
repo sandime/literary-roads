@@ -1,5 +1,6 @@
-import { searchNearbyPlaces } from './googlePlaces';
 import { getMapboxRoute } from './mapbox';
+import { getNearbyBookstores } from './firestorePlaces';
+import { searchNearbyCafes, searchNearbyDriveIns, foursquareNearby, FS_CAT } from './foursquare';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
@@ -15,7 +16,7 @@ export const VISIT_MINUTES = {
 };
 
 const AVG_SPEED_MPH = 35;
-const GOOGLE_MAX_RADIUS_MILES = 30;
+const MAX_RADIUS_MILES = 30; // Foursquare max radius is 100km; cap sampling at 30mi for quality
 
 // ── Haversine ────────────────────────────────────────────────────────────────
 export const haversine = (a, b) => {
@@ -40,62 +41,26 @@ const segmentMiles = (pts) => {
   return total;
 };
 
-// ── Google Places fetch helpers ──────────────────────────────────────────────
-// Only uses Google Places (New) API v1 verified type names.
-// Invalid types cause the entire batch to fail silently — keep types to known-good ones.
-
-const fetchGoogleNearby = async (lat, lng, radiusMeters, includedTypes, typeLabel) => {
-  const key = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
-  if (!key) return [];
-  const radius = Math.min(radiusMeters, 50000);
-  console.log(`[DayTrip] fetching ${typeLabel} | types: [${includedTypes.join(', ')}] | radius: ${(radius / 1609).toFixed(1)} mi`);
+// ── Foursquare fetch helper (replaces fetchGoogleNearby) ─────────────────────
+const fetchNearby = async (lat, lng, radiusMiles, categoryIds, typeLabel) => {
+  console.log(`[DayTrip] fetching ${typeLabel} via Foursquare | cats: [${categoryIds.join(',')}] | radius: ${radiusMiles}mi`);
   try {
-    const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': key,
-        'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.id',
-      },
-      body: JSON.stringify({
-        includedTypes,
-        maxResultCount: 10,
-        locationRestriction: {
-          circle: { center: { latitude: lat, longitude: lng }, radius },
-        },
-      }),
-    });
-    if (!res.ok) {
-      const errBody = await res.json().catch(() => ({}));
-      console.warn(`[DayTrip] ${typeLabel} API error ${res.status}:`, errBody?.error?.message ?? errBody);
-      return [];
-    }
-    const data = await res.json();
-    const places = (data.places || [])
-      .map(p => ({
-        id:      p.id,
-        name:    p.displayName?.text || 'Unnamed',
-        type:    typeLabel,
-        lat:     p.location?.latitude,
-        lng:     p.location?.longitude,
-        address: p.formattedAddress || '',
-        coords:  p.location ? [p.location.latitude, p.location.longitude] : null,
-      }))
-      .filter(p => p.coords);
-    console.log(`[DayTrip] ${typeLabel} → ${places.length} places: ${places.map(p => p.name).join(', ')}`);
+    const places = await foursquareNearby(lat, lng, radiusMiles, categoryIds, typeLabel);
+    console.log(`[DayTrip] ${typeLabel} → ${places.length} places`);
     return places;
   } catch (err) {
-    console.error(`[DayTrip] ${typeLabel} fetch exception:`, err);
+    console.error(`[DayTrip] ${typeLabel} fetch error:`, err);
     return [];
   }
 };
 
-// Fetch literary places, handling radii > Google's 50 km cap via compass sampling
+// Fetch literary places: Firestore bookstores + Foursquare cafes + Foursquare drive-ins
+// Handles large radii via compass sampling (same strategy as before)
 const fetchLiterary = async (center, radiusMiles) => {
-  const searchR = Math.min(radiusMiles, GOOGLE_MAX_RADIUS_MILES);
+  const searchR = Math.min(radiusMiles, MAX_RADIUS_MILES);
   const points  = [center];
 
-  if (radiusMiles > GOOGLE_MAX_RADIUS_MILES) {
+  if (radiusMiles > MAX_RADIUS_MILES) {
     const off  = radiusMiles * 0.5;
     const latD = off / 69;
     const lngD = off / (69 * Math.cos(center[0] * Math.PI / 180));
@@ -107,16 +72,19 @@ const fetchLiterary = async (center, radiusMiles) => {
     );
   }
 
-  const batches = await Promise.all(
-    points.map(pt => searchNearbyPlaces(pt[0], pt[1], searchR).catch(() => []))
-  );
+  const [bookBatches, cafeBatches, driveInBatches] = await Promise.all([
+    Promise.all(points.map(pt => getNearbyBookstores(pt[0], pt[1], searchR).catch(() => []))),
+    Promise.all(points.map(pt => searchNearbyCafes(pt[0], pt[1], searchR).catch(() => []))),
+    Promise.all(points.map(pt => searchNearbyDriveIns(pt[0], pt[1], searchR * 3).catch(() => []))),
+  ]);
+
   const seen = new Set();
-  const results = batches.flat()
+  const results = [...bookBatches.flat(), ...cafeBatches.flat(), ...driveInBatches.flat()]
     .filter(p => { if (!p?.id || seen.has(p.id)) return false; seen.add(p.id); return true; })
     .map(p => ({ ...p, coords: p.coords ?? (p.lat != null ? [p.lat, p.lng] : null) }))
     .filter(p => p.coords);
   console.log(`[DayTrip] literary → ${results.length} places by type:`,
-    Object.fromEntries(['cafe','bookstore','landmark','drivein'].map(t => [t, results.filter(p => p.type === t).length])));
+    Object.fromEntries(['cafe','bookstore','drivein'].map(t => [t, results.filter(p => p.type === t).length])));
   return results;
 };
 
@@ -237,36 +205,25 @@ export const buildRoute = async (startCoords, stops) => {
 //   botanical_garden, restaurant, music_store, garden_center, observatory, planetarium
 export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set()) => {
   const radius  = RADIUS_MILES[duration];
-  const rMeters = Math.min(radius * 1609.34, 50000);
+  // rMeters kept for backwards compat (not used after Google Places removal)
 
   console.log(`[DayTrip] generating ${duration} trip from [${startCoords}] variant=${variant}`);
 
-  // Fetch all categories in parallel.
-  // Each call uses ONLY verified Google Places (New) v1 type names.
+  // Fetch all categories in parallel — Firestore (bookstores) + Foursquare (everything else).
   const [literary, museums, wildlife, nature, restaurants, music, garden, observatory, flea, antique, historical] = await Promise.all([
     fetchLiterary(startCoords, radius),
-    // Cultural — verified types only (history_museum/science_museum are NOT valid v1 types)
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['museum', 'art_gallery'], 'museum'),
-    // Wildlife — zoo and aquarium are valid v1 types
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['zoo', 'aquarium'], 'scenic'),
-    // Nature — park, national_park, botanical_garden are valid v1 types
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['park', 'national_park', 'botanical_garden'], 'park'),
-    // Meal — skip for quick trips
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.museum, FS_CAT.art_gallery], 'museum'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.zoo, FS_CAT.aquarium], 'scenic'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.park, FS_CAT.national_park, FS_CAT.botanical_garden], 'park'),
     duration !== 'quick'
-      ? fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['restaurant'], 'restaurant')
+      ? fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.restaurant], 'restaurant')
       : Promise.resolve([]),
-    // Music stores
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['music_store'], 'music'),
-    // Plant nurseries / garden centers
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['garden_center'], 'garden'),
-    // Observatories & planetariums (educational)
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['observatory', 'planetarium'], 'observatory'),
-    // Flea markets
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['flea_market'], 'flea'),
-    // Antique stores
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['antique_store'], 'antique'),
-    // Historical landmarks
-    fetchGoogleNearby(startCoords[0], startCoords[1], rMeters, ['historical_landmark'], 'historical'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.music_store], 'music'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.botanical_garden], 'garden'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.planetarium], 'observatory'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.flea_market], 'flea'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.antique_shop], 'antique'),
+    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.historical], 'historical'),
   ]);
 
   // Split literary pool by subtype
