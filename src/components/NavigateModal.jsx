@@ -42,7 +42,7 @@ const AddrInput = ({ value, onChange, onSelect, placeholder, disabled }) => {
       const list = (await autocompleteAddress(value, ['US', 'PR'])) || [];
       setSuggestions(list);
       setShow(list.length > 0);
-    }, 250);
+    }, 500);
     return () => clearTimeout(debounceRef.current);
   }, [value]);
 

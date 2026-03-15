@@ -1,6 +1,40 @@
 // Google Places API integration
 const GOOGLE_PLACES_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY;
 
+// ── API Call Cache ────────────────────────────────────────────────────────────
+// In-memory Map (fast) + sessionStorage (survives soft navigation within tab).
+// Clears automatically when the browser tab closes — no stale data risk.
+const _mem = new Map();
+
+const _get = (key) => {
+  if (_mem.has(key)) return _mem.get(key);
+  try {
+    const raw = sessionStorage.getItem('lr:' + key);
+    if (raw) { const v = JSON.parse(raw); _mem.set(key, v); return v; }
+  } catch {}
+  return undefined;
+};
+
+const _set = (key, value) => {
+  _mem.set(key, value);
+  try { sessionStorage.setItem('lr:' + key, JSON.stringify(value)); } catch {}
+};
+
+// Track in-flight requests to prevent duplicate concurrent calls for the same key
+const _inflight = new Map();
+
+const _cached = async (key, fn) => {
+  const cached = _get(key);
+  if (cached !== undefined) return cached;
+  // If there's already a request in flight for this key, wait for it
+  if (_inflight.has(key)) return _inflight.get(key);
+  const promise = fn().then(result => { _set(key, result); _inflight.delete(key); return result; })
+                       .catch(err  => { _inflight.delete(key); throw err; });
+  _inflight.set(key, promise);
+  return promise;
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ALLOWED coffee chains (real coffee culture)
 const ALLOWED_COFFEE_CHAINS = [
   'starbucks',
@@ -253,52 +287,56 @@ const isRealBookstore = (placeName) => {
 // Resolve a Places API placeId to precise coordinates via Place Details
 export const getPlaceCoords = async (placeId) => {
   if (!placeId) return null;
-  try {
-    const response = await fetch(
-      `https://places.googleapis.com/v1/places/${placeId}?fields=location,displayName,formattedAddress`,
-      {
-        headers: {
-          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
-          'X-Goog-FieldMask': 'location,displayName,formattedAddress',
-        },
+  return _cached(`place|${placeId}`, async () => {
+    try {
+      const response = await fetch(
+        `https://places.googleapis.com/v1/places/${placeId}?fields=location,displayName,formattedAddress`,
+        {
+          headers: {
+            'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+            'X-Goog-FieldMask': 'location,displayName,formattedAddress',
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.location) {
+        return {
+          lat: data.location.latitude,
+          lng: data.location.longitude,
+          formatted: data.formattedAddress || data.displayName?.text || placeId,
+        };
       }
-    );
-    const data = await response.json();
-    if (data.location) {
-      return {
-        lat: data.location.latitude,
-        lng: data.location.longitude,
-        formatted: data.formattedAddress || data.displayName?.text || placeId,
-      };
+      return null;
+    } catch {
+      return null;
     }
-    return null;
-  } catch {
-    return null;
-  }
+  });
 };
 
 // Geocode a city name to coordinates
 export const geocodeCity = async (cityState) => {
   if (!cityState || !cityState.trim()) return null;
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityState)}&key=${GOOGLE_PLACES_API_KEY}`
-    );
-    const data = await response.json();
-    
-    if (data.results && data.results.length > 0) {
-      const location = data.results[0].geometry.location;
-      return {
-        lat: location.lat,
-        lng: location.lng,
-        formatted: data.results[0].formatted_address
-      };
+  const key = `geo|${cityState.trim().toLowerCase()}`;
+  return _cached(key, async () => {
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(cityState)}&key=${GOOGLE_PLACES_API_KEY}`
+      );
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const location = data.results[0].geometry.location;
+        return {
+          lat: location.lat,
+          lng: location.lng,
+          formatted: data.results[0].formatted_address
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Geocoding error:', error);
+      return null;
     }
-    return null;
-  } catch (error) {
-    console.error('Geocoding error:', error);
-    return null;
-  }
+  });
 };
 
 // Get real road route between two points using Google Directions API
@@ -338,8 +376,15 @@ export const getDirectionsRoute = async (startLat, startLng, endLat, endLng) => 
 
 // Search for bookstores and cafes near a location
 export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
+  // Round to 2 decimal places (~0.7 mile grid) — well within search radius,
+  // so nearby points share the same cache entry instead of making fresh calls.
+  const cacheKey = `nearby|${lat.toFixed(2)}|${lng.toFixed(2)}|${radiusMiles}`;
+  return _cached(cacheKey, () => _fetchNearbyPlaces(lat, lng, radiusMiles));
+};
+
+const _fetchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
   const radiusMeters = radiusMiles * 1609.34; // Convert miles to meters
-  
+
   try {
     // Search for bookstores
     const bookstoreResponse = await fetch(
@@ -473,147 +518,159 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
 // Autocomplete a city name (US localities only)
 export const autocompleteCity = async (input, regionCodes = ['US']) => {
   if (!input || input.length < 2) return [];
-  try {
-    const response = await fetch(
-      'https://places.googleapis.com/v1/places:autocomplete',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
-        },
-        body: JSON.stringify({
-          input,
-          includedPrimaryTypes: ['locality', 'administrative_area_level_3'],
-          includedRegionCodes: regionCodes,
-        }),
-      }
-    );
-    const data = await response.json();
-    if (!data.suggestions) return [];
-    return data.suggestions
-      .filter(s => s.placePrediction)
-      .slice(0, 5)
-      .map(s => {
-        const pred = s.placePrediction;
-        const main = pred.structuredFormat?.mainText?.text || '';
-        const secondary = (pred.structuredFormat?.secondaryText?.text || '').replace(/, USA$/, '');
-        return {
-          id: pred.placeId,
-          display: main,
-          state: secondary,
-          label: secondary ? `${main}, ${secondary}` : main,
-        };
-      });
-  } catch (err) {
-    console.error('Autocomplete error:', err);
-    return [];
-  }
+  const key = `acCity|${input.trim().toLowerCase()}`;
+  return _cached(key, async () => {
+    try {
+      const response = await fetch(
+        'https://places.googleapis.com/v1/places:autocomplete',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          },
+          body: JSON.stringify({
+            input,
+            includedPrimaryTypes: ['locality', 'administrative_area_level_3'],
+            includedRegionCodes: regionCodes,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!data.suggestions) return [];
+      return data.suggestions
+        .filter(s => s.placePrediction)
+        .slice(0, 5)
+        .map(s => {
+          const pred = s.placePrediction;
+          const main = pred.structuredFormat?.mainText?.text || '';
+          const secondary = (pred.structuredFormat?.secondaryText?.text || '').replace(/, USA$/, '');
+          return {
+            id: pred.placeId,
+            display: main,
+            state: secondary,
+            label: secondary ? `${main}, ${secondary}` : main,
+          };
+        });
+    } catch (err) {
+      console.error('Autocomplete error:', err);
+      return [];
+    }
+  });
 };
 
 // Autocomplete for precise addresses (street addresses, neighborhoods, landmarks)
 export const autocompleteAddress = async (input, regionCodes = ['US']) => {
   if (!input || input.length < 2) return [];
-  try {
-    const response = await fetch(
-      'https://places.googleapis.com/v1/places:autocomplete',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
-        },
-        body: JSON.stringify({
-          input,
-          includedRegionCodes: regionCodes,
-          // No includedPrimaryTypes — returns addresses, businesses, neighborhoods
-        }),
-      }
-    );
-    const data = await response.json();
-    if (!data.suggestions) return [];
-    return data.suggestions
-      .filter(s => s.placePrediction)
-      .slice(0, 6)
-      .map(s => {
-        const pred = s.placePrediction;
-        const text = pred.text?.text || '';
-        return { id: pred.placeId, display: text, label: text, placeId: pred.placeId };
-      });
-  } catch (err) {
-    console.error('Address autocomplete error:', err);
-    return [];
-  }
+  const key = `acAddr|${input.trim().toLowerCase()}`;
+  return _cached(key, async () => {
+    try {
+      const response = await fetch(
+        'https://places.googleapis.com/v1/places:autocomplete',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          },
+          body: JSON.stringify({
+            input,
+            includedRegionCodes: regionCodes,
+            // No includedPrimaryTypes — returns addresses, businesses, neighborhoods
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!data.suggestions) return [];
+      return data.suggestions
+        .filter(s => s.placePrediction)
+        .slice(0, 6)
+        .map(s => {
+          const pred = s.placePrediction;
+          const text = pred.text?.text || '';
+          return { id: pred.placeId, display: text, label: text, placeId: pred.placeId };
+        });
+    } catch (err) {
+      console.error('Address autocomplete error:', err);
+      return [];
+    }
+  });
 };
 
 // Reverse geocode coordinates to a human-readable address string
 export const reverseGeocode = async (lat, lng) => {
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_PLACES_API_KEY}`
-    );
-    const data = await response.json();
-    if (data.results?.length > 0) return data.results[0].formatted_address;
-    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  } catch {
-    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  }
+  const key = `rev|${lat.toFixed(4)}|${lng.toFixed(4)}`;
+  return _cached(key, async () => {
+    try {
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_PLACES_API_KEY}`
+      );
+      const data = await response.json();
+      if (data.results?.length > 0) return data.results[0].formatted_address;
+      return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    } catch {
+      return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    }
+  });
 };
 
 // Text search for bookstores, cafes, and landmarks anywhere in the US
 export const searchPlacesByText = async (query) => {
   if (!query || query.length < 2) return [];
-  try {
-    const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.types,places.editorialSummary',
-      },
-      body: JSON.stringify({
-        textQuery: query,
-        languageCode: 'en',
-        regionCode: 'US',
-        maxResultCount: 6,
-      }),
-    });
-    const data = await response.json();
-    if (!data.places) return [];
+  const key = `text|${query.trim().toLowerCase()}`;
+  return _cached(key, async () => {
+    try {
+      const response = await fetch('https://places.googleapis.com/v1/places:searchText', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.types,places.editorialSummary',
+        },
+        body: JSON.stringify({
+          textQuery: query,
+          languageCode: 'en',
+          regionCode: 'US',
+          maxResultCount: 6,
+        }),
+      });
+      const data = await response.json();
+      if (!data.places) return [];
 
-    return data.places
-      .map((place) => {
-        const types = place.types || [];
-        const name = place.displayName?.text || 'Unknown Place';
-        let type = 'landmark';
-        if (types.includes('book_store')) type = 'bookstore';
-        else if (types.some((t) => ['cafe', 'coffee_shop'].includes(t))) type = 'cafe';
+      return data.places
+        .map((place) => {
+          const types = place.types || [];
+          const name = place.displayName?.text || 'Unknown Place';
+          let type = 'landmark';
+          if (types.includes('book_store')) type = 'bookstore';
+          else if (types.some((t) => ['cafe', 'coffee_shop'].includes(t))) type = 'cafe';
 
-        // Apply same filters as nearby search
-        if (type === 'bookstore' && !isRealBookstore(name)) type = 'landmark';
-        if (type === 'cafe' && !isRealCoffeeShop(name)) type = 'landmark';
+          // Apply same filters as nearby search
+          if (type === 'bookstore' && !isRealBookstore(name)) type = 'landmark';
+          if (type === 'cafe' && !isRealCoffeeShop(name)) type = 'landmark';
 
-        const description =
-          place.editorialSummary?.text ||
-          (type === 'bookstore' ? 'Independent bookstore' :
-           type === 'cafe'      ? 'Coffee shop'           : '');
+          const description =
+            place.editorialSummary?.text ||
+            (type === 'bookstore' ? 'Independent bookstore' :
+             type === 'cafe'      ? 'Coffee shop'           : '');
 
-        return {
-          id: place.id,
-          name,
-          type,
-          lat: place.location?.latitude,
-          lng: place.location?.longitude,
-          address: place.formattedAddress || '',
-          description,
-          source: 'search',
-        };
-      })
-      .filter((p) => p.lat && p.lng);
-  } catch (err) {
-    console.error('[searchPlacesByText]', err);
-    return [];
-  }
+          return {
+            id: place.id,
+            name,
+            type,
+            lat: place.location?.latitude,
+            lng: place.location?.longitude,
+            address: place.formattedAddress || '',
+            description,
+            source: 'search',
+          };
+        })
+        .filter((p) => p.lat && p.lng);
+    } catch (err) {
+      console.error('[searchPlacesByText]', err);
+      return [];
+    }
+  });
 };
 
 // Search along a route (multiple points)
@@ -632,9 +689,9 @@ export const searchAlongRoute = async (routePoints, radiusMiles = 5) => {
 
   // Sample one point every SAMPLE_INTERVAL miles so coverage is consistent
   // regardless of how many geometry points the route has (simplified vs full).
-  // With radiusMiles=5 and SAMPLE_INTERVAL=10, adjacent circles overlap, ensuring
-  // no gap larger than the search radius.
-  const SAMPLE_INTERVAL = 10; // miles between sample points
+  // With radiusMiles=5 and SAMPLE_INTERVAL=15, adjacent circles have moderate overlap.
+  // With caching, points that were already searched (same ~0.7mi grid cell) cost $0.
+  const SAMPLE_INTERVAL = 15; // miles between sample points
   const samplePoints = [routePoints[0]];
   let accumulated = 0;
   for (let i = 1; i < routePoints.length; i++) {
@@ -648,7 +705,7 @@ export const searchAlongRoute = async (routePoints, radiusMiles = 5) => {
   const last = routePoints[routePoints.length - 1];
   if (samplePoints[samplePoints.length - 1] !== last) samplePoints.push(last);
 
-  console.log(`[searchAlongRoute] ${routePoints.length} route points → ${samplePoints.length} samples @ ${SAMPLE_INTERVAL}mi intervals`);
+  console.log(`[searchAlongRoute] ${routePoints.length} route points → ${samplePoints.length} samples @ ${SAMPLE_INTERVAL}mi intervals (cached points cost $0)`);
 
   // Run all searches in parallel then deduplicate
   const results = await Promise.all(

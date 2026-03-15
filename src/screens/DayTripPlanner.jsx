@@ -90,7 +90,7 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
       const list = res || [];
       setSuggestions(list);
       setShowDrop(list.length > 0);
-    }, 250);
+    }, 500);
     return () => clearTimeout(debounceRef.current);
   }, [value]);
 

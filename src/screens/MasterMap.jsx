@@ -127,7 +127,7 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
         setShowDropdown(false);
       }
       setActiveIndex(-1);
-    }, 300);
+    }, 500);
     return () => clearTimeout(debounceRef.current);
   }, [value]);
 
@@ -515,7 +515,7 @@ const PlaceSearch = ({ onSelect }) => {
         setShowResults(false);
       }
       setSearching(false);
-    }, 300);
+    }, 500);
     return () => clearTimeout(debounceRef.current);
   }, [query]);
 

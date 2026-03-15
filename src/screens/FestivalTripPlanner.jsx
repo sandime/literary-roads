@@ -81,7 +81,7 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
     debounceRef.current = setTimeout(async () => {
       const res = await autocompleteAddress(v, ['US', 'PR']);
       if (res?.length) { setSuggestions(res); setShowDrop(true); }
-    }, 250);
+    }, 500);
   };
 
   return (

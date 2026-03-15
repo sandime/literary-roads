@@ -97,7 +97,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
         setShowSearchDrop(false);
       }
       setSearchLoading(false);
-    }, 300);
+    }, 500);
     return () => clearTimeout(searchDebounce.current);
   }, [searchQuery]);
 
