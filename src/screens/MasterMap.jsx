@@ -7,8 +7,7 @@ import 'react-leaflet-cluster/lib/assets/MarkerCluster.css';
 import 'react-leaflet-cluster/lib/assets/MarkerCluster.Default.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
-import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
-import { foursquareTextSearch } from '../utils/foursquare';
+import { autocompleteCity, geocodePlace, searchPlaces } from '../utils/mapboxGeocoding';
 import { searchNearbyPlaces, searchAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
@@ -507,7 +506,7 @@ const PlaceSearch = ({ onSelect }) => {
     if (!query || query.length < 2) { setResults([]); setShowResults(false); return; }
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
-      const res = await foursquareTextSearch(query);
+      const res = await searchPlaces(query);
       setResults(res);
       if (res.length > 0 && inputRef.current) {
         const r = inputRef.current.getBoundingClientRect();

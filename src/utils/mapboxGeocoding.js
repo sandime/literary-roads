@@ -129,6 +129,23 @@ export const geocodePlace = async (query) => {
   });
 };
 
+// ── POI / place text search ───────────────────────────────────────────────────
+// Replaces: foursquareTextSearch — uses Mapbox address+poi autocomplete
+// Returns: [{id, name, type, lat, lng, address, coords, source}]
+export const searchPlaces = async (query) => {
+  const results = await autocompleteAddress(query);
+  return results.map(r => ({
+    id:      r.id,
+    name:    r.display || r.label,
+    type:    'search',
+    lat:     r.lat,
+    lng:     r.lng,
+    address: r.label || '',
+    coords:  [r.lat, r.lng],
+    source:  'mapbox',
+  }));
+};
+
 // ── Reverse geocode coordinates → address string ──────────────────────────────
 // Replaces: reverseGeocode()
 export const reverseGeocode = async (lat, lng) => {

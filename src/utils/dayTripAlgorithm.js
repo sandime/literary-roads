@@ -1,6 +1,5 @@
 import { getMapboxRoute } from './mapbox';
 import { getNearbyBookstores, getNearbyCoffeeShops } from './firestorePlaces';
-import { searchNearbyDriveIns, foursquareNearby, FS_CAT } from './foursquare';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
@@ -41,20 +40,7 @@ const segmentMiles = (pts) => {
   return total;
 };
 
-// ── Foursquare fetch helper (replaces fetchGoogleNearby) ─────────────────────
-const fetchNearby = async (lat, lng, radiusMiles, categoryIds, typeLabel) => {
-  console.log(`[DayTrip] fetching ${typeLabel} via Foursquare | cats: [${categoryIds.join(',')}] | radius: ${radiusMiles}mi`);
-  try {
-    const places = await foursquareNearby(lat, lng, radiusMiles, categoryIds, typeLabel);
-    console.log(`[DayTrip] ${typeLabel} → ${places.length} places`);
-    return places;
-  } catch (err) {
-    console.error(`[DayTrip] ${typeLabel} fetch error:`, err);
-    return [];
-  }
-};
-
-// Fetch literary places: Firestore bookstores + Firestore coffeeShops + Foursquare drive-ins
+// Fetch literary places: Firestore bookstores + Firestore coffeeShops
 // Handles large radii via compass sampling (same strategy as before)
 const fetchLiterary = async (center, radiusMiles) => {
   const searchR = Math.min(radiusMiles, MAX_RADIUS_MILES);
@@ -72,14 +58,13 @@ const fetchLiterary = async (center, radiusMiles) => {
     );
   }
 
-  const [bookBatches, cafeBatches, driveInBatches] = await Promise.all([
+  const [bookBatches, cafeBatches] = await Promise.all([
     Promise.all(points.map(pt => getNearbyBookstores(pt[0], pt[1], searchR).catch(() => []))),
     Promise.all(points.map(pt => getNearbyCoffeeShops(pt[0], pt[1], searchR).catch(() => []))),
-    Promise.all(points.map(pt => searchNearbyDriveIns(pt[0], pt[1], searchR * 3).catch(() => []))),
   ]);
 
   const seen = new Set();
-  const results = [...bookBatches.flat(), ...cafeBatches.flat(), ...driveInBatches.flat()]
+  const results = [...bookBatches.flat(), ...cafeBatches.flat()]
     .filter(p => { if (!p?.id || seen.has(p.id)) return false; seen.add(p.id); return true; })
     .map(p => ({ ...p, coords: p.coords ?? (p.lat != null ? [p.lat, p.lng] : null) }))
     .filter(p => p.coords);
@@ -210,20 +195,19 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   console.log(`[DayTrip] generating ${duration} trip from [${startCoords}] variant=${variant}`);
 
   // Fetch all categories in parallel — Firestore (bookstores) + Foursquare (everything else).
+  // TODO: replace Promise.resolve([]) with Firestore queries once those collections are seeded
   const [literary, museums, wildlife, nature, restaurants, music, garden, observatory, flea, antique, historical] = await Promise.all([
     fetchLiterary(startCoords, radius),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.museum, FS_CAT.art_gallery], 'museum'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.zoo, FS_CAT.aquarium], 'scenic'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.park, FS_CAT.national_park, FS_CAT.botanical_garden], 'park'),
-    duration !== 'quick'
-      ? fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.restaurant], 'restaurant')
-      : Promise.resolve([]),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.music_store], 'music'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.botanical_garden], 'garden'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.planetarium], 'observatory'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.flea_market], 'flea'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.antique_shop], 'antique'),
-    fetchNearby(startCoords[0], startCoords[1], radius, [FS_CAT.historical], 'historical'),
+    Promise.resolve([]), // museums — seed via AdminUpload → museums collection
+    Promise.resolve([]), // wildlife/aquariums — seed via AdminUpload → aquariums collection
+    Promise.resolve([]), // parks — seed via AdminUpload → parks collection
+    Promise.resolve([]), // restaurants — seed via AdminUpload → restaurants collection
+    Promise.resolve([]), // music stores
+    Promise.resolve([]), // botanical gardens
+    Promise.resolve([]), // observatories — seed via AdminUpload → observatories collection
+    Promise.resolve([]), // flea markets
+    Promise.resolve([]), // antique shops
+    Promise.resolve([]), // historic sites — seed via AdminUpload → historicSites collection
   ]);
 
   // Split literary pool by subtype

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { geocodePlace } from '../utils/mapboxGeocoding';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coffee shop filter — returns a reason string if excluded, null if included
@@ -256,7 +257,78 @@ const deduplicate = (entries) => {
   return { unique, dupeCount };
 };
 
-const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, excludeReasons: {} };
+// ─────────────────────────────────────────────────────────────────────────────
+// CSV helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Parse a CSV string → array of row objects. Handles quoted fields and \r\n.
+const parseCSV = (text) => {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim());
+  if (lines.length < 2) return { headers: [], rows: [] };
+
+  const splitRow = (line) => {
+    const cells = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cells.push(cur.trim());
+    return cells;
+  };
+
+  const rawHeaders = splitRow(lines[0]);
+  // Normalize: lowercase, trim quotes, collapse whitespace → snake_case
+  const headers = rawHeaders.map(h => h.replace(/^"|"$/g, '').toLowerCase().trim().replace(/\s+/g, '_'));
+
+  // Map common column name variants to canonical names
+  const ALIASES = {
+    latitude: 'lat', longitude: 'lng', lon: 'lng', long: 'lng',
+    street: 'address', street_address: 'address', addr: 'address',
+    zip: 'zipcode', postal_code: 'zipcode', postcode: 'zipcode',
+    st: 'state', telephone: 'phone', tel: 'phone',
+    url: 'website', web: 'website', link: 'website',
+    place_name: 'name', business_name: 'name', title: 'name',
+  };
+  const canonical = headers.map(h => ALIASES[h] ?? h);
+
+  const rows = lines.slice(1)
+    .map(line => {
+      const vals = splitRow(line);
+      const row = {};
+      canonical.forEach((h, i) => { row[h] = (vals[i] ?? '').replace(/^"|"$/g, '').trim(); });
+      return row;
+    })
+    .filter(row => row.name); // must have a name
+
+  return { headers: canonical, rows };
+};
+
+// Build a Firestore-ready entry from a CSV row (post-geocoding if needed)
+const csvRowToEntry = (row, type) => {
+  const lat = parseFloat(row.lat);
+  const lng = parseFloat(row.lng);
+  if (!row.name || isNaN(lat) || isNaN(lng)) return null;
+  const slug = row.name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 24);
+  const docId = `csv_${slug}_${lat.toFixed(4)}_${lng.toFixed(4)}`.replace(/\./g, '_');
+  return {
+    docId,
+    name:    row.name,
+    address: row.address  || null,
+    city:    row.city     || null,
+    state:   row.state    || null,
+    zipcode: row.zipcode  || null,
+    phone:   row.phone    || null,
+    website: row.website  || null,
+    lat, lng,
+    type,
+    source: 'csv',
+  };
+};
+
+const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, geocoded: 0, excludeReasons: {} };
 
 // Delete every document in a Firestore collection in 400-doc pages
 const deleteCollection = async (colName, onProgress) => {
@@ -281,9 +353,17 @@ export default function AdminUpload() {
   const fileInputRef = useRef(null);
 
   const [selectedKey, setSelectedKey]     = useState('bookstores');
+  const [uploadMode, setUploadMode]       = useState('geojson'); // 'geojson' | 'csv'
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [usePreset, setUsePreset]         = useState(true);
   const [deleteFirst, setDeleteFirst]     = useState(false);
+  // CSV state
+  const [csvFile, setCsvFile]             = useState(null);
+  const [csvRows, setCsvRows]             = useState([]);    // parsed rows
+  const [csvHeaders, setCsvHeaders]       = useState([]);
+  const [needsGeocoding, setNeedsGeocoding] = useState(false);
+  const csvInputRef = useRef(null);
+  // Shared
   const [phase, setPhase]                 = useState('idle');
   const [stats, setStats]                 = useState(EMPTY_STATS);
   const [current, setCurrent]             = useState('');
@@ -298,10 +378,39 @@ export default function AdminUpload() {
     setUploadedFiles([]);
     setUsePreset(COLLECTIONS[key].presetFiles.length > 0);
     setDeleteFirst(false);
+    setCsvFile(null); setCsvRows([]); setCsvHeaders([]); setNeedsGeocoding(false);
     setPhase('idle');
     setStats(EMPTY_STATS);
     setCurrent('');
     setErrorMsg('');
+  };
+
+  const handleModeChange = (mode) => {
+    setUploadMode(mode);
+    setCsvFile(null); setCsvRows([]); setCsvHeaders([]); setNeedsGeocoding(false);
+    setUploadedFiles([]);
+    setPhase('idle');
+    setStats(EMPTY_STATS);
+    setCurrent('');
+    setErrorMsg('');
+  };
+
+  const handleCsvFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setCsvFile(file);
+    setPhase('idle');
+    setErrorMsg('');
+    setCsvRows([]); setCsvHeaders([]);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const { headers, rows } = parseCSV(ev.target.result);
+      setCsvHeaders(headers);
+      setCsvRows(rows);
+      const missingCoords = rows.some(r => !r.lat || !r.lng || isNaN(parseFloat(r.lat)) || isNaN(parseFloat(r.lng)));
+      setNeedsGeocoding(missingCoords);
+    };
+    reader.readAsText(file);
   };
 
   const handleFileChange = (e) => {
@@ -432,8 +541,114 @@ export default function AdminUpload() {
     setStats(s => ({ ...s, uploaded, skipped, failed }));
   };
 
+  // ── CSV upload handler ───────────────────────────────────────────────────────
+  const handleCsvUpload = async () => {
+    if (!csvRows.length) { setErrorMsg('No rows parsed from CSV.'); return; }
+
+    setPhase('loading');
+    setStats(EMPTY_STATS);
+    setErrorMsg('');
+
+    // Step 0: delete existing if requested
+    if (deleteFirst) {
+      setCurrent(`Deleting existing ${selectedKey} docs…`);
+      try {
+        const deleted = await deleteCollection(selectedKey, (n) =>
+          setCurrent(`Deleting… ${n.toLocaleString()} removed`)
+        );
+        setStats(s => ({ ...s, deleted }));
+      } catch (err) {
+        setErrorMsg(`Failed to delete collection: ${err.message}`);
+        setPhase('error');
+        return;
+      }
+    }
+
+    // Step 1: geocode rows missing lat/lng
+    let rows = [...csvRows];
+    let geocoded = 0, skippedGeo = 0;
+    if (needsGeocoding) {
+      setPhase('loading');
+      const BATCH = 10; // geocode 10 at a time
+      for (let i = 0; i < rows.length; i += BATCH) {
+        const slice = rows.slice(i, i + BATCH);
+        setCurrent(`Geocoding ${i + 1}–${Math.min(i + BATCH, rows.length)} of ${rows.length}…`);
+        await Promise.all(slice.map(async (row) => {
+          if (row.lat && row.lng && !isNaN(parseFloat(row.lat)) && !isNaN(parseFloat(row.lng))) return;
+          const parts = [row.address, row.city, row.state, row.zipcode].filter(Boolean);
+          if (!parts.length) { row._skip = true; skippedGeo++; return; }
+          const query = `${row.name ? row.name + ', ' : ''}${parts.join(', ')}`;
+          const result = await geocodePlace(query).catch(() => null);
+          if (result) {
+            row.lat = String(result.lat);
+            row.lng = String(result.lng);
+            geocoded++;
+          } else {
+            row._skip = true;
+            skippedGeo++;
+          }
+        }));
+      }
+      rows = rows.filter(r => !r._skip);
+    }
+
+    // Step 2: transform to Firestore entries
+    const cfg = COLLECTIONS[selectedKey];
+    const entries = rows.map(r => csvRowToEntry(r, cfg.type)).filter(Boolean);
+    const { unique, dupeCount } = deduplicate(entries);
+    const filtered = csvRows.length - entries.length + skippedGeo;
+    setStats(s => ({ ...s, total: csvRows.length, filtered, dupes: dupeCount, geocoded }));
+
+    // Step 3: batch upload
+    setPhase('uploading');
+    const BATCH_SIZE = 400;
+    const colRef = collection(db, selectedKey);
+    let uploaded = 0, skipped = 0, failed = 0;
+
+    for (let i = 0; i < unique.length; i += BATCH_SIZE) {
+      const chunk = unique.slice(i, i + BATCH_SIZE);
+      setCurrent(`Uploading ${i + 1}–${Math.min(i + BATCH_SIZE, unique.length)} of ${unique.length}…`);
+
+      const existChecks = deleteFirst
+        ? chunk.map(() => false)
+        : await Promise.all(
+            chunk.map(entry => getDoc(doc(colRef, entry.docId)).then(s => s.exists()).catch(() => false))
+          );
+
+      const batch = writeBatch(db);
+      let batchCount = 0;
+      for (let j = 0; j < chunk.length; j++) {
+        if (existChecks[j]) { skipped++; continue; }
+        const { docId, ...data } = chunk[j];
+        batch.set(doc(colRef, docId), { ...data, addedAt: serverTimestamp() });
+        batchCount++;
+      }
+
+      if (batchCount > 0) {
+        try {
+          await batch.commit();
+          uploaded += batchCount;
+        } catch (err) {
+          console.error('Batch failed:', err);
+          failed += batchCount;
+          if (err.code === 'permission-denied') {
+            setErrorMsg(`Firestore permissions denied.\n\nmatch /${selectedKey}/{doc} {\n  allow read, write: if request.auth != null;\n}`);
+            setPhase('error');
+            setStats(s => ({ ...s, uploaded, skipped, failed }));
+            return;
+          }
+        }
+      }
+      setStats(s => ({ ...s, uploaded, skipped, failed }));
+    }
+
+    setCurrent('');
+    setPhase('done');
+    setStats(s => ({ ...s, uploaded, skipped, failed }));
+  };
+
   const canUpload = user && !busy && phase !== 'done' &&
-    (hasPreset && usePreset || uploadedFiles.length > 0);
+    (uploadMode === 'csv' ? csvRows.length > 0 : (hasPreset && usePreset || uploadedFiles.length > 0));
 
   const hasReasons = Object.keys(stats.excludeReasons).length > 0;
 
@@ -481,7 +696,88 @@ export default function AdminUpload() {
           </div>
         </div>
 
-        {/* File source */}
+        {/* Upload mode toggle */}
+        <div className="flex gap-2 mb-6">
+          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV']].map(([mode, label]) => (
+            <button key={mode} onClick={() => handleModeChange(mode)} disabled={busy}
+              className={`flex-1 py-2.5 rounded-xl font-bungee text-xs tracking-wider border transition-all disabled:opacity-40 ${
+                uploadMode === mode
+                  ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise'
+                  : 'bg-transparent border-white/20 text-chrome-silver hover:border-white/40'
+              }`}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── CSV MODE ─────────────────────────────────────────────────────── */}
+        {uploadMode === 'csv' && (
+          <div className="mb-6">
+            <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
+              CSV FILE
+            </label>
+
+            {/* Expected columns hint */}
+            <div className="border border-starlight-turquoise/20 rounded-xl p-3 mb-3 bg-white/5">
+              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">EXPECTED COLUMNS</p>
+              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
+                <span className="text-paper-white">Required:</span> name<br/>
+                <span className="text-paper-white">With coords:</span> name, lat, lng, address, city, state, zipcode, phone, website<br/>
+                <span className="text-paper-white">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Mapbox)
+              </p>
+            </div>
+
+            {/* File picker */}
+            <input ref={csvInputRef} type="file" accept=".csv,.txt" onChange={handleCsvFileChange}
+              disabled={busy} className="hidden" />
+            <button onClick={() => csvInputRef.current?.click()} disabled={busy}
+              className="w-full border-2 border-dashed border-starlight-turquoise/40 rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:border-starlight-turquoise/70 hover:text-paper-white transition-all text-center disabled:opacity-40">
+              {csvFile
+                ? csvFile.name
+                : 'Click to choose a .csv file'}
+            </button>
+
+            {/* CSV preview */}
+            {csvRows.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="font-special-elite text-chrome-silver text-xs">
+                    <span className="text-paper-white">{csvRows.length.toLocaleString()} rows</span> detected
+                    {needsGeocoding && (
+                      <span className="text-atomic-orange ml-2">· lat/lng missing — will auto-geocode via Mapbox</span>
+                    )}
+                    {!needsGeocoding && (
+                      <span className="text-starlight-turquoise ml-2">· lat/lng present ✓</span>
+                    )}
+                  </p>
+                </div>
+                {/* Column list */}
+                <div className="flex flex-wrap gap-1">
+                  {csvHeaders.map(h => (
+                    <span key={h} className={`font-mono text-xs px-1.5 py-0.5 rounded ${
+                      ['name','lat','lng','address','city','state'].includes(h)
+                        ? 'bg-starlight-turquoise/20 text-starlight-turquoise'
+                        : 'bg-white/10 text-chrome-silver'
+                    }`}>{h}</span>
+                  ))}
+                </div>
+                {/* First 3 rows preview */}
+                <div className="bg-black/40 rounded-lg p-2 overflow-x-auto">
+                  <p className="font-bungee text-chrome-silver/50 text-xs mb-1">PREVIEW (first 3 rows)</p>
+                  {csvRows.slice(0, 3).map((row, i) => (
+                    <p key={i} className="font-mono text-xs text-chrome-silver/80 truncate">
+                      {row.name}{row.city ? ` · ${row.city}` : ''}{row.state ? `, ${row.state}` : ''}
+                      {row.lat ? ` (${parseFloat(row.lat).toFixed(4)}, ${parseFloat(row.lng).toFixed(4)})` : ' [needs geocoding]'}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── GEOJSON MODE ──────────────────────────────────────────────────── */}
+        {uploadMode === 'geojson' && (
         <div className="mb-6">
           <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
             GEOJSON SOURCE
@@ -523,6 +819,7 @@ export default function AdminUpload() {
             </p>
           )}
         </div>
+        )}
 
         {/* Delete-first toggle */}
         {user && phase === 'idle' && (
@@ -579,6 +876,12 @@ export default function AdminUpload() {
               <span>Total features in files</span>
               <span className="text-paper-white">{stats.total.toLocaleString()}</span>
             </div>
+            {stats.geocoded > 0 && (
+              <div className="flex justify-between text-chrome-silver">
+                <span>Auto-geocoded via Mapbox</span>
+                <span className="text-starlight-turquoise">{stats.geocoded.toLocaleString()}</span>
+              </div>
+            )}
             <div className="flex justify-between text-chrome-silver">
               <span>Passed quality filter</span>
               <span className="text-paper-white">{(stats.total - stats.filtered).toLocaleString()}</span>
@@ -657,7 +960,7 @@ export default function AdminUpload() {
               Remember to remove the temporary Firestore rule.
             </p>
             <button
-              onClick={() => { setPhase('idle'); setStats(EMPTY_STATS); }}
+              onClick={() => { setPhase('idle'); setStats(EMPTY_STATS); setCsvFile(null); setCsvRows([]); setCsvHeaders([]); setNeedsGeocoding(false); setUploadedFiles([]); }}
               className="mt-4 font-bungee text-xs text-starlight-turquoise border border-starlight-turquoise/40 rounded-lg px-4 py-2 hover:bg-starlight-turquoise/10 transition-all"
             >
               UPLOAD ANOTHER COLLECTION
@@ -668,7 +971,7 @@ export default function AdminUpload() {
         {/* Upload button */}
         {phase !== 'done' && (
           <button
-            onClick={handleUpload}
+            onClick={uploadMode === 'csv' ? handleCsvUpload : handleUpload}
             disabled={!canUpload}
             className="w-full font-bungee rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
@@ -679,8 +982,10 @@ export default function AdminUpload() {
               boxShadow: canUpload ? '0 0 24px rgba(255,78,0,0.5)' : 'none',
             }}
           >
-            {phase === 'idle'      && `${config.icon} UPLOAD ${config.label.toUpperCase()} TO FIRESTORE`}
-            {phase === 'loading'   && 'LOADING FILES…'}
+            {phase === 'idle'      && (uploadMode === 'csv' && needsGeocoding
+              ? `${config.icon} GEOCODE + UPLOAD ${config.label.toUpperCase()}`
+              : `${config.icon} UPLOAD ${config.label.toUpperCase()} TO FIRESTORE`)}
+            {phase === 'loading'   && (needsGeocoding ? 'GEOCODING…' : 'LOADING FILES…')}
             {phase === 'uploading' && 'UPLOADING…'}
             {phase === 'error'     && `${config.icon} RETRY UPLOAD`}
           </button>
