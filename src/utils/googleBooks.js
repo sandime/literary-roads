@@ -1,12 +1,36 @@
 const BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
+const CACHE_TTL = 24 * 60 * 60 * 1000;
+
+export class RateLimitError extends Error {
+  constructor() { super('rate_limited'); this.name = 'RateLimitError'; }
+}
+
+function getCached(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(key); return null; }
+    return data;
+  } catch { return null; }
+}
+
+function setCache(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
 
 async function fetchGoogle(query) {
+  const cacheKey = `lr_gbooks_q_${query}`;
+  const cached = getCached(cacheKey);
+  if (cached) return cached;
+
   const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
   const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink)${key}`;
   const res = await fetch(url);
+  if (res.status === 429) throw new RateLimitError();
   if (!res.ok) return [];
   const data = await res.json();
-  return (data.items || []).map((item) => ({
+  const results = (data.items || []).map((item) => ({
     id: `g_${item.id}`,
     title: item.volumeInfo?.title || 'Unknown Title',
     author: item.volumeInfo?.authors?.[0] || 'Unknown Author',
@@ -14,6 +38,8 @@ async function fetchGoogle(query) {
     link: item.volumeInfo?.infoLink || `https://books.google.com/books?id=${item.id}`,
     source: 'google',
   }));
+  setCache(cacheKey, results);
+  return results;
 }
 
 async function fetchOpenLibrary(query) {
@@ -39,6 +65,7 @@ function dedupKey(book) {
 export async function searchBooks(query) {
   if (!query || query.length < 2) return [];
   const [g, ol] = await Promise.allSettled([fetchGoogle(query), fetchOpenLibrary(query)]);
+  if (g.status === 'rejected' && g.reason instanceof RateLimitError) throw g.reason;
   const google = g.status === 'fulfilled' ? g.value : [];
   const openlib = ol.status === 'fulfilled' ? ol.value : [];
 
