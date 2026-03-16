@@ -223,6 +223,7 @@ export default function Credits({ onBack }) {
             { name: 'Microsoft Copilot', desc: 'Frame and icon design generation' },
             { name: 'Photopea',          desc: 'Image editing and processing' },
             { name: 'Remove.bg',         desc: 'Background removal' },
+            { name: 'Gemini',            desc: 'Badge and emoji design generation' },
           ]} />
 
           <Section title="🛠️ DEVELOPMENT TOOLS" color="#39FF14" items={[
@@ -230,7 +231,8 @@ export default function Credits({ onBack }) {
             { name: 'React',              desc: 'UI framework' },
             { name: 'Vite',               desc: 'Build tool and dev server' },
             { name: 'Tailwind CSS',       desc: 'Styling framework' },
-            { name: 'Leaflet',            desc: 'Interactive map rendering' },
+            { name: 'Leaflet'],           desc: 'Interactive map rendering' },
+            { name: 'Overpass Turbo',     desc: 'Database seeding' },
           ]} />
 
           {/* Inspiration */}
@@ -279,7 +281,7 @@ export default function Credits({ onBack }) {
               fontSize: '11px', color: 'rgba(255,210,0,0.35)',
               letterSpacing: '0.12em', marginTop: '16px',
             }}>
-              🚗 &nbsp; HAPPY TRAILS &nbsp; 🚗
+               &nbsp; HAPPY TRAILS &nbsp;
             </p>
           </div>
 
