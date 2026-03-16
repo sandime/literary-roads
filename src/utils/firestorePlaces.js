@@ -101,3 +101,49 @@ export const getNearbyCoffeeShops = async (lat, lng, radiusMiles = 5) => {
     }
   });
 };
+
+// ── Generic factory for remaining collections ─────────────────────────────────
+const makeNearby = (collectionName, type, description, cachePrefix) =>
+  async (lat, lng, radiusMiles = 5) => {
+    const key = _cacheKey(cachePrefix, lat, lng, radiusMiles);
+    return _cached(key, async () => {
+      const latDelta = radiusMiles / 69;
+      try {
+        const q = query(
+          collection(db, collectionName),
+          where('lat', '>=', lat - latDelta),
+          where('lat', '<=', lat + latDelta),
+        );
+        const snap = await getDocs(q);
+        return snap.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+          .map(b => ({
+            id:          b.id,
+            name:        b.name,
+            type,
+            lat:         b.lat,
+            lng:         b.lng,
+            address:     [b.address, b.city, b.state].filter(Boolean).join(', ') || '',
+            phone:       b.phone   || '',
+            website:     b.website || '',
+            description,
+            source:      'firestore',
+            coords:      [b.lat, b.lng],
+          }));
+      } catch (err) {
+        console.error(`[Firestore] ${collectionName} error:`, err);
+        return [];
+      }
+    });
+  };
+
+export const getNearbyMuseums       = makeNearby('museums',       'museum',      'Museum',           'fsmu');
+export const getNearbyRestaurants   = makeNearby('restaurants',   'restaurant',  'Restaurant',       'fsre');
+export const getNearbyParks         = makeNearby('parks',         'park',        'Park',             'fspa');
+export const getNearbyHistoricSites = makeNearby('historicSites', 'historicSite','Historic site',    'fshs');
+export const getNearbyArtGalleries  = makeNearby('artGalleries',  'artGallery',  'Art gallery',      'fsag');
+export const getNearbyObservatories = makeNearby('observatories', 'observatory', 'Observatory',      'fsob');
+export const getNearbyAquariums     = makeNearby('aquariums',     'aquarium',    'Aquarium',         'fsaq');
+export const getNearbyTheaters      = makeNearby('theaters',      'theater',     'Theater',          'fsth');
+export const getNearbyDriveIns      = makeNearby('driveIns',      'drivein',     'Drive-in theater', 'fsdi');

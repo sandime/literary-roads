@@ -44,7 +44,23 @@ const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
   return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
 };
 
-const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', art_gallery: '🎨', park: '🌿', nature: '🌿', restaurant: '🍽️', scenic: '🦁', music: '🎵', garden: '🪴', observatory: '🔭', flea: '🏪', antique: '🪑', historical: '🏛️' };
+const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', artGallery: '🎨', park: '🌿', restaurant: '🍽️', observatory: '🔭', historicSite: '🏰', aquarium: '🐠', theater: '🎭' };
+
+const CATEGORY_OPTIONS = [
+  { key: 'cafe',         emoji: '☕', label: 'Coffee Shops'  },
+  { key: 'bookstore',    emoji: '📚', label: 'Bookstores'    },
+  { key: 'drivein',      emoji: '🎬', label: 'Drive-Ins'     },
+  { key: 'landmark',     emoji: '🌲', label: 'Landmarks'     },
+  { key: 'museum',       emoji: '🏛️', label: 'Museums'       },
+  { key: 'restaurant',   emoji: '🍽️', label: 'Restaurants'   },
+  { key: 'park',         emoji: '🌿', label: 'Parks'         },
+  { key: 'historicSite', emoji: '🏰', label: 'Historic Sites'},
+  { key: 'artGallery',   emoji: '🎨', label: 'Art Galleries' },
+  { key: 'observatory',  emoji: '🔭', label: 'Observatories' },
+  { key: 'aquarium',     emoji: '🐠', label: 'Aquariums'     },
+  { key: 'theater',      emoji: '🎭', label: 'Theaters'      },
+];
+const ALL_CATEGORIES = new Set(CATEGORY_OPTIONS.map(c => c.key));
 
 const makeStopMarker = (num) => L.divIcon({
   className: '',
@@ -144,6 +160,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [startText, setStartText]     = useState('');
   const [startCoords, setStartCoords] = useState(null);
   const [duration, setDuration]       = useState('halfDay');
+  const [categories, setCategories]   = useState(new Set(ALL_CATEGORIES));
   const [locationMode, setLocationMode] = useState('address'); // 'address' | 'gps'
   const [gpsLoading, setGpsLoading]   = useState(false);
   const [gpsError, setGpsError]       = useState('');
@@ -261,7 +278,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     setStep('generating');
     setSaved(false);
     try {
-      const result = await generateDayTrip(coords, duration, nextVariant, nextExcluded);
+      const result = await generateDayTrip(coords, duration, nextVariant, nextExcluded, categories);
       if (!result || !result.stops.length) {
         setGenError('No locations found nearby. Try a different city or wider time range.');
         setStep('input');
@@ -556,6 +573,54 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                     </span>
                   </label>
                 ))}
+              </div>
+            </div>
+
+            {/* Neon divider */}
+            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(255,78,0,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
+
+            {/* Categories */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5">
+                  <span>🗂️</span> CATEGORIES
+                </label>
+                <div className="flex gap-2">
+                  <button onClick={() => setCategories(new Set(ALL_CATEGORIES))}
+                    className="text-starlight-turquoise/60 font-special-elite text-xs hover:text-starlight-turquoise transition-colors">
+                    all
+                  </button>
+                  <span className="text-chrome-silver/30 text-xs">·</span>
+                  <button onClick={() => setCategories(new Set())}
+                    className="text-chrome-silver/40 font-special-elite text-xs hover:text-chrome-silver/70 transition-colors">
+                    none
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {CATEGORY_OPTIONS.map(({ key, emoji, label }) => {
+                  const checked = categories.has(key);
+                  return (
+                    <label key={key}
+                      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-all ${
+                        checked
+                          ? 'border-starlight-turquoise/50 bg-starlight-turquoise/10'
+                          : 'border-chrome-silver/15 opacity-50'
+                      }`}
+                    >
+                      <input type="checkbox" checked={checked}
+                        onChange={() => setCategories(prev => {
+                          const next = new Set(prev);
+                          checked ? next.delete(key) : next.add(key);
+                          return next;
+                        })}
+                        className="accent-starlight-turquoise w-3 h-3 flex-shrink-0"
+                      />
+                      <span className="text-sm flex-shrink-0">{emoji}</span>
+                      <span className="text-paper-white font-special-elite text-xs truncate">{label}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
 

@@ -1,5 +1,10 @@
 import { getMapboxRoute } from './mapbox';
-import { getNearbyBookstores, getNearbyCoffeeShops } from './firestorePlaces';
+import {
+  getNearbyBookstores, getNearbyCoffeeShops,
+  getNearbyMuseums, getNearbyRestaurants, getNearbyParks,
+  getNearbyHistoricSites, getNearbyArtGalleries, getNearbyObservatories,
+  getNearbyAquariums, getNearbyTheaters, getNearbyDriveIns,
+} from './firestorePlaces';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
@@ -9,9 +14,9 @@ const STOP_TARGETS = { quick: 3, halfDay: 6, fullDay: 9 };
 
 export const VISIT_MINUTES = {
   bookstore: 60, cafe: 30, landmark: 45, drivein: 120,
-  museum: 90, art_gallery: 75, park: 45, nature: 45,
-  restaurant: 60, scenic: 30, music: 45, garden: 45, observatory: 60,
-  flea: 60, antique: 60, historical: 45,
+  museum: 90, artGallery: 75, park: 45, aquarium: 90,
+  restaurant: 60, historicSite: 60, music: 45, garden: 45, observatory: 60,
+  theater: 90, flea: 60, antique: 60,
 };
 
 const AVG_SPEED_MPH = 35;
@@ -188,33 +193,55 @@ export const buildRoute = async (startCoords, stops) => {
 // Google Places (New) API v1 type names only — invalid types cause silent batch failures.
 // Verified valid types: museum, art_gallery, zoo, aquarium, park, national_park,
 //   botanical_garden, restaurant, music_store, garden_center, observatory, planetarium
-export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set()) => {
+export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set(), categories = null) => {
+  // null means all enabled; otherwise only fetch/include what's in the Set
+  const has = (cat) => !categories || categories.has(cat);
   const radius  = RADIUS_MILES[duration];
   // rMeters kept for backwards compat (not used after Google Places removal)
 
   console.log(`[DayTrip] generating ${duration} trip from [${startCoords}] variant=${variant}`);
 
-  // Fetch all categories in parallel — Firestore (bookstores) + Foursquare (everything else).
-  // TODO: replace Promise.resolve([]) with Firestore queries once those collections are seeded
-  const [literary, museums, wildlife, nature, restaurants, music, garden, observatory, flea, antique, historical] = await Promise.all([
+  // Build compass sample points (mirrors fetchLiterary's strategy for large radii)
+  const searchR = Math.min(radius, MAX_RADIUS_MILES);
+  const points  = [startCoords];
+  if (radius > MAX_RADIUS_MILES) {
+    const off  = radius * 0.5;
+    const latD = off / 69;
+    const lngD = off / (69 * Math.cos(startCoords[0] * Math.PI / 180));
+    points.push(
+      [startCoords[0] + latD, startCoords[1]],
+      [startCoords[0] - latD, startCoords[1]],
+      [startCoords[0],         startCoords[1] + lngD],
+      [startCoords[0],         startCoords[1] - lngD],
+    );
+  }
+
+  // Fetch all categories in parallel from Firestore
+  const fetchNearby = (fn) => Promise.all(
+    points.map(pt => fn(pt[0], pt[1], searchR).catch(() => []))
+  ).then(batches => {
+    const seen = new Set();
+    return batches.flat().filter(p => p?.id && !seen.has(p.id) && seen.add(p.id));
+  });
+
+  const none = Promise.resolve([]);
+  const [literary, museums, aquariums, nature, restaurants, observatory, historicSites, artGalleries, theaters] = await Promise.all([
     fetchLiterary(startCoords, radius),
-    Promise.resolve([]), // museums — seed via AdminUpload → museums collection
-    Promise.resolve([]), // wildlife/aquariums — seed via AdminUpload → aquariums collection
-    Promise.resolve([]), // parks — seed via AdminUpload → parks collection
-    Promise.resolve([]), // restaurants — seed via AdminUpload → restaurants collection
-    Promise.resolve([]), // music stores
-    Promise.resolve([]), // botanical gardens
-    Promise.resolve([]), // observatories — seed via AdminUpload → observatories collection
-    Promise.resolve([]), // flea markets
-    Promise.resolve([]), // antique shops
-    Promise.resolve([]), // historic sites — seed via AdminUpload → historicSites collection
+    has('museum')      ? fetchNearby(getNearbyMuseums)       : none,
+    has('aquarium')    ? fetchNearby(getNearbyAquariums)     : none,
+    has('park')        ? fetchNearby(getNearbyParks)         : none,
+    has('restaurant')  ? fetchNearby(getNearbyRestaurants)   : none,
+    has('observatory') ? fetchNearby(getNearbyObservatories) : none,
+    has('historicSite')? fetchNearby(getNearbyHistoricSites) : none,
+    has('artGallery')  ? fetchNearby(getNearbyArtGalleries)  : none,
+    has('theater')     ? fetchNearby(getNearbyTheaters)      : none,
   ]);
 
-  // Split literary pool by subtype
-  const cafes      = literary.filter(p => p.type === 'cafe');
-  const bookstores = literary.filter(p => p.type === 'bookstore');
-  const landmarks  = literary.filter(p => p.type === 'landmark');
-  const driveins   = literary.filter(p => p.type === 'drivein');
+  // Split literary pool by subtype — respect category filter
+  const cafes      = has('cafe')      ? literary.filter(p => p.type === 'cafe')      : [];
+  const bookstores = has('bookstore') ? literary.filter(p => p.type === 'bookstore') : [];
+  const landmarks  = has('landmark')  ? literary.filter(p => p.type === 'landmark')  : [];
+  const driveins   = has('drivein')   ? literary.filter(p => p.type === 'drivein')   : [];
 
   // Sort by distance, rotate for variant so regenerate yields different picks
   const rotate = (pool) => rotatePool(tagDistance(pool, startCoords), variant);
@@ -223,15 +250,13 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const landPool  = rotate(landmarks);
   const drivePool = rotate(driveins);
   const musePool  = rotate(museums);
-  const wildPool  = rotate(wildlife);
+  const aquaPool  = rotate(aquariums);
   const parkPool  = rotate(nature);
   const mealPool  = rotate(restaurants);
-  const musiPool  = rotate(music);
-  const gardPool  = rotate(garden);
   const obsvPool  = rotate(observatory);
-  const fleaPool  = rotate(flea);
-  const antqPool  = rotate(antique);
-  const histPool  = rotate(historical);
+  const histPool  = rotate(historicSites);
+  const gallPool  = rotate(artGalleries);
+  const theatPool = rotate(theaters);
 
   const stops   = [];
   const usedIds = new Set(excludedIds);
@@ -239,8 +264,8 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const typeCounts = {};
   const MAX_PER_TYPE = {
     cafe: 1, bookstore: 1, restaurant: 1, drivein: 1,
-    museum: 2, scenic: 2, park: 2, landmark: 2,
-    music: 1, garden: 1, observatory: 1, flea: 1, antique: 1, historical: 2,
+    museum: 2, aquarium: 1, park: 2, landmark: 2,
+    observatory: 1, historicSite: 2, artGallery: 1, theater: 1,
   };
 
   const pick = (pool, type) => {
@@ -256,28 +281,26 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
 
   const target = STOP_TARGETS[duration];
 
-  // STEP 1: Guaranteed priority picks
-  pick(cafePool, 'cafe');                                 // Always: 1 coffee shop
-  if (duration !== 'quick') pick(bookPool, 'bookstore'); // half/full: 1 bookstore
-  if (duration !== 'quick') pick(mealPool, 'restaurant');// half/full: 1 restaurant
+  // STEP 1: Guaranteed priority picks (only if category is enabled)
+  if (has('cafe'))       pick(cafePool, 'cafe');
+  if (has('bookstore')  && duration !== 'quick') pick(bookPool, 'bookstore');
+  if (has('restaurant') && duration !== 'quick') pick(mealPool, 'restaurant');
 
   // STEP 2: Fill remaining slots cycling through ALL variety pools
   // Ordering: museum → wildlife → park → landmark → music → garden → observatory
   // → 2nd museum → 2nd wildlife → 2nd park → 2nd landmark (for fullDay overflow)
   const varietyPools = [
     { pool: musePool,  type: 'museum'      },
-    { pool: wildPool,  type: 'scenic'      },
+    { pool: aquaPool,  type: 'aquarium'    },
     { pool: parkPool,  type: 'park'        },
     { pool: landPool,  type: 'landmark'    },
-    { pool: musiPool,  type: 'music'       },
-    { pool: gardPool,  type: 'garden'      },
+    { pool: histPool,  type: 'historicSite'},
+    { pool: gallPool,  type: 'artGallery'  },
     { pool: obsvPool,  type: 'observatory' },
-    { pool: fleaPool,  type: 'flea'        },
-    { pool: antqPool,  type: 'antique'     },
-    { pool: histPool,  type: 'historical'  },
+    { pool: theatPool, type: 'theater'     },
     // Second-pass for long trips
     { pool: musePool,  type: 'museum'      },
-    { pool: wildPool,  type: 'scenic'      },
+    { pool: histPool,  type: 'historicSite'},
     { pool: parkPool,  type: 'park'        },
     { pool: landPool,  type: 'landmark'    },
   ];
@@ -299,7 +322,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const ordered = [...nearestNeighbor(startCoords, stops)];
 
   // STEP 4: For full-day trips, optionally append a drive-in as the final stop
-  if (duration === 'fullDay') {
+  if (duration === 'fullDay' && has('drivein')) {
     const driveIn = drivePool.find(p => !usedIds.has(p.id));
     if (driveIn) ordered.push(driveIn);
   }

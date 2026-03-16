@@ -21,7 +21,7 @@ export const subscribeToTravelStats = (userId, callback) => {
       cafesVisited:      counts.cafe        || 0,
       festivalsAttended: counts.festival    || 0,
       landmarksVisited:  counts.landmark    || 0,
-      driveInsVisited:   counts['drive-in'] || 0,
+      driveInsVisited:   counts.drivein     || 0,
       statesExplored,
       booksLogged:       booksLoggedCount,
     });

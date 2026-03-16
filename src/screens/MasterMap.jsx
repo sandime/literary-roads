@@ -10,7 +10,7 @@ import { MAP_CONFIG } from '../config/config';
 import { autocompleteCity, geocodePlace, searchPlaces } from '../utils/mapboxGeocoding';
 import { searchNearbyPlaces, searchAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
-import { getCuratedLandmarks } from '../utils/firebaseLandmarks';
+import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear, getExtraLocationsNear } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
@@ -397,6 +397,136 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
       </svg>
     `,
 
+    // COLUMNS - Museums (Sky Blue)
+    museum: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-skyblue-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-skyblue-${uid})" class="neon-marker">
+          <line x1="5" y1="34" x2="35" y2="34" stroke="#4FC3F7" stroke-width="2" stroke-linecap="round"/>
+          <line x1="8" y1="18" x2="8" y2="32" stroke="#4FC3F7" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="20" y1="18" x2="20" y2="32" stroke="#4FC3F7" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="32" y1="18" x2="32" y2="32" stroke="#4FC3F7" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M4 18 L20 8 L36 18" fill="none" stroke="#4FC3F7" stroke-width="2" stroke-linejoin="round"/>
+        </g>
+      </svg>
+    `,
+
+    // FORK & KNIFE - Restaurants (Amber)
+    restaurant: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-amber-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-amber-${uid})" class="neon-marker">
+          <line x1="14" y1="8" x2="14" y2="32" stroke="#FFB300" stroke-width="2" stroke-linecap="round"/>
+          <path d="M11 8 L11 16 Q14 18 17 16 L17 8" fill="none" stroke="#FFB300" stroke-width="1.5" stroke-linejoin="round"/>
+          <line x1="26" y1="8" x2="26" y2="32" stroke="#FFB300" stroke-width="2" stroke-linecap="round"/>
+          <path d="M23 8 Q23 18 26 20" fill="none" stroke="#FFB300" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M29 8 Q29 18 26 20" fill="none" stroke="#FFB300" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `,
+
+    // PINE TREE - Parks & Nature (Mint)
+    park: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-mint-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-mint-${uid})" class="neon-marker">
+          <line x1="20" y1="32" x2="20" y2="22" stroke="#69F0AE" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M20 24 L10 32" fill="none" stroke="#69F0AE" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+          <path d="M8 26 L20 14 L32 26 Z" fill="none" stroke="#69F0AE" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M11 21 L20 10 L29 21 Z" fill="none" stroke="#69F0AE" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M14 16 L20 7 L26 16 Z" fill="none" stroke="#69F0AE" stroke-width="2" stroke-linejoin="round"/>
+        </g>
+      </svg>
+    `,
+
+    // CASTLE TOWER - Historic Sites (Gold)
+    historicSite: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-gold-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-gold-${uid})" class="neon-marker">
+          <rect x="11" y="16" width="18" height="18" fill="none" stroke="#FFCA28" stroke-width="2"/>
+          <rect x="10" y="11" width="4" height="7" fill="none" stroke="#FFCA28" stroke-width="1.5"/>
+          <rect x="16" y="11" width="4" height="7" fill="none" stroke="#FFCA28" stroke-width="1.5"/>
+          <rect x="22" y="11" width="4" height="7" fill="none" stroke="#FFCA28" stroke-width="1.5"/>
+          <path d="M17 34 L17 27 Q20 24 23 27 L23 34" fill="none" stroke="#FFCA28" stroke-width="1.5"/>
+          <line x1="6" y1="34" x2="34" y2="34" stroke="#FFCA28" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `,
+
+    // PICTURE FRAME - Art Galleries (Pink)
+    artGallery: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-pink-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-pink-${uid})" class="neon-marker">
+          <rect x="7" y="7" width="26" height="22" rx="1.5" fill="none" stroke="#F48FB1" stroke-width="2"/>
+          <rect x="12" y="12" width="16" height="12" rx="1" fill="none" stroke="#F48FB1" stroke-width="1.5"/>
+          <path d="M12 20 L17 15 L22 19 L26 14 L28 17" fill="none" stroke="#F48FB1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="15" y1="29" x2="15" y2="33" stroke="#F48FB1" stroke-width="2" stroke-linecap="round"/>
+          <line x1="25" y1="29" x2="25" y2="33" stroke="#F48FB1" stroke-width="2" stroke-linecap="round"/>
+          <line x1="12" y1="33" x2="28" y2="33" stroke="#F48FB1" stroke-width="1.5" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `,
+
+    // DOME - Observatories (Cyan)
+    observatory: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-cyan-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-cyan-${uid})" class="neon-marker">
+          <path d="M7 24 Q7 8 20 8 Q33 8 33 24" fill="none" stroke="#80DEEA" stroke-width="2" stroke-linecap="round"/>
+          <line x1="6" y1="24" x2="34" y2="24" stroke="#80DEEA" stroke-width="2" stroke-linecap="round"/>
+          <rect x="13" y="24" width="14" height="8" rx="1" fill="none" stroke="#80DEEA" stroke-width="1.5"/>
+          <line x1="18" y1="12" x2="24" y2="24" stroke="#80DEEA" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+          <circle cx="18" cy="11" r="2" fill="none" stroke="#80DEEA" stroke-width="1.5"/>
+        </g>
+      </svg>
+    `,
+
+    // FISH - Aquariums (Ocean Blue)
+    aquarium: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-ocean-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-ocean-${uid})" class="neon-marker">
+          <ellipse cx="18" cy="20" rx="10" ry="7" fill="none" stroke="#29B6F6" stroke-width="2"/>
+          <path d="M28 20 L35 13 L35 27 Z" fill="none" stroke="#29B6F6" stroke-width="1.5" stroke-linejoin="round"/>
+          <circle cx="11" cy="18" r="2" fill="none" stroke="#29B6F6" stroke-width="1.5"/>
+          <path d="M15 15 Q20 11 25 15" fill="none" stroke="#29B6F6" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+          <path d="M7 24 Q10 28 15 27" fill="none" stroke="#29B6F6" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </g>
+      </svg>
+    `,
+
+    // DRAMA MASKS - Theaters (Hot Pink)
+    theater: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-hotpink-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-hotpink-${uid})" class="neon-marker">
+          <path d="M5 12 Q5 7 10 7 Q15 7 15 12 L15 22 Q12 26 10 26 Q7 26 5 22 Z" fill="none" stroke="#FF80AB" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M8 17 Q10 19 12 17" fill="none" stroke="#FF80AB" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M25 10 Q25 5 30 5 Q35 5 35 10 L35 20 Q32 23 30 22 Q28 24 25 20 Z" fill="none" stroke="#FF80AB" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M28 13 Q30 11 32 13" fill="none" stroke="#FF80AB" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="15" y1="22" x2="25" y2="20" stroke="#FF80AB" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
+        </g>
+      </svg>
+    `,
+
     // MAP PIN - Generic search result (Gold)
     search: `
       <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
@@ -538,7 +668,12 @@ const PlaceSearch = ({ onSelect }) => {
     onSelect(place);
   };
 
-  const typeEmoji = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', search: '📍' };
+  const typeEmoji = {
+    bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', festival: '🎪',
+    museum: '🏛️', restaurant: '🍽️', park: '🌲', historicSite: '🏰',
+    artGallery: '🎨', observatory: '🔭', aquarium: '🐠', theater: '🎭',
+    search: '📍',
+  };
 
   return (
     <div className="max-w-2xl mx-auto w-full px-0 pb-1.5">
@@ -1254,14 +1389,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const [places, nearFestivals] = await Promise.all([
+        const [places, nearFestivals, nearDriveIns, nearExtra] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 10),
           Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 75)),
+          getDriveInsNear(latitude, longitude, 75),
+          getExtraLocationsNear(latitude, longitude, 75),
         ]);
 
         setMapCenter([latitude, longitude]);
         setMapZoom(12);
-        setVisibleLocations([...places, ...nearFestivals]);
+        setVisibleLocations([...places, ...nearFestivals, ...nearDriveIns, ...nearExtra]);
         setShowPlanner(false);
         setRoute([]);
         setLoading(false);
@@ -1329,10 +1466,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         [endCoords.lat, endCoords.lng],
       ];
 
-      // ── Phase 1: fast sources (Google Places + Firestore) — blocks render ──
-      const [places, curatedLandmarks, destPlaces] = await Promise.all([
+      // ── Phase 1: bookstores, cafes, drive-ins, literary landmarks only ──
+      const [places, curatedLandmarks, driveIns, destPlaces] = await Promise.all([
         searchAlongRoute(routePoints, 5),
         getCuratedLandmarks(allTripPoints, 25),
+        getDriveInsAlongRoute(allTripPoints, 100),
         searchNearbyPlaces(endCoords.lat, endCoords.lng, 10),
       ]);
 
@@ -1352,7 +1490,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       const festivals = getLiteraryFestivalsAlongRoute(allTripPoints, 100);
       const phase1Locations = [];
-      mergeInto(phase1Locations, [...curatedLandmarks, ...festivals, ...places, ...destPlaces]);
+      mergeInto(phase1Locations, [...curatedLandmarks, ...driveIns, ...festivals, ...places, ...destPlaces]);
       setVisibleLocations(phase1Locations);
 
       // Fit map to route immediately

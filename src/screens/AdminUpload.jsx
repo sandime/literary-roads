@@ -188,7 +188,18 @@ const COLLECTIONS = {
       if (!name) return false;
       const l = name.toLowerCase();
       return ['theater','theatre','cinema','playhouse','amphitheater','amphitheatre',
-              'opera house','concert hall','performing arts','drive-in','drive in'].some(k => l.includes(k));
+              'opera house','concert hall','performing arts'].some(k => l.includes(k));
+    },
+  },
+  driveIns: {
+    label: 'Drive-In Theaters',
+    icon: '🎬',
+    type: 'drive_in',
+    presetFiles: [],
+    isValid: (name) => {
+      if (!name) return false;
+      const l = name.toLowerCase();
+      return ['drive-in','drive in','drivein'].some(k => l.includes(k));
     },
   },
 };
