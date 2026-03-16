@@ -30,8 +30,6 @@ const GENRES = [
 const BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
 const SURPRISE_CACHE_TTL = 24 * 60 * 60 * 1000;
 
-class SurpriseRateLimitError extends Error {}
-
 function getSurpriseCache(genre) {
   try {
     const raw = localStorage.getItem(`lr_surprise_${genre}`);
@@ -46,39 +44,66 @@ function setSurpriseCache(genre, book) {
   try { localStorage.setItem(`lr_surprise_${genre}`, JSON.stringify({ book, ts: Date.now() })); } catch {}
 }
 
+async function fetchSurpriseFromOpenLibrary(genre) {
+  const url = `https://openlibrary.org/search.json?q=subject:"${encodeURIComponent(genre)}"&limit=20&fields=key,title,author_name,cover_i,first_sentence`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('ol fetch failed');
+  const data = await res.json();
+  const docs = (data.docs || []).filter(d => d.cover_i);
+  if (!docs.length) throw new Error('no ol results');
+  const doc = docs[Math.floor(Math.random() * docs.length)];
+  return {
+    id: `ol_${doc.key}`,
+    title: doc.title || 'Unknown Title',
+    author: doc.author_name?.[0] || 'Unknown Author',
+    description: typeof doc.first_sentence === 'string' ? doc.first_sentence : '',
+    coverURL: `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`,
+    averageRating: null,
+    ratingsCount: null,
+    genre,
+  };
+}
+
 async function fetchSurpriseBook() {
   const genre = GENRES[Math.floor(Math.random() * GENRES.length)];
   const cached = getSurpriseCache(genre);
   if (cached) return cached;
 
-  const startIndex = Math.floor(Math.random() * 20) * 10; // 0–190
-  const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
-  const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(genre)}&startIndex=${startIndex}&maxResults=10&printType=books&langRestrict=en${key}`;
-  const res = await fetch(url);
-  if (res.status === 429) throw new SurpriseRateLimitError();
-  if (!res.ok) throw new Error('fetch failed');
-  const data = await res.json();
-  const items = (data.items || []).filter(item => item.volumeInfo?.imageLinks?.thumbnail);
-  if (!items.length) throw new Error('no results');
-  const item = items[Math.floor(Math.random() * items.length)];
-  const v = item.volumeInfo;
-  const book = {
-    id: `g_${item.id}`,
-    title: v.title || 'Unknown Title',
-    author: v.authors?.[0] || 'Unknown Author',
-    description: v.description || '',
-    coverURL: v.imageLinks.thumbnail.replace('http:', 'https:'),
-    averageRating: v.averageRating || null,
-    ratingsCount: v.ratingsCount || null,
-    genre,
-  };
+  let book;
+  try {
+    const startIndex = Math.floor(Math.random() * 20) * 10; // 0–190
+    const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
+    const url = `https://www.googleapis.com/books/v1/volumes?q=subject:${encodeURIComponent(genre)}&startIndex=${startIndex}&maxResults=10&printType=books&langRestrict=en${key}`;
+    const res = await fetch(url);
+    if (res.status === 429) throw new Error('rate_limited');
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+    const items = (data.items || []).filter(item => item.volumeInfo?.imageLinks?.thumbnail);
+    if (!items.length) throw new Error('no results');
+    const item = items[Math.floor(Math.random() * items.length)];
+    const v = item.volumeInfo;
+    book = {
+      id: `g_${item.id}`,
+      title: v.title || 'Unknown Title',
+      author: v.authors?.[0] || 'Unknown Author',
+      description: v.description || '',
+      coverURL: v.imageLinks.thumbnail.replace('http:', 'https:'),
+      averageRating: v.averageRating || null,
+      ratingsCount: v.ratingsCount || null,
+      genre,
+    };
+  } catch {
+    // Silently fall back to Open Library (no rate limits)
+    book = await fetchSurpriseFromOpenLibrary(genre);
+  }
+
   setSurpriseCache(genre, book);
   return book;
 }
 
 
 function SurpriseMe({ user }) {
-  const [status, setStatus]         = useState('idle'); // idle | loading | result | error | ratelimit
+  const [status, setStatus]         = useState('idle'); // idle | loading | result | error
   const [book, setBook]             = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | duplicate | error
 
@@ -89,14 +114,13 @@ function SurpriseMe({ user }) {
     try {
       setBook(await fetchSurpriseBook());
       setStatus('result');
-    } catch (err) {
-      if (err instanceof SurpriseRateLimitError) { setStatus('ratelimit'); return; }
-      // Retry once (sometimes startIndex returns empty) — but not on rate limit
+    } catch {
+      // Retry once (Open Library may also return empty on first try)
       try {
         setBook(await fetchSurpriseBook());
         setStatus('result');
-      } catch (err2) {
-        setStatus(err2 instanceof SurpriseRateLimitError ? 'ratelimit' : 'error');
+      } catch {
+        setStatus('error');
       }
     }
   };
@@ -217,17 +241,6 @@ function SurpriseMe({ user }) {
           }}>
             TRY AGAIN
           </button>
-        </div>
-      )}
-
-      {status === 'ratelimit' && (
-        <div style={{
-          background: 'rgba(255,78,0,0.04)', border: '1.5px dashed rgba(255,78,0,0.3)',
-          borderRadius: '14px', padding: '28px 20px', textAlign: 'center',
-        }}>
-          <p style={{ fontFamily: 'Special Elite, serif', fontSize: '13px', color: 'rgba(200,155,70,0.6)', lineHeight: 1.6 }}>
-            Daily book limit reached! Try again tomorrow.
-          </p>
         </div>
       )}
 

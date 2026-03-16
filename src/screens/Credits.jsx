@@ -231,7 +231,7 @@ export default function Credits({ onBack }) {
             { name: 'React',              desc: 'UI framework' },
             { name: 'Vite',               desc: 'Build tool and dev server' },
             { name: 'Tailwind CSS',       desc: 'Styling framework' },
-            { name: 'Leaflet'],           desc: 'Interactive map rendering' },
+            { name: 'Leaflet',            desc: 'Interactive map rendering' },
             { name: 'Overpass Turbo',     desc: 'Database seeding' },
           ]} />
 

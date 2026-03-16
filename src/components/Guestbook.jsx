@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { searchBooks, RateLimitError } from '../utils/googleBooks';
+import { searchBooks } from '../utils/googleBooks';
 import {
   subscribeToGuestbook,
   checkBookExists,
@@ -49,7 +49,6 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [searchRateLimited, setSearchRateLimited] = useState(false);
   const searchInputRef = useRef(null);
 
   // Subscribe to guestbook entries in real-time
@@ -70,12 +69,10 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
     }
     const timer = setTimeout(async () => {
       setSearching(true);
-      setSearchRateLimited(false);
       try {
         const results = await searchBooks(searchQuery);
         setSearchResults(results);
-      } catch (err) {
-        if (err instanceof RateLimitError) setSearchRateLimited(true);
+      } catch {
         setSearchResults([]);
       } finally {
         setSearching(false);
@@ -415,13 +412,7 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
         </div>
       )}
 
-      {!searching && searchRateLimited && (
-        <p className="text-atomic-orange/70 font-special-elite text-xs text-center py-4">
-          Daily book limit reached! Try again tomorrow.
-        </p>
-      )}
-
-      {!searching && !searchRateLimited && searchQuery.length >= 2 && searchResults.length === 0 && (
+      {!searching && searchQuery.length >= 2 && searchResults.length === 0 && (
         <p className="text-chrome-silver/50 font-special-elite text-xs text-center py-4">
           No books found — try a different title or author.
         </p>

@@ -1,10 +1,6 @@
 const BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
-export class RateLimitError extends Error {
-  constructor() { super('rate_limited'); this.name = 'RateLimitError'; }
-}
-
 function getCached(key) {
   try {
     const raw = localStorage.getItem(key);
@@ -27,8 +23,7 @@ async function fetchGoogle(query) {
   const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
   const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink)${key}`;
   const res = await fetch(url);
-  if (res.status === 429) throw new RateLimitError();
-  if (!res.ok) return [];
+  if (!res.ok) return []; // includes 429 — Open Library fills the gap
   const data = await res.json();
   const results = (data.items || []).map((item) => ({
     id: `g_${item.id}`,
@@ -65,7 +60,7 @@ function dedupKey(book) {
 export async function searchBooks(query) {
   if (!query || query.length < 2) return [];
   const [g, ol] = await Promise.allSettled([fetchGoogle(query), fetchOpenLibrary(query)]);
-  if (g.status === 'rejected' && g.reason instanceof RateLimitError) throw g.reason;
+  // On 429, silently fall back to Open Library results only
   const google = g.status === 'fulfilled' ? g.value : [];
   const openlib = ol.status === 'fulfilled' ? ol.value : [];
 
