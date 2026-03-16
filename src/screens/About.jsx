@@ -289,7 +289,7 @@ export default function About({ onBack }) {
           <p className="font-special-elite" style={{
             fontSize: '14px', color: 'rgba(245,245,220,0.9)', lineHeight: 1.85,
           }}>
-            Support independent bookstores, celebrate literary culture, and inspire readers to explore the world one book—and one road trip—at a time.
+            Support independent bookstores, celebrate literary culture, inspire new readers, and encourage exploration of books, literary culture, and the open road.
           </p>
         </div>
 
