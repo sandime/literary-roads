@@ -161,6 +161,8 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [startCoords, setStartCoords] = useState(null);
   const [duration, setDuration]       = useState('halfDay');
   const [categories, setCategories]   = useState(new Set(ALL_CATEGORIES));
+  const [cuisineFilter, setCuisineFilter]   = useState('');
+  const [dietaryFilters, setDietaryFilters] = useState(new Set());
   const [locationMode, setLocationMode] = useState('address'); // 'address' | 'gps'
   const [gpsLoading, setGpsLoading]   = useState(false);
   const [gpsError, setGpsError]       = useState('');
@@ -278,11 +280,23 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     setStep('generating');
     setSaved(false);
     try {
-      const result = await generateDayTrip(coords, duration, nextVariant, nextExcluded, categories);
+      const restaurantFilter = categories.has('restaurant')
+        ? { cuisine: cuisineFilter.trim(), dietary: dietaryFilters }
+        : null;
+      const result = await generateDayTrip(coords, duration, nextVariant, nextExcluded, categories, restaurantFilter);
       if (!result || !result.stops.length) {
         setGenError('No locations found nearby. Try a different city or wider time range.');
         setStep('input');
         return;
+      }
+      // Warn when restaurant filter matched nothing (trip still generated, just no restaurant stop)
+      if (result.restaurantFilterEmpty) {
+        const cuisine = restaurantFilter?.cuisine;
+        const diets   = restaurantFilter?.dietary?.size
+          ? [...restaurantFilter.dietary].join(' or ')
+          : '';
+        const parts = [cuisine, diets].filter(Boolean).join(' ');
+        setGenError(`No ${parts} restaurants found in this area — other stops included.`);
       }
       setTrip(result);
       setVariant(nextVariant);
@@ -600,25 +614,78 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               <div className="grid grid-cols-2 gap-1.5">
                 {CATEGORY_OPTIONS.map(({ key, emoji, label }) => {
                   const checked = categories.has(key);
+                  const isRestaurant = key === 'restaurant';
                   return (
-                    <label key={key}
-                      className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-all ${
-                        checked
-                          ? 'border-starlight-turquoise/50 bg-starlight-turquoise/10'
-                          : 'border-chrome-silver/15 opacity-50'
-                      }`}
-                    >
-                      <input type="checkbox" checked={checked}
-                        onChange={() => setCategories(prev => {
-                          const next = new Set(prev);
-                          checked ? next.delete(key) : next.add(key);
-                          return next;
-                        })}
-                        className="accent-starlight-turquoise w-3 h-3 flex-shrink-0"
-                      />
-                      <span className="text-sm flex-shrink-0">{emoji}</span>
-                      <span className="text-paper-white font-special-elite text-xs truncate">{label}</span>
-                    </label>
+                    <div key={key} className={isRestaurant && checked ? 'col-span-2' : ''}>
+                      <label
+                        className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-all w-full ${
+                          checked
+                            ? 'border-starlight-turquoise/50 bg-starlight-turquoise/10'
+                            : 'border-chrome-silver/15 opacity-50'
+                        } ${isRestaurant && checked ? 'rounded-b-none border-b-0' : ''}`}
+                      >
+                        <input type="checkbox" checked={checked}
+                          onChange={() => setCategories(prev => {
+                            const next = new Set(prev);
+                            checked ? next.delete(key) : next.add(key);
+                            return next;
+                          })}
+                          className="accent-starlight-turquoise w-3 h-3 flex-shrink-0"
+                        />
+                        <span className="text-sm flex-shrink-0">{emoji}</span>
+                        <span className="text-paper-white font-special-elite text-xs truncate">{label}</span>
+                      </label>
+
+                      {/* Restaurant sub-filters — only when checked */}
+                      {isRestaurant && checked && (
+                        <div className="border border-t-0 border-starlight-turquoise/50 bg-starlight-turquoise/5 rounded-b-lg px-3 py-2.5 space-y-2">
+                          {/* Cuisine text input */}
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-chrome-silver/50 text-xs">🔍</span>
+                            <input
+                              type="text"
+                              value={cuisineFilter}
+                              onChange={e => setCuisineFilter(e.target.value)}
+                              placeholder="Filter by cuisine (optional)"
+                              className="w-full bg-midnight-navy/60 border border-chrome-silver/20 rounded-md pl-7 pr-7 py-1.5 text-paper-white font-special-elite text-xs placeholder:text-chrome-silver/35 focus:outline-none focus:border-starlight-turquoise/60"
+                            />
+                            {cuisineFilter && (
+                              <button
+                                onClick={() => setCuisineFilter('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-chrome-silver/50 hover:text-chrome-silver text-xs leading-none"
+                              >×</button>
+                            )}
+                          </div>
+                          {/* Dietary checkboxes */}
+                          <div className="flex flex-wrap gap-x-3 gap-y-1">
+                            {[
+                              { key: 'vegan',        label: 'Vegan'        },
+                              { key: 'vegetarian',   label: 'Vegetarian'   },
+                              { key: 'gluten_free',  label: 'Gluten-free'  },
+                              { key: 'halal',        label: 'Halal'        },
+                              { key: 'kosher',       label: 'Kosher'       },
+                            ].map(({ key: dk, label: dl }) => {
+                              const dChecked = dietaryFilters.has(dk);
+                              return (
+                                <label key={dk} className="flex items-center gap-1.5 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={dChecked}
+                                    onChange={() => setDietaryFilters(prev => {
+                                      const next = new Set(prev);
+                                      dChecked ? next.delete(dk) : next.add(dk);
+                                      return next;
+                                    })}
+                                    className="accent-atomic-orange w-3 h-3"
+                                  />
+                                  <span className="text-chrome-silver font-special-elite text-xs">{dl}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   );
                 })}
               </div>
@@ -646,6 +713,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         {/* ══ STEP 3: RESULT ══ */}
         {step === 'result' && trip && activeTrip && (
           <div className="lr-fade">
+
+            {/* Restaurant filter notice */}
+            {genError && (
+              <div className="mx-4 mt-3 px-3 py-2 rounded-lg border border-atomic-orange/40 bg-atomic-orange/10">
+                <p className="text-atomic-orange font-special-elite text-xs text-center">{genError}</p>
+              </div>
+            )}
 
             {/* Map — uses activeTrip (checked stops only) */}
             <div className="h-56 md:h-72 w-full">

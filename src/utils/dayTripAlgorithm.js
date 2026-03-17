@@ -183,6 +183,66 @@ export const buildRoute = async (startCoords, stops) => {
   };
 };
 
+// ── Restaurant filtering ──────────────────────────────────────────────────────
+
+// Simple fuzzy match: substring OR Levenshtein ≤ 2 on individual tokens
+const levenshtein = (a, b) => {
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+  return dp[a.length][b.length];
+};
+
+const cuisineMatch = (restaurantCuisine, query) => {
+  if (!query) return true;
+  if (!restaurantCuisine) return false;
+  const q = query.toLowerCase().trim();
+  // OSM cuisine can be "italian;pizza" — split on semicolon, comma, slash
+  const parts = restaurantCuisine.toLowerCase().split(/[;,/]+/).map(s => s.trim()).filter(Boolean);
+  return parts.some(part => {
+    // Exact match
+    if (part === q) return true;
+    // Fuzzy match: allow ≤2 edits BUT only if similarity ≥ 80%
+    // (prevents "persian" matching "peruvian": dist=2 but similarity=75%)
+    const dist = levenshtein(part, q);
+    if (dist > 2) return false;
+    const similarity = 1 - dist / Math.max(part.length, q.length);
+    return similarity >= 0.8;
+  });
+};
+
+const DIETARY_KEYS = ['vegan', 'vegetarian', 'gluten_free', 'halal', 'kosher'];
+
+const dietaryMatch = (place, dietaryFilters) => {
+  if (!dietaryFilters || !dietaryFilters.size) return true;
+  // OR logic — any enabled dietary filter that matches
+  return [...dietaryFilters].some(diet =>
+    DIETARY_KEYS.includes(diet) && place[`diet_${diet}`]?.toLowerCase() === 'yes'
+  );
+};
+
+const filterRestaurants = (restaurants, restaurantFilter) => {
+  if (!restaurantFilter) return restaurants;
+  const { cuisine, dietary } = restaurantFilter;
+  const hasCuisine = Boolean(cuisine);
+  const hasDietary = dietary instanceof Set && dietary.size > 0;
+  if (!hasCuisine && !hasDietary) return restaurants;
+
+  return restaurants.filter(r => {
+    // Cuisine filter — independent; skip if no cuisine entered
+    if (hasCuisine && !cuisineMatch(r.cuisine, cuisine)) return false;
+    // Dietary filter — independent, OR logic; skip if no diet selected
+    if (hasDietary && !dietaryMatch(r, dietary)) return false;
+    return true;
+  });
+};
+
 // ── Main export ───────────────────────────────────────────────────────────────
 // Generates MORE stops than strictly needed so the user can choose their itinerary.
 // Stop selection rules:
@@ -193,7 +253,7 @@ export const buildRoute = async (startCoords, stops) => {
 // Google Places (New) API v1 type names only — invalid types cause silent batch failures.
 // Verified valid types: museum, art_gallery, zoo, aquarium, park, national_park,
 //   botanical_garden, restaurant, music_store, garden_center, observatory, planetarium
-export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set(), categories = null) => {
+export const generateDayTrip = async (startCoords, duration, variant = 0, excludedIds = new Set(), categories = null, restaurantFilter = null) => {
   // null means all enabled; otherwise only fetch/include what's in the Set
   const has = (cat) => !categories || categories.has(cat);
   const radius  = RADIUS_MILES[duration];
@@ -252,7 +312,12 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const musePool  = rotate(museums);
   const aquaPool  = rotate(aquariums);
   const parkPool  = rotate(nature);
-  const mealPool  = rotate(restaurants);
+  const filteredRestaurants = filterRestaurants(restaurants, restaurantFilter);
+  const mealPool  = rotate(filteredRestaurants);
+  // Track whether restaurant filter was active but returned nothing (for error messaging)
+  const restaurantFilterActive = restaurantFilter &&
+    (Boolean(restaurantFilter.cuisine) || (restaurantFilter.dietary instanceof Set && restaurantFilter.dietary.size > 0));
+  const restaurantFilterEmpty  = restaurantFilterActive && restaurants.length > 0 && filteredRestaurants.length === 0;
   const obsvPool  = rotate(observatory);
   const histPool  = rotate(historicSites);
   const gallPool  = rotate(artGalleries);
@@ -333,11 +398,12 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   );
 
   return {
-    stops:            ordered,
-    routeCoordinates: segments.flat(),
+    stops:                ordered,
+    routeCoordinates:     segments.flat(),
     segments,
-    schedule:         buildSchedule(ordered, segments),
+    schedule:             buildSchedule(ordered, segments),
     duration,
     startCoords,
+    restaurantFilterEmpty, // true when filter was set but no restaurants matched
   };
 };

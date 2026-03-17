@@ -139,7 +139,48 @@ const makeNearby = (collectionName, type, description, cachePrefix) =>
   };
 
 export const getNearbyMuseums       = makeNearby('museums',       'museum',      'Museum',           'fsmu');
-export const getNearbyRestaurants   = makeNearby('restaurants',   'restaurant',  'Restaurant',       'fsre');
+
+// Restaurants — like makeNearby but also returns cuisine + diet_* fields
+export const getNearbyRestaurants = async (lat, lng, radiusMiles = 5) => {
+  const key = _cacheKey('fsre', lat, lng, radiusMiles);
+  return _cached(key, async () => {
+    const latDelta = radiusMiles / 69;
+    try {
+      const q = query(
+        collection(db, 'restaurants'),
+        where('lat', '>=', lat - latDelta),
+        where('lat', '<=', lat + latDelta),
+      );
+      const snap = await getDocs(q);
+      return snap.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .map(b => ({
+          id:          b.id,
+          name:        b.name,
+          type:        'restaurant',
+          lat:         b.lat,
+          lng:         b.lng,
+          address:     [b.address, b.city, b.state].filter(Boolean).join(', ') || '',
+          phone:       b.phone   || '',
+          website:     b.website || '',
+          description: 'Restaurant',
+          source:      'firestore',
+          coords:      [b.lat, b.lng],
+          // cuisine / dietary fields — only present if stored in Firestore
+          cuisine:     b.cuisine     || '',
+          diet_vegan:       b.diet_vegan       || '',
+          diet_vegetarian:  b.diet_vegetarian  || '',
+          diet_gluten_free: b.diet_gluten_free || '',
+          diet_halal:       b.diet_halal       || '',
+          diet_kosher:      b.diet_kosher      || '',
+        }));
+    } catch (err) {
+      console.error('[Firestore] restaurants error:', err);
+      return [];
+    }
+  });
+};
 export const getNearbyParks         = makeNearby('parks',         'park',        'Park',             'fspa');
 export const getNearbyHistoricSites = makeNearby('historicSites', 'historicSite','Historic site',    'fshs');
 export const getNearbyArtGalleries  = makeNearby('artGalleries',  'artGallery',  'Art gallery',      'fsag');

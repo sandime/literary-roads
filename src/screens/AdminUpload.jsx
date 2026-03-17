@@ -239,8 +239,19 @@ const transformFeature = (feature, config, reasonCounts) => {
   const osmId    = (feature.id || p['@id'] || '').replace(/\//g, '_');
   const docId    = osmId || `osm_${lat.toFixed(6)}_${lng.toFixed(6)}`;
 
+  // Restaurant-specific fields (cuisine + dietary options from OSM tags)
+  const extra = {};
+  if (config.type === 'restaurant') {
+    const cuisine = (p['cuisine'] || '').trim();
+    if (cuisine) extra.cuisine = cuisine;
+    for (const diet of ['vegan', 'vegetarian', 'gluten_free', 'halal', 'kosher']) {
+      const val = (p[`diet:${diet}`] || '').toLowerCase();
+      if (val) extra[`diet_${diet}`] = val; // Firestore key: diet_vegan (no colon)
+    }
+  }
+
   return { docId, name, address, city, state, zipcode, lat, lng, phone, website,
-           type: config.type, source: 'openstreetmap' };
+           type: config.type, source: 'openstreetmap', ...extra };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
