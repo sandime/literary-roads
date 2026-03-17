@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackArrowIcon } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
 
 const FIREBASE_ERRORS = {
@@ -349,14 +350,13 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
         style={{
           position: 'relative', zIndex: 1, marginTop: '16px',
           background: 'transparent', border: 'none',
-          color: 'rgba(192,192,192,0.45)',
-          fontFamily: 'Special Elite, serif', fontSize: '13px',
-          cursor: 'pointer', transition: 'color .2s',
+          cursor: 'pointer', opacity: '0.5', transition: 'opacity .2s',
+          display: 'flex', alignItems: 'center',
         }}
-        onMouseEnter={(e) => e.currentTarget.style.color = '#40E0D0'}
-        onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(192,192,192,0.45)'}
+        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
       >
-        ← Back
+        <BackArrowIcon size={24} />
       </button>
 
     </div>

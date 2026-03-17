@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { doc, getDoc, updateDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
+import { SparkleIcon } from '../components/Icons';
 
 const MAX_FAVORITES = 5;
 
@@ -759,10 +760,10 @@ function BookCarouselCard({ book, onOpen, onRemove, uid }) {
 
 // ── Coming-soon sections ───────────────────────────────────────────────────
 const COMING_SOON = [
-  { emoji: '🧠', label: 'Literary Trivia',      desc: 'Test your knowledge of authors, novels, and hidden history.' },
-  { emoji: '📓', label: 'Reading Challenges',   desc: 'Road-trip themed reading lists and trackable challenges.' },
-  { emoji: '🗺️', label: 'Author Hometown Tours', desc: 'Self-guided walking tours of literary cities.' },
-  { emoji: '☕', label: 'Bookshop Guides',       desc: 'Curated independent bookshop picks by state.' },
+  { label: 'Literary Trivia',       desc: 'Test your knowledge of authors, novels, and hidden history.' },
+  { label: 'Reading Challenges',    desc: 'Road-trip themed reading lists and trackable challenges.' },
+  { label: 'Author Hometown Tours', desc: 'Self-guided walking tours of literary cities.' },
+  { label: 'Bookshop Guides',       desc: 'Curated independent bookshop picks by state.' },
 ];
 
 // ── Star icon ──────────────────────────────────────────────────────────────
@@ -1089,7 +1090,9 @@ export default function Resources({ onBack }) {
             color: '#40E0D0', letterSpacing: '0.06em', margin: 0,
             textShadow: '0 0 14px rgba(64,224,208,0.6)',
           }}>
-            🍟 HIGHWAY SNACKS
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <SparkleIcon size={20} /> HIGHWAY SNACKS
+            </span>
           </h1>
         </div>
 
@@ -1208,7 +1211,7 @@ export default function Resources({ onBack }) {
             gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
             gap: '12px',
           }}>
-            {COMING_SOON.map(({ emoji, label, desc }) => (
+            {COMING_SOON.map(({ label, desc }) => (
               <div key={label} style={{
                 background: 'rgba(255,255,255,0.02)',
                 border: '1px dashed rgba(64,224,208,0.2)',
@@ -1216,7 +1219,6 @@ export default function Resources({ onBack }) {
                 padding: '16px',
                 display: 'flex', flexDirection: 'column', gap: '8px',
               }}>
-                <div style={{ fontSize: '24px' }}>{emoji}</div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{
                     fontFamily: 'Bungee, sans-serif', fontSize: '11px',

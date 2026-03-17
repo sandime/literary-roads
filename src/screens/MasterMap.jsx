@@ -28,6 +28,7 @@ import HitchhikerTale from '../components/HitchhikerTale';
 import PostcardStudio from '../components/PostcardStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
+import { CarIcon, CameraIcon, ProfileIcon } from '../components/Icons';
 import TripProgressPanel from '../components/TripProgressPanel';
 import NavigateModal from '../components/NavigateModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -1773,7 +1774,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     onClick={() => { setShowJourneysMenu(false); onShowDayTrip?.(); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors border-b border-starlight-turquoise/20"
                   >
-                    <span className="text-base flex-shrink-0">🗺️</span>
                     <div>
                       <p className="text-paper-white font-bungee text-xs">DAY TRIPS</p>
                       <p className="text-chrome-silver/60 font-special-elite text-[10px]">Local literary loop</p>
@@ -1783,7 +1783,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     onClick={() => { setShowJourneysMenu(false); onShowFestivalTrip?.(); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors"
                   >
-                    <span className="text-base flex-shrink-0">🎪</span>
                     <div>
                       <p className="text-paper-white font-bungee text-xs">FESTIVAL TRIPS</p>
                       <p className="text-chrome-silver/60 font-special-elite text-[10px]">Plan around a festival</p>
@@ -1912,9 +1911,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     onMouseEnter={(e) => e.currentTarget.style.background='rgba(64,224,208,0.08)'}
                     onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
                   >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ flexShrink:0 }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
+                    <ProfileIcon size={14} style={{ flexShrink:0 }} />
                     VIEW PROFILE
                   </button>
                   <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
@@ -2280,8 +2277,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 >
                   <Popup>
                     <div style={{ fontFamily: 'Bungee, sans-serif', minWidth: '170px' }}>
-                      <p style={{ color: '#FF4E00', fontSize: '11px', marginBottom: '8px', letterSpacing: '0.05em' }}>
-                        🚗 {cars.length} TRAVELERS HERE
+                      <p style={{ color: '#FF4E00', fontSize: '11px', marginBottom: '8px', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <CarIcon size={14} /> {cars.length} TRAVELERS HERE
                       </p>
                       {cars.map(c => {
                         const isMe = c.userId === user?.uid;
@@ -2360,7 +2357,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             width: 'max-content', maxWidth: 'min(380px, calc(100vw - 32px))',
           }}
         >
-          <span style={{ fontSize: '20px' }}>🚗</span>
+          <CarIcon size={20} />
           <div>
             <p className="font-bungee" style={{ fontSize: '11px', color: '#FF4E00', letterSpacing: '0.05em' }}>
               BEEP BEEP!
@@ -2715,7 +2712,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   { id: 'info', label: 'INFO' },
                   { id: 'guestbook', label: 'GUESTBOOK' },
                   { id: 'tale', label: "HITCHHIKER'S TALE" },
-                  { id: 'postcard', label: '📸 POSTCARD' },
+                  { id: 'postcard', label: 'POSTCARD', icon: <CameraIcon size={11} /> },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -2728,7 +2725,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                       borderBottom: shelfTab === tab.id ? '2px solid #40E0D0' : '2px solid transparent',
                     }}
                   >
-                    {tab.label}
+                    {tab.icon
+                      ? <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>{tab.icon}{tab.label}</span>
+                      : tab.label}
                   </button>
                 ))}
               </div>
@@ -2920,8 +2919,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     }`}
                   >
                     {checkInLoading ? 'PARKING...' : !userCar
-                      ? '🚗 Choose a ride in Profile first'
-                      : `🚗 PARK HERE${carsHere.length > 0 ? ` · ${carsHere.length} here` : ''}`
+                      ? <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CarIcon size={14} /> Choose a ride in Profile first</span>
+                      : <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><CarIcon size={14} /> PARK HERE{carsHere.length > 0 ? ` · ${carsHere.length} here` : ''}</span>
                     }
                   </button>
                   {checkInError && (

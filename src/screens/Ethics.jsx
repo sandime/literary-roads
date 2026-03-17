@@ -1,3 +1,5 @@
+import { BackArrowIcon } from '../components/Icons';
+
 const PRINCIPLES = [
   {
     title: 'Be Kind.',
@@ -28,9 +30,9 @@ export default function Ethics({ onBack, onShowPrivacy }) {
         style={{ background: 'rgba(13,14,26,0.9)' }}>
         <button
           onClick={onBack}
-          className="text-starlight-turquoise hover:text-atomic-orange transition-colors font-special-elite text-sm mr-4"
+          className="mr-4 flex items-center hover:opacity-70 transition-opacity"
         >
-          ← Back
+          <BackArrowIcon size={24} />
         </button>
         <h1 className="font-bungee text-atomic-orange text-base md:text-xl tracking-wider"
           style={{ textShadow: '0 0 16px rgba(255,78,0,0.7)' }}>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { BackArrowIcon } from '../components/Icons';
 import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
@@ -570,10 +571,9 @@ export default function BookLog({ onBack }) {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <button
               onClick={onBack}
-              className="font-special-elite"
-              style={{ color: 'rgba(192,192,192,0.7)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
             >
-              ← Back
+              <BackArrowIcon size={24} />
             </button>
             <h1 className="font-bungee" style={{
               color: '#00D9FF', fontSize: '20px', letterSpacing: '0.08em',

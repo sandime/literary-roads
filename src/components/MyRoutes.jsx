@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ClosedBookIcon, CoffeeCupIcon } from './Icons';
 
 const MyRoutes = ({ savedRoutes, onLoad, onDelete, onRename, onShare }) => {
   const [renamingId, setRenamingId]         = useState(null);
@@ -85,18 +86,18 @@ const MyRoutes = ({ savedRoutes, onLoad, onDelete, onRename, onShare }) => {
           {/* Stop counts */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 text-xs font-special-elite">
             {route.bookstoreCount > 0 && (
-              <span className="text-atomic-orange">
-                📚 {route.bookstoreCount} bookstore{route.bookstoreCount !== 1 ? 's' : ''}
+              <span className="text-atomic-orange flex items-center gap-1">
+                <ClosedBookIcon size={14} /> {route.bookstoreCount} bookstore{route.bookstoreCount !== 1 ? 's' : ''}
               </span>
             )}
             {route.cafeCount > 0 && (
-              <span className="text-starlight-turquoise">
-                ☕ {route.cafeCount} café{route.cafeCount !== 1 ? 's' : ''}
+              <span className="text-starlight-turquoise flex items-center gap-1">
+                <CoffeeCupIcon size={14} /> {route.cafeCount} café{route.cafeCount !== 1 ? 's' : ''}
               </span>
             )}
             {route.landmarkCount > 0 && (
               <span style={{ color: '#39FF14' }}>
-                🌲 {route.landmarkCount} landmark{route.landmarkCount !== 1 ? 's' : ''}
+                {route.landmarkCount} landmark{route.landmarkCount !== 1 ? 's' : ''}
               </span>
             )}
           </div>

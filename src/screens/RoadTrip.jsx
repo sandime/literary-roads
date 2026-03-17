@@ -2,9 +2,9 @@ import { useState } from 'react';
 import MyRoutes from '../components/MyRoutes';
 
 const TYPE_BADGE = {
-  bookstore: '📚 BOOKSTORE', cafe: '☕ COFFEE SHOP', landmark: '🌲 LANDMARK',
-  drivein: '🎬 DRIVE-IN', festival: '🎪 FESTIVAL', museum: '🏛️ MUSEUM',
-  park: '🌿 PARK', restaurant: '🍽️ RESTAURANT',
+  bookstore: 'BOOKSTORE', cafe: 'COFFEE SHOP', landmark: 'LANDMARK',
+  drivein: 'DRIVE-IN', festival: 'FESTIVAL', museum: 'MUSEUM',
+  park: 'PARK', restaurant: 'RESTAURANT',
 };
 
 const StopCard = ({ item, onSelect, onRemove, badge }) => (
@@ -138,7 +138,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
               </svg>
               <p className="text-paper-white font-bungee text-xl mb-2">NO STOPS YET</p>
               <p className="text-chrome-silver font-special-elite text-sm max-w-xs">
-                Tap any pin on the map, then tap "💾 SAVE TO MY ROAD TRIP" to bookmark it here.
+                Tap any pin on the map, then tap "SAVE TO MY ROAD TRIP" to bookmark it here.
               </p>
               <button
                 onClick={onClose}
@@ -154,11 +154,11 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
               {savedStops.length > 0 && (
                 <>
                   <p className="text-starlight-turquoise font-bungee text-xs tracking-widest pt-1 pb-0.5">
-                    💾 SAVED PLACES ({savedStops.length})
+                    SAVED PLACES ({savedStops.length})
                   </p>
                   {savedStops.map((item) => (
                     <StopCard key={item.id} item={item} onSelect={onSelectStop}
-                      onRemove={() => onRemoveSaved?.(item.id)} badgeColor="starlight-turquoise" badge="💾" />
+                      onRemove={() => onRemoveSaved?.(item.id)} badgeColor="starlight-turquoise" badge="★" />
                   ))}
                 </>
               )}

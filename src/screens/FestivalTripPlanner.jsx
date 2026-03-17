@@ -19,11 +19,11 @@ L.Icon.Default.mergeOptions({
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const ALL_STATES = ['AK','AL','AR','AZ','CA','CO','CT','DC','DE','FL','GA','HI','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY'];
 const TYPE_LABELS = {
-  general:            { label: '📚 Book Festivals',        color: '#40E0D0' },
-  poetry:             { label: '🎭 Poetry & Spoken Word',  color: '#B044FB' },
-  genre:              { label: '🔍 Genre Specific',        color: '#FF4E00' },
-  'writers-conference':{ label: '✍️ Writers\' Conferences', color: '#F5F5DC' },
-  children:           { label: '📖 Children\'s & YA',      color: '#FFB347' },
+  general:            { label: 'Book Festivals',        color: '#40E0D0' },
+  poetry:             { label: 'Poetry & Spoken Word',  color: '#B044FB' },
+  genre:              { label: 'Genre Specific',        color: '#FF4E00' },
+  'writers-conference':{ label: 'Writers\' Conferences', color: '#F5F5DC' },
+  children:           { label: 'Children\'s & YA',      color: '#FFB347' },
 };
 const SIZE_BADGES = {
   major:    { label: 'MAJOR',    bg: 'bg-atomic-orange/20 border-atomic-orange/60',     text: 'text-atomic-orange' },
@@ -48,13 +48,13 @@ const makeStopMarker = (num, color = '#FF4E00') => L.divIcon({
 
 const makeFestivalMarker = () => L.divIcon({
   className: '',
-  html: `<div style="width:32px;height:32px;border-radius:50%;background:#B044FB;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(176,68,251,0.8)">🎪</div>`,
+  html: `<div style="width:32px;height:32px;border-radius:50%;background:#B044FB;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(176,68,251,0.8)">★</div>`,
   iconSize: [32,32], iconAnchor: [16,16],
 });
 
 const makeStartMarker = () => L.divIcon({
   className: '',
-  html: `<div style="width:28px;height:28px;border-radius:50%;background:#40E0D0;border:2px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 10px rgba(64,224,208,0.7)">🚗</div>`,
+  html: `<div style="width:28px;height:28px;border-radius:50%;background:#40E0D0;border:2px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 10px rgba(64,224,208,0.7)">▶</div>`,
   iconSize: [28,28], iconAnchor: [14,14],
 });
 
@@ -522,7 +522,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const STEP_ORDER  = ['filter','select','preferences','generating','itinerary'];
   const stepIdx     = STEP_ORDER.indexOf(step);
 
-  const TYPE_STOP_ICON = { festival:'🎪', bookstore:'📚', cafe:'☕', travel:'🚗', arrive:'🏨', landmark:'🌲', restaurant:'🍽️' };
+  const TYPE_STOP_ICON = { festival:'★', bookstore:'◈', cafe:'◉', travel:'▶', arrive:'⌂', landmark:'◆', restaurant:'◇' };
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
@@ -648,7 +648,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 <div className="flex-1 flex gap-2 flex-wrap">
                   {selectedFests.map(f => (
                     <span key={f.id} className="bg-starlight-turquoise/10 border border-starlight-turquoise/40 text-starlight-turquoise font-bungee text-xs px-3 py-1 rounded-full flex items-center gap-1.5">
-                      🎪 {f.name.length > 22 ? f.name.slice(0, 22) + '…' : f.name}
+                      {f.name.length > 22 ? f.name.slice(0, 22) + '…' : f.name}
                       <button onClick={() => toggleFestival(f)} className="hover:text-atomic-orange">✕</button>
                     </span>
                   ))}
@@ -683,7 +683,6 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
             {filteredFests.length === 0 ? (
               <div className="px-4 py-16 text-center">
-                <div className="text-5xl mb-4">🎪</div>
                 <p className="text-chrome-silver font-bungee text-sm">No festivals match your filters.</p>
                 <button onClick={() => setStep('filter')} className="mt-4 text-starlight-turquoise font-special-elite text-sm underline">
                   Adjust filters
@@ -756,7 +755,6 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             <div className="bg-starlight-turquoise/5 border border-starlight-turquoise/30 rounded-xl p-3 space-y-1">
               {selectedFests.map(f => (
                 <div key={f.id} className="flex items-center gap-2">
-                  <span className="text-base">🎪</span>
                   <span className="text-paper-white font-bungee text-xs">{f.name}</span>
                   <span className="text-chrome-silver/60 font-special-elite text-xs ml-auto">{f.city}, {f.state}</span>
                 </div>
@@ -842,12 +840,12 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { key: 'bookstores', label: '📚 Bookstores' },
-                  { key: 'cafes',      label: '☕ Coffee Shops' },
-                  { key: 'landmarks',  label: '🌲 Landmarks' },
-                  { key: 'restaurants',label: '🍽️ Restaurants' },
-                  { key: 'museums',    label: '🏛️ Museums' },
-                  { key: 'parks',      label: '🌿 Parks' },
+                  { key: 'bookstores', label: 'Bookstores' },
+                  { key: 'cafes',      label: 'Coffee Shops' },
+                  { key: 'landmarks',  label: 'Landmarks' },
+                  { key: 'restaurants',label: 'Restaurants' },
+                  { key: 'museums',    label: 'Museums' },
+                  { key: 'parks',      label: 'Parks' },
                 ].map(({ key, label }) => (
                   <label key={key}
                     className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all ${
@@ -898,7 +896,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           <div className="flex flex-col items-center justify-center h-full py-24 lr-fade">
             <div className="relative mb-6">
               <div className="w-20 h-20 border-4 border-starlight-turquoise/30 border-t-starlight-turquoise rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center text-3xl">🎪</div>
+              <div className="absolute inset-0 flex items-center justify-center text-3xl">★</div>
             </div>
             <p className="text-starlight-turquoise font-bungee text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
               BUILDING YOUR JOURNEY…
@@ -941,7 +939,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             <div className="px-4 pt-4 flex gap-3 overflow-x-auto pb-1">
               {itinerary.festivals.map(f => (
                 <div key={f.id} className="flex-shrink-0 bg-[#B044FB]/10 border border-[#B044FB]/40 rounded-xl px-4 py-2.5 min-w-[180px]">
-                  <p className="text-[#B044FB] font-bungee text-xs">🎪 FESTIVAL</p>
+                  <p className="text-[#B044FB] font-bungee text-xs">FESTIVAL</p>
                   <p className="text-paper-white font-bungee text-sm leading-tight mt-0.5">{f.name}</p>
                   <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5">{f.city}, {f.state} · {f.typicalMonth}</p>
                 </div>
@@ -1014,7 +1012,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg flex items-center justify-center gap-2"
                 style={{ boxShadow: '0 0 20px rgba(255,78,0,0.4)' }}
               >
-                🗺️ VIEW ON LITERARY MAP
+                VIEW ON LITERARY MAP
               </button>
 
               {saved ? (

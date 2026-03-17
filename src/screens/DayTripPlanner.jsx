@@ -71,7 +71,7 @@ const makeStopMarker = (num) => L.divIcon({
 
 const makeStartMarker = () => L.divIcon({
   className: '',
-  html: `<div style="width:30px;height:30px;border-radius:50%;background:#40E0D0;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 10px rgba(64,224,208,0.7)">🚗</div>`,
+  html: `<div style="width:30px;height:30px;border-radius:50%;background:#40E0D0;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 10px rgba(64,224,208,0.7);color:#1A1B2E;font-family:Bungee,sans-serif;font-weight:bold">▶</div>`,
   iconSize:   [30, 30],
   iconAnchor: [15, 15],
 });

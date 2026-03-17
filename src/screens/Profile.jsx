@@ -10,6 +10,7 @@ import { subscribeToUserBadges, checkAndAwardBadges, checkAndAwardFoundersBadge,
 import { BADGE_COUNT } from '../utils/badgeDefinitions';
 import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { deleteAccount } from '../utils/deleteAccount';
+import { BackArrowIcon } from '../components/Icons';
 import {
   QUEST_PRESETS,
   computeQuestStats,
@@ -518,7 +519,7 @@ function QuestHistoryModal({ history, onClose }) {
                   </span>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '14px' }}>{h.completed ? '🏆' : '📚'}</span>
+                  <span style={{ fontSize: '14px' }}>{h.completed ? '🏆' : ''}</span>
                   <span className="font-bungee" style={{ marginLeft: '6px', fontSize: '11px', color: h.completed ? '#FFD700' : 'rgba(192,192,192,0.5)' }}>
                     {h.percentComplete}%
                   </span>
@@ -758,8 +759,8 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
     <div className="flex flex-col items-center justify-start px-4 py-8 w-full">
       {/* Header */}
       <div className="w-full max-w-lg flex items-center justify-between mb-6">
-        <button onClick={onBack} className="font-special-elite text-chrome-silver hover:text-starlight-turquoise text-sm transition-colors">
-          ← Back
+        <button onClick={onBack} className="flex items-center hover:opacity-70 transition-opacity">
+          <BackArrowIcon size={24} />
         </button>
         <h1 className="font-bungee text-xl md:text-2xl" style={{ color: '#40E0D0', textShadow: '0 0 15px rgba(64,224,208,0.7)' }}>
           TRAVELER'S LOG
@@ -801,13 +802,12 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
           </p>
           <div className="flex-1 space-y-2 mb-4">
             {[
-              { emoji: '📚', value: travelStats?.bookstoresVisited ?? 0, label: 'Bookstores Visited',   color: '#FF4E00' },
-              { emoji: '☕', value: travelStats?.cafesVisited       ?? 0, label: 'Coffee Shops',        color: '#FF4E00' },
-              { emoji: '🎪', value: travelStats?.festivalsAttended  ?? 0, label: 'Festivals Attended',  color: '#FF4E00' },
-              { emoji: '🗺️', value: travelStats?.statesExplored    ?? 0, label: 'States Explored',     color: '#FF4E00' },
-            ].map(({ emoji, value, label, color }) => (
+              { value: travelStats?.bookstoresVisited ?? 0, label: 'Bookstores Visited',   color: '#FF4E00' },
+              { value: travelStats?.cafesVisited       ?? 0, label: 'Coffee Shops',        color: '#FF4E00' },
+              { value: travelStats?.festivalsAttended  ?? 0, label: 'Festivals Attended',  color: '#FF4E00' },
+              { value: travelStats?.statesExplored    ?? 0, label: 'States Explored',     color: '#FF4E00' },
+            ].map(({ value, label, color }) => (
               <div key={label} className="flex items-center gap-2">
-                <span style={{ fontSize: '0.95rem', flexShrink: 0, width: '1.25rem', textAlign: 'center' }}>{emoji}</span>
                 <span className="font-bungee text-sm" style={{ color, textShadow: `0 0 6px ${color}60`, minWidth: '22px' }}>
                   {value}
                 </span>
@@ -837,12 +837,11 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
           </p>
           <div className="flex-1 space-y-2 mb-4">
             {[
-              { emoji: '📖', value: readingStats.booksRead, label: 'Books Read',       color: '#40E0D0' },
-              { emoji: '⭐', value: readingStats.fiveCat,   label: 'Five-Cat Books',   color: '#40E0D0' },
-              { emoji: '🎲', value: readingStats.nextReads, label: 'Next Reads Saved', color: '#40E0D0' },
-            ].map(({ emoji, value, label, color }) => (
+              { value: readingStats.booksRead, label: 'Books Read',       color: '#40E0D0' },
+              { value: readingStats.fiveCat,   label: 'Five-Cat Books',   color: '#40E0D0' },
+              { value: readingStats.nextReads, label: 'Next Reads Saved', color: '#40E0D0' },
+            ].map(({ value, label, color }) => (
               <div key={label} className="flex items-center gap-2">
-                <span style={{ fontSize: '0.95rem', flexShrink: 0, width: '1.25rem', textAlign: 'center' }}>{emoji}</span>
                 <span className="font-bungee text-sm" style={{ color, textShadow: `0 0 6px ${color}60`, minWidth: '22px' }}>
                   {value}
                 </span>

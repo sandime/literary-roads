@@ -446,22 +446,22 @@ export default function PostcardStudio({ location }) {
             <>
               <button onClick={() => cameraRef.current?.click()} className="font-bungee w-full py-3 rounded-xl"
                 style={{ ...btnPrimary, fontSize: '13px', letterSpacing: '0.06em' }}>
-                📸 TAKE PHOTO
+                TAKE PHOTO
               </button>
               <button onClick={() => fileRef.current?.click()} className="font-bungee w-full py-3 rounded-xl"
                 style={{ ...btnOutlineTurq, fontSize: '13px', letterSpacing: '0.06em' }}>
-                🖼️ CHOOSE FROM GALLERY
+                CHOOSE FROM GALLERY
               </button>
             </>
           ) : (
             <>
               <button onClick={startWebcam} className="font-bungee w-full py-3 rounded-xl"
                 style={{ ...btnPrimary, fontSize: '13px', letterSpacing: '0.06em' }}>
-                📸 USE WEBCAM
+                USE WEBCAM
               </button>
               <button onClick={() => fileRef.current?.click()} className="font-bungee w-full py-3 rounded-xl"
                 style={{ ...btnOutlineTurq, fontSize: '13px', letterSpacing: '0.06em' }}>
-                🖼️ UPLOAD PHOTO
+                UPLOAD PHOTO
               </button>
             </>
           )}
@@ -490,7 +490,7 @@ export default function PostcardStudio({ location }) {
           </button>
           <button onClick={captureWebcam} className="font-bungee rounded-xl flex-1"
             style={{ ...btnPrimary, fontSize: '13px', letterSpacing: '0.06em', padding: '10px' }}>
-            📸 CAPTURE
+            CAPTURE
           </button>
         </div>
       </div>
@@ -654,7 +654,7 @@ export default function PostcardStudio({ location }) {
             className="font-bungee w-full py-3 rounded-xl"
             style={{ ...btnPrimary, fontSize: '13px', letterSpacing: '0.06em' }}
           >
-            📸 TAKE ANOTHER PHOTO
+            TAKE ANOTHER PHOTO
           </button>
 
           {/* Done */}
@@ -673,11 +673,11 @@ export default function PostcardStudio({ location }) {
             <button onClick={() => { if (compositeUrl) URL.revokeObjectURL(compositeUrl); setCompositeUrl(null); setPhase('adjust'); }}
               className="font-bungee rounded-xl"
               style={{ ...btnOutlineGray, fontSize: '10px', padding: '10px 10px', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-              ✏️ ADJUST
+              ADJUST
             </button>
             <button onClick={changePick} className="font-bungee rounded-xl"
               style={{ background: 'transparent', border: '1.5px solid rgba(64,224,208,0.35)', color: 'rgba(64,224,208,0.65)', cursor: 'pointer', fontSize: '10px', padding: '10px 10px', letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>
-              🎨 FRAME
+              FRAME
             </button>
             <button onClick={handleShare} disabled={sharing} className="font-bungee flex-1 rounded-xl"
               style={{
@@ -686,7 +686,7 @@ export default function PostcardStudio({ location }) {
                 boxShadow: sharing ? 'none' : '0 0 18px rgba(64,224,208,0.5)',
                 border: 'none', cursor: sharing ? 'default' : 'pointer', padding: '10px 8px',
               }}>
-              {sharing ? 'SHARING...' : '📤 SHARE'}
+              {sharing ? 'SHARING...' : 'SHARE'}
             </button>
           </div>
 

@@ -1,3 +1,5 @@
+import { BackArrowIcon } from '../components/Icons';
+
 // ── Privacy Policy ───────────────────────────────────────────────────────────
 
 const SECTIONS = [
@@ -177,8 +179,8 @@ export default function PrivacyPolicy({ onBack }) {
       <div className="flex-shrink-0 flex items-center px-4 py-4 border-b-2 border-starlight-turquoise"
         style={{ background: 'rgba(13,14,26,0.95)' }}>
         <button onClick={onBack}
-          className="text-starlight-turquoise hover:text-atomic-orange transition-colors font-special-elite text-sm mr-4">
-          ← Back
+          className="mr-4 flex items-center hover:opacity-70 transition-opacity">
+          <BackArrowIcon size={24} />
         </button>
         <h1 className="font-bungee text-starlight-turquoise text-base md:text-xl tracking-wider"
           style={{ textShadow: '0 0 16px rgba(64,224,208,0.7)' }}>

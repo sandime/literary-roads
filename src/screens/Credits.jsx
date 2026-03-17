@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { BackArrowIcon } from '../components/Icons';
 
 // ── Starburst firework canvas animation ───────────────────────────────────────
 function FireworksCanvas() {
@@ -166,9 +167,9 @@ export default function Credits({ onBack }) {
             marginBottom: '28px',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <button onClick={onBack} className="font-special-elite"
-                style={{ color: 'rgba(192,192,192,0.7)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
-                ← Back
+              <button onClick={onBack}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+                <BackArrowIcon size={24} />
               </button>
               <h1 className="font-bungee" style={{
                 color: '#FFD700', fontSize: '18px', letterSpacing: '0.08em',
@@ -205,7 +206,7 @@ export default function Credits({ onBack }) {
           </div>
 
           {/* Sections */}
-          <Section title="⚡ APIs & SERVICES" color="#40E0D0" items={[
+          <Section title="APIs & SERVICES" color="#40E0D0" items={[
             { name: 'Google Places API',      desc: 'Location discovery and search' },
             { name: 'Google Books API',        desc: 'Book search and recommendations' },
             { name: 'Mapbox',                  desc: 'Mapping, routing, and navigation' },
@@ -214,19 +215,19 @@ export default function Credits({ onBack }) {
             { name: 'OpenAI Moderation API',   desc: 'Content safety and moderation' },
           ]} />
 
-          <Section title="📚 DATA SOURCES" color="#FF4E00" items={[
+          <Section title="DATA SOURCES" color="#FF4E00" items={[
             { name: 'American Library Association', desc: 'Literary Landmarks registry' },
             { name: 'Open Library',                  desc: 'Book metadata and information' },
           ]} />
 
-          <Section title="🎨 DESIGN & ASSETS" color="#FFD700" items={[
+          <Section title="DESIGN & ASSETS" color="#FFD700" items={[
             { name: 'Microsoft Copilot', desc: 'Frame and icon design generation' },
             { name: 'Photopea',          desc: 'Image editing and processing' },
             { name: 'Remove.bg',         desc: 'Background removal' },
             { name: 'Gemini',            desc: 'Badge and emoji design generation' },
           ]} />
 
-          <Section title="🛠️ DEVELOPMENT TOOLS" color="#39FF14" items={[
+          <Section title="DEVELOPMENT TOOLS" color="#39FF14" items={[
             { name: 'Claude (Anthropic)', desc: 'AI development assistant' },
             { name: 'React',              desc: 'UI framework' },
             { name: 'Vite',               desc: 'Build tool and dev server' },

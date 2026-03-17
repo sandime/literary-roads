@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BackArrowIcon } from '../components/Icons';
 import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -207,9 +208,9 @@ export default function About({ onBack }) {
         padding: '14px 16px 12px',
       }}>
         <div style={{ maxWidth: '640px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <button onClick={onBack} className="font-special-elite"
-            style={{ color: 'rgba(192,192,192,0.7)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px' }}>
-            ← Back
+          <button onClick={onBack}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
+            <BackArrowIcon size={24} />
           </button>
           <h1 className="font-bungee" style={{
             color: '#40E0D0', fontSize: '16px', letterSpacing: '0.1em',
