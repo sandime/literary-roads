@@ -135,12 +135,43 @@ const COLLECTIONS = {
     icon: '🏰',
     type: 'historicSite',
     presetFiles: [],
-    isValid: (name) => {
+    isValid: (name, props) => {
       if (!name) return false;
-      const l = name.toLowerCase();
-      return ['historic','historical','heritage','landmark','monument','memorial',
-              'battlefield','fort ','mansion','birthplace','abbey',
-              'cathedral','castle','ruins'].some(k => l.includes(k));
+      const h = (props?.historic  || '').toLowerCase().trim();
+      const t = (props?.tourism   || '').toLowerCase().trim();
+      const hg = (props?.heritage || '').toLowerCase().trim();
+
+      // Exclude low-significance OSM historic values
+      const EXCLUDE_HISTORIC = new Set([
+        'wayside_shrine','wayside_cross','tomb','gravestone',
+        'milestone','boundary_stone','railway','locomotive','ship','aircraft',
+      ]);
+      if (h && EXCLUDE_HISTORIC.has(h)) return false;
+
+      // Accept any meaningful OSM historic=* tag
+      const INCLUDE_HISTORIC = new Set([
+        'yes','monument','memorial','castle','fort','fortress','tower','palace',
+        'manor','mansion','house','building','farm','barn','mill','mine',
+        'battlefield','archaeological_site','ruins','ruin','abbey','monastery',
+        'church','cathedral','temple','synagogue','mosque',
+        'bridge','aqueduct','lighthouse','lock','canal',
+        'prison','jail','courthouse','school','hospital',
+        'estate','plantation','settlement','village','district',
+        'charcoal_pile','kiln','furnace',
+      ]);
+      if (h && INCLUDE_HISTORIC.has(h)) return true;
+
+      // Accept any heritage designation (heritage=*, heritage:operator=*)
+      if (hg) return true;
+      if (props?.['heritage:operator']) return true;
+
+      // Accept tourism=attraction or tourism=museum when also tagged historic
+      if (h && (t === 'attraction' || t === 'museum')) return true;
+
+      // Accept any remaining non-empty historic tag not explicitly excluded above
+      if (h && h !== '') return true;
+
+      return false;
     },
   },
   aquariums: {

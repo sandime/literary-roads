@@ -5,16 +5,22 @@ import {
 } from 'firebase/firestore';
 
 export const CAR_TYPES = {
-  convertible: { label: 'Classic Convertible', file: 'car-icon-convertible.png'  },
-  rocket:      { label: 'Rocket Coupe',        file: 'car-icon-black-fins.png'   },
-  woody:       { label: 'Woody Wagon',         file: 'car-icon-woody.png'        },
-  bookbus:     { label: 'Book Bus',            file: 'car-icon-bookbus.png'      },
-  truck:       { label: 'Road Truck',          file: 'car-icon-truck.png'        },
-  ghia:        { label: 'Karmann Ghia',        file: 'car-icon-ghia.png'         },
-  pinkmoto:    { label: 'Pink Moto',           file: 'car-icon-pink-moto.png'    },
-  pinkstud:    { label: 'Pink Studebaker',     file: 'car-icon-pink-stud.png'    },
-  creamstud:   { label: 'Cream Studebaker',    file: 'car-icon-cream-stud.png'   },
-  orangevw:    { label: 'Orange VW Bus',       file: 'car-icon-orange-vw.png'    },
+  convertible:    { label: 'Classic Convertible', file: 'car-icon-convertible.png'      },
+  rocket:         { label: 'Rocket Coupe',        file: 'car-icon-black-fins.png'       },
+  woody:          { label: 'Woody Wagon',         file: 'car-icon-woody.png'            },
+  bookbus:        { label: 'Book Bus',            file: 'car-icon-bookbus.png'          },
+  truck:          { label: 'Road Truck',          file: 'car-icon-truck.png'            },
+  ghia:           { label: 'Karmann Ghia',        file: 'car-icon-ghia.png'            },
+  pinkmoto:       { label: 'Pink Moto',           file: 'car-icon-pink-moto.png'        },
+  pinkstud:       { label: 'Pink Studebaker',     file: 'car-icon-pink-stud.png'        },
+  creamstud:      { label: 'Cream Studebaker',    file: 'car-icon-cream-stud.png'       },
+  orangevw:       { label: 'Orange VW Bus',       file: 'car-icon-orange-vw.png'        },
+  bikepurple:     { label: 'Bike',                file: 'car-icon-bikepurple.png'       },
+  busgreen:       { label: 'Bus',                 file: 'car-icon-busgreen.png'         },
+  ghiapink:       { label: 'Ghia - Pink',         file: 'car-icon-ghiapink.png'         },
+  wheelchairgreen:{ label: 'Wheelchair',          file: 'car-icon-wheelchairgreen.png'  },
+  scooterred:     { label: 'Motor Scooter',       file: 'car-icon-scooterred.png'       },
+  scooteryellow:  { label: 'Foot Scooter',        file: 'car-icon-scooteryellow.png'    },
 };
 
 // encodeURIComponent handles filenames with spaces (e.g. "car-icon-pink moto.png")

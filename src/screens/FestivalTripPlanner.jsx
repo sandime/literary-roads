@@ -526,7 +526,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="w-full bg-midnight-navy flex flex-col" style={{ height:'100dvh', minHeight:'100vh' }}>
+    <div className="w-full bg-midnight-navy flex flex-col" style={{ height:'100dvh', minHeight:'100vh', overflow:'hidden' }}>
       <style>{`
         @keyframes lr-fade-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
         .lr-fade { animation: lr-fade-in 0.3s ease; }
@@ -571,11 +571,17 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto" style={{ background: 'radial-gradient(ellipse at 20% 10%, rgba(176,68,251,0.04) 0%, transparent 45%), radial-gradient(ellipse at 80% 85%, rgba(64,224,208,0.04) 0%, transparent 45%)' }}>
+      <div className="flex-1 overflow-y-auto"
+        style={{
+          minHeight: 0,
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          background: 'radial-gradient(ellipse at 20% 10%, rgba(176,68,251,0.04) 0%, transparent 45%), radial-gradient(ellipse at 80% 85%, rgba(64,224,208,0.04) 0%, transparent 45%)',
+        }}>
 
         {/* ══ STEP 1: FILTER ══════════════════════════════════════════════════ */}
         {step === 'filter' && (
-          <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade pb-32">
+          <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade" style={{ paddingBottom: 160 }}>
 
             {/* Festival type */}
             <div>
@@ -749,7 +755,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
         {/* ══ STEP 3: PREFERENCES ═════════════════════════════════════════════ */}
         {step === 'preferences' && (
-          <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade pb-32">
+          <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade" style={{ paddingBottom: 160 }}>
 
             {/* Selected festivals summary */}
             <div className="bg-starlight-turquoise/5 border border-starlight-turquoise/30 rounded-xl p-3 space-y-1">
