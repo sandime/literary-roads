@@ -279,12 +279,34 @@ const transformFeature = (feature, config, reasonCounts) => {
     return null;
   }
 
-  const houseNum = (p['addr:housenumber'] || '').trim();
-  const street   = (p['addr:street']      || '').trim();
-  const address  = [houseNum, street].filter(Boolean).join(' ') || null;
-  const city     = (p['addr:city']     || '').trim() || null;
-  const state    = (p['addr:state']    || '').trim() || null;
-  const zipcode  = (p['addr:postcode'] || '').trim() || null;
+  // CITY — standard → TIGER → is_in fallbacks
+  let city = (p['addr:city'] || '').trim();
+  if (!city && p['tiger:county']) city = p['tiger:county'].split(', ')[0].trim();
+  if (!city) city = (p['is_in:city'] || p['is_in:municipality'] || '').trim();
+  city = city || null;
+
+  // STATE — standard → TIGER → is_in fallbacks
+  let state = (p['addr:state'] || '').trim();
+  if (!state && p['tiger:county']) state = (p['tiger:county'].split(', ')[1] || '').trim();
+  if (!state) state = (p['is_in:state'] || p['gnis:state_name'] || '').trim();
+  state = state || null;
+
+  // STREET ADDRESS — standard OSM → TIGER → addr:full
+  let address = null;
+  if (p['addr:street']) {
+    const houseNum = (p['addr:housenumber'] || '').trim();
+    address = [houseNum, p['addr:street'].trim()].filter(Boolean).join(' ');
+  }
+  if (!address && p['tiger:name_base']) {
+    const prefix = (p['tiger:name_direction_prefix'] || '').trim();
+    const base   = (p['tiger:name_base'] || '').trim();
+    const suffix = (p['tiger:name_type'] || '').trim();
+    address = [prefix, base, suffix].filter(Boolean).join(' ') || null;
+  }
+  if (!address) address = (p['addr:full'] || p['address'] || '').trim() || null;
+
+  // ZIPCODE — standard → TIGER left/right
+  const zipcode = (p['addr:postcode'] || p['tiger:zip_left'] || p['tiger:zip_right'] || '').trim() || null;
   const phone    = (p['addr:phone'] || p['phone'] || p['contact:phone'] || '').trim() || null;
   const website  = (p['website'] || p['contact:website'] || p['url'] || '').trim() || null;
   const osmId    = (feature.id || p['@id'] || '').replace(/\//g, '_');
@@ -301,8 +323,13 @@ const transformFeature = (feature, config, reasonCounts) => {
     }
   }
 
-  return { docId, name, address, city, state, zipcode, lat, lng, phone, website,
-           type: config.type, source: 'openstreetmap', ...extra };
+  const result = { docId, name, address, city, state, zipcode, lat, lng, phone, website,
+                   type: config.type, source: 'openstreetmap', ...extra };
+  // DEBUG — remove after verifying addresses are populated
+  if (address || city || state) {
+    console.log('[transform] addr sample:', { name, address, city, state, zipcode });
+  }
+  return result;
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
