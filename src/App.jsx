@@ -165,8 +165,9 @@ function AppInner() {
     setScreen('privacy');
   };
 
-  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops }) => {
+  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops, selectedStates: _ignored }) => {
     setSelectedStates([]);
+    setPreviousScreen(screen);
     const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [] };
     if (route?.length > 0) {
       const lats = route.map(p => p[0]);
@@ -258,6 +259,11 @@ function AppInner() {
           onShowBadges={handleShowBadges}
           onShowPrivacy={handleShowPrivacy}
           routeStateRef={routeStateRef}
+          onBackToPlanner={
+            previousScreen === 'festivalTrip' ? handleShowFestivalTrip :
+            previousScreen === 'dayTripPlanner' ? handleShowDayTrip :
+            undefined
+          }
         />
       )}
       {screen === 'dayTripPlanner' && (

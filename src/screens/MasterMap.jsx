@@ -727,7 +727,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -1709,6 +1709,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
           {/* Left group: Home + route actions */}
           <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            {onBackToPlanner && (
+              <button onClick={onBackToPlanner} title="Back to planner"
+                className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
             <button onClick={onHome} title="Home"
               className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >

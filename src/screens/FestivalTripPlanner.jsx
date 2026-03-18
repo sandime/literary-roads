@@ -4,8 +4,13 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
 import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
-import { searchNearbyPlaces } from '../utils/nearbySearch';
 import { saveRoute } from '../utils/savedRoutes';
+import {
+  getNearbyBookstores, getNearbyCoffeeShops, getNearbyLibraries,
+  getNearbyMuseums, getNearbyParks, getNearbyHistoricSites,
+  getNearbyArtGalleries, getNearbyObservatories, getNearbyAquariums,
+  getNearbyTheaters, getNearbyRestaurants, getNearbyDriveIns,
+} from '../utils/firestorePlaces';
 import festivalsData from '../data/literaryFestivals.json';
 import {
   PinIcon, StarburstIcon,
@@ -342,22 +347,64 @@ const WaypointsSheet = ({ open, onClose, categories, setCategories }) => {
   );
 };
 
+// ── Category-aware Firestore fetch ─────────────────────────────────────────────
+// Round-robin interleave: [type1[0], type2[0], type3[0], type1[1], type2[1], ...]
+// This ensures no single over-represented type (e.g. 50 bookstores) crowds out others.
+function interleaveByType(places) {
+  const byType = new Map();
+  for (const p of places) {
+    if (!byType.has(p.type)) byType.set(p.type, []);
+    byType.get(p.type).push(p);
+  }
+  const buckets = [...byType.values()];
+  const result = [];
+  let added = true;
+  while (added) {
+    added = false;
+    for (const bucket of buckets) {
+      if (bucket.length > 0) { result.push(bucket.shift()); added = true; }
+    }
+  }
+  return result;
+}
+
+async function fetchPlacesByCategories(lat, lng, categories, radiusMiles = 8) {
+  const fetches = [];
+  if (categories.has('bookstore'))    fetches.push(getNearbyBookstores(lat, lng, radiusMiles));
+  if (categories.has('library'))      fetches.push(getNearbyLibraries(lat, lng, radiusMiles));
+  if (categories.has('cafe'))         fetches.push(getNearbyCoffeeShops(lat, lng, radiusMiles));
+  if (categories.has('museum'))       fetches.push(getNearbyMuseums(lat, lng, radiusMiles));
+  if (categories.has('park'))         fetches.push(getNearbyParks(lat, lng, radiusMiles));
+  if (categories.has('historicSite')) fetches.push(getNearbyHistoricSites(lat, lng, radiusMiles));
+  if (categories.has('artGallery'))   fetches.push(getNearbyArtGalleries(lat, lng, radiusMiles));
+  if (categories.has('observatory'))  fetches.push(getNearbyObservatories(lat, lng, radiusMiles));
+  if (categories.has('aquarium'))     fetches.push(getNearbyAquariums(lat, lng, radiusMiles));
+  if (categories.has('theater'))      fetches.push(getNearbyTheaters(lat, lng, radiusMiles));
+  if (categories.has('restaurant'))   fetches.push(getNearbyRestaurants(lat, lng, radiusMiles));
+  if (categories.has('drivein'))      fetches.push(getNearbyDriveIns(lat, lng, radiusMiles));
+  const results = await Promise.all(fetches.map(p => p.catch(() => [])));
+  // Interleave by type so pick() gets variety rather than 50 bookstores first
+  return interleaveByType(results.flat());
+}
+
 // ── Itinerary Generator ────────────────────────────────────────────────────────
-async function buildFestivalItinerary(startCoords, startText, festivals, tripDays, packed, includeTypes) {
+async function buildFestivalItinerary(startCoords, startText, festivals, tripDays, packed, categories) {
   const f1 = festivals[0];
   const f2 = festivals[1] || null;
 
-  // Fetch nearby literary places for each festival city
+  // Fetch nearby places for each festival city based on selected categories
   let places1 = [], places2 = [];
-  try { places1 = await searchNearbyPlaces(f1.lat, f1.lng, 8) || []; } catch {}
+  try { places1 = await fetchPlacesByCategories(f1.lat, f1.lng, categories); } catch {}
   if (f2) {
-    try { places2 = await searchNearbyPlaces(f2.lat, f2.lng, 8) || []; } catch {}
+    try { places2 = await fetchPlacesByCategories(f2.lat, f2.lng, categories); } catch {}
   }
 
-  const books1  = places1.filter(p => p.type === 'bookstore');
-  const cafes1  = places1.filter(p => p.type === 'cafe');
-  const books2  = places2.filter(p => p.type === 'bookstore');
-  const cafes2  = places2.filter(p => p.type === 'cafe');
+  // Split into book-style stops (literary/attractions) and cafe-style stops (food/drink)
+  const FOOD_TYPES = new Set(['cafe', 'restaurant']);
+  const books1 = places1.filter(p => !FOOD_TYPES.has(p.type));
+  const cafes1 = places1.filter(p => FOOD_TYPES.has(p.type));
+  const books2 = places2.filter(p => !FOOD_TYPES.has(p.type));
+  const cafes2 = places2.filter(p => FOOD_TYPES.has(p.type));
 
   const slotsPerDay = packed ? 5 : 3;
 
@@ -566,6 +613,23 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
   return { days, festivals, startText, startCoords, allCoords };
 }
 
+// ── Navigation URL builder ─────────────────────────────────────────────────────
+const buildFestivalGoogleMapsUrl = (startCoords, stops) => {
+  if (!startCoords || !stops.length) return null;
+  const origin = `${startCoords[0]},${startCoords[1]}`;
+  // Destination = first festival stop; waypoints = all intermediate stops (max 9)
+  const festStop = stops.find(s => s.type === 'festival') || stops[0];
+  const destination = `${festStop.lat ?? festStop.coords[0]},${festStop.lng ?? festStop.coords[1]}`;
+  const waypts = stops
+    .filter(s => s.id !== festStop.id)
+    .slice(0, 9)
+    .map(s => `${s.lat ?? s.coords?.[0]},${s.lng ?? s.coords?.[1]}`)
+    .join('|');
+  const params = new URLSearchParams({ api: '1', origin, destination, travelmode: 'driving' });
+  if (waypts) params.set('waypoints', waypts);
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const { user } = useAuth();
@@ -596,6 +660,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [genError, setGenError]   = useState('');
   const [saving, setSaving]       = useState(false);
   const [saved, setSaved]         = useState(false);
+  const [showMapView, setShowMapView] = useState(false);
 
   const mapRef = useRef(null);
 
@@ -734,19 +799,10 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     }
   };
 
-  // ── Load on map ───────────────────────────────────────────────────────────────
+  // ── Show internal map view ────────────────────────────────────────────────────
   const handleLoadOnMap = () => {
     if (!itinerary) return;
-    const stops = itinerary.days.flatMap(d => d.stops.filter(s => s.coords && s.type !== 'travel'));
-    const coords = itinerary.days.flatMap(d => d.stops.filter(s => s.coords).map(s => s.coords));
-    onLoadTrip({
-      startCity: itinerary.startText,
-      endCity: itinerary.festivals[itinerary.festivals.length - 1].city,
-      selectedStates: [],
-      route: coords,
-      visibleLocations: stops,
-      showPlanner: false,
-    });
+    setShowMapView(true);
   };
 
   // ── Render helpers ────────────────────────────────────────────────────────────
@@ -784,7 +840,8 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       <div className="flex-shrink-0 bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3 flex items-center gap-3">
         <button onClick={() => {
             if (step === 'filter') { onBack(); return; }
-            if (step === 'generating') { isCancelledRef.current = true; }
+            if (step === 'generating') { isCancelledRef.current = true; setStep('preferences'); return; }
+            if (step === 'itinerary') { setStep('preferences'); return; } // skip re-entering generating
             setStep(STEP_ORDER[Math.max(0, stepIdx - 1)]);
           }}
           className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
@@ -1259,8 +1316,32 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg flex items-center justify-center gap-2"
                 style={{ boxShadow: '0 0 20px rgba(255,78,0,0.4)' }}
               >
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
                 VIEW ON LITERARY MAP
               </button>
+
+              {(() => {
+                const allStops = itinerary.days
+                  .flatMap(d => d.stops.filter(s => s.coords && s.type !== 'travel'))
+                  .map(s => ({ ...s, lat: s.lat ?? s.coords[0], lng: s.lng ?? s.coords[1] }));
+                const mapsUrl = buildFestivalGoogleMapsUrl(itinerary.startCoords, allStops);
+                if (!mapsUrl) return null;
+                return (
+                  <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                    className="w-full border-2 border-starlight-turquoise text-starlight-turquoise font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise hover:text-midnight-navy transition-all flex items-center justify-center gap-2 no-underline"
+                    style={{ display: 'flex' }}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    NAVIGATE IN GOOGLE MAPS
+                  </a>
+                );
+              })()}
+
 
               {saved ? (
                 <div className="w-full border border-starlight-turquoise text-starlight-turquoise font-bungee py-3.5 rounded-xl text-center text-sm">
@@ -1333,6 +1414,91 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               BUILD MY ITINERARY →
             </button>
           )}
+        </div>
+      )}
+
+      {/* ── Full-screen internal map view ── */}
+      {showMapView && itinerary && (
+        <div style={{ position:'fixed', inset:0, zIndex:1050, background:'#1A1B2E', display:'flex', flexDirection:'column' }}>
+
+          {/* Map header */}
+          <div className="flex-shrink-0 bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3 flex items-center gap-3">
+            <button
+              onClick={() => setShowMapView(false)}
+              className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
+              style={{ minWidth:40, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-starlight-turquoise font-bungee text-base drop-shadow-[0_0_8px_rgba(64,224,208,0.7)] leading-tight truncate">
+                FESTIVAL ROUTE
+              </h2>
+              <p className="text-chrome-silver font-special-elite text-xs mt-0.5 truncate">
+                {itinerary.festivals.map(f => f.name).join(' + ')}
+              </p>
+            </div>
+            {/* Google Maps link in header */}
+            {(() => {
+              const allStops = itinerary.days
+                .flatMap(d => d.stops.filter(s => s.coords && s.type !== 'travel'))
+                .map(s => ({ ...s, lat: s.lat ?? s.coords[0], lng: s.lng ?? s.coords[1] }));
+              const mapsUrl = buildFestivalGoogleMapsUrl(itinerary.startCoords, allStops);
+              if (!mapsUrl) return null;
+              return (
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex-shrink-0 border border-starlight-turquoise/60 text-starlight-turquoise font-bungee text-[10px] px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all no-underline flex items-center gap-1.5"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  MAPS
+                </a>
+              );
+            })()}
+          </div>
+
+          {/* Full-screen map */}
+          <div className="flex-1" style={{ minHeight:0 }}>
+            {itinerary.allCoords.length > 0 && (
+              <MapContainer
+                center={itinerary.allCoords[Math.floor(itinerary.allCoords.length / 2)] || [39.5, -98.35]}
+                zoom={6}
+                className="h-full w-full"
+                style={{ background: '#1A1B2E', height: '100%' }}
+                whenCreated={m => {
+                  if (itinerary.allCoords.length > 1) {
+                    const bounds = itinerary.allCoords.reduce(
+                      (b, c) => b.extend(c),
+                      L.latLngBounds(itinerary.allCoords[0], itinerary.allCoords[0])
+                    );
+                    m.fitBounds(bounds, { padding: [40, 40] });
+                  }
+                }}
+              >
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  attribution='&copy; OpenStreetMap contributors' />
+                <Polyline positions={itinerary.allCoords}
+                  pathOptions={{ color: '#B044FB', weight: 3, opacity: 0.8, dashArray: '8, 6' }} />
+                {itinerary.startCoords && (
+                  <Marker position={itinerary.startCoords} icon={makeStartMarker()} />
+                )}
+                {itinerary.festivals.map(f => (
+                  <Marker key={f.id} position={[f.lat, f.lng]} icon={makeFestivalMarker()} />
+                ))}
+                {itinerary.days.flatMap((day, di) =>
+                  day.stops
+                    .filter(s => s.coords && !s.isFestival && s.type !== 'travel')
+                    .map((stop, si) => (
+                      <Marker key={`${di}-${si}`} position={stop.coords} icon={makeStopMarker(si + 1)} />
+                    ))
+                )}
+              </MapContainer>
+            )}
+          </div>
         </div>
       )}
     </div>
