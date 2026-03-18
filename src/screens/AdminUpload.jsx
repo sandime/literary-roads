@@ -180,15 +180,17 @@ const COLLECTIONS = {
     },
   },
   theaters: {
-    label: 'Theaters & Cinemas',
+    label: 'Theaters (Live Performance)',
     icon: '🎭',
     type: 'theater',
     presetFiles: [],
     isValid: (name) => {
       if (!name) return false;
       const l = name.toLowerCase();
-      return ['theater','theatre','cinema','playhouse','amphitheater','amphitheatre',
-              'opera house','concert hall','performing arts'].some(k => l.includes(k));
+      if (['cinema','movie','film','multiplex','amc ','regal ','cinemark','imax'].some(k => l.includes(k))) return false;
+      return ['theater','theatre','playhouse','amphitheater','amphitheatre',
+              'opera house','concert hall','performing arts','comedy club',
+              'cabaret','vaudeville','repertory','repertoire'].some(k => l.includes(k));
     },
   },
   driveIns: {

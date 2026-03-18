@@ -46,21 +46,37 @@ const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
 
 const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', artGallery: '🎨', park: '🌿', restaurant: '🍽️', observatory: '🔭', historicSite: '🏰', aquarium: '🐠', theater: '🎭' };
 
-const CATEGORY_OPTIONS = [
-  { key: 'cafe',         emoji: '☕', label: 'Coffee Shops'  },
-  { key: 'bookstore',    emoji: '📚', label: 'Bookstores'    },
-  { key: 'drivein',      emoji: '🎬', label: 'Drive-Ins'     },
-  { key: 'landmark',     emoji: '🌲', label: 'Landmarks'     },
-  { key: 'museum',       emoji: '🏛️', label: 'Museums'       },
-  { key: 'restaurant',   emoji: '🍽️', label: 'Restaurants'   },
-  { key: 'park',         emoji: '🌿', label: 'Parks'         },
-  { key: 'historicSite', emoji: '🏰', label: 'Historic Sites'},
-  { key: 'artGallery',   emoji: '🎨', label: 'Art Galleries' },
-  { key: 'observatory',  emoji: '🔭', label: 'Observatories' },
-  { key: 'aquarium',     emoji: '🐠', label: 'Aquariums'     },
-  { key: 'theater',      emoji: '🎭', label: 'Theaters'      },
+const CATEGORY_GROUPS = [
+  {
+    id: 'literary', icon: '📚', label: 'LITERARY STOPS',
+    items: [
+      { key: 'bookstore',    emoji: '📚', label: 'Bookstores'         },
+      { key: 'landmark',     emoji: '🌲', label: 'Literary Landmarks' },
+      { key: 'drivein',      emoji: '🎬', label: 'Drive-in Theaters'  },
+    ],
+  },
+  {
+    id: 'food', icon: '☕', label: 'FOOD & DRINK',
+    items: [
+      { key: 'cafe',         emoji: '☕', label: 'Coffee Shops'       },
+      { key: 'restaurant',   emoji: '🍽️', label: 'Restaurants'        },
+    ],
+  },
+  {
+    id: 'attractions', icon: '🎨', label: 'ATTRACTIONS',
+    items: [
+      { key: 'museum',       emoji: '🏛️', label: 'Museums'            },
+      { key: 'park',         emoji: '🌿', label: 'Parks'              },
+      { key: 'historicSite', emoji: '🏰', label: 'Historic Sites'     },
+      { key: 'artGallery',   emoji: '🎨', label: 'Art Galleries'      },
+      { key: 'observatory',  emoji: '🔭', label: 'Observatories'      },
+      { key: 'aquarium',     emoji: '🐠', label: 'Aquariums'          },
+      { key: 'theater',      emoji: '🎭', label: 'Theaters'           },
+    ],
+  },
 ];
-const ALL_CATEGORIES = new Set(CATEGORY_OPTIONS.map(c => c.key));
+const CATEGORY_OPTIONS = CATEGORY_GROUPS.flatMap(g => g.items);
+const ALL_CATEGORIES   = new Set(CATEGORY_OPTIONS.map(c => c.key));
 
 const makeStopMarker = (num) => L.divIcon({
   className: '',
@@ -91,8 +107,8 @@ const FitBounds = ({ coords }) => {
   return null;
 };
 
-// Address autocomplete input — full street addresses, not just cities
-const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
+// Address autocomplete input with integrated GPS button
+const AddressInput = ({ value, onChange, onSelect, placeholder, confirmed, gpsLoading, onGPS, onClear }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showDrop, setShowDrop]       = useState(false);
   const containerRef = useRef(null);
@@ -119,18 +135,75 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  const borderColor = confirmed ? 'rgba(64,224,208,0.9)' : 'rgba(64,224,208,0.4)';
+
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      <input
-        type="text"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        onFocus={() => suggestions.length > 0 && setShowDrop(true)}
-        placeholder={placeholder}
-        className="w-full bg-black/50 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2.5 rounded-lg focus:outline-none focus:border-starlight-turquoise"
-        style={{ fontSize: '0.9rem' }}
-        autoComplete="off"
-      />
+      {/* Input row with embedded GPS + clear buttons */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <input
+          type="text"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onFocus={() => suggestions.length > 0 && setShowDrop(true)}
+          placeholder={placeholder}
+          className="font-special-elite text-paper-white"
+          style={{
+            width: '100%', background: 'rgba(0,0,0,0.5)',
+            border: `2px solid ${borderColor}`,
+            borderRadius: 10, padding: '12px 80px 12px 14px',
+            fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
+          }}
+          autoComplete="off"
+        />
+        {/* Right-side action buttons */}
+        <div style={{ position: 'absolute', right: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* Clear button — shown when there's text */}
+          {value && (
+            <button
+              type="button"
+              onPointerDown={(e) => { e.preventDefault(); onClear(); }}
+              style={{ width: 30, height: 30, borderRadius: 6, background: 'none', border: 'none',
+                       cursor: 'pointer', color: 'rgba(192,192,192,0.5)', fontSize: 18, lineHeight: 1,
+                       display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              title="Clear"
+            >
+              ×
+            </button>
+          )}
+          {/* GPS button */}
+          <button
+            type="button"
+            onPointerDown={(e) => { e.preventDefault(); if (!gpsLoading) onGPS(); }}
+            disabled={gpsLoading}
+            style={{ width: 36, height: 36, borderRadius: 8,
+                     background: confirmed ? 'rgba(64,224,208,0.15)' : 'rgba(64,224,208,0.08)',
+                     border: `1px solid ${confirmed ? 'rgba(64,224,208,0.5)' : 'rgba(64,224,208,0.2)'}`,
+                     cursor: gpsLoading ? 'default' : 'pointer',
+                     display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="Use my location"
+          >
+            {gpsLoading ? (
+              <span style={{ display: 'inline-block', width: 14, height: 14,
+                             border: '2px solid rgba(64,224,208,0.3)', borderTopColor: '#40E0D0',
+                             borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke={confirmed ? '#40E0D0' : 'rgba(64,224,208,0.7)'} strokeWidth={2.5}>
+                <path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+      {/* Confirmation line */}
+      {confirmed && (
+        <p className="font-special-elite" style={{ fontSize: 11, color: 'rgba(64,224,208,0.6)', marginTop: 4, paddingLeft: 2 }}>
+          ✓ Location confirmed
+        </p>
+      )}
+      {/* Autocomplete dropdown */}
       {showDrop && suggestions.length > 0 && (
         <ul style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, maxHeight: 220, overflowY: 'auto' }}
           className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg shadow-2xl"
@@ -145,6 +218,218 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
           ))}
         </ul>
       )}
+    </div>
+  );
+};
+
+// ── Waypoints sheet / modal ───────────────────────────────────────────────────
+const WaypointsSheet = ({ open, onClose, categories, setCategories, cuisineFilter, setCuisineFilter, dietaryFilters, setDietaryFilters }) => {
+  const sheetRef   = useRef(null);
+  const dragStartY = useRef(null);
+  const dragDelta  = useRef(0);
+
+  const onTouchStart = (e) => { dragStartY.current = e.touches[0].clientY; dragDelta.current = 0; };
+  const onTouchMove  = (e) => {
+    if (dragStartY.current === null) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    dragDelta.current = dy;
+    if (dy > 0 && sheetRef.current) sheetRef.current.style.transform = `translateY(${dy}px)`;
+  };
+  const onTouchEnd = () => {
+    if (dragDelta.current > 80) onClose();
+    else if (sheetRef.current) sheetRef.current.style.transform = '';
+    dragStartY.current = null;
+    dragDelta.current  = 0;
+  };
+
+  const toggleCat  = (key) => setCategories(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
+  const toggleDiet = (key) => setDietaryFilters(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
+
+  if (!open) return null;
+
+  const selectedCount = categories.size;
+
+  // ── sticky bg so it covers content as it scrolls under ──────────────────
+  const stickyBg = { position: 'sticky', zIndex: 10, background: '#1A1B2E' };
+
+  return (
+    <div
+      style={{ position: 'fixed', inset: 0, zIndex: 1100, background: 'rgba(0,0,0,0.65)',
+               display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+               alignItems: 'center' }}
+      onClick={onClose}
+    >
+      {/* ── Sheet: the container ITSELF scrolls; sticky pins header+footer ── */}
+      <div
+        ref={sheetRef}
+        className="waypoints-sheet"
+        style={{
+          width: '100%', maxWidth: 480,
+          maxHeight: '80vh',
+          overflowY: 'auto',                /* scroll lives HERE — same element as maxHeight */
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          background: '#1A1B2E',
+          borderRadius: '24px 24px 0 0',
+          transition: 'transform 0.18s ease',
+        }}
+        onClick={e => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* ── Sticky header (top: 0) ── */}
+        <div style={{ ...stickyBg, top: 0 }}>
+          {/* Drag handle */}
+          <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 12, paddingBottom: 4 }}>
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: 'rgba(192,192,192,0.3)' }} />
+          </div>
+          {/* Title row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 20px 12px', borderBottom: '1px solid rgba(64,224,208,0.2)' }}>
+            <div>
+              <h3 className="text-starlight-turquoise font-bungee"
+                style={{ fontSize: 16, textShadow: '0 0 6px rgba(64,224,208,0.6)', margin: 0 }}>
+                WAYPOINTS
+              </h3>
+              <p className="font-special-elite" style={{ fontSize: 11, color: 'rgba(192,192,192,0.5)', margin: 0 }}>
+                {selectedCount} of {ALL_CATEGORIES.size} selected
+              </p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button onClick={() => setCategories(new Set(ALL_CATEGORIES))}
+                className="font-special-elite" style={{ fontSize: 12, color: 'rgba(64,224,208,0.6)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                All
+              </button>
+              <span style={{ color: 'rgba(192,192,192,0.2)', fontSize: 12 }}>·</span>
+              <button onClick={() => setCategories(new Set())}
+                className="font-special-elite" style={{ fontSize: 12, color: 'rgba(192,192,192,0.4)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                None
+              </button>
+              <button onClick={onClose}
+                style={{ marginLeft: 4, width: 28, height: 28, borderRadius: '50%', border: '1px solid rgba(192,192,192,0.2)',
+                         background: 'none', cursor: 'pointer', color: 'rgba(192,192,192,0.5)', fontSize: 14,
+                         display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Scrollable content (plain block flow) ── */}
+        <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {CATEGORY_GROUPS.map(group => {
+            const groupChecked = group.items.filter(i => categories.has(i.key)).length;
+            return (
+              <div key={group.id}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontSize: 16 }}>{group.icon}</span>
+                  <span className="font-bungee text-atomic-orange" style={{ fontSize: 11, letterSpacing: '0.1em' }}>{group.label}</span>
+                  <span className="font-special-elite" style={{ fontSize: 11, color: 'rgba(192,192,192,0.3)', marginLeft: 2 }}>{groupChecked}/{group.items.length}</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {group.items.map(({ key, emoji, label }) => {
+                    const checked      = categories.has(key);
+                    const isRestaurant = key === 'restaurant';
+                    return (
+                      <div key={key}>
+                        <button
+                          type="button"
+                          onClick={() => toggleCat(key)}
+                          style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                            padding: '12px 16px', borderRadius: 12, border: `1px solid ${checked ? 'rgba(64,224,208,0.5)' : 'rgba(192,192,192,0.12)'}`,
+                            background: checked ? 'rgba(64,224,208,0.08)' : 'transparent',
+                            cursor: 'pointer', textAlign: 'left', minHeight: 52,
+                          }}
+                        >
+                          <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${checked ? '#40E0D0' : 'rgba(192,192,192,0.4)'}`,
+                                        background: checked ? '#40E0D0' : 'transparent', flexShrink: 0,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {checked && <span style={{ color: '#1A1B2E', fontSize: 10, fontWeight: 900 }}>✓</span>}
+                          </div>
+                          <span style={{ fontSize: 16, flexShrink: 0 }}>{emoji}</span>
+                          <span className="font-special-elite" style={{ fontSize: 14, flex: 1, color: checked ? '#F5F5DC' : 'rgba(192,192,192,0.5)' }}>
+                            {label}
+                          </span>
+                        </button>
+
+                        {isRestaurant && checked && (
+                          <div style={{ marginTop: 6, marginLeft: 16, paddingLeft: 16,
+                                        borderLeft: '2px solid rgba(64,224,208,0.3)', paddingBottom: 4 }}>
+                            <div style={{ position: 'relative', marginTop: 8 }}>
+                              <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)',
+                                             fontSize: 12, color: 'rgba(192,192,192,0.5)', pointerEvents: 'none' }}>🔍</span>
+                              <input
+                                type="text"
+                                value={cuisineFilter}
+                                onChange={e => setCuisineFilter(e.target.value)}
+                                placeholder="Filter by cuisine (optional)"
+                                className="font-special-elite"
+                                style={{ width: '100%', background: 'rgba(26,27,46,0.7)', border: '1px solid rgba(192,192,192,0.2)',
+                                         borderRadius: 8, paddingLeft: 32, paddingRight: cuisineFilter ? 28 : 10,
+                                         paddingTop: 8, paddingBottom: 8, color: '#F5F5DC', fontSize: 12,
+                                         outline: 'none', boxSizing: 'border-box' }}
+                              />
+                              {cuisineFilter && (
+                                <button onClick={() => setCuisineFilter('')}
+                                  style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                                           background: 'none', border: 'none', color: 'rgba(192,192,192,0.5)',
+                                           cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', marginTop: 10 }}>
+                              {[
+                                { key: 'vegan', label: 'Vegan' }, { key: 'vegetarian', label: 'Vegetarian' },
+                                { key: 'gluten_free', label: 'Gluten-free' }, { key: 'halal', label: 'Halal' },
+                                { key: 'kosher', label: 'Kosher' },
+                              ].map(({ key: dk, label: dl }) => {
+                                const dChecked = dietaryFilters.has(dk);
+                                return (
+                                  <button key={dk} type="button" onClick={() => toggleDiet(dk)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none',
+                                             border: 'none', cursor: 'pointer', padding: '2px 0' }}>
+                                    <div style={{ width: 16, height: 16, borderRadius: 3,
+                                                  border: `2px solid ${dChecked ? '#FF4E00' : 'rgba(192,192,192,0.4)'}`,
+                                                  background: dChecked ? '#FF4E00' : 'transparent', flexShrink: 0,
+                                                  display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                      {dChecked && <span style={{ color: '#1A1B2E', fontSize: 8, fontWeight: 900 }}>✓</span>}
+                                    </div>
+                                    <span className="font-special-elite" style={{ fontSize: 12, color: 'rgba(192,192,192,0.8)' }}>{dl}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          {/* Bottom spacer so last item isn't hidden under sticky footer */}
+          <div style={{ height: 8 }} />
+        </div>
+
+        {/* ── Sticky footer (bottom: 0) ── */}
+        <div style={{ ...stickyBg, bottom: 0,
+                      padding: '12px 20px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+                      borderTop: '1px solid rgba(64,224,208,0.2)' }}>
+          <button
+            onClick={onClose}
+            className="font-bungee"
+            style={{ width: '100%', background: '#FF4E00', color: '#1A1B2E', border: 'none',
+                     borderRadius: 12, minHeight: 56, fontSize: 15, cursor: 'pointer',
+                     boxShadow: '0 0 16px rgba(255,78,0,0.35)', transition: 'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#40E0D0'}
+            onMouseLeave={e => e.currentTarget.style.background = '#FF4E00'}
+          >
+            DONE — {selectedCount} SELECTED
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -177,6 +462,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [tripCount, setTripCount]     = useState(1);
   const [variant, setVariant]         = useState(0);
   const [excludedIds, setExcludedIds] = useState(new Set());
+
+  // Waypoints sheet
+  const [showWaypoints, setShowWaypoints] = useState(false);
 
   // Navigation modal
   const [showNavModal, setShowNavModal] = useState(false);
@@ -433,8 +721,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   return (
     <div className="w-full bg-midnight-navy flex flex-col" style={{ height: '100dvh', minHeight: '100vh' }}>
       <style>{`
-        @keyframes lr-fade-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes lr-fade-in  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes lr-sheet-in { from { transform:translateY(100%); } to { transform:translateY(0); } }
+        @keyframes lr-modal-in { from { opacity:0; transform:scale(0.95) translateY(6px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
         .lr-fade { animation: lr-fade-in 0.3s ease; }
+        .waypoints-sheet { animation: lr-sheet-in 0.28s cubic-bezier(0.32,0.72,0,1); }
+        @media (min-width: 768px) { .waypoints-sheet { animation: lr-modal-in 0.2s ease; } }
       `}</style>
 
       {/* ── Header ── */}
@@ -485,73 +778,24 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         {step === 'input' && (
           <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade pb-28">
 
-            {/* Starting location */}
+            {/* Starting location — combined input */}
             <div>
               <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 STARTING FROM
               </label>
-
-              {/* Mode: GPS or Address */}
-              <div className="space-y-2 mb-3">
-
-                {/* GPS option */}
-                <button
-                  type="button"
-                  onClick={handleUseGPS}
-                  disabled={gpsLoading}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-                    locationMode === 'gps'
-                      ? 'border-starlight-turquoise bg-starlight-turquoise/10'
-                      : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/40'
-                  }`}
-                >
-                  <span className="text-lg flex-shrink-0">
-                    {gpsLoading ? (
-                      <span className="inline-block w-5 h-5 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" />
-                    ) : '📍'}
-                  </span>
-                  <span className="text-paper-white font-special-elite text-sm flex-1">
-                    {gpsLoading
-                      ? 'Getting your location…'
-                      : locationMode === 'gps' && startCoords
-                        ? <span className="truncate block max-w-[220px]">{startText || 'Current location'}</span>
-                        : 'Use my current location'}
-                  </span>
-                  {locationMode === 'gps' && startCoords && (
-                    <span className="text-starlight-turquoise font-bungee text-xs flex-shrink-0">✓</span>
-                  )}
-                </button>
-
-                {gpsError && (
-                  <p className="text-atomic-orange font-special-elite text-xs px-1">{gpsError}</p>
-                )}
-
-                {/* Address option */}
-                <button
-                  type="button"
-                  onClick={handleSwitchToAddress}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-                    locationMode === 'address'
-                      ? 'border-starlight-turquoise bg-starlight-turquoise/10'
-                      : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/40'
-                  }`}
-                >
-                  <span className="text-lg flex-shrink-0">🔍</span>
-                  <span className="text-paper-white font-special-elite text-sm">Enter an address</span>
-                </button>
-              </div>
-
-              {locationMode === 'address' && (
-                <AddressInput
-                  value={startText}
-                  onChange={(v) => { setStartText(v); setStartCoords(null); }}
-                  onSelect={handleSelectSuggestion}
-                  placeholder="123 Main St, Louisville, KY…"
-                />
-              )}
-              {locationMode === 'address' && startCoords && (
-                <p className="text-starlight-turquoise/60 font-special-elite text-xs mt-1">✓ Location confirmed</p>
+              <AddressInput
+                value={startText}
+                onChange={(v) => { setStartText(v); setStartCoords(null); setLocationMode('address'); }}
+                onSelect={handleSelectSuggestion}
+                placeholder="Address or city…"
+                confirmed={!!(startCoords)}
+                gpsLoading={gpsLoading}
+                onGPS={handleUseGPS}
+                onClear={handleSwitchToAddress}
+              />
+              {gpsError && (
+                <p className="text-atomic-orange font-special-elite text-xs mt-1.5 px-1">{gpsError}</p>
               )}
             </div>
 
@@ -593,102 +837,40 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             {/* Neon divider */}
             <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(255,78,0,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
 
-            {/* Categories */}
+            {/* Waypoints */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5">
-                  <span>🗂️</span> CATEGORIES
-                </label>
-                <div className="flex gap-2">
-                  <button onClick={() => setCategories(new Set(ALL_CATEGORIES))}
-                    className="text-starlight-turquoise/60 font-special-elite text-xs hover:text-starlight-turquoise transition-colors">
-                    all
-                  </button>
-                  <span className="text-chrome-silver/30 text-xs">·</span>
-                  <button onClick={() => setCategories(new Set())}
-                    className="text-chrome-silver/40 font-special-elite text-xs hover:text-chrome-silver/70 transition-colors">
-                    none
-                  </button>
+              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                WAYPOINTS
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowWaypoints(true)}
+                className="w-full flex items-center gap-3 px-4 py-4 rounded-xl border border-starlight-turquoise/30 bg-starlight-turquoise/5 hover:border-starlight-turquoise/60 active:bg-starlight-turquoise/10 transition-all text-left"
+                style={{ minHeight: 60 }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-paper-white font-special-elite text-sm truncate">
+                    {(() => {
+                      const count = categories.size;
+                      if (count === 0) return 'No stops selected';
+                      if (count === ALL_CATEGORIES.size) return 'All stop types';
+                      const selected = CATEGORY_OPTIONS.filter(c => categories.has(c.key));
+                      const names = selected.map(c => c.label);
+                      if (names.length <= 2) return names.join(', ');
+                      return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+                    })()}
+                  </p>
                 </div>
-              </div>
-              <div className="grid grid-cols-2 gap-1.5">
-                {CATEGORY_OPTIONS.map(({ key, emoji, label }) => {
-                  const checked = categories.has(key);
-                  const isRestaurant = key === 'restaurant';
-                  return (
-                    <div key={key} className={isRestaurant && checked ? 'col-span-2' : ''}>
-                      <label
-                        className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border cursor-pointer transition-all w-full ${
-                          checked
-                            ? 'border-starlight-turquoise/50 bg-starlight-turquoise/10'
-                            : 'border-chrome-silver/15 opacity-50'
-                        } ${isRestaurant && checked ? 'rounded-b-none border-b-0' : ''}`}
-                      >
-                        <input type="checkbox" checked={checked}
-                          onChange={() => setCategories(prev => {
-                            const next = new Set(prev);
-                            checked ? next.delete(key) : next.add(key);
-                            return next;
-                          })}
-                          className="accent-starlight-turquoise w-3 h-3 flex-shrink-0"
-                        />
-                        <span className="text-sm flex-shrink-0">{emoji}</span>
-                        <span className="text-paper-white font-special-elite text-xs truncate">{label}</span>
-                      </label>
-
-                      {/* Restaurant sub-filters — only when checked */}
-                      {isRestaurant && checked && (
-                        <div className="border border-t-0 border-starlight-turquoise/50 bg-starlight-turquoise/5 rounded-b-lg px-3 py-2.5 space-y-2">
-                          {/* Cuisine text input */}
-                          <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-chrome-silver/50 text-xs">🔍</span>
-                            <input
-                              type="text"
-                              value={cuisineFilter}
-                              onChange={e => setCuisineFilter(e.target.value)}
-                              placeholder="Filter by cuisine (optional)"
-                              className="w-full bg-midnight-navy/60 border border-chrome-silver/20 rounded-md pl-7 pr-7 py-1.5 text-paper-white font-special-elite text-xs placeholder:text-chrome-silver/35 focus:outline-none focus:border-starlight-turquoise/60"
-                            />
-                            {cuisineFilter && (
-                              <button
-                                onClick={() => setCuisineFilter('')}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 text-chrome-silver/50 hover:text-chrome-silver text-xs leading-none"
-                              >×</button>
-                            )}
-                          </div>
-                          {/* Dietary checkboxes */}
-                          <div className="flex flex-wrap gap-x-3 gap-y-1">
-                            {[
-                              { key: 'vegan',        label: 'Vegan'        },
-                              { key: 'vegetarian',   label: 'Vegetarian'   },
-                              { key: 'gluten_free',  label: 'Gluten-free'  },
-                              { key: 'halal',        label: 'Halal'        },
-                              { key: 'kosher',       label: 'Kosher'       },
-                            ].map(({ key: dk, label: dl }) => {
-                              const dChecked = dietaryFilters.has(dk);
-                              return (
-                                <label key={dk} className="flex items-center gap-1.5 cursor-pointer">
-                                  <input
-                                    type="checkbox"
-                                    checked={dChecked}
-                                    onChange={() => setDietaryFilters(prev => {
-                                      const next = new Set(prev);
-                                      dChecked ? next.delete(dk) : next.add(dk);
-                                      return next;
-                                    })}
-                                    className="accent-atomic-orange w-3 h-3"
-                                  />
-                                  <span className="text-chrome-silver font-special-elite text-xs">{dl}</span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="bg-starlight-turquoise text-midnight-navy font-bungee text-xs px-2.5 py-0.5 rounded-full">
+                    {categories.size}
+                  </span>
+                  <svg className="w-4 h-4 text-starlight-turquoise/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </button>
             </div>
 
           </div>
@@ -939,6 +1121,18 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           </button>
         </div>
       )}
+
+      {/* ── Waypoints sheet / modal ── */}
+      <WaypointsSheet
+        open={showWaypoints}
+        onClose={() => setShowWaypoints(false)}
+        categories={categories}
+        setCategories={setCategories}
+        cuisineFilter={cuisineFilter}
+        setCuisineFilter={setCuisineFilter}
+        dietaryFilters={dietaryFilters}
+        setDietaryFilters={setDietaryFilters}
+      />
 
       {/* ── Navigation modal ── */}
       {showNavModal && activeTrip && (
