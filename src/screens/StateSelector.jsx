@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon } from '../components/Icons';
 import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -272,7 +273,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                     className="w-full text-left font-bungee"
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#40E0D0', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
                   >
-                    📖 VIEW PROFILE
+                    <ProfileIcon size={20} /> VIEW PROFILE
                   </button>
                   <div style={{ height: 1, background: 'rgba(64,224,208,0.15)', margin: '0 12px' }} />
                   <button
@@ -280,7 +281,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                     className="w-full text-left font-bungee"
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#FF4E00', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
                   >
-                    🚪 SIGN OUT
+                    <SignOutIcon size={20} /> SIGN OUT
                   </button>
                 </div>
               )}
@@ -348,7 +349,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                     onClick={() => { setShowJourneysMenu(false); onShowDayTrip?.(); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors border-b border-starlight-turquoise/20"
                   >
-                    <span className="text-base flex-shrink-0">🗺️</span>
+                    <DayTripsIcon size={20} className="flex-shrink-0" />
                     <div>
                       <p className="text-paper-white font-bungee text-xs">DAY TRIPS</p>
                       <p className="text-chrome-silver/60 font-special-elite text-[10px]">Local literary loop</p>
@@ -358,7 +359,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                     onClick={() => { setShowJourneysMenu(false); onShowFestivalTrip?.(); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors"
                   >
-                    <span className="text-base flex-shrink-0">🎪</span>
+                    <FestivalTentIcon size={20} className="flex-shrink-0" />
                     <div>
                       <p className="text-paper-white font-bungee text-xs">FESTIVAL TRIPS</p>
                       <p className="text-chrome-silver/60 font-special-elite text-[10px]">Plan around a festival</p>
@@ -681,7 +682,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
               {user && onShowBadges && (
                 <button onClick={() => { setShowHamburger(false); onShowBadges(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-lg flex-shrink-0">🏅</span> BADGES
+                  <BadgesIcon size={20} className="flex-shrink-0" /> BADGES
                 </button>
               )}
 
@@ -690,11 +691,11 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                 <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">CURATED JOURNEYS</p>
                 <button onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">🗺️</span> DAY TRIPS
+                  <DayTripsIcon size={20} className="flex-shrink-0" /> DAY TRIPS
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowFestivalTrip?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">🎪</span> FESTIVAL TRIPS
+                  <FestivalTentIcon size={20} className="flex-shrink-0" /> FESTIVAL TRIPS
                 </button>
               </div>
 
@@ -703,19 +704,19 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
                 <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">AFTERWORD</p>
                 <button onClick={() => { setShowHamburger(false); onShowAbout?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">📖</span> ABOUT
+                  <AboutIcon size={20} className="flex-shrink-0" /> ABOUT
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">📜</span> CODE OF ETHICS
+                  <CodeOfEthicsIcon size={20} className="flex-shrink-0" /> CODE OF ETHICS
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowPrivacy?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">🔒</span> PRIVACY POLICY
+                  <PrivacyPolicyIcon size={20} className="flex-shrink-0" /> PRIVACY POLICY
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">⭐</span> CREDITS
+                  <CreditsIcon size={20} className="flex-shrink-0" /> CREDITS
                 </button>
               </div>
             </nav>
