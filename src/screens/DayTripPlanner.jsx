@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon, CoffeeCupIcon, RestaurantsIcon, MuseumsIcon, ParksIcon, HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon, LivePerformanceIcon } from '../components/Icons';
 import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -44,34 +45,35 @@ const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
   return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
 };
 
-const TYPE_EMOJI  = { bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', artGallery: '🎨', park: '🌿', restaurant: '🍽️', observatory: '🔭', historicSite: '🏰', aquarium: '🐠', theater: '🎭' };
+const TYPE_EMOJI  = { bookstore: '📚', library: '📖', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', artGallery: '🎨', park: '🌿', restaurant: '🍽️', observatory: '🔭', historicSite: '🏰', aquarium: '🐠', theater: '🎭' };
 
 const CATEGORY_GROUPS = [
   {
-    id: 'literary', icon: '📚', label: 'LITERARY STOPS',
+    id: 'literary', Icon: BookIcon, label: 'LITERARY STOPS',
     items: [
-      { key: 'bookstore',    emoji: '📚', label: 'Bookstores'         },
-      { key: 'landmark',     emoji: '🌲', label: 'Literary Landmarks' },
-      { key: 'drivein',      emoji: '🎬', label: 'Drive-in Theaters'  },
+      { key: 'bookstore',    Icon: BookIcon,            label: 'Bookstores'         },
+      { key: 'library',      Icon: LibrariesIcon,       label: 'Libraries'          },
+      { key: 'landmark',     Icon: LiteraryLandmarkIcon, label: 'Literary Landmarks' },
+      { key: 'drivein',      Icon: DriveInTheaterIcon,  label: 'Drive-in Theaters'  },
     ],
   },
   {
-    id: 'food', icon: '☕', label: 'FOOD & DRINK',
+    id: 'food', Icon: CoffeeCupIcon, label: 'FOOD & DRINK',
     items: [
-      { key: 'cafe',         emoji: '☕', label: 'Coffee Shops'       },
-      { key: 'restaurant',   emoji: '🍽️', label: 'Restaurants'        },
+      { key: 'cafe',         Icon: CoffeeCupIcon,       label: 'Coffee Shops'       },
+      { key: 'restaurant',   Icon: RestaurantsIcon,     label: 'Restaurants'        },
     ],
   },
   {
-    id: 'attractions', icon: '🎨', label: 'ATTRACTIONS',
+    id: 'attractions', Icon: ArtGalleriesIcon, label: 'ATTRACTIONS',
     items: [
-      { key: 'museum',       emoji: '🏛️', label: 'Museums'            },
-      { key: 'park',         emoji: '🌿', label: 'Parks'              },
-      { key: 'historicSite', emoji: '🏰', label: 'Historic Sites'     },
-      { key: 'artGallery',   emoji: '🎨', label: 'Art Galleries'      },
-      { key: 'observatory',  emoji: '🔭', label: 'Observatories'      },
-      { key: 'aquarium',     emoji: '🐠', label: 'Aquariums'          },
-      { key: 'theater',      emoji: '🎭', label: 'Theaters'           },
+      { key: 'museum',       Icon: MuseumsIcon,         label: 'Museums'            },
+      { key: 'park',         Icon: ParksIcon,           label: 'Parks'              },
+      { key: 'historicSite', Icon: HistoricSitesIcon,   label: 'Historic Sites'     },
+      { key: 'artGallery',   Icon: ArtGalleriesIcon,    label: 'Art Galleries'      },
+      { key: 'observatory',  Icon: ObservatoriesIcon,   label: 'Observatories'      },
+      { key: 'aquarium',     Icon: AquariumsIcon,       label: 'Aquariums'          },
+      { key: 'theater',      Icon: LivePerformanceIcon, label: 'Theaters'           },
     ],
   },
 ];
@@ -323,12 +325,12 @@ const WaypointsSheet = ({ open, onClose, categories, setCategories, cuisineFilte
             return (
               <div key={group.id}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 16 }}>{group.icon}</span>
+                  <group.Icon size={18} />
                   <span className="font-bungee text-atomic-orange" style={{ fontSize: 11, letterSpacing: '0.1em' }}>{group.label}</span>
                   <span className="font-special-elite" style={{ fontSize: 11, color: 'rgba(192,192,192,0.3)', marginLeft: 2 }}>{groupChecked}/{group.items.length}</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {group.items.map(({ key, emoji, label }) => {
+                  {group.items.map(({ key, Icon: ItemIcon, label }) => {
                     const checked      = categories.has(key);
                     const isRestaurant = key === 'restaurant';
                     return (
@@ -348,7 +350,7 @@ const WaypointsSheet = ({ open, onClose, categories, setCategories, cuisineFilte
                                         display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             {checked && <span style={{ color: '#1A1B2E', fontSize: 10, fontWeight: 900 }}>✓</span>}
                           </div>
-                          <span style={{ fontSize: 16, flexShrink: 0 }}>{emoji}</span>
+                          <ItemIcon size={18} />
                           <span className="font-special-elite" style={{ fontSize: 14, flex: 1, color: checked ? '#F5F5DC' : 'rgba(192,192,192,0.5)' }}>
                             {label}
                           </span>

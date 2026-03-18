@@ -314,6 +314,28 @@ export const HeartIcon = ({ size = 24, className = '' }) => (
   </svg>
 );
 
+export const LibrariesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Peaked roof — Googie angle */}
+    <path className="p" d="M 12 52 L 64 16 L 116 52" />
+    {/* Building facade */}
+    <polygon className="t" points="20,52 108,52 108,112 20,112" />
+    {/* Columns */}
+    <line className="p" x1="38" y1="52" x2="38" y2="112" />
+    <line className="p" x1="64" y1="52" x2="64" y2="112" />
+    <line className="p" x1="90" y1="52" x2="90" y2="112" />
+    {/* Base steps */}
+    <line className="c" x1="14" y1="112" x2="114" y2="112" />
+    <line className="c" x1="8" y1="120" x2="120" y2="120" />
+    {/* Open book emblem on facade */}
+    <path className="o" d="M 44 80 Q 64 70 84 80" />
+    <path className="o" d="M 44 88 Q 64 78 84 88" />
+    {/* Atomic spark at peak */}
+    <circle className="fc" cx="64" cy="16" r="5" />
+  </svg>
+);
+
 export const FestivalTentIcon = ({ size = 24, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
     <style>{STYLES}</style>

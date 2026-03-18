@@ -81,6 +81,24 @@ const COLLECTIONS = {
               'literary','reading','novel','chapter','shelf','tome'].some(k => l.includes(k));
     },
   },
+  libraries: {
+    label: 'Libraries',
+    icon: '📖',
+    type: 'library',
+    presetFiles: [],
+    isValid: (name, props) => {
+      if (!name) return false;
+      const l = name.toLowerCase();
+      const amenity = (props?.amenity || '').toLowerCase().trim();
+      // Must be tagged amenity=library in OSM
+      if (amenity !== 'library') return false;
+      // Exclude school/university/college/prison libraries
+      if (['school','university','college','campus','prison','jail',
+           'law library','medical library','hospital'].some(t => l.includes(t))) return false;
+      if (['school','university','college'].some(t => (props?.operator_type || '').toLowerCase().includes(t))) return false;
+      return true;
+    },
+  },
   coffeeShops: {
     label: 'Coffee Shops',
     icon: '☕',
