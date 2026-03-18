@@ -28,7 +28,7 @@ import HitchhikerTale from '../components/HitchhikerTale';
 import PostcardStudio from '../components/PostcardStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
-import { CarIcon, CameraIcon, ProfileIcon } from '../components/Icons';
+import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon } from '../components/Icons';
 import TripProgressPanel from '../components/TripProgressPanel';
 import NavigateModal from '../components/NavigateModal';
 import { useAuth } from '../contexts/AuthContext';
@@ -1655,7 +1655,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   className="w-full text-left font-bungee"
                   style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#40E0D0', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
                 >
-                  📖 VIEW PROFILE
+                  <ProfileIcon size={20} /> VIEW PROFILE
                 </button>
                 <div style={{ height: 1, background: 'rgba(64,224,208,0.15)', margin: '0 12px' }} />
                 <button
@@ -1663,7 +1663,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   className="w-full text-left font-bungee"
                   style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#FF4E00', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
                 >
-                  🚪 SIGN OUT
+                  <SignOutIcon size={20} /> SIGN OUT
                 </button>
               </div>
             )}
@@ -2032,7 +2032,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
                 >
-                  <span className="text-lg flex-shrink-0">🗺️</span>
+                  <DayTripsIcon size={20} className="flex-shrink-0" />
                   <div>
                     <p className="font-bungee text-[13px]">DAY TRIPS</p>
                     <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Local literary loop</p>
@@ -2042,7 +2042,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   onClick={() => { setShowHamburger(false); onShowFestivalTrip?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
                 >
-                  <span className="text-lg flex-shrink-0">🎪</span>
+                  <FestivalTentIcon size={20} className="flex-shrink-0" />
                   <div>
                     <p className="font-bungee text-[13px]">FESTIVAL TRIPS</p>
                     <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Plan a trip around a festival</p>
@@ -2068,7 +2068,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   onClick={() => { setShowHamburger(false); onShowBadges(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
                 >
-                  <span className="text-lg flex-shrink-0">🏅</span>
+                  <BadgesIcon size={20} className="flex-shrink-0" />
                   BADGES
                   {earnedBadgeData.length > 0 && (
                     <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] px-1.5 py-0.5 rounded-full leading-none">
@@ -2083,19 +2083,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">AFTERWORD</p>
                 <button onClick={() => { setShowHamburger(false); onShowAbout?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">📖</span> ABOUT
+                  <AboutIcon size={20} className="flex-shrink-0" /> ABOUT
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">📜</span> CODE OF ETHICS
+                  <CodeOfEthicsIcon size={20} className="flex-shrink-0" /> CODE OF ETHICS
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowPrivacy?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">🔒</span> PRIVACY POLICY
+                  <PrivacyPolicyIcon size={20} className="flex-shrink-0" /> PRIVACY POLICY
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <span className="text-base">⭐</span> CREDITS
+                  <CreditsIcon size={20} className="flex-shrink-0" /> CREDITS
                 </button>
               </div>
 
@@ -2671,19 +2671,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             <div className="mb-1.5">
               <div className="flex items-center gap-1.5 mb-1">
                 {selectedLocation.type === 'bookstore' && (
-                  <span className="text-atomic-orange font-bungee text-[10px] px-2 py-0.5 border border-atomic-orange rounded-full">📚 BOOKSTORE</span>
+                  <span className="text-atomic-orange font-bungee text-[10px] px-2 py-0.5 border border-atomic-orange rounded-full">BOOKSTORE</span>
                 )}
                 {selectedLocation.type === 'cafe' && (
-                  <span className="text-starlight-turquoise font-bungee text-[10px] px-2 py-0.5 border border-starlight-turquoise rounded-full">☕ COFFEE SHOP</span>
+                  <span className="text-starlight-turquoise font-bungee text-[10px] px-2 py-0.5 border border-starlight-turquoise rounded-full">COFFEE SHOP</span>
                 )}
                 {selectedLocation.type === 'landmark' && (
-                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#39FF14', borderColor: '#39FF14' }}>🌲 LANDMARK</span>
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#39FF14', borderColor: '#39FF14' }}>LANDMARK</span>
                 )}
                 {selectedLocation.type === 'drivein' && (
-                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#E040FB', borderColor: '#E040FB' }}>🎬 DRIVE-IN</span>
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#E040FB', borderColor: '#E040FB' }}>DRIVE-IN</span>
                 )}
                 {selectedLocation.type === 'festival' && (
-                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#B044FB', borderColor: '#B044FB' }}>🎪 BOOK FESTIVAL</span>
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#B044FB', borderColor: '#B044FB' }}>BOOK FESTIVAL</span>
                 )}
                 {starburstIds.has(selectedLocation.id) && (
                   <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
@@ -2883,7 +2883,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   : 'bg-transparent border border-chrome-silver/30 text-chrome-silver/70 hover:border-starlight-turquoise hover:text-starlight-turquoise'
               }`}
             >
-              {savedStopIds.has(selectedLocation.id) ? '✓ SAVED TO MY ROAD TRIP' : '💾 SAVE TO MY ROAD TRIP'}
+              {savedStopIds.has(selectedLocation.id) ? '✓ SAVED TO MY ROAD TRIP' : 'SAVE TO MY ROAD TRIP'}
             </button>
 
             {/* Row 3: Park Here — bookstores, cafes & drive-ins, logged-in users only */}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import MyRoutes from '../components/MyRoutes';
+import { CloseIcon } from '../components/Icons';
 
 const TYPE_BADGE = {
   bookstore: 'BOOKSTORE', cafe: 'COFFEE SHOP', landmark: 'LANDMARK',
@@ -17,9 +18,7 @@ const StopCard = ({ item, onSelect, onRemove, badge }) => (
       className="absolute top-3 right-3 text-chrome-silver/60 hover:text-atomic-orange transition-colors"
       title="Remove"
     >
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-      </svg>
+      <CloseIcon size={20} />
     </button>
     <div className="flex items-start gap-3 pr-6">
       <div className="w-6 h-6 rounded-full bg-starlight-turquoise/20 border border-starlight-turquoise text-starlight-turquoise font-bungee text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">

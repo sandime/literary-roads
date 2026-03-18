@@ -21,7 +21,7 @@ export default function HitchhikerTale({ locationId, locationName, onOpenModal }
   if (!story) {
     return (
       <div className="text-center py-6">
-        <BookIcon size={48} className="mb-3" />
+        <BookIcon size={48} className="mb-3 mx-auto" />
         <p className="text-paper-white font-bungee text-sm mb-1">No tale yet.</p>
         <p className="text-chrome-silver/60 font-special-elite text-xs mb-5">
           Be the first to start the story for {locationName}!
