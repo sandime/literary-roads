@@ -867,16 +867,30 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             {step === 'itinerary' && `${itinerary?.days.length}-day journey · ${selectedFests.map(f=>f.city).join(' + ')}`}
           </p>
         </div>
-        {/* Step dots */}
-        <div className="flex gap-1 flex-shrink-0">
-          {['filter','select','preferences','itinerary'].map((s, i) => (
-            <div key={s} className={`w-2 h-2 rounded-full transition-all ${
-              step === s || (step === 'generating' && s === 'itinerary') ? 'bg-starlight-turquoise' :
-              i < ['filter','select','preferences','itinerary'].indexOf(step) ? 'bg-starlight-turquoise/40' :
-              'bg-chrome-silver/20'
-            }`} />
-          ))}
-        </div>
+        {/* Right side: step dots (filter) or Start Over button (all other steps) */}
+        {step === 'filter' ? (
+          <div className="flex gap-1 flex-shrink-0">
+            {['filter','select','preferences','itinerary'].map((s, i) => (
+              <div key={s} className={`w-2 h-2 rounded-full transition-all ${
+                step === s ? 'bg-starlight-turquoise' : 'bg-chrome-silver/20'
+              }`} />
+            ))}
+          </div>
+        ) : (
+          <button
+            onClick={() => {
+              isCancelledRef.current = true;
+              setStep('filter');
+              setSelectedFests([]);
+              setItinerary(null);
+              setSaved(false);
+              setShowMapView(false);
+            }}
+            className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
+          >
+            ↺ START OVER
+          </button>
+        )}
       </div>
 
       {/* ── Content ── */}
@@ -1440,7 +1454,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 {itinerary.festivals.map(f => f.name).join(' + ')}
               </p>
             </div>
-            {/* Google Maps link in header */}
+            {/* Google Maps link */}
             {(() => {
               const allStops = itinerary.days
                 .flatMap(d => d.stops.filter(s => s.coords && s.type !== 'travel'))
@@ -1459,6 +1473,20 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 </a>
               );
             })()}
+            {/* Start over */}
+            <button
+              onClick={() => {
+                isCancelledRef.current = true;
+                setShowMapView(false);
+                setStep('filter');
+                setSelectedFests([]);
+                setItinerary(null);
+                setSaved(false);
+              }}
+              className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
+            >
+              ↺ START OVER
+            </button>
           </div>
 
           {/* Full-screen map */}
