@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon, CoffeeCupIcon, RestaurantsIcon, MuseumsIcon, ParksIcon, HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon, LivePerformanceIcon } from '../components/Icons';
+import { BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon, CoffeeCupIcon, RestaurantsIcon, MuseumsIcon, ParksIcon, HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon, LivePerformanceIcon, FestivalTentIcon, StarburstIcon, PlayIcon } from '../components/Icons';
 import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -45,7 +45,22 @@ const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
   return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
 };
 
-const TYPE_EMOJI  = { bookstore: '📚', library: '📖', cafe: '☕', landmark: '🌲', drivein: '🎬', museum: '🏛️', artGallery: '🎨', park: '🌿', restaurant: '🍽️', observatory: '🔭', historicSite: '🏰', aquarium: '🐠', theater: '🎭' };
+const TYPE_ICON = {
+  bookstore:   BookIcon,
+  library:     LibrariesIcon,
+  cafe:        CoffeeCupIcon,
+  landmark:    LiteraryLandmarkIcon,
+  drivein:     DriveInTheaterIcon,
+  museum:      MuseumsIcon,
+  artGallery:  ArtGalleriesIcon,
+  park:        ParksIcon,
+  restaurant:  RestaurantsIcon,
+  observatory: ObservatoriesIcon,
+  historicSite:HistoricSitesIcon,
+  aquarium:    AquariumsIcon,
+  theater:     LivePerformanceIcon,
+  festival:    FestivalTentIcon,
+};
 
 const CATEGORY_GROUPS = [
   {
@@ -889,7 +904,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           <div className="flex flex-col items-center justify-center h-full py-24 lr-fade">
             <div className="relative mb-6">
               <div className="w-20 h-20 border-4 border-starlight-turquoise/30 border-t-starlight-turquoise rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center text-3xl">🗺️</div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <StarburstIcon size={44} />
+              </div>
             </div>
             <p className="text-starlight-turquoise font-bungee text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
               PLOTTING YOUR ROUTE…
@@ -966,7 +983,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
               {/* Start row */}
               <div className="flex items-center gap-3 py-1">
-                <div className="w-8 h-8 rounded-full bg-starlight-turquoise/20 border-2 border-starlight-turquoise flex items-center justify-center text-sm flex-shrink-0">🚗</div>
+                <div className="w-8 h-8 rounded-full bg-starlight-turquoise/20 border-2 border-starlight-turquoise flex items-center justify-center flex-shrink-0">
+                  <PlayIcon size={16} />
+                </div>
                 <div>
                   <p className="text-starlight-turquoise font-bungee text-sm">START</p>
                   <p className="text-chrome-silver font-special-elite text-xs">{startText} · {activeTrip.schedule.startTime}</p>
@@ -1008,7 +1027,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                         <span className="text-paper-white font-bungee text-sm leading-tight truncate">
                           {stop.name}
                         </span>
-                        <span className="text-xs">{TYPE_EMOJI[stop.type] ?? '📍'}</span>
+                        {(() => { const IC = TYPE_ICON[stop.type]; return IC ? <IC size={14} /> : <span style={{ fontSize: 12 }}>📍</span>; })()}
                       </div>
                       <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5 truncate">
                         {stop.address}
@@ -1069,7 +1088,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg disabled:opacity-40 flex items-center justify-center gap-2"
                 style={{ boxShadow: checkedIds.size > 0 ? '0 0 20px rgba(255,78,0,0.4)' : 'none' }}
               >
-                🗺️ NAVIGATE THIS TRIP
+                NAVIGATE THIS TRIP
               </button>
               <p className="text-chrome-silver/40 font-special-elite text-xs text-center -mt-1">
                 Opens navigation with all {checkedIds.size} selected stops
@@ -1188,7 +1207,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                              background: 'rgba(66,133,244,0.12)', border: '2px solid rgba(66,133,244,0.55)',
                              borderRadius: 12, padding: '14px 16px', textDecoration: 'none', minHeight: 64 }}
                   >
-                    <span style={{ fontSize: 22, flexShrink: 0 }}>🗺️</span>
                     <div style={{ flex: 1 }}>
                       <span className="font-bungee text-paper-white" style={{ display: 'block', fontSize: 14 }}>Google Maps</span>
                       <span className="font-special-elite" style={{ display: 'block', fontSize: 11, color: 'rgba(192,192,192,0.5)' }}>

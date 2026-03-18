@@ -314,6 +314,21 @@ export const HeartIcon = ({ size = 24, className = '' }) => (
   </svg>
 );
 
+export const PlayIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Googie play triangle — bold fill with neon glow */}
+    <polygon className="fo" points="28,16 28,112 108,64" />
+    {/* Accent spine line */}
+    <line className="t" x1="22" y1="14" x2="22" y2="114" />
+    {/* Atomic dot at tip */}
+    <circle className="ft" cx="108" cy="64" r="6" />
+    {/* Speed lines */}
+    <line className="p" x1="28" y1="40" x2="70" y2="64" />
+    <line className="p" x1="28" y1="88" x2="70" y2="64" />
+  </svg>
+);
+
 export const LibrariesIcon = ({ size = 24, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
     <style>{STYLES}</style>
