@@ -313,3 +313,297 @@ export const HeartIcon = ({ size = 24, className = '' }) => (
     <circle className="fo" cx="15" cy="95" r="4" />
   </svg>
 );
+
+export const FestivalTentIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* World's Fair Pavilion style swooping roof */}
+    <path className="t" d="M 10 90 Q 64 30 118 90 Q 64 50 10 90 Z" />
+    <path className="p" d="M 10 90 Q 64 20 118 90" />
+    {/* Asymmetrical supporting pillars */}
+    <line className="c" x1="25" y1="80" x2="20" y2="115" />
+    <line className="c" x1="64" y1="45" x2="64" y2="120" />
+    <line className="c" x1="103" y1="80" x2="108" y2="115" />
+    {/* Atomic star topper */}
+    <path className="o" d="M 64 5 L 68 15 L 78 19 L 68 23 L 64 33 L 60 23 L 50 19 L 60 15 Z" />
+    {/* Floating dot */}
+    <circle className="fc" cx="95" cy="45" r="4" />
+  </svg>
+);
+
+export const SignOutIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Offset door frame (trapezoid) */}
+    <polygon className="t" points="25,25 65,15 65,110 25,120" />
+    <polygon className="bg" points="15,35 55,25 55,100 15,110" />
+    {/* Swooping exit arrow */}
+    <path className="p" d="M 45 64 Q 90 90 110 40" />
+    <polygon className="fp" points="112,38 100,45 115,55" />
+    {/* Retro doorknob */}
+    <circle className="o" cx="55" cy="64" r="5" />
+    <circle className="fc" cx="105" cy="75" r="3" />
+  </svg>
+);
+
+export const DayTripsIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Offset sunburst */}
+    <circle className="fo" cx="95" cy="35" r="18" />
+    <path className="o" d="M 95 5 L 95 12 M 125 35 L 118 35 M 95 65 L 95 58 M 65 35 L 72 35" strokeDasharray="2 4" />
+    {/* Winding retro road */}
+    <path className="t" d="M 10 115 Q 50 80 95 50" />
+    <path className="c" d="M 30 115 Q 60 90 95 60" strokeDasharray="5 10" />
+    {/* Googie signpost */}
+    <line className="p" x1="25" y1="55" x2="25" y2="95" />
+    <polygon className="p" points="10,40 40,30 45,50 15,60" />
+    <circle className="fc" cx="30" cy="45" r="2" />
+  </svg>
+);
+
+export const BadgesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Atomic background burst */}
+    <path className="bg" d="M 64 10 L 72 30 L 92 38 L 72 46 L 64 66 L 56 46 L 36 38 L 56 30 Z" />
+    {/* Mid-century shield base */}
+    <path className="t" d="M 64 15 L 105 35 L 95 85 L 64 115 L 33 85 L 23 35 Z" />
+    {/* Inner orbiting atom */}
+    <ellipse className="p" cx="64" cy="60" rx="20" ry="8" transform="rotate(30 64 60)" />
+    <ellipse className="c" cx="64" cy="60" rx="20" ry="8" transform="rotate(-30 64 60)" />
+    {/* Core dot */}
+    <circle className="fo" cx="64" cy="60" r="5" />
+  </svg>
+);
+
+export const AboutIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Kidney bean backdrop */}
+    <path className="bg" d="M 25 35 C 25 -10, 105 -10, 105 50 C 105 110, 25 130, 25 80 Z" />
+    {/* Satellite rings */}
+    <ellipse className="p" cx="64" cy="64" rx="45" ry="25" transform="rotate(-20 64 64)" strokeDasharray="8 8" />
+    <ellipse className="o" cx="64" cy="64" rx="35" ry="15" transform="rotate(-20 64 64)" />
+    {/* Abstract 'i' symbol */}
+    <circle className="ft" cx="64" cy="35" r="7" />
+    <path className="t" d="M 58 55 L 70 50 L 64 95 L 52 100 Z" />
+    {/* Glint */}
+    <circle className="fc" cx="90" cy="80" r="4" />
+  </svg>
+);
+
+export const CodeOfEthicsIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Slanted geometric rulebook */}
+    <polygon className="t" points="30,30 90,15 105,95 45,110" />
+    <polygon className="p" points="20,40 30,30 45,110 35,120" />
+    {/* Atomic orbit crossing the book */}
+    <ellipse className="c" cx="64" cy="64" rx="55" ry="15" transform="rotate(25 64 64)" />
+    {/* Big glowing check/star */}
+    <path className="o" d="M 45 65 L 60 85 L 95 35" />
+    <circle className="fo" cx="95" cy="35" r="4" />
+  </svg>
+);
+
+export const PrivacyPolicyIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Retro space-age lock body */}
+    <path className="t" d="M 35 60 L 93 50 L 85 110 L 27 120 Z" />
+    <path className="p" d="M 27 68 L 35 60 L 85 110 L 77 118 Z" />
+    {/* Sweeping asymmetrical shackle */}
+    <path className="o" d="M 45 58 Q 50 10 85 20 Q 100 25 88 51" />
+    {/* Keyhole (Atomic core style) */}
+    <circle className="fc" cx="60" cy="80" r="6" />
+    <polygon className="fc" points="56,80 64,80 68,95 52,95" />
+    {/* Orbit spark */}
+    <circle className="ft" cx="95" cy="15" r="3" />
+  </svg>
+);
+
+export const CreditsIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Retro Marquee Sign / Film Strip */}
+    <polygon className="t" points="15,35 115,15 110,95 10,115" />
+    {/* Zigzag marquee inner border */}
+    <path className="c" d="M 22 40 L 30 35 L 40 40 L 50 35 L 60 40 L 70 35 L 80 40 L 90 35 L 100 40 L 105 45" />
+    {/* Rolling credits abstract blocks */}
+    <line className="p" x1="30" y1="65" x2="80" y2="55" />
+    <line className="p" x1="28" y1="85" x2="60" y2="78" />
+    {/* Marquee bulbs */}
+    <circle className="fo" cx="15" cy="35" r="4" />
+    <circle className="fo" cx="115" cy="15" r="4" />
+    <circle className="fo" cx="110" cy="95" r="4" />
+    <circle className="fo" cx="10" cy="115" r="4" />
+  </svg>
+);
+
+export const LiteraryLandmarkIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Slanted open book base */}
+    <path className="t" d="M 20 100 L 64 115 L 108 100 L 64 85 Z" />
+    <path className="c" d="M 64 115 L 64 85" />
+    {/* Sweeping obelisk/monument */}
+    <polygon className="p" points="64,15 74,88 54,88" />
+    {/* Orbiting landmark rings */}
+    <ellipse className="o" cx="64" cy="55" rx="35" ry="10" transform="rotate(-15 64 55)" />
+    {/* Atomic spark at the peak */}
+    <circle className="fc" cx="64" cy="15" r="5" />
+    <circle className="fo" cx="95" cy="35" r="3" />
+  </svg>
+);
+
+export const DriveInTheaterIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Sloping giant screen */}
+    <path className="t" d="M 15 85 Q 64 95 113 85 L 100 25 Q 64 35 28 25 Z" />
+    <line className="p" x1="25" y1="88" x2="20" y2="115" />
+    <line className="p" x1="103" y1="88" x2="108" y2="115" />
+    {/* Retro speaker pole */}
+    <line className="c" x1="64" y1="92" x2="64" y2="120" />
+    <circle className="fc" cx="58" cy="100" r="4" />
+    <circle className="fc" cx="70" cy="100" r="4" />
+    {/* Screen projection starburst */}
+    <path className="o" d="M 64 40 L 68 50 L 78 52 L 68 54 L 64 64 L 60 54 L 50 52 L 60 50 Z" />
+  </svg>
+);
+
+export const RestaurantsIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Googie diner sign arrow */}
+    <polygon className="p" points="20,20 80,10 75,50 110,60 60,110 50,70 15,60" />
+    {/* Offset background boomerang */}
+    <path className="bg" d="M 40 40 Q 90 40 100 90 Q 70 70 40 40 Z" />
+    {/* Fork & Knife minimalist shapes */}
+    <path className="t" d="M 40 30 L 40 50 M 45 30 L 45 50 M 50 30 L 50 50 M 40 50 C 40 60, 50 60, 50 50 L 45 60 L 45 90" />
+    <path className="c" d="M 75 35 C 80 45, 80 60, 75 65 L 75 95" />
+    {/* Neon dots */}
+    <circle className="fo" cx="100" cy="20" r="3" />
+    <circle className="fo" cx="25" cy="90" r="3" />
+  </svg>
+);
+
+export const MuseumsIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Iconic butterfly roof */}
+    <path className="t" d="M 10 40 L 64 65 L 118 40 L 110 30 L 64 50 L 18 30 Z" />
+    {/* Floating roof effect (split columns) */}
+    <line className="p" x1="30" y1="70" x2="30" y2="110" />
+    <line className="p" x1="64" y1="80" x2="64" y2="110" />
+    <line className="p" x1="98" y1="70" x2="98" y2="110" />
+    {/* Base foundation */}
+    <line className="c" x1="15" y1="110" x2="113" y2="110" />
+    {/* Atomic art sculpture inside */}
+    <circle className="fo" cx="64" cy="65" r="5" />
+    <ellipse className="o" cx="64" cy="65" rx="15" ry="5" transform="rotate(45 64 65)" />
+  </svg>
+);
+
+export const ParksIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Offset Googie Sun */}
+    <circle className="o" cx="85" cy="40" r="15" />
+    <circle className="fo" cx="85" cy="40" r="5" />
+    {/* Mid-century geometric trees */}
+    <polygon className="t" points="40,30 70,100 10,100" />
+    <polygon className="p" points="75,50 105,100 45,100" />
+    {/* Tree overlap accent */}
+    <line className="c" x1="40" y1="30" x2="40" y2="100" />
+    <line className="c" x1="75" y1="50" x2="75" y2="100" />
+    {/* Floating leaf spark */}
+    <circle className="fc" cx="20" cy="50" r="3" />
+  </svg>
+);
+
+export const HistoricSitesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Stylized ancient column base and top */}
+    <path className="t" d="M 35 25 L 93 25 M 30 35 L 98 35 M 35 105 L 93 105 M 25 115 L 103 115" />
+    {/* Fluted column body */}
+    <line className="p" x1="45" y1="35" x2="45" y2="105" />
+    <line className="p" x1="64" y1="35" x2="64" y2="105" />
+    <line className="p" x1="83" y1="35" x2="83" y2="105" />
+    {/* Orbiting history ring */}
+    <ellipse className="o" cx="64" cy="70" rx="45" ry="15" transform="rotate(-20 64 70)" />
+    <circle className="fc" cx="25" cy="55" r="4" />
+  </svg>
+);
+
+export const ArtGalleriesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Kidney bean shaped palette */}
+    <path className="p" d="M 20 70 C 20 20, 100 10, 110 50 C 120 90, 80 120, 50 110 C 20 100, 20 120, 20 70 Z" />
+    {/* Thumb hole */}
+    <circle className="bg" cx="90" cy="60" r="10" />
+    {/* Atomic paint splatters */}
+    <circle className="fc" cx="45" cy="45" r="6" />
+    <circle className="fo" cx="70" cy="35" r="5" />
+    <circle className="ft" cx="40" cy="80" r="7" />
+    {/* Sleek paintbrush */}
+    <line className="o" x1="15" y1="110" x2="65" y2="60" />
+    <path className="t" d="M 65 60 L 75 50 C 85 40, 80 30, 80 30 L 70 35 Z" />
+  </svg>
+);
+
+export const ObservatoriesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Classic dome structure */}
+    <path className="t" d="M 20 80 A 44 44 0 0 1 108 80 Z" />
+    <line className="p" x1="15" y1="80" x2="113" y2="80" />
+    <line className="p" x1="25" y1="80" x2="25" y2="110" />
+    <line className="p" x1="103" y1="80" x2="103" y2="110" />
+    {/* Slanted dome opening */}
+    <path className="bg" d="M 64 36 L 80 40 L 70 80 L 54 80 Z" />
+    {/* Giant telescope extending out */}
+    <polygon className="o" points="64,75 110,20 120,30 74,80" />
+    {/* Target Googie star */}
+    <circle className="fc" cx="25" cy="30" r="3" />
+    <circle className="fc" cx="40" cy="15" r="2" />
+  </svg>
+);
+
+export const AquariumsIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Sweeping retro water wave */}
+    <path className="t" d="M 10 90 Q 40 60 70 90 T 120 80" />
+    <path className="bg" d="M 10 100 Q 40 70 70 100 T 120 90" />
+    {/* Geometric abstract fish */}
+    <polygon className="p" points="80,50 40,30 50,50 40,70" />
+    <polygon className="o" points="40,50 20,40 25,50 20,60" />
+    {/* Bubbles */}
+    <circle className="fc" cx="95" cy="45" r="4" />
+    <circle className="fc" cx="105" cy="30" r="2" />
+    <circle className="fc" cx="85" cy="20" r="3" />
+  </svg>
+);
+
+export const LivePerformanceIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Geometric tragedy/comedy masks */}
+    {/* Mask 1 (Tilted up) */}
+    <polygon className="t" points="20,40 60,20 80,60 40,80" />
+    <line className="c" x1="35" y1="40" x2="45" y2="35" />
+    <line className="c" x1="55" y1="30" x2="65" y2="25" />
+    <path className="c" d="M 50 65 Q 60 55 65 65" />
+    {/* Mask 2 (Tilted down, offset) */}
+    <polygon className="p" points="50,70 90,50 110,90 70,110" />
+    <line className="o" x1="65" y1="70" x2="75" y2="65" />
+    <line className="o" x1="85" y1="60" x2="95" y2="55" />
+    <path className="o" d="M 80 95 Q 90 85 95 95" />
+    {/* Spotlight spark */}
+    <circle className="fo" cx="100" cy="20" r="5" />
+  </svg>
+);
