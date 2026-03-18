@@ -7,6 +7,13 @@ import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapb
 import { searchNearbyPlaces } from '../utils/nearbySearch';
 import { saveRoute } from '../utils/savedRoutes';
 import festivalsData from '../data/literaryFestivals.json';
+import {
+  PinIcon, StarburstIcon,
+  BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon,
+  CoffeeCupIcon, RestaurantsIcon, MuseumsIcon, ParksIcon,
+  HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon,
+  LivePerformanceIcon, FestivalTentIcon,
+} from '../components/Icons';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -30,6 +37,40 @@ const SIZE_BADGES = {
   regional: { label: 'REGIONAL', bg: 'bg-starlight-turquoise/20 border-starlight-turquoise/60', text: 'text-starlight-turquoise' },
   specialty:{ label: 'SPECIALTY',bg: 'bg-chrome-silver/20 border-chrome-silver/40',     text: 'text-chrome-silver' },
 };
+
+// ── Waypoint categories (mirrors DayTripPlanner) ──────────────────────────────
+const CATEGORY_GROUPS = [
+  {
+    id: 'literary', Icon: BookIcon, label: 'LITERARY STOPS',
+    items: [
+      { key: 'bookstore',    Icon: BookIcon,             label: 'Bookstores'         },
+      { key: 'library',      Icon: LibrariesIcon,        label: 'Libraries'          },
+      { key: 'landmark',     Icon: LiteraryLandmarkIcon, label: 'Literary Landmarks' },
+      { key: 'drivein',      Icon: DriveInTheaterIcon,   label: 'Drive-in Theaters'  },
+    ],
+  },
+  {
+    id: 'food', Icon: CoffeeCupIcon, label: 'FOOD & DRINK',
+    items: [
+      { key: 'cafe',         Icon: CoffeeCupIcon,        label: 'Coffee Shops'       },
+      { key: 'restaurant',   Icon: RestaurantsIcon,      label: 'Restaurants'        },
+    ],
+  },
+  {
+    id: 'attractions', Icon: ArtGalleriesIcon, label: 'ATTRACTIONS',
+    items: [
+      { key: 'museum',       Icon: MuseumsIcon,          label: 'Museums'            },
+      { key: 'park',         Icon: ParksIcon,            label: 'Parks'              },
+      { key: 'historicSite', Icon: HistoricSitesIcon,    label: 'Historic Sites'     },
+      { key: 'artGallery',   Icon: ArtGalleriesIcon,     label: 'Art Galleries'      },
+      { key: 'observatory',  Icon: ObservatoriesIcon,    label: 'Observatories'      },
+      { key: 'aquarium',     Icon: AquariumsIcon,        label: 'Aquariums'          },
+      { key: 'theater',      Icon: LivePerformanceIcon,  label: 'Theaters'           },
+    ],
+  },
+];
+const CATEGORY_OPTIONS = CATEGORY_GROUPS.flatMap(g => g.items);
+const ALL_CATEGORIES   = new Set(CATEGORY_OPTIONS.map(c => c.key));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const haversine = (lat1, lng1, lat2, lng2) => {
@@ -68,8 +109,8 @@ const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
   return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
 };
 
-// ── Address Autocomplete ───────────────────────────────────────────────────────
-const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
+// ── Address Autocomplete with embedded GPS button ──────────────────────────────
+const AddressInput = ({ value, onChange, onSelect, placeholder, confirmed, gpsLoading, onGPS, onClear }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showDrop, setShowDrop] = useState(false);
   const containerRef = useRef(null);
@@ -85,14 +126,61 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
     }, 500);
   };
 
+  const borderColor = confirmed ? 'rgba(64,224,208,0.9)' : 'rgba(64,224,208,0.4)';
+
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      <input type="text" value={value} onChange={e => handleChange(e.target.value)}
-        onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-        placeholder={placeholder}
-        className="w-full bg-black/50 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2.5 rounded-lg focus:outline-none focus:border-starlight-turquoise"
-        style={{ fontSize: '0.9rem' }} autoComplete="off"
-      />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <input
+          type="text" value={value} onChange={e => handleChange(e.target.value)}
+          onFocus={() => suggestions.length > 0 && setShowDrop(true)}
+          onBlur={() => setTimeout(() => setShowDrop(false), 150)}
+          placeholder={placeholder}
+          className="font-special-elite text-paper-white"
+          style={{
+            width: '100%', background: 'rgba(0,0,0,0.5)',
+            border: `2px solid ${borderColor}`,
+            borderRadius: 10, padding: '12px 80px 12px 14px',
+            fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
+          }}
+          autoComplete="off"
+        />
+        <div style={{ position: 'absolute', right: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
+          {value && (
+            <button type="button" onPointerDown={e => { e.preventDefault(); onClear(); }}
+              style={{ width:30, height:30, borderRadius:6, background:'none', border:'none',
+                       cursor:'pointer', color:'rgba(192,192,192,0.5)', fontSize:18, lineHeight:1,
+                       display:'flex', alignItems:'center', justifyContent:'center' }}
+              title="Clear"
+            >×</button>
+          )}
+          <button type="button" onPointerDown={e => { e.preventDefault(); if (!gpsLoading) onGPS(); }}
+            disabled={gpsLoading}
+            style={{ width:36, height:36, borderRadius:8,
+                     background: confirmed ? 'rgba(64,224,208,0.15)' : 'rgba(64,224,208,0.08)',
+                     border: `1px solid ${confirmed ? 'rgba(64,224,208,0.5)' : 'rgba(64,224,208,0.2)'}`,
+                     cursor: gpsLoading ? 'default' : 'pointer',
+                     display:'flex', alignItems:'center', justifyContent:'center' }}
+            title="Use my location"
+          >
+            {gpsLoading
+              ? <span style={{ display:'inline-block', width:14, height:14,
+                               border:'2px solid rgba(64,224,208,0.3)', borderTopColor:'#40E0D0',
+                               borderRadius:'50%', animation:'spin 0.7s linear infinite' }} />
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke={confirmed ? '#40E0D0' : 'rgba(64,224,208,0.7)'} strokeWidth={2.5}>
+                  <path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z"/>
+                  <circle cx="12" cy="9" r="2.5"/>
+                </svg>
+            }
+          </button>
+        </div>
+      </div>
+      {confirmed && (
+        <p className="font-special-elite" style={{ fontSize:11, color:'rgba(64,224,208,0.6)', marginTop:4, paddingLeft:2 }}>
+          ✓ Location confirmed
+        </p>
+      )}
       {showDrop && suggestions.length > 0 && (
         <ul style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:50, maxHeight:200, overflowY:'auto' }}
           className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg shadow-2xl"
@@ -106,6 +194,150 @@ const AddressInput = ({ value, onChange, onSelect, placeholder }) => {
           ))}
         </ul>
       )}
+    </div>
+  );
+};
+
+// ── Waypoints Sheet Modal ──────────────────────────────────────────────────────
+const WaypointsSheet = ({ open, onClose, categories, setCategories }) => {
+  const sheetRef   = useRef(null);
+  const dragStartY = useRef(null);
+  const dragDelta  = useRef(0);
+
+  const onTouchStart = (e) => { dragStartY.current = e.touches[0].clientY; dragDelta.current = 0; };
+  const onTouchMove  = (e) => {
+    if (dragStartY.current === null) return;
+    const dy = e.touches[0].clientY - dragStartY.current;
+    dragDelta.current = dy;
+    if (dy > 0 && sheetRef.current) sheetRef.current.style.transform = `translateY(${dy}px)`;
+  };
+  const onTouchEnd = () => {
+    if (dragDelta.current > 80) onClose();
+    else if (sheetRef.current) sheetRef.current.style.transform = '';
+    dragStartY.current = null;
+    dragDelta.current  = 0;
+  };
+
+  const toggleCat = (key) => setCategories(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
+
+  if (!open) return null;
+
+  const selectedCount = categories.size;
+  const stickyBg = { position: 'sticky', zIndex: 10, background: '#1A1B2E' };
+
+  return (
+    <div
+      style={{ position:'fixed', inset:0, zIndex:1100, background:'rgba(0,0,0,0.65)',
+               display:'flex', flexDirection:'column', justifyContent:'flex-end', alignItems:'center' }}
+      onClick={onClose}
+    >
+      <div
+        ref={sheetRef}
+        style={{
+          width:'100%', maxWidth:480, maxHeight:'80vh',
+          overflowY:'auto', WebkitOverflowScrolling:'touch', overscrollBehavior:'contain',
+          background:'#1A1B2E', borderRadius:'24px 24px 0 0', transition:'transform 0.18s ease',
+        }}
+        onClick={e => e.stopPropagation()}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Sticky header */}
+        <div style={{ ...stickyBg, top: 0 }}>
+          <div style={{ display:'flex', justifyContent:'center', paddingTop:12, paddingBottom:4 }}>
+            <div style={{ width:40, height:4, borderRadius:2, background:'rgba(192,192,192,0.3)' }} />
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
+                        padding:'10px 20px 12px', borderBottom:'1px solid rgba(64,224,208,0.2)' }}>
+            <div>
+              <h3 className="text-starlight-turquoise font-bungee"
+                style={{ fontSize:16, textShadow:'0 0 6px rgba(64,224,208,0.6)', margin:0 }}>
+                INCLUDE STOPS
+              </h3>
+              <p className="font-special-elite" style={{ fontSize:11, color:'rgba(192,192,192,0.5)', margin:0 }}>
+                {selectedCount} of {ALL_CATEGORIES.size} selected
+              </p>
+            </div>
+            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+              <button onClick={() => setCategories(new Set(ALL_CATEGORIES))}
+                className="font-special-elite" style={{ fontSize:12, color:'rgba(64,224,208,0.6)', background:'none', border:'none', cursor:'pointer' }}>
+                All
+              </button>
+              <span style={{ color:'rgba(192,192,192,0.2)', fontSize:12 }}>·</span>
+              <button onClick={() => setCategories(new Set())}
+                className="font-special-elite" style={{ fontSize:12, color:'rgba(192,192,192,0.4)', background:'none', border:'none', cursor:'pointer' }}>
+                None
+              </button>
+              <button onClick={onClose}
+                style={{ marginLeft:4, width:28, height:28, borderRadius:'50%', border:'1px solid rgba(192,192,192,0.2)',
+                         background:'none', cursor:'pointer', color:'rgba(192,192,192,0.5)', fontSize:14,
+                         display:'flex', alignItems:'center', justifyContent:'center' }}>
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Scrollable content */}
+        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:24 }}>
+          {CATEGORY_GROUPS.map(group => {
+            const groupChecked = group.items.filter(i => categories.has(i.key)).length;
+            return (
+              <div key={group.id}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
+                  <group.Icon size={18} />
+                  <span className="font-bungee text-atomic-orange" style={{ fontSize:11, letterSpacing:'0.1em' }}>{group.label}</span>
+                  <span className="font-special-elite" style={{ fontSize:11, color:'rgba(192,192,192,0.3)', marginLeft:2 }}>{groupChecked}/{group.items.length}</span>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {group.items.map(({ key, Icon: ItemIcon, label }) => {
+                    const checked = categories.has(key);
+                    return (
+                      <button key={key} type="button" onClick={() => toggleCat(key)}
+                        style={{
+                          width:'100%', display:'flex', alignItems:'center', gap:12,
+                          padding:'12px 16px', borderRadius:12,
+                          border:`1px solid ${checked ? 'rgba(64,224,208,0.5)' : 'rgba(192,192,192,0.12)'}`,
+                          background: checked ? 'rgba(64,224,208,0.08)' : 'transparent',
+                          cursor:'pointer', textAlign:'left', minHeight:52,
+                        }}
+                      >
+                        <div style={{ width:20, height:20, borderRadius:4,
+                                      border:`2px solid ${checked ? '#40E0D0' : 'rgba(192,192,192,0.4)'}`,
+                                      background: checked ? '#40E0D0' : 'transparent', flexShrink:0,
+                                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+                          {checked && <span style={{ color:'#1A1B2E', fontSize:10, fontWeight:900 }}>✓</span>}
+                        </div>
+                        <ItemIcon size={18} />
+                        <span className="font-special-elite" style={{ fontSize:14, flex:1, color: checked ? '#F5F5DC' : 'rgba(192,192,192,0.5)' }}>
+                          {label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+          <div style={{ height:8 }} />
+        </div>
+
+        {/* Sticky footer */}
+        <div style={{ ...stickyBg, bottom:0,
+                      padding:'12px 20px', paddingBottom:'calc(env(safe-area-inset-bottom) + 16px)',
+                      borderTop:'1px solid rgba(64,224,208,0.2)' }}>
+          <button onClick={onClose} className="font-bungee"
+            style={{ width:'100%', background:'#FF4E00', color:'#1A1B2E', border:'none',
+                     borderRadius:12, minHeight:56, fontSize:15, cursor:'pointer',
+                     boxShadow:'0 0 16px rgba(255,78,0,0.35)', transition:'background 0.15s' }}
+            onMouseEnter={e => e.currentTarget.style.background = '#40E0D0'}
+            onMouseLeave={e => e.currentTarget.style.background = '#FF4E00'}
+          >
+            DONE — {selectedCount} SELECTED
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -352,14 +584,11 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   // Preferences state
   const [startText, setStartText]     = useState('');
   const [startCoords, setStartCoords] = useState(null);
-  const [locationMode, setLocationMode] = useState('address');
   const [gpsLoading, setGpsLoading]   = useState(false);
   const [gpsError, setGpsError]       = useState('');
   const [tripLength, setTripLength]   = useState('weekend'); // weekend | 3-4days | week
-  const [includeTypes, setIncludeTypes] = useState({
-    bookstores: true, cafes: true, landmarks: true,
-    restaurants: false, museums: false, parks: false,
-  });
+  const [categories, setCategories]   = useState(new Set(['bookstore', 'cafe', 'landmark']));
+  const [showWaypoints, setShowWaypoints] = useState(false);
   const [travelStyle, setTravelStyle] = useState('relaxed');
 
   // Itinerary state
@@ -425,13 +654,11 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   const handleUseGPS = () => {
-    setLocationMode('gps');
     setGpsLoading(true);
     setGpsError('');
     if (!navigator.geolocation) {
       setGpsError('GPS not available on this device.');
       setGpsLoading(false);
-      setLocationMode('address');
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -445,13 +672,14 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       () => {
         setGpsError('Could not get location. Enter an address instead.');
         setGpsLoading(false);
-        setLocationMode('address');
       },
       { timeout: 10000 }
     );
   };
 
   // ── Generate ─────────────────────────────────────────────────────────────────
+  const isCancelledRef = useRef(false);
+
   const handleGenerate = async () => {
     let coords = startCoords;
     if (!coords) {
@@ -461,17 +689,20 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       setStartCoords(coords);
     }
     setGenError('');
+    isCancelledRef.current = false;
     setStep('generating');
     try {
       const dayCount = { weekend: 2, '3-4days': 3, week: 7 }[tripLength];
       const result = await buildFestivalItinerary(
         coords, startText, selectedFests, dayCount,
-        travelStyle === 'packed', includeTypes
+        travelStyle === 'packed', categories
       );
+      if (isCancelledRef.current) return;
       setItinerary(result);
       setSaved(false);
       setStep('itinerary');
     } catch (e) {
+      if (isCancelledRef.current) return;
       console.error('[FestivalTripPlanner]', e);
       setGenError('Something went wrong generating your itinerary. Please try again.');
       setStep('preferences');
@@ -511,6 +742,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
     onLoadTrip({
       startCity: itinerary.startText,
       endCity: itinerary.festivals[itinerary.festivals.length - 1].city,
+      selectedStates: [],
       route: coords,
       visibleLocations: stops,
       showPlanner: false,
@@ -522,7 +754,23 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const STEP_ORDER  = ['filter','select','preferences','generating','itinerary'];
   const stepIdx     = STEP_ORDER.indexOf(step);
 
-  const TYPE_STOP_ICON = { festival:'★', bookstore:'◈', cafe:'◉', travel:'▶', arrive:'⌂', landmark:'◆', restaurant:'◇' };
+  const TYPE_STOP_ICON = {
+    festival:    FestivalTentIcon,
+    bookstore:   BookIcon,
+    library:     LibrariesIcon,
+    cafe:        CoffeeCupIcon,
+    travel:      null,
+    landmark:    LiteraryLandmarkIcon,
+    restaurant:  RestaurantsIcon,
+    museum:      MuseumsIcon,
+    park:        ParksIcon,
+    historicSite:HistoricSitesIcon,
+    artGallery:  ArtGalleriesIcon,
+    observatory: ObservatoriesIcon,
+    aquarium:    AquariumsIcon,
+    theater:     LivePerformanceIcon,
+    drivein:     DriveInTheaterIcon,
+  };
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
@@ -534,7 +782,11 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
 
       {/* ── Header ── */}
       <div className="flex-shrink-0 bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3 flex items-center gap-3">
-        <button onClick={step === 'filter' ? onBack : () => setStep(STEP_ORDER[Math.max(0, stepIdx - 1)])}
+        <button onClick={() => {
+            if (step === 'filter') { onBack(); return; }
+            if (step === 'generating') { isCancelledRef.current = true; }
+            setStep(STEP_ORDER[Math.max(0, stepIdx - 1)]);
+          }}
           className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
           style={{ minWidth:40, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
         >
@@ -726,8 +978,9 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                               {sizeMeta.label}
                             </span>
                           </div>
-                          <p className="text-chrome-silver font-special-elite text-xs mb-1.5">
-                            📍 {fest.city}, {fest.state} &nbsp;·&nbsp; 📅 {fest.typicalMonth}
+                          <p className="text-chrome-silver font-special-elite text-xs mb-1.5 flex items-center gap-1 flex-wrap">
+                            <PinIcon size={12} className="flex-shrink-0" />
+                            {fest.city}, {fest.state} &nbsp;·&nbsp; 📅 {fest.typicalMonth}
                           </p>
                           <p className="text-chrome-silver/60 font-special-elite text-xs leading-snug line-clamp-2">
                             {fest.description}
@@ -776,35 +1029,17 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 STARTING FROM
               </label>
-              <div className="space-y-2 mb-3">
-                <button type="button" onClick={handleUseGPS} disabled={gpsLoading}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-                    locationMode === 'gps' ? 'border-starlight-turquoise bg-starlight-turquoise/10' : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/40'
-                  }`}
-                >
-                  <span className="text-lg flex-shrink-0">
-                    {gpsLoading ? <span className="inline-block w-5 h-5 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" /> : '📍'}
-                  </span>
-                  <span className="text-paper-white font-special-elite text-sm flex-1">
-                    {gpsLoading ? 'Getting location…' : locationMode === 'gps' && startCoords ? (startText || 'Current location') : 'Use my current location'}
-                  </span>
-                  {locationMode === 'gps' && startCoords && <span className="text-starlight-turquoise font-bungee text-xs">✓</span>}
-                </button>
-                {gpsError && <p className="text-atomic-orange font-special-elite text-xs px-1">{gpsError}</p>}
-                <button type="button" onClick={() => { setLocationMode('address'); setStartCoords(null); setStartText(''); }}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-                    locationMode === 'address' ? 'border-starlight-turquoise bg-starlight-turquoise/10' : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/40'
-                  }`}
-                >
-                  <span className="text-lg flex-shrink-0">🔍</span>
-                  <span className="text-paper-white font-special-elite text-sm">Enter an address or city</span>
-                </button>
-              </div>
-              {locationMode === 'address' && (
-                <AddressInput value={startText} onChange={v => { setStartText(v); setStartCoords(null); }}
-                  onSelect={handleSelectAddress} placeholder="Chicago, IL or 123 Main St…" />
-              )}
-              {startCoords && <p className="text-starlight-turquoise/60 font-special-elite text-xs mt-1">✓ Location confirmed</p>}
+              <AddressInput
+                value={startText}
+                onChange={v => { setStartText(v); setStartCoords(null); }}
+                onSelect={handleSelectAddress}
+                placeholder="Chicago, IL or 123 Main St…"
+                confirmed={!!startCoords}
+                gpsLoading={gpsLoading}
+                onGPS={handleUseGPS}
+                onClear={() => { setStartText(''); setStartCoords(null); }}
+              />
+              {gpsError && <p className="text-atomic-orange font-special-elite text-xs px-1 mt-1">{gpsError}</p>}
             </div>
 
             {/* Neon divider */}
@@ -844,28 +1079,28 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
                 INCLUDE STOPS
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { key: 'bookstores', label: 'Bookstores' },
-                  { key: 'cafes',      label: 'Coffee Shops' },
-                  { key: 'landmarks',  label: 'Landmarks' },
-                  { key: 'restaurants',label: 'Restaurants' },
-                  { key: 'museums',    label: 'Museums' },
-                  { key: 'parks',      label: 'Parks' },
-                ].map(({ key, label }) => (
-                  <label key={key}
-                    className={`flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all ${
-                      includeTypes[key] ? 'border-starlight-turquoise/60 bg-starlight-turquoise/5' : 'border-starlight-turquoise/15'
-                    }`}
-                  >
-                    <input type="checkbox" checked={includeTypes[key]}
-                      onChange={() => setIncludeTypes(prev => ({ ...prev, [key]: !prev[key] }))}
-                      className="accent-starlight-turquoise flex-shrink-0" />
-                    <span className="text-paper-white font-special-elite text-xs">{label}</span>
-                  </label>
-                ))}
-              </div>
+              <button type="button" onClick={() => setShowWaypoints(true)}
+                className="w-full flex items-center justify-between p-3 rounded-lg border border-starlight-turquoise/30 hover:border-starlight-turquoise/60 transition-all bg-black/20"
+              >
+                <div className="flex items-center gap-2 flex-wrap">
+                  {CATEGORY_GROUPS.map(group => {
+                    const active = group.items.filter(i => categories.has(i.key)).length;
+                    if (!active) return null;
+                    return (
+                      <span key={group.id} className="flex items-center gap-1 text-paper-white font-special-elite text-xs">
+                        <group.Icon size={13} />
+                        <span className="text-starlight-turquoise">{active}</span>
+                      </span>
+                    );
+                  })}
+                  {categories.size === 0 && <span className="text-chrome-silver/40 font-special-elite text-xs">None selected</span>}
+                </div>
+                <span className="text-starlight-turquoise/60 font-special-elite text-xs flex-shrink-0 ml-2">EDIT →</span>
+              </button>
             </div>
+
+            <WaypointsSheet open={showWaypoints} onClose={() => setShowWaypoints(false)}
+              categories={categories} setCategories={setCategories} />
 
             {/* Travel style */}
             <div>
@@ -902,7 +1137,9 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
           <div className="flex flex-col items-center justify-center h-full py-24 lr-fade">
             <div className="relative mb-6">
               <div className="w-20 h-20 border-4 border-starlight-turquoise/30 border-t-starlight-turquoise rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center text-3xl">★</div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <StarburstIcon size={44} />
+              </div>
             </div>
             <p className="text-starlight-turquoise font-bungee text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
               BUILDING YOUR JOURNEY…
@@ -966,7 +1203,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                   {/* Stops */}
                   <div className="divide-y divide-starlight-turquoise/10">
                     {day.stops.map((stop, idx) => {
-                      const icon = TYPE_STOP_ICON[stop.type] || '📍';
+                      const StopIcon = TYPE_STOP_ICON[stop.type];
                       const isFestival = stop.isFestival;
                       return (
                         <div key={stop.id || idx} className={`px-4 py-3 flex gap-3 ${isFestival ? 'bg-[#B044FB]/5' : ''}`}>
@@ -975,7 +1212,11 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                             <span className="text-chrome-silver/50 font-special-elite text-[10px] text-center leading-tight">
                               {stop.suggestedTime}
                             </span>
-                            <span className="text-base">{icon}</span>
+                            <span className="flex items-center justify-center" style={{ height: 22 }}>
+                              {StopIcon
+                                ? <StopIcon size={18} />
+                                : <PinIcon size={18} />}
+                            </span>
                           </div>
                           {/* Details */}
                           <div className="flex-1 min-w-0">
