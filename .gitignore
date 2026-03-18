@@ -1,50 +1,9 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-# Dependencies
-node_modules
-dist
-dist-ssr
-*.local
-
-# Claude Code
-.claude/
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Environment variables
+node_modules/
+dist/
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Firebase
-.firebase
-.firebaserc
-firebase-debug.log
-.env
-
-# Generated discovery output
-scripts/podcasts-discovered.json
-
-# Firebase service account key — never commit
-scripts/serviceAccount.json
-serviceAccount.json
-service-account.json
-*-service-account.json
+.DS_Store
+**/.DS_Store
+.claude/

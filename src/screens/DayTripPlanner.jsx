@@ -719,7 +719,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   return (
-    <div className="w-full bg-midnight-navy flex flex-col" style={{ height: '100dvh', minHeight: '100vh' }}>
+    <div className="w-full bg-midnight-navy flex flex-col" style={{ height: '100dvh', minHeight: '100vh', overflow: 'hidden' }}>
       <style>{`
         @keyframes lr-fade-in  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         @keyframes lr-sheet-in { from { transform:translateY(100%); } to { transform:translateY(0); } }
@@ -772,7 +772,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 overflow-y-auto" style={{ background: 'radial-gradient(ellipse at 15% 10%, rgba(255,78,0,0.05) 0%, transparent 45%), radial-gradient(ellipse at 85% 85%, rgba(64,224,208,0.04) 0%, transparent 45%)' }}>
+      <div className="flex-1 overflow-y-auto"
+        style={{
+          minHeight: 0,
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain',
+          background: 'radial-gradient(ellipse at 15% 10%, rgba(255,78,0,0.05) 0%, transparent 45%), radial-gradient(ellipse at 85% 85%, rgba(64,224,208,0.04) 0%, transparent 45%)',
+        }}>
 
         {/* ══ STEP 1: INPUT ══ */}
         {step === 'input' && (
@@ -1043,7 +1049,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             </div>
 
             {/* Action buttons */}
-            <div className="px-4 pb-8 space-y-3">
+            <div className="px-4 space-y-3" style={{ paddingBottom: 120 }}>
 
               {/* UPDATE ROUTE — shown when selection differs from activeTrip */}
               {checkedIds.size > 0 && checkedIds.size !== activeTrip.stops.length && (
@@ -1137,79 +1143,110 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       {/* ── Navigation modal ── */}
       {showNavModal && activeTrip && (
         <div
-          className="fixed inset-0 z-[2000] flex items-end justify-center"
-          style={{ background: 'rgba(0,0,0,0.65)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.65)',
+                   display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}
           onClick={() => setShowNavModal(false)}
         >
+          {/* Sheet: container itself scrolls — same pattern as WaypointsSheet */}
           <div
-            className="w-full max-w-lg bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl px-5 pt-5 pb-8 space-y-3"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}
+            style={{
+              width: '100%', maxWidth: 512,
+              maxHeight: '80vh',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
+              background: '#1A1B2E',
+              borderTop: '4px solid #40E0D0',
+              borderRadius: '24px 24px 0 0',
+            }}
             onClick={e => e.stopPropagation()}
           >
-            <div className="mb-1">
-              <h3 className="text-starlight-turquoise font-bungee text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
+            {/* Sticky header */}
+            <div style={{ position: 'sticky', top: 0, zIndex: 10, background: '#1A1B2E',
+                          padding: '20px 20px 16px', borderBottom: '1px solid rgba(64,224,208,0.15)' }}>
+              <h3 className="text-starlight-turquoise font-bungee"
+                style={{ fontSize: 18, textShadow: '0 0 8px rgba(64,224,208,0.7)', margin: 0 }}>
                 NAVIGATE YOUR TRIP
               </h3>
-              <p className="text-chrome-silver/60 font-special-elite text-xs">
+              <p className="font-special-elite" style={{ fontSize: 11, color: 'rgba(192,192,192,0.6)', margin: '2px 0 0' }}>
                 {checkedIds.size} stop{checkedIds.size !== 1 ? 's' : ''} · ~{activeTrip.schedule.totalMiles} mi · starts and ends at your location
               </p>
             </div>
 
-            {/* Google Maps — primary */}
-            {(() => {
-              const url = buildGoogleMapsUrl(startCoords, activeTrip.stops);
-              return url ? (
-                <a href={url} target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center gap-3 bg-[#4285F4]/15 border-2 border-[#4285F4]/60 hover:border-[#4285F4] text-paper-white font-bungee py-3.5 px-4 rounded-xl transition-all"
-                >
-                  <span className="text-xl">🗺️</span>
-                  <div className="flex-1 text-left">
-                    <span className="block text-sm">Google Maps</span>
-                    <span className="block text-chrome-silver/50 font-special-elite text-xs normal-case font-normal">
-                      All {activeTrip.stops.length} stops pre-loaded · turn-by-turn navigation
-                    </span>
-                  </div>
-                  <span className="text-[#4285F4] font-special-elite text-xs">Recommended</span>
-                </a>
-              ) : null;
-            })()}
+            {/* Scrollable options */}
+            <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-            {/* Apple Maps — iOS only */}
-            {isIOS() && (() => {
-              const url = buildAppleMapsUrl(startCoords, activeTrip.stops);
-              return url ? (
-                <a href={url} target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center gap-3 bg-black/30 border border-chrome-silver/20 hover:border-chrome-silver/50 text-paper-white font-bungee py-3 px-4 rounded-xl transition-all"
-                >
-                  <span className="text-xl">🍎</span>
-                  <div className="flex-1 text-left">
-                    <span className="block text-sm">Apple Maps</span>
-                    <span className="block text-chrome-silver/40 font-special-elite text-xs normal-case font-normal">
-                      First stop only · multi-stop not supported
-                    </span>
-                  </div>
-                </a>
-              ) : null;
-            })()}
+              {/* Google Maps — primary */}
+              {(() => {
+                const url = buildGoogleMapsUrl(startCoords, activeTrip.stops);
+                return url ? (
+                  <a href={url} target="_blank" rel="noopener noreferrer"
+                    className="font-bungee"
+                    style={{ display: 'flex', alignItems: 'center', gap: 12,
+                             background: 'rgba(66,133,244,0.12)', border: '2px solid rgba(66,133,244,0.55)',
+                             borderRadius: 12, padding: '14px 16px', textDecoration: 'none', minHeight: 64 }}
+                  >
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>🗺️</span>
+                    <div style={{ flex: 1 }}>
+                      <span className="font-bungee text-paper-white" style={{ display: 'block', fontSize: 14 }}>Google Maps</span>
+                      <span className="font-special-elite" style={{ display: 'block', fontSize: 11, color: 'rgba(192,192,192,0.5)' }}>
+                        All {activeTrip.stops.length} stops pre-loaded · turn-by-turn navigation
+                      </span>
+                    </div>
+                    <span className="font-special-elite" style={{ fontSize: 11, color: '#4285F4', flexShrink: 0 }}>Recommended</span>
+                  </a>
+                ) : null;
+              })()}
 
-            {/* Load in App */}
-            <button onClick={handleLoadOnMap}
-              className="w-full flex items-center gap-3 bg-starlight-turquoise/10 border border-starlight-turquoise/30 hover:border-starlight-turquoise/70 text-paper-white font-bungee py-3 px-4 rounded-xl transition-all"
-            >
-              <span className="text-xl">📍</span>
-              <div className="flex-1 text-left">
-                <span className="block text-sm">View in Literary Roads</span>
-                <span className="block text-chrome-silver/40 font-special-elite text-xs normal-case font-normal">
-                  Shows stops on the book map · in-app progress tracker
-                </span>
-              </div>
-            </button>
+              {/* Apple Maps — iOS only */}
+              {isIOS() && (() => {
+                const url = buildAppleMapsUrl(startCoords, activeTrip.stops);
+                return url ? (
+                  <a href={url} target="_blank" rel="noopener noreferrer"
+                    style={{ display: 'flex', alignItems: 'center', gap: 12,
+                             background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(192,192,192,0.2)',
+                             borderRadius: 12, padding: '12px 16px', textDecoration: 'none', minHeight: 60 }}
+                  >
+                    <span style={{ fontSize: 22, flexShrink: 0 }}>🍎</span>
+                    <div style={{ flex: 1 }}>
+                      <span className="font-bungee text-paper-white" style={{ display: 'block', fontSize: 14 }}>Apple Maps</span>
+                      <span className="font-special-elite" style={{ display: 'block', fontSize: 11, color: 'rgba(192,192,192,0.4)' }}>
+                        First stop only · multi-stop not supported
+                      </span>
+                    </div>
+                  </a>
+                ) : null;
+              })()}
 
-            <button onClick={() => setShowNavModal(false)}
-              className="w-full text-chrome-silver/50 hover:text-chrome-silver font-special-elite text-sm py-2"
-            >
-              Cancel
-            </button>
+              {/* View in Literary Roads */}
+              <button onClick={handleLoadOnMap}
+                style={{ display: 'flex', alignItems: 'center', gap: 12,
+                         background: 'rgba(64,224,208,0.08)', border: '1px solid rgba(64,224,208,0.3)',
+                         borderRadius: 12, padding: '12px 16px', cursor: 'pointer',
+                         textAlign: 'left', width: '100%', minHeight: 60 }}
+              >
+                <span style={{ fontSize: 22, flexShrink: 0 }}>📍</span>
+                <div style={{ flex: 1 }}>
+                  <span className="font-bungee text-paper-white" style={{ display: 'block', fontSize: 14 }}>View in Literary Roads</span>
+                  <span className="font-special-elite" style={{ display: 'block', fontSize: 11, color: 'rgba(192,192,192,0.4)' }}>
+                    Shows stops on the book map · in-app progress tracker
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            {/* Sticky footer — Cancel button */}
+            <div style={{ position: 'sticky', bottom: 0, zIndex: 10, background: '#1A1B2E',
+                          padding: '12px 20px',
+                          paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
+                          borderTop: '1px solid rgba(64,224,208,0.15)' }}>
+              <button onClick={() => setShowNavModal(false)}
+                className="font-special-elite"
+                style={{ width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+                         color: 'rgba(192,192,192,0.5)', fontSize: 14, padding: '8px 0' }}>
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}
