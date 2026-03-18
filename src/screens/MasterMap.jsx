@@ -787,6 +787,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const shelfDragRef = useRef(null);
   const [showInfoMenu, setShowInfoMenu] = useState(false);
   const infoMenuRef = useRef(null);
+  const journeysMenuRef = useRef(null);
 
   useEffect(() => {
     if (!showUserMenu) return;
@@ -812,6 +813,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, [showMobileMenu]);
+
+  useEffect(() => {
+    if (!showJourneysMenu) return;
+    const onMouse = (e) => { if (!journeysMenuRef.current?.contains(e.target)) setShowJourneysMenu(false); };
+    const onKey   = (e) => { if (e.key === 'Escape') setShowJourneysMenu(false); };
+    document.addEventListener('mousedown', onMouse);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('mousedown', onMouse); document.removeEventListener('keydown', onKey); };
+  }, [showJourneysMenu]);
 
   // Reset shelf snap/minimize when a new location is opened
   useEffect(() => {
@@ -1756,7 +1766,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             </button>
 
             {/* Curated Journeys */}
-            <div className="relative">
+            <div className="relative" ref={journeysMenuRef}>
               <button onClick={() => setShowJourneysMenu(v => !v)} title="Curated Journeys"
                 className={`flex flex-col items-center transition-colors p-1 ${showJourneysMenu ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
               >

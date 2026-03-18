@@ -63,6 +63,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
   const userMenuRef      = useRef(null);
   const mobileMenuRef    = useRef(null);
   const infoMenuRef      = useRef(null);
+  const journeysMenuRef  = useRef(null);
   const searchInputRef = useRef(null);
   const searchDropRef  = useRef(null);
   const searchDebounce = useRef(null);
@@ -73,13 +74,19 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
       if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setShowUserMenu(false);
       if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) setShowMobileMenu(false);
       if (infoMenuRef.current && !infoMenuRef.current.contains(e.target)) setShowInfoMenu(false);
+      if (journeysMenuRef.current && !journeysMenuRef.current.contains(e.target)) setShowJourneysMenu(false);
       if (
         searchDropRef.current && !searchDropRef.current.contains(e.target) &&
         searchInputRef.current && !searchInputRef.current.contains(e.target)
       ) setShowSearchDrop(false);
     };
+    const onKey = (e) => { if (e.key === 'Escape') setShowJourneysMenu(false); };
     document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', onKey);
+    };
   }, []);
 
   // Search debounce
@@ -331,7 +338,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
             </button>
 
             {/* Curated Journeys */}
-            <div className="relative">
+            <div className="relative" ref={journeysMenuRef}>
               <button onClick={() => setShowJourneysMenu(v => !v)} title="Curated Journeys"
                 className={`flex flex-col items-center transition-colors p-1 ${showJourneysMenu ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
               >
