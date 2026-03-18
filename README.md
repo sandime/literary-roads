@@ -69,6 +69,14 @@ literary-roads/
 └── index.html           # HTML template
 ```
 
+## Design System
+
+See [DESIGN_GUIDELINES.md](./DESIGN_GUIDELINES.md) for:
+- Icon usage
+- Modal patterns
+- Color palette
+- Best practices
+
 ## 🎨 Design System (Highway Googie)
 
 ### Colors
