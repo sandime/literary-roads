@@ -1,6 +1,6 @@
 import { getMapboxRoute } from './mapbox';
 import {
-  getNearbyBookstores, getNearbyCoffeeShops,
+  getNearbyBookstores, getNearbyCoffeeShops, getNearbyLibraries,
   getNearbyMuseums, getNearbyRestaurants, getNearbyParks,
   getNearbyHistoricSites, getNearbyArtGalleries, getNearbyObservatories,
   getNearbyAquariums, getNearbyTheaters, getNearbyDriveIns,
@@ -13,7 +13,7 @@ export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 const STOP_TARGETS = { quick: 3, halfDay: 6, fullDay: 9 };
 
 export const VISIT_MINUTES = {
-  bookstore: 60, cafe: 30, landmark: 45, drivein: 120,
+  bookstore: 60, library: 60, cafe: 30, landmark: 45, drivein: 120,
   museum: 90, artGallery: 75, park: 45, aquarium: 90,
   restaurant: 60, historicSite: 60, music: 45, garden: 45, observatory: 60,
   theater: 90, flea: 60, antique: 60,
@@ -63,18 +63,19 @@ const fetchLiterary = async (center, radiusMiles) => {
     );
   }
 
-  const [bookBatches, cafeBatches] = await Promise.all([
+  const [bookBatches, cafeBatches, libBatches] = await Promise.all([
     Promise.all(points.map(pt => getNearbyBookstores(pt[0], pt[1], searchR).catch(() => []))),
     Promise.all(points.map(pt => getNearbyCoffeeShops(pt[0], pt[1], searchR).catch(() => []))),
+    Promise.all(points.map(pt => getNearbyLibraries(pt[0], pt[1], searchR).catch(() => []))),
   ]);
 
   const seen = new Set();
-  const results = [...bookBatches.flat(), ...cafeBatches.flat()]
+  const results = [...bookBatches.flat(), ...cafeBatches.flat(), ...libBatches.flat()]
     .filter(p => { if (!p?.id || seen.has(p.id)) return false; seen.add(p.id); return true; })
     .map(p => ({ ...p, coords: p.coords ?? (p.lat != null ? [p.lat, p.lng] : null) }))
     .filter(p => p.coords);
   console.log(`[DayTrip] literary → ${results.length} places by type:`,
-    Object.fromEntries(['cafe','bookstore','drivein'].map(t => [t, results.filter(p => p.type === t).length])));
+    Object.fromEntries(['cafe','bookstore','library','drivein'].map(t => [t, results.filter(p => p.type === t).length])));
   return results;
 };
 
@@ -300,6 +301,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   // Split literary pool by subtype — respect category filter
   const cafes      = has('cafe')      ? literary.filter(p => p.type === 'cafe')      : [];
   const bookstores = has('bookstore') ? literary.filter(p => p.type === 'bookstore') : [];
+  const libraries  = has('library')   ? literary.filter(p => p.type === 'library')   : [];
   const landmarks  = has('landmark')  ? literary.filter(p => p.type === 'landmark')  : [];
   const driveins   = has('drivein')   ? literary.filter(p => p.type === 'drivein')   : [];
 
@@ -307,6 +309,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const rotate = (pool) => rotatePool(tagDistance(pool, startCoords), variant);
   const cafePool  = rotate(cafes);
   const bookPool  = rotate(bookstores);
+  const libPool   = rotate(libraries);
   const landPool  = rotate(landmarks);
   const drivePool = rotate(driveins);
   const musePool  = rotate(museums);
@@ -328,7 +331,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   // How many of each type we've picked — allow 1 of guaranteed types, up to 2 of variety
   const typeCounts = {};
   const MAX_PER_TYPE = {
-    cafe: 1, bookstore: 1, restaurant: 1, drivein: 1,
+    cafe: 1, bookstore: 1, library: 2, restaurant: 1, drivein: 1,
     museum: 2, aquarium: 1, park: 2, landmark: 2,
     observatory: 1, historicSite: 2, artGallery: 1, theater: 1,
   };
@@ -355,6 +358,8 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   // Ordering: museum → wildlife → park → landmark → music → garden → observatory
   // → 2nd museum → 2nd wildlife → 2nd park → 2nd landmark (for fullDay overflow)
   const varietyPools = [
+    { pool: bookPool,  type: 'bookstore'   },
+    { pool: libPool,   type: 'library'     },
     { pool: musePool,  type: 'museum'      },
     { pool: aquaPool,  type: 'aquarium'    },
     { pool: parkPool,  type: 'park'        },
@@ -364,6 +369,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     { pool: obsvPool,  type: 'observatory' },
     { pool: theatPool, type: 'theater'     },
     // Second-pass for long trips
+    { pool: libPool,   type: 'library'     },
     { pool: musePool,  type: 'museum'      },
     { pool: histPool,  type: 'historicSite'},
     { pool: parkPool,  type: 'park'        },

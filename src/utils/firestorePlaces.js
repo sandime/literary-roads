@@ -138,6 +138,7 @@ const makeNearby = (collectionName, type, description, cachePrefix) =>
     });
   };
 
+export const getNearbyLibraries     = makeNearby('libraries',     'library',     'Library',          'fsli');
 export const getNearbyMuseums       = makeNearby('museums',       'museum',      'Museum',           'fsmu');
 
 // Restaurants — like makeNearby but also returns cuisine + diet_* fields
