@@ -634,6 +634,10 @@ export default function AdminUpload() {
         }
       }
       setStats(s => ({ ...s, uploaded, skipped, failed }));
+      // Rate-limit large uploads to avoid Firestore write exhaustion
+      if (unique.length > 10000 && i + BATCH_SIZE < unique.length) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
     }
 
     setCurrent('');
@@ -740,6 +744,10 @@ export default function AdminUpload() {
         }
       }
       setStats(s => ({ ...s, uploaded, skipped, failed }));
+      // Rate-limit large uploads to avoid Firestore write exhaustion
+      if (unique.length > 10000 && i + BATCH_SIZE < unique.length) {
+        await new Promise(r => setTimeout(r, 1000));
+      }
     }
 
     setCurrent('');
