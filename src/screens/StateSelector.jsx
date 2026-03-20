@@ -425,16 +425,16 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
               {showInfoMenu && (
                 <div style={{ position:'absolute', top:'calc(100% + 6px)', right:0, minWidth:'170px', zIndex:9999, background:'#0D0E1A', border:'1.5px solid rgba(255,78,0,0.45)', borderRadius:'10px', overflow:'hidden', boxShadow:'0 0 20px rgba(255,78,0,0.2), 0 8px 32px rgba(0,0,0,0.7)', animation:'lr-dropdown-in 0.18s ease' }}>
                   {[
-                    { label: 'ABOUT',           action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
-                    { label: 'CODE OF ETHICS',  action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
-                    { label: 'PRIVACY POLICY',  action: () => { setShowInfoMenu(false); onShowPrivacy?.(); } },
-                    { label: 'CREDITS',         action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
-                  ].map(({ label, action }, i) => (
+                    { label: 'ABOUT',           Icon: AboutIcon,          action: () => { setShowInfoMenu(false); onShowAbout?.(); } },
+                    { label: 'CODE OF ETHICS',  Icon: CodeOfEthicsIcon,   action: () => { setShowInfoMenu(false); onShowEthics?.(); } },
+                    { label: 'PRIVACY POLICY',  Icon: PrivacyPolicyIcon,  action: () => { setShowInfoMenu(false); onShowPrivacy?.(); } },
+                    { label: 'CREDITS',         Icon: CreditsIcon,        action: () => { setShowInfoMenu(false); onShowCredits?.(); } },
+                  ].map(({ label, Icon, action }, i) => (
                     <button key={label} onClick={action} className="font-bungee w-full text-left"
-                      style={{ display:'flex', alignItems:'center', padding:'10px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', borderTop: i > 0 ? '1px solid rgba(255,78,0,0.12)' : 'none', cursor:'pointer', transition:'background 0.15s' }}
+                      style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', borderTop: i > 0 ? '1px solid rgba(255,78,0,0.12)' : 'none', cursor:'pointer', transition:'background 0.15s' }}
                       onMouseEnter={e => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background='transparent'}
-                    >{label}</button>
+                    ><Icon size={16} />{label}</button>
                   ))}
                 </div>
               )}

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch } from 'firebase/firestore';
-import { geocodePlace } from '../utils/mapboxGeocoding';
+import { geocodeNominatim } from '../utils/nominatimGeocoding';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coffee shop filter — returns a reason string if excluded, null if included
@@ -386,11 +386,20 @@ const parseCSV = (text) => {
   // Map common column name variants to canonical names
   const ALIASES = {
     latitude: 'lat', longitude: 'lng', lon: 'lng', long: 'lng',
+    // NRHP / NPS dataset columns
+    primary_latitude: 'lat', primary_longitude: 'lng',
+    x: 'lng', y: 'lat',
     street: 'address', street_address: 'address', addr: 'address',
     zip: 'zipcode', postal_code: 'zipcode', postcode: 'zipcode',
-    st: 'state', telephone: 'phone', tel: 'phone',
+    zip_code: 'zipcode',
+    st: 'state', state_territory: 'state',
+    telephone: 'phone', tel: 'phone',
     url: 'website', web: 'website', link: 'website',
-    place_name: 'name', business_name: 'name', title: 'name',
+    // NRHP name variants
+    place_name: 'name', business_name: 'name',
+    resource_name: 'name', property_name: 'name', site_name: 'name',
+    // NRHP reference — keep as-is (stored as extra field)
+    nris_reference_number: 'refnum', reference_number: 'refnum',
   };
   const canonical = headers.map(h => ALIASES[h] ?? h);
 
@@ -413,7 +422,7 @@ const csvRowToEntry = (row, type) => {
   if (!row.name || isNaN(lat) || isNaN(lng)) return null;
   const slug = row.name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 24);
   const docId = `csv_${slug}_${lat.toFixed(4)}_${lng.toFixed(4)}`.replace(/\./g, '_');
-  return {
+  const entry = {
     docId,
     name:    row.name,
     address: row.address  || null,
@@ -426,6 +435,8 @@ const csvRowToEntry = (row, type) => {
     type,
     source: 'csv',
   };
+  if (row.refnum) entry.refnum = row.refnum; // NRHP reference number
+  return entry;
 };
 
 const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, geocoded: 0, excludeReasons: {} };
@@ -673,25 +684,23 @@ export default function AdminUpload() {
     let geocoded = 0, skippedGeo = 0;
     if (needsGeocoding) {
       setPhase('loading');
-      const BATCH = 10; // geocode 10 at a time
-      for (let i = 0; i < rows.length; i += BATCH) {
-        const slice = rows.slice(i, i + BATCH);
-        setCurrent(`Geocoding ${i + 1}–${Math.min(i + BATCH, rows.length)} of ${rows.length}…`);
-        await Promise.all(slice.map(async (row) => {
-          if (row.lat && row.lng && !isNaN(parseFloat(row.lat)) && !isNaN(parseFloat(row.lng))) return;
-          const parts = [row.address, row.city, row.state, row.zipcode].filter(Boolean);
-          if (!parts.length) { row._skip = true; skippedGeo++; return; }
-          const query = `${row.name ? row.name + ', ' : ''}${parts.join(', ')}`;
-          const result = await geocodePlace(query).catch(() => null);
-          if (result) {
-            row.lat = String(result.lat);
-            row.lng = String(result.lng);
-            geocoded++;
-          } else {
-            row._skip = true;
-            skippedGeo++;
-          }
-        }));
+      // Nominatim policy: 1 req/s — must be sequential, not parallel
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (row.lat && row.lng && !isNaN(parseFloat(row.lat)) && !isNaN(parseFloat(row.lng))) continue;
+        if (i % 25 === 0) setCurrent(`Geocoding row ${i + 1} of ${rows.length}…`);
+        const parts = [row.address, row.city, row.state, row.zipcode].filter(Boolean);
+        if (!parts.length) { row._skip = true; skippedGeo++; continue; }
+        const query = `${row.name ? row.name + ', ' : ''}${parts.join(', ')}`;
+        const result = await geocodeNominatim(query).catch(() => null);
+        if (result) {
+          row.lat = String(result.lat);
+          row.lng = String(result.lng);
+          geocoded++;
+        } else {
+          row._skip = true;
+          skippedGeo++;
+        }
       }
       rows = rows.filter(r => !r._skip);
     }
@@ -831,7 +840,7 @@ export default function AdminUpload() {
               <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
                 <span className="text-paper-white">Required:</span> name<br/>
                 <span className="text-paper-white">With coords:</span> name, lat, lng, address, city, state, zipcode, phone, website<br/>
-                <span className="text-paper-white">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Mapbox)
+                <span className="text-paper-white">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Nominatim)
               </p>
             </div>
 
@@ -852,7 +861,7 @@ export default function AdminUpload() {
                   <p className="font-special-elite text-chrome-silver text-xs">
                     <span className="text-paper-white">{csvRows.length.toLocaleString()} rows</span> detected
                     {needsGeocoding && (
-                      <span className="text-atomic-orange ml-2">· lat/lng missing — will auto-geocode via Mapbox</span>
+                      <span className="text-atomic-orange ml-2">· lat/lng missing — will auto-geocode via Nominatim (1 req/s)</span>
                     )}
                     {!needsGeocoding && (
                       <span className="text-starlight-turquoise ml-2">· lat/lng present ✓</span>
@@ -986,7 +995,7 @@ export default function AdminUpload() {
             </div>
             {stats.geocoded > 0 && (
               <div className="flex justify-between text-chrome-silver">
-                <span>Auto-geocoded via Mapbox</span>
+                <span>Auto-geocoded via Nominatim</span>
                 <span className="text-starlight-turquoise">{stats.geocoded.toLocaleString()}</span>
               </div>
             )}
