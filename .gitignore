@@ -7,3 +7,7 @@ dist/
 .DS_Store
 **/.DS_Store
 .claude/
+
+# Local NRHP data files
+downloadNRHP.cjs
+nrhp_points.geojson

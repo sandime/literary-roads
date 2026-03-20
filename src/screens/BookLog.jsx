@@ -440,7 +440,7 @@ export default function BookLog({ onBack }) {
   const [selectedBook, setSelectedBook] = useState(null);
   const [rating, setRating] = useState(0);
   const [finishedMonth, setFinishedMonth] = useState('');
-  const [finishedYear, setFinishedYear] = useState('');
+  const [finishedYear, setFinishedYear] = useState(String(new Date().getFullYear()));
   const [format, setFormat] = useState('read');
   const [saving, setSaving] = useState(false);
   const [loggedBooks, setLoggedBooks] = useState([]);
@@ -480,7 +480,7 @@ export default function BookLog({ onBack }) {
     setSelectedBook(null);
     setRating(0);
     setFinishedMonth('');
-    setFinishedYear('');
+    setFinishedYear(String(new Date().getFullYear()));
     setFormat('read');
     setSaveError('');
   };

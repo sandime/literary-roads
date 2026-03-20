@@ -306,7 +306,7 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
 }
 
 // ── Reading Quest: Goal-setting / change modal ──────────────────────────────
-function GoalModal({ currentGoal, booksRead, onSave, onClose }) {
+function GoalModal({ currentGoal, booksRead, onSave, onClose, errorMsg = '' }) {
   const isNew = !currentGoal;
   const [selected, setSelected] = useState(() => {
     if (!currentGoal) return 52;
@@ -445,6 +445,12 @@ function GoalModal({ currentGoal, booksRead, onSave, onClose }) {
           </button>
         </div>
 
+        {errorMsg && (
+          <p className="font-special-elite text-xs mb-3 text-center"
+            style={{ color: '#FF4E00', background: 'rgba(255,78,0,0.08)', border: '1px solid rgba(255,78,0,0.3)', borderRadius: '8px', padding: '8px 12px' }}>
+            {errorMsg}
+          </p>
+        )}
         <button
           onClick={() => canSave && onSave(finalGoal)}
           disabled={!canSave}
@@ -557,6 +563,7 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
   // Reading Quest
   const [readingGoal, setReadingGoalState] = useState(null); // { goal, year } | null
   const [showGoalModal, setShowGoalModal]   = useState(false);
+  const [goalSaveError, setGoalSaveError]   = useState('');
   const [showQuestHistory, setShowQuestHistory] = useState(false);
   const [questHistory, setQuestHistory]     = useState([]);
   const yearResetDoneRef = useRef(false);
@@ -691,11 +698,17 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
 
   const handleSaveGoal = async (goal) => {
     if (!user) return;
+    setGoalSaveError('');
     try {
       if (readingGoal) await updateReadingGoalValue(user.uid, goal);
       else             await setReadingGoal(user.uid, goal);
       setShowGoalModal(false);
-    } catch (err) { console.error('[Profile] save goal:', err); }
+    } catch (err) {
+      console.error('[Profile] save goal:', err);
+      setGoalSaveError(err.code === 'permission-denied'
+        ? 'Permission denied — ensure Firestore rules allow writes to users/{uid}/readingGoals'
+        : 'Could not save goal. Please try again.');
+    }
   };
 
   const handleRemoveBook = async (id) => {
@@ -1266,7 +1279,8 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
           currentGoal={readingGoal?.goal ?? null}
           booksRead={readingStats.questBooksRead ?? 0}
           onSave={handleSaveGoal}
-          onClose={() => setShowGoalModal(false)}
+          onClose={() => { setShowGoalModal(false); setGoalSaveError(''); }}
+          errorMsg={goalSaveError}
         />
       )}
 
