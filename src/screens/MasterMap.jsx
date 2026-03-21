@@ -1165,12 +1165,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSearchTarget(null);
     setShowPlanner(false);
     setShowRoadTrip(false);
-    setCurrentRouteStops([]); // fresh My Stops for this new route
+    // Restore previously selected navigation stops saved with this route
+    setCurrentRouteStops(savedRoute.myStops || []);
 
+    // Fly the map to the route. If no polyline exists (e.g. festival/day-trip route),
+    // fall back to centering on the stops themselves.
     const pts = coords;
-    if (pts.length > 0) {
-      const lats = pts.map(p => p[0]);
-      const lngs = pts.map(p => p[1]);
+    const flyPoints = pts.length > 0
+      ? pts
+      : (savedRoute.stops || []).filter(s => s.lat != null).map(s => [s.lat, s.lng]);
+
+    if (flyPoints.length > 0) {
+      const lats = flyPoints.map(p => p[0]);
+      const lngs = flyPoints.map(p => p[1]);
       const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
       const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
       const maxDiff = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
@@ -2607,21 +2614,31 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
       )}
 
-      {/* Route Info — shown when no My Stops and no day trip panel */}
+      {/* Route Info — shown when route exists, no My Stops selected yet */}
       {route.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
+        <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
+          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
+            <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
+              {visibleLocations.length} stop{visibleLocations.length !== 1 ? 's' : ''} along your route
+              {visibleLocations.length > 0 && <span className="text-[#FFD700]"> · tap a stop then ⭐ ADD TO MY STOPS to plan navigation</span>}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Stops-only Info — festival / near-me / day-trip: stops exist but no route polyline */}
+      {route.length === 0 && visibleLocations.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg flex items-center gap-3">
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
-              Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
+              {visibleLocations.length} stop{visibleLocations.length !== 1 ? 's' : ''} found
             </p>
-            {visibleLocations.length > 0 && (
-              <button
-                onClick={() => setShowRouteNavigate(true)}
-                className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"
-              >
-                🗺️ NAVIGATE
-              </button>
-            )}
+            <button
+              onClick={() => setShowRouteNavigate(true)}
+              className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"
+            >
+              🗺️ PLAN NAVIGATION
+            </button>
           </div>
         </div>
       )}
@@ -3017,7 +3034,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         />
       )}
 
-      {/* ── Navigate loaded route modal (from Route Info bar) ── */}
+      {/* ── Navigate modal for festival / near-me / stops-only routes ── */}
       {showRouteNavigate && visibleLocations.length > 0 && (
         <NavigateModal
           items={visibleLocations}
