@@ -1180,8 +1180,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       else if (maxDiff > 1) zoom = 9;
       else if (maxDiff > 0.5) zoom = 10;
       else if (maxDiff > 0.2) zoom = 11;
-      setMapCenter([midLat, midLng]);
-      setMapZoom(zoom);
+      setSearchTarget({ center: [midLat, midLng], zoom });
     }
   };
 
@@ -1407,8 +1406,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           getExtraLocationsNear(latitude, longitude, 75),
         ]);
 
-        setMapCenter([latitude, longitude]);
-        setMapZoom(12);
+        setSearchTarget({ center: [latitude, longitude], zoom: 12 });
         setVisibleLocations([...places, ...nearFestivals, ...nearDriveIns, ...nearExtra]);
         setShowPlanner(false);
         setRoute([]);
@@ -1517,8 +1515,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       else if (maxDiff > 1) zoom = 9;
       else if (maxDiff > 0.5) zoom = 10;
       else if (maxDiff > 0.2) zoom = 11;
-      setMapCenter([midLat, midLng]);
-      setMapZoom(zoom);
+      setSearchTarget({ center: [midLat, midLng], zoom });
       setShowPlanner(false);
       setLoading(false);
 
@@ -2200,7 +2197,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           zoom={mapZoom}
           className="h-full w-full"
           style={{ background: '#1A1B2E' }}
-          key={`${mapCenter[0]}-${mapCenter[1]}-${mapZoom}`}
+
         >
           {/* Dark base without labels */}
           <TileLayer
@@ -2612,10 +2609,29 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {/* Route Info — shown when no My Stops and no day trip panel */}
       {route.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
-          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
+          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg flex items-center gap-3">
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
               Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
             </p>
+            {(startCity || endCity) && (() => {
+              const origin = encodeURIComponent(startCity || '');
+              const destination = encodeURIComponent(endCity || '');
+              const waypts = visibleLocations
+                .slice(0, 8)
+                .map(l => `${l.lat},${l.lng}`)
+                .join('|');
+              const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypts ? `&waypoints=${encodeURIComponent(waypts)}` : ''}`;
+              return (
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"
+                >
+                  🗺️ NAVIGATE
+                </a>
+              );
+            })()}
           </div>
         </div>
       )}
