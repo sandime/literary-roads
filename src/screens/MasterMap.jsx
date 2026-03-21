@@ -621,6 +621,16 @@ const MapPositionTracker = ({ routeStateRef }) => {
   return null;
 };
 
+// Fits the map to a lat/lng bounding box — used when loading routes/stops
+const FitBoundsController = ({ target }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.fitBounds(target.bounds, target.options ?? { padding: [60, 60] });
+  }, [target]);
+  return null;
+};
+
 // Inline search bar rendered inside the header when showSearch is true
 const PlaceSearch = ({ onSelect }) => {
   const [query, setQuery] = useState('');
@@ -761,6 +771,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
   const [showMyStopsNavigate, setShowMyStopsNavigate] = useState(false);
   const [showRouteNavigate, setShowRouteNavigate] = useState(false);
+  const [fitTarget, setFitTarget] = useState(null);
+  const [loadedRoute, setLoadedRoute] = useState(null);
   const [pendingSavePrompt, setPendingSavePrompt]   = useState(!!saved.pendingSavePrompt);
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
@@ -1167,28 +1179,22 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setShowRoadTrip(false);
     // Restore previously selected navigation stops saved with this route
     setCurrentRouteStops(savedRoute.myStops || []);
+    // Track which saved route is currently displayed
+    setLoadedRoute(savedRoute);
 
-    // Fly the map to the route. If no polyline exists (e.g. festival/day-trip route),
-    // fall back to centering on the stops themselves.
+    // Fit map to route bounds. If no polyline (festival/day-trip), use stop coordinates.
     const pts = coords;
-    const flyPoints = pts.length > 0
+    const boundsPoints = pts.length > 0
       ? pts
       : (savedRoute.stops || []).filter(s => s.lat != null).map(s => [s.lat, s.lng]);
 
-    if (flyPoints.length > 0) {
-      const lats = flyPoints.map(p => p[0]);
-      const lngs = flyPoints.map(p => p[1]);
-      const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-      const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-      const maxDiff = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
-      let zoom = 7;
-      if (maxDiff > 10) zoom = 6;
-      else if (maxDiff > 5) zoom = 7;
-      else if (maxDiff > 2) zoom = 8;
-      else if (maxDiff > 1) zoom = 9;
-      else if (maxDiff > 0.5) zoom = 10;
-      else if (maxDiff > 0.2) zoom = 11;
-      setSearchTarget({ center: [midLat, midLng], zoom });
+    if (boundsPoints.length > 0) {
+      const lats = boundsPoints.map(p => p[0]);
+      const lngs = boundsPoints.map(p => p[1]);
+      setFitTarget({
+        bounds: [[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]],
+        options: { padding: [70, 70], maxZoom: 13 },
+      });
     }
   };
 
@@ -1510,20 +1516,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       mergeInto(phase1Locations, [...curatedLandmarks, ...driveIns, ...festivals, ...places, ...destPlaces]);
       setVisibleLocations(phase1Locations);
 
-      // Fit map to route immediately
+      // Fit map to route immediately using fitBounds for accurate city-level zoom
       const lats = routePoints.map(p => p[0]);
       const lngs = routePoints.map(p => p[1]);
-      const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
-      const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-      const maxDiff = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
-      let zoom = 13;
-      if (maxDiff > 10) zoom = 6;
-      else if (maxDiff > 5) zoom = 7;
-      else if (maxDiff > 2) zoom = 8;
-      else if (maxDiff > 1) zoom = 9;
-      else if (maxDiff > 0.5) zoom = 10;
-      else if (maxDiff > 0.2) zoom = 11;
-      setSearchTarget({ center: [midLat, midLng], zoom });
+      setFitTarget({
+        bounds: [[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]],
+        options: { padding: [70, 70], maxZoom: 13 },
+      });
       setShowPlanner(false);
       setLoading(false);
 
@@ -1583,6 +1582,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
     setActiveTripStops([]);
     setCurrentRouteStops([]);
+    setLoadedRoute(null);
     // Go back to the state selector — that's the 50-state interactive map
     onHome();
   };
@@ -1997,61 +1997,83 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             {/* Nav items */}
             <nav className="flex-1 overflow-y-auto py-2">
 
-              {/* Home */}
+              {/* ── EXPLORE ── */}
+              <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">EXPLORE</p>
               <button
                 onClick={() => { setShowHamburger(false); onHome(); }}
-                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
               >
                 <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
                 HOME
               </button>
-
-              {/* Search */}
               <button
                 onClick={() => { setShowHamburger(false); setShowSearch((v) => !v); }}
-                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
               >
                 <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 SEARCH
               </button>
-
-              {/* Near Me — only when map is active (not in planner) */}
-              {!showPlanner && (
-                <button
-                  onClick={() => { setShowHamburger(false); handleNearMe(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                >
-                  <svg className="w-5 h-5 flex-shrink-0 text-atomic-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  NEAR ME
-                </button>
-              )}
-
-              {/* My Trip */}
               <button
-                onClick={() => { setShowHamburger(false); setShowRoadTrip(true); }}
-                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                onClick={() => { setShowHamburger(false); handleNearMe(); }}
+                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
               >
-                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                <svg className="w-5 h-5 flex-shrink-0 text-atomic-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                MY TRIP
-                {tripItems.length > 0 && (
-                  <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] w-5 h-5 rounded-full flex items-center justify-center leading-none">
-                    {tripItems.length > 9 ? '9+' : tripItems.length}
-                  </span>
-                )}
+                NEAR ME
               </button>
 
-              {/* Curated Journeys */}
-              <div className="border-t border-starlight-turquoise/10">
-                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">CURATED JOURNEYS</p>
+              {/* ── MY STUFF ── */}
+              <div className="border-t border-starlight-turquoise/10 mt-1">
+                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">MY STUFF</p>
+                <button
+                  onClick={() => { setShowHamburger(false); setShowRoadTrip(true); }}
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                >
+                  <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                  </svg>
+                  MY TRIPS
+                  {tripItems.length > 0 && (
+                    <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] w-5 h-5 rounded-full flex items-center justify-center leading-none">
+                      {tripItems.length > 9 ? '9+' : tripItems.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => { setShowHamburger(false); onShowResources(); }}
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                >
+                  <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
+                  </svg>
+                  HIGHWAY SNACKS
+                </button>
+                {user && onShowBadges && (
+                  <button
+                    onClick={() => { setShowHamburger(false); onShowBadges(); }}
+                    className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                  >
+                    <BadgesIcon size={20} className="flex-shrink-0" />
+                    BADGES
+                    {earnedBadgeData.length > 0 && (
+                      <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] px-1.5 py-0.5 rounded-full leading-none">
+                        {earnedBadgeData.length}
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
+
+              {/* ── PLAN A TRIP ── */}
+              <div className="border-t border-starlight-turquoise/10 mt-1">
+                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">PLAN A TRIP</p>
                 <button
                   onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
                   className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
@@ -2074,83 +2096,52 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 </button>
               </div>
 
-              {/* Highway Snacks */}
-              <button
-                onClick={() => { setShowHamburger(false); onShowResources(); }}
-                className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-              >
-                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                    d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
-                </svg>
-                HIGHWAY SNACKS
-              </button>
-
-              {/* Badges — logged-in only */}
-              {user && onShowBadges && (
-                <button
-                  onClick={() => { setShowHamburger(false); onShowBadges(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                >
-                  <BadgesIcon size={20} className="flex-shrink-0" />
-                  BADGES
-                  {earnedBadgeData.length > 0 && (
-                    <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] px-1.5 py-0.5 rounded-full leading-none">
-                      {earnedBadgeData.length}
-                    </span>
-                  )}
-                </button>
-              )}
-
-              {/* Afterword section */}
-              <div className="border-t border-starlight-turquoise/10">
-                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">AFTERWORD</p>
+              {/* ── ACCOUNT ── */}
+              <div className="border-t border-starlight-turquoise/10 mt-1">
+                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">ACCOUNT</p>
                 <button onClick={() => { setShowHamburger(false); onShowAbout?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <AboutIcon size={20} className="flex-shrink-0" /> ABOUT
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <CodeOfEthicsIcon size={20} className="flex-shrink-0" /> CODE OF ETHICS
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowPrivacy?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <PrivacyPolicyIcon size={20} className="flex-shrink-0" /> PRIVACY POLICY
                 </button>
                 <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
+                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
                   <CreditsIcon size={20} className="flex-shrink-0" /> CREDITS
                 </button>
               </div>
 
-              {/* Route-specific actions — only shown when route is plotted */}
-              {route.length > 0 && (
-                <>
-                  <div className="mx-5 my-2 h-px bg-starlight-turquoise/20" />
-                  <p className="px-5 py-1 font-special-elite text-[10px] text-chrome-silver/50 uppercase tracking-widest">
-                    Current Route
-                  </p>
-
-                  <button
-                    onClick={() => { setShowHamburger(false); if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); } else { onShowLogin(); } }}
-                    className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                  >
-                    <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                    </svg>
-                    SAVE ROUTE
-                  </button>
-
+              {/* ── CURRENT ROUTE — only when a route is active ── */}
+              {(route.length > 0 || loadedRoute) && (
+                <div className="border-t border-starlight-turquoise/10 mt-1">
+                  <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">CURRENT ROUTE</p>
+                  {route.length > 0 && (
+                    <button
+                      onClick={() => { setShowHamburger(false); if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); } else { onShowLogin(); } }}
+                      className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                    >
+                      <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                      </svg>
+                      SAVE ROUTE
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShowHamburger(false); handleClearRoute(); }}
-                    className="w-full flex items-center gap-4 px-5 py-3.5 text-left font-bungee text-[13px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
+                    className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
                   >
                     <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                     CLEAR ROUTE
                   </button>
-                </>
+                </div>
               )}
             </nav>
 
@@ -2217,6 +2208,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png"
           />
           <MapController target={searchTarget} />
+          <FitBoundsController target={fitTarget} />
           <MapPositionTracker routeStateRef={routeStateRef} />
 
           {route.length > 1 && (
@@ -2614,13 +2606,57 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
       )}
 
-      {/* Route Info — shown when route exists, no My Stops selected yet */}
-      {route.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
+      {/* Loaded Route Panel — shown when a saved route is active, no My Stops selected yet */}
+      {loadedRoute && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
+        <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
+          <div className="bg-midnight-navy border-2 border-starlight-turquoise rounded-xl shadow-2xl px-4 py-3 w-full max-w-lg" style={{ backdropFilter: 'blur(8px)' }}>
+            <div className="flex items-start justify-between mb-2">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className="text-starlight-turquoise font-bungee text-sm leading-tight truncate drop-shadow-[0_0_6px_rgba(64,224,208,0.6)]">
+                  {loadedRoute.routeName}
+                </p>
+                <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5">
+                  {visibleLocations.length} stop{visibleLocations.length !== 1 ? 's' : ''}
+                  {loadedRoute.startCity && loadedRoute.endCity ? ` · ${loadedRoute.startCity} → ${loadedRoute.endCity}` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => { setShowRoadTrip(true); }}
+                className="flex-shrink-0 text-chrome-silver/50 hover:text-starlight-turquoise font-special-elite text-xs border border-chrome-silver/20 hover:border-starlight-turquoise px-2 py-1 rounded transition-colors"
+              >
+                ← MY ROUTES
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowRouteNavigate(true)}
+                className="flex-1 bg-atomic-orange text-midnight-navy font-bungee text-xs py-2 rounded-lg hover:bg-starlight-turquoise transition-colors"
+                style={{ boxShadow: '0 0 10px rgba(255,78,0,0.35)' }}
+              >
+                🗺️ NAVIGATE
+              </button>
+              <button
+                onClick={handleClearRoute}
+                className="border border-chrome-silver/30 text-chrome-silver/50 hover:text-atomic-orange hover:border-atomic-orange font-bungee text-xs py-2 px-3 rounded-lg transition-colors"
+                title="Clear route"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-chrome-silver/40 font-special-elite text-[10px] mt-1.5 text-center">
+              Tap any stop on the map · ➕ ADD TO ROUTE to select stops for navigation
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Route Info — shown when a freshly plotted route has no saved route info and no My Stops */}
+      {!loadedRoute && route.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
               {visibleLocations.length} stop{visibleLocations.length !== 1 ? 's' : ''} along your route
-              {visibleLocations.length > 0 && <span className="text-[#FFD700]"> · tap a stop then ⭐ ADD TO MY STOPS to plan navigation</span>}
+              {visibleLocations.length > 0 && <span className="text-[#FFD700]"> · tap a stop then ➕ ADD TO ROUTE to plan navigation</span>}
             </p>
           </div>
         </div>
@@ -2892,41 +2928,42 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           {/* Sticky buttons — info tab only */}
           {isExpanded && (shelfTab === 'info' || selectedLocation.type === 'landmark') && (
           <div className="flex-shrink-0 flex flex-col gap-1.5 px-3 pb-3 md:px-5 md:pb-4 pt-1.5 max-w-2xl mx-auto w-full">
-            {/* Row 1: Directions + Trip — compact */}
+            {/* Row 1: Save Place (primary explore action) + Add to Route (navigation queue) */}
             <div className="flex gap-2">
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.lat},${selectedLocation.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-1.5 rounded-lg hover:bg-starlight-turquoise transition-all shadow-md text-xs flex items-center justify-center"
+              <button
+                onClick={() => savedStopIds.has(selectedLocation.id)
+                  ? handleUnsaveStop(selectedLocation.id)
+                  : handleSaveStop(selectedLocation)}
+                className={`flex-1 font-bungee text-xs py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                  savedStopIds.has(selectedLocation.id)
+                    ? 'bg-starlight-turquoise/20 border-2 border-starlight-turquoise text-starlight-turquoise'
+                    : 'bg-starlight-turquoise/10 border-2 border-starlight-turquoise/60 text-starlight-turquoise hover:bg-starlight-turquoise/20 hover:border-starlight-turquoise'
+                }`}
               >
-                DIRECTIONS
-              </a>
+                {savedStopIds.has(selectedLocation.id) ? '✓ SAVED' : '⭐ SAVE PLACE'}
+              </button>
               <button
                 onClick={() => handleRouteStopToggle(selectedLocation)}
                 className={`px-3 border-2 font-bungee text-xs py-1.5 rounded-lg transition-all ${
                   currentRouteStopIds.has(selectedLocation.id)
                     ? 'bg-[#FFD700]/15 border-[#FFD700]/80 text-[#FFD700] hover:bg-atomic-orange/15 hover:border-atomic-orange hover:text-atomic-orange'
-                    : 'bg-transparent border-[#FFD700]/50 text-[#FFD700]/70 hover:bg-[#FFD700]/10 hover:border-[#FFD700] hover:text-[#FFD700]'
+                    : 'bg-transparent border-[#FFD700]/30 text-[#FFD700]/60 hover:bg-[#FFD700]/10 hover:border-[#FFD700] hover:text-[#FFD700]'
                 }`}
+                title={currentRouteStopIds.has(selectedLocation.id) ? 'Remove from navigation route' : 'Add to navigation route'}
               >
-                {currentRouteStopIds.has(selectedLocation.id) ? '✓ MY STOPS' : '⭐ MY STOPS'}
+                {currentRouteStopIds.has(selectedLocation.id) ? '✓ ON ROUTE' : '➕ ADD TO ROUTE'}
               </button>
             </div>
 
-            {/* Row 2: Save to My Road Trip — all location types, login required */}
-            <button
-              onClick={() => savedStopIds.has(selectedLocation.id)
-                ? handleUnsaveStop(selectedLocation.id)
-                : handleSaveStop(selectedLocation)}
-              className={`w-full font-bungee text-xs py-1.5 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                savedStopIds.has(selectedLocation.id)
-                  ? 'bg-starlight-turquoise/15 border border-starlight-turquoise text-starlight-turquoise'
-                  : 'bg-transparent border border-chrome-silver/30 text-chrome-silver/70 hover:border-starlight-turquoise hover:text-starlight-turquoise'
-              }`}
+            {/* Row 2: Directions — secondary action */}
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.lat},${selectedLocation.lng}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-atomic-orange/10 border border-atomic-orange/50 text-atomic-orange font-bungee py-1.5 rounded-lg hover:bg-atomic-orange hover:text-midnight-navy transition-all text-xs flex items-center justify-center gap-1.5"
             >
-              {savedStopIds.has(selectedLocation.id) ? '✓ SAVED TO MY ROAD TRIP' : 'SAVE TO MY ROAD TRIP'}
-            </button>
+              🗺️ DIRECTIONS TO THIS STOP
+            </a>
 
             {/* Row 3: Park Here — bookstores, cafes & drive-ins, logged-in users only */}
             {user && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe' || selectedLocation.type === 'drivein') && (() => {
