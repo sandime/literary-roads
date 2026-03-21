@@ -737,7 +737,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -748,7 +748,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const handleStartPlaceSelect = (s) => setStartPickedCoords(s?.lat ? { lat: s.lat, lng: s.lng } : null);
   const handleEndPlaceSelect   = (s) => setEndPickedCoords(s?.lat   ? { lat: s.lat, lng: s.lng } : null);
   const [route, setRoute] = useState(saved.route ?? []);
-  const [visibleLocations, setVisibleLocations] = useState(saved.visibleLocations ?? []);
+  const [visibleLocations, setVisibleLocations] = useState(
+    (saved.visibleLocations ?? []).map(s =>
+      s.lat == null && s.coords?.length ? { ...s, lat: s.coords[0], lng: s.coords[1] } : s
+    )
+  );
   const [showPlanner, setShowPlanner] = useState(saved.showPlanner ?? true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -850,6 +854,29 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     if (routeStateRef?.current?.pendingNearMe) {
       routeStateRef.current.pendingNearMe = false;
       handleNearMe();
+    }
+    // Set fitBounds and loadedRoute panel when a saved route is loaded from StateSelector
+    if (routeStateRef?.current?.pendingLoadedRoute) {
+      const pending = routeStateRef.current.pendingLoadedRoute;
+      routeStateRef.current.pendingLoadedRoute = null;
+      setLoadedRoute(pending);
+      if (pending.myStops?.length) setCurrentRouteStops(pending.myStops);
+      const coords = typeof pending.routeCoordinates === 'string'
+        ? JSON.parse(pending.routeCoordinates)
+        : (pending.routeCoordinates || []);
+      const boundsPoints = coords.length > 0
+        ? coords
+        : (pending.stops || [])
+            .filter(s => s.lat != null || s.coords?.length)
+            .map(s => [s.lat ?? s.coords?.[0], s.lng ?? s.coords?.[1]]);
+      if (boundsPoints.length > 0) {
+        const lats = boundsPoints.map(p => p[0]);
+        const lngs = boundsPoints.map(p => p[1]);
+        setFitTarget({
+          bounds: [[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]],
+          options: { padding: [70, 70], maxZoom: 13 },
+        });
+      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1170,7 +1197,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       ? JSON.parse(savedRoute.routeCoordinates)
       : (savedRoute.routeCoordinates || []);
     setRoute(coords);
-    setVisibleLocations(savedRoute.stops || []);
+    // Normalize festival stops that only have coords:[lat,lng] (no lat/lng properties)
+    setVisibleLocations(
+      (savedRoute.stops || []).map(s =>
+        s.lat == null && s.coords?.length ? { ...s, lat: s.coords[0], lng: s.coords[1] } : s
+      )
+    );
     setStartCity(savedRoute.startCity || '');
     setEndCity(savedRoute.endCity || '');
     setSelectedLocation(null);
@@ -1186,7 +1218,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     const pts = coords;
     const boundsPoints = pts.length > 0
       ? pts
-      : (savedRoute.stops || []).filter(s => s.lat != null).map(s => [s.lat, s.lng]);
+      : (savedRoute.stops || [])
+          .filter(s => s.lat != null || s.coords?.length)
+          .map(s => [s.lat ?? s.coords?.[0], s.lng ?? s.coords?.[1]]);
 
     if (boundsPoints.length > 0) {
       const lats = boundsPoints.map(p => p[0]);
@@ -1837,10 +1871,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   {tripItems.length > 9 ? '9+' : tripItems.length}
                 </span>
               )}
-              {/* Gold star badge when My Stops are selected for navigation */}
-              {currentRouteStops.length > 0 && (
-                <span className="absolute -top-1 -left-1 text-[10px] leading-none">⭐</span>
-              )}
             </button>
 
             {/* Highway Snacks */}
@@ -2055,6 +2085,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </svg>
                   HIGHWAY SNACKS
                 </button>
+                {user && onShowBookLog && (
+                  <button
+                    onClick={() => { setShowHamburger(false); onShowBookLog(); }}
+                    className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+                  >
+                    <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                    BOOK LOG
+                  </button>
+                )}
                 {user && onShowBadges && (
                   <button
                     onClick={() => { setShowHamburger(false); onShowBadges(); }}

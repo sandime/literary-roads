@@ -89,8 +89,12 @@ function AppInner() {
       route: typeof savedRoute.routeCoordinates === 'string'
         ? JSON.parse(savedRoute.routeCoordinates)
         : (savedRoute.routeCoordinates || []),
-      visibleLocations: savedRoute.stops || [],
+      // Normalize festival stops that only have coords:[lat,lng] (no lat/lng properties)
+      visibleLocations: (savedRoute.stops || []).map(s =>
+        s.lat == null && s.coords?.length ? { ...s, lat: s.coords[0], lng: s.coords[1] } : s
+      ),
       showPlanner: false,
+      pendingLoadedRoute: savedRoute, // MasterMap reads this on mount to set fitTarget + loadedRoute panel
     };
     setScreen('map');
   };
@@ -251,6 +255,7 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
+          onShowBookLog={handleShowBookLog}
           onShowAbout={handleShowAbout}
           onShowEthics={handleShowEthics}
           onShowCredits={handleShowCredits}
