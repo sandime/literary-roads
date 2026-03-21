@@ -8,7 +8,7 @@ import 'react-leaflet-cluster/lib/assets/MarkerCluster.Default.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
 import { autocompleteCity, geocodePlace, searchPlaces } from '../utils/mapboxGeocoding';
-import { searchNearbyPlaces, searchAlongRoute } from '../utils/nearbySearch';
+import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
@@ -1548,12 +1548,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         [endCoords.lat, endCoords.lng],
       ];
 
-      // ── Phase 1: bookstores, cafes, drive-ins, literary landmarks only ──
+      // ── Phase 1: bookstores, cafes, libraries, drive-ins, literary landmarks ──
       const [places, curatedLandmarks, driveIns, destPlaces] = await Promise.all([
-        searchAlongRoute(routePoints, 5),
-        getCuratedLandmarks(allTripPoints, 25),
-        getDriveInsAlongRoute(allTripPoints, 100),
-        searchNearbyPlaces(endCoords.lat, endCoords.lng, 10),
+        searchAlongRoute(routePoints),
+        getCuratedLandmarks(allTripPoints, 15),
+        getDriveInsAlongRoute(allTripPoints, 15),
+        searchNearbyPlacesTiered(endCoords.lat, endCoords.lng),
       ]);
 
       const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1587,8 +1587,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       // ── Phase 2: Wikipedia — runs in background, merges when ready ──
       Promise.all([
-        searchLiteraryAlongRoute(routePoints, 5),
-        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 10),
+        searchLiteraryAlongRoute(routePoints, 15),
+        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 15),
       ]).then(([wikiLandmarks, destWikiLandmarks]) => {
         const wikiLocations = [...wikiLandmarks, ...destWikiLandmarks];
         if (!wikiLocations.length) return;

@@ -5,6 +5,7 @@ import {
   getNearbyHistoricSites, getNearbyArtGalleries, getNearbyObservatories,
   getNearbyAquariums, getNearbyTheaters, getNearbyDriveIns,
 } from './firestorePlaces';
+import { CATEGORY_RADII } from './nearbySearch';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
@@ -64,9 +65,9 @@ const fetchLiterary = async (center, radiusMiles) => {
   }
 
   const [bookBatches, cafeBatches, libBatches] = await Promise.all([
-    Promise.all(points.map(pt => getNearbyBookstores(pt[0], pt[1], searchR).catch(() => []))),
-    Promise.all(points.map(pt => getNearbyCoffeeShops(pt[0], pt[1], searchR).catch(() => []))),
-    Promise.all(points.map(pt => getNearbyLibraries(pt[0], pt[1], searchR).catch(() => []))),
+    Promise.all(points.map(pt => getNearbyBookstores(pt[0], pt[1], CATEGORY_RADII.bookstore).catch(() => []))),
+    Promise.all(points.map(pt => getNearbyCoffeeShops(pt[0], pt[1], CATEGORY_RADII.cafe).catch(() => []))),
+    Promise.all(points.map(pt => getNearbyLibraries(pt[0], pt[1], CATEGORY_RADII.library).catch(() => []))),
   ]);
 
   const seen = new Set();
@@ -277,9 +278,9 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     );
   }
 
-  // Fetch all categories in parallel from Firestore
-  const fetchNearby = (fn) => Promise.all(
-    points.map(pt => fn(pt[0], pt[1], searchR).catch(() => []))
+  // Fetch all categories in parallel from Firestore using tiered radii
+  const fetchNearby = (fn, r) => Promise.all(
+    points.map(pt => fn(pt[0], pt[1], r).catch(() => []))
   ).then(batches => {
     const seen = new Set();
     return batches.flat().filter(p => p?.id && !seen.has(p.id) && seen.add(p.id));
@@ -288,14 +289,14 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const none = Promise.resolve([]);
   const [literary, museums, aquariums, nature, restaurants, observatory, historicSites, artGalleries, theaters] = await Promise.all([
     fetchLiterary(startCoords, radius),
-    has('museum')      ? fetchNearby(getNearbyMuseums)       : none,
-    has('aquarium')    ? fetchNearby(getNearbyAquariums)     : none,
-    has('park')        ? fetchNearby(getNearbyParks)         : none,
-    has('restaurant')  ? fetchNearby(getNearbyRestaurants)   : none,
-    has('observatory') ? fetchNearby(getNearbyObservatories) : none,
-    has('historicSite')? fetchNearby(getNearbyHistoricSites) : none,
-    has('artGallery')  ? fetchNearby(getNearbyArtGalleries)  : none,
-    has('theater')     ? fetchNearby(getNearbyTheaters)      : none,
+    has('museum')      ? fetchNearby(getNearbyMuseums,       CATEGORY_RADII.museum)      : none,
+    has('aquarium')    ? fetchNearby(getNearbyAquariums,     CATEGORY_RADII.aquarium)    : none,
+    has('park')        ? fetchNearby(getNearbyParks,         CATEGORY_RADII.park)        : none,
+    has('restaurant')  ? fetchNearby(getNearbyRestaurants,   CATEGORY_RADII.restaurant)  : none,
+    has('observatory') ? fetchNearby(getNearbyObservatories, CATEGORY_RADII.observatory) : none,
+    has('historicSite')? fetchNearby(getNearbyHistoricSites, CATEGORY_RADII.historicSite): none,
+    has('artGallery')  ? fetchNearby(getNearbyArtGalleries,  CATEGORY_RADII.artGallery)  : none,
+    has('theater')     ? fetchNearby(getNearbyTheaters,      CATEGORY_RADII.theater)     : none,
   ]);
 
   // Split literary pool by subtype — respect category filter

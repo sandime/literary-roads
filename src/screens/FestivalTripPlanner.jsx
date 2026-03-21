@@ -11,6 +11,7 @@ import {
   getNearbyArtGalleries, getNearbyObservatories, getNearbyAquariums,
   getNearbyTheaters, getNearbyRestaurants, getNearbyDriveIns,
 } from '../utils/firestorePlaces';
+import { CATEGORY_RADII } from '../utils/nearbySearch';
 import festivalsData from '../data/literaryFestivals.json';
 import {
   PinIcon, StarburstIcon,
@@ -368,20 +369,20 @@ function interleaveByType(places) {
   return result;
 }
 
-async function fetchPlacesByCategories(lat, lng, categories, radiusMiles = 8) {
+async function fetchPlacesByCategories(lat, lng, categories) {
   const fetches = [];
-  if (categories.has('bookstore'))    fetches.push(getNearbyBookstores(lat, lng, radiusMiles));
-  if (categories.has('library'))      fetches.push(getNearbyLibraries(lat, lng, radiusMiles));
-  if (categories.has('cafe'))         fetches.push(getNearbyCoffeeShops(lat, lng, radiusMiles));
-  if (categories.has('museum'))       fetches.push(getNearbyMuseums(lat, lng, radiusMiles));
-  if (categories.has('park'))         fetches.push(getNearbyParks(lat, lng, radiusMiles));
-  if (categories.has('historicSite')) fetches.push(getNearbyHistoricSites(lat, lng, radiusMiles));
-  if (categories.has('artGallery'))   fetches.push(getNearbyArtGalleries(lat, lng, radiusMiles));
-  if (categories.has('observatory'))  fetches.push(getNearbyObservatories(lat, lng, radiusMiles));
-  if (categories.has('aquarium'))     fetches.push(getNearbyAquariums(lat, lng, radiusMiles));
-  if (categories.has('theater'))      fetches.push(getNearbyTheaters(lat, lng, radiusMiles));
-  if (categories.has('restaurant'))   fetches.push(getNearbyRestaurants(lat, lng, radiusMiles));
-  if (categories.has('drivein'))      fetches.push(getNearbyDriveIns(lat, lng, radiusMiles));
+  if (categories.has('bookstore'))    fetches.push(getNearbyBookstores(lat, lng, CATEGORY_RADII.bookstore));
+  if (categories.has('library'))      fetches.push(getNearbyLibraries(lat, lng, CATEGORY_RADII.library));
+  if (categories.has('cafe'))         fetches.push(getNearbyCoffeeShops(lat, lng, CATEGORY_RADII.cafe));
+  if (categories.has('museum'))       fetches.push(getNearbyMuseums(lat, lng, CATEGORY_RADII.museum));
+  if (categories.has('park'))         fetches.push(getNearbyParks(lat, lng, CATEGORY_RADII.park));
+  if (categories.has('historicSite')) fetches.push(getNearbyHistoricSites(lat, lng, CATEGORY_RADII.historicSite));
+  if (categories.has('artGallery'))   fetches.push(getNearbyArtGalleries(lat, lng, CATEGORY_RADII.artGallery));
+  if (categories.has('observatory'))  fetches.push(getNearbyObservatories(lat, lng, CATEGORY_RADII.observatory));
+  if (categories.has('aquarium'))     fetches.push(getNearbyAquariums(lat, lng, CATEGORY_RADII.aquarium));
+  if (categories.has('theater'))      fetches.push(getNearbyTheaters(lat, lng, CATEGORY_RADII.theater));
+  if (categories.has('restaurant'))   fetches.push(getNearbyRestaurants(lat, lng, CATEGORY_RADII.restaurant));
+  if (categories.has('drivein'))      fetches.push(getNearbyDriveIns(lat, lng, CATEGORY_RADII.drivein));
   const results = await Promise.all(fetches.map(p => p.catch(() => [])));
   // Interleave by type so pick() gets variety rather than 50 bookstores first
   return interleaveByType(results.flat());
