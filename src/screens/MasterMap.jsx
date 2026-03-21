@@ -528,6 +528,24 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
       </svg>
     `,
 
+    // OPEN ARCH + BOOK - Libraries (Yellow-Green)
+    library: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs><filter id="glow-yg-${uid}"><feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter></defs>
+        <g filter="url(#glow-yg-${uid})" class="neon-marker">
+          <!-- Arch entrance -->
+          <path d="M10 32 L10 20 Q10 10 20 10 Q30 10 30 20 L30 32" fill="none" stroke="#AEEA00" stroke-width="2" stroke-linecap="round"/>
+          <!-- Base line -->
+          <line x1="7" y1="32" x2="33" y2="32" stroke="#AEEA00" stroke-width="2" stroke-linecap="round"/>
+          <!-- Small open book inside arch -->
+          <path d="M14 25 L14 20 Q20 22 20 22 Q20 22 26 20 L26 25 Q20 27 20 27 Q20 27 14 25" fill="none" stroke="#AEEA00" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <line x1="20" y1="20.5" x2="20" y2="26.5" stroke="#AEEA00" stroke-width="1"/>
+        </g>
+      </svg>
+    `,
+
     // MAP PIN - Generic search result (Gold)
     search: `
       <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
@@ -1447,23 +1465,24 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const [places, nearFestivals, nearDriveIns, nearLandmarks, nearCurated] = await Promise.all([
+        const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 15),
           Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 15)),
           getDriveInsNear(latitude, longitude, 15),
-          searchLiteraryLandmarks(latitude, longitude, 15),
           getCuratedLandmarks([[latitude, longitude]], 15),
         ]);
 
         // Deduplicate by id in case any location appears in multiple sources
         const seenIds = new Set();
-        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearLandmarks, ...nearCurated]
+        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
           .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
         setSearchTarget({ center: [latitude, longitude], zoom: 12 });
         setVisibleLocations(combined);
         setShowPlanner(false);
         setRoute([]);
+        setLoadedRoute(null);
+        setCurrentRouteStops([]);
         setLoading(false);
       },
       () => {

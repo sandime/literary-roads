@@ -1,6 +1,6 @@
 // Combined nearby search: Firestore bookstores + Firestore coffeeShops
 // Drop-in replacement for googlePlaces.searchNearbyPlaces + searchAlongRoute
-import { getNearbyBookstores, getNearbyCoffeeShops } from './firestorePlaces';
+import { getNearbyBookstores, getNearbyCoffeeShops, getNearbyLibraries } from './firestorePlaces';
 
 const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
   const R = 3958.8;
@@ -14,11 +14,12 @@ const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
 // Drop-in replacement for googlePlaces.searchNearbyPlaces
 // Combines: Firestore bookstores + Firestore coffeeShops
 export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
-  const [bookstores, cafes] = await Promise.all([
+  const [bookstores, cafes, libraries] = await Promise.all([
     getNearbyBookstores(lat, lng, radiusMiles),
     getNearbyCoffeeShops(lat, lng, radiusMiles),
+    getNearbyLibraries(lat, lng, radiusMiles),
   ]);
-  return [...bookstores, ...cafes];
+  return [...bookstores, ...cafes, ...libraries];
 };
 
 // Drop-in replacement for googlePlaces.searchAlongRoute
