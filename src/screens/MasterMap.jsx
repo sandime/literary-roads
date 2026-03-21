@@ -10,7 +10,7 @@ import { MAP_CONFIG } from '../config/config';
 import { autocompleteCity, geocodePlace, searchPlaces } from '../utils/mapboxGeocoding';
 import { searchNearbyPlaces, searchAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
-import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear, getExtraLocationsNear } from '../utils/firebaseLandmarks';
+import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
@@ -1447,15 +1447,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const [places, nearFestivals, nearDriveIns, nearExtra] = await Promise.all([
+        const [places, nearFestivals, nearDriveIns, nearLandmarks, nearCurated] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 15),
           Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 15)),
           getDriveInsNear(latitude, longitude, 15),
-          getExtraLocationsNear(latitude, longitude, 15),
+          searchLiteraryLandmarks(latitude, longitude, 15),
+          getCuratedLandmarks([[latitude, longitude]], 15),
         ]);
 
+        // Deduplicate by id in case any location appears in multiple sources
+        const seenIds = new Set();
+        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearLandmarks, ...nearCurated]
+          .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
+
         setSearchTarget({ center: [latitude, longitude], zoom: 12 });
-        setVisibleLocations([...places, ...nearFestivals, ...nearDriveIns, ...nearExtra]);
+        setVisibleLocations(combined);
         setShowPlanner(false);
         setRoute([]);
         setLoading(false);
