@@ -12,23 +12,23 @@ const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
 
 // Tiered search radii based on category density
 export const CATEGORY_RADII = {
-  // Abundant — 5 miles from route
+  // Abundant — reduce only libraries to prevent swamping
   library: 5,
-  cafe: 5,
-  museum: 5,
-  // Moderate — 10 miles from route
-  bookstore: 10,
-  restaurant: 10,
-  park: 10,
-  historicSite: 10,
-  artGallery: 10,
-  // Rare — 15 miles from route
-  landmark: 15,
-  drivein: 15,
-  festival: 15,
+  // Normal — original working radius for everything else
+  cafe: 15,
+  museum: 15,
+  bookstore: 15,
+  restaurant: 15,
+  park: 15,
+  historicSite: 15,
+  artGallery: 15,
   theater: 15,
-  observatory: 15,
-  aquarium: 15,
+  // Very rare — extend further since they're worth the distance
+  landmark: 20,
+  drivein: 20,
+  festival: 20,
+  observatory: 20,
+  aquarium: 20,
 };
 
 // Uniform-radius version — used for Near Me (all 15 miles)
@@ -77,11 +77,20 @@ export const searchAlongRoute = async (routePoints) => {
     Promise.all(samplePoints.map(([lat, lng]) => getNearbyLibraries(lat, lng, CATEGORY_RADII.library))),
   ]);
 
+  // Deduplicate then cap per type to prevent dense-city routes from overwhelming
+  // (e.g. Seattle→Spokane: 18 sample points × many Seattle bookstores = hundreds)
+  const CAP = { bookstore: 40, cafe: 40, library: 15 };
   const seenIds = new Set();
+  const typeCounts = { bookstore: 0, cafe: 0, library: 0 };
   return [...bookstoreResults.flat(), ...cafeResults.flat(), ...libraryResults.flat()]
     .filter(p => {
       if (seenIds.has(p.id)) return false;
       seenIds.add(p.id);
+      const type = p.type;
+      if (CAP[type] !== undefined) {
+        if (typeCounts[type] >= CAP[type]) return false;
+        typeCounts[type]++;
+      }
       return true;
     });
 };

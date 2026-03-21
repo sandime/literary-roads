@@ -1551,8 +1551,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       // ── Phase 1: bookstores, cafes, libraries, drive-ins, literary landmarks ──
       const [places, curatedLandmarks, driveIns, destPlaces] = await Promise.all([
         searchAlongRoute(routePoints),
-        getCuratedLandmarks(allTripPoints, 15),
-        getDriveInsAlongRoute(allTripPoints, 15),
+        getCuratedLandmarks(allTripPoints, 20),
+        getDriveInsAlongRoute(allTripPoints, 20),
         searchNearbyPlacesTiered(endCoords.lat, endCoords.lng),
       ]);
 
@@ -1587,8 +1587,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       // ── Phase 2: Wikipedia — runs in background, merges when ready ──
       Promise.all([
-        searchLiteraryAlongRoute(routePoints, 15),
-        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 15),
+        searchLiteraryAlongRoute(routePoints, 20),
+        searchLiteraryLandmarks(endCoords.lat, endCoords.lng, 20),
       ]).then(([wikiLandmarks, destWikiLandmarks]) => {
         const wikiLocations = [...wikiLandmarks, ...destWikiLandmarks];
         if (!wikiLocations.length) return;

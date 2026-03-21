@@ -279,19 +279,20 @@ const transformFeature = (feature, config, reasonCounts) => {
     return null;
   }
 
-  // CITY — standard → TIGER → is_in fallbacks
-  let city = (p['addr:city'] || '').trim();
+  // CITY — addr:city → addr:municipality → tiger:county (first part) → is_in → gnis:county
+  let city = (p['addr:city'] || p['addr:municipality'] || '').trim();
   if (!city && p['tiger:county']) city = p['tiger:county'].split(', ')[0].trim();
   if (!city) city = (p['is_in:city'] || p['is_in:municipality'] || '').trim();
+  if (!city && p['gnis:county']) city = p['gnis:county'].split(', ')[0].trim();
   city = city || null;
 
-  // STATE — standard → TIGER → is_in fallbacks
+  // STATE — addr:state → tiger:county (second part) → is_in:state → is_in:state_code → gnis:state_name → state
   let state = (p['addr:state'] || '').trim();
   if (!state && p['tiger:county']) state = (p['tiger:county'].split(', ')[1] || '').trim();
-  if (!state) state = (p['is_in:state'] || p['gnis:state_name'] || '').trim();
+  if (!state) state = (p['is_in:state'] || p['is_in:state_code'] || p['gnis:state_name'] || p['state'] || '').trim();
   state = state || null;
 
-  // STREET ADDRESS — standard OSM → TIGER → addr:full
+  // STREET ADDRESS — addr:housenumber+addr:street → TIGER name parts → addr:full → address
   let address = null;
   if (p['addr:street']) {
     const houseNum = (p['addr:housenumber'] || '').trim();
@@ -305,8 +306,8 @@ const transformFeature = (feature, config, reasonCounts) => {
   }
   if (!address) address = (p['addr:full'] || p['address'] || '').trim() || null;
 
-  // ZIPCODE — standard → TIGER left/right
-  const zipcode = (p['addr:postcode'] || p['tiger:zip_left'] || p['tiger:zip_right'] || '').trim() || null;
+  // ZIPCODE — addr:postcode → postal_code → tiger:zip_left → tiger:zip_right
+  const zipcode = (p['addr:postcode'] || p['postal_code'] || p['tiger:zip_left'] || p['tiger:zip_right'] || '').trim() || null;
   const phone    = (p['addr:phone'] || p['phone'] || p['contact:phone'] || '').trim() || null;
   const website  = (p['website'] || p['contact:website'] || p['url'] || '').trim() || null;
   const osmId    = (feature.id || p['@id'] || '').replace(/\//g, '_');
@@ -439,7 +440,7 @@ const csvRowToEntry = (row, type) => {
   return entry;
 };
 
-const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, geocoded: 0, excludeReasons: {} };
+const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, geocoded: 0, excludeReasons: {}, uniqueCount: 0, withCity: 0, withState: 0, withAddress: 0 };
 
 // Delete every document in a Firestore collection in 400-doc pages
 const deleteCollection = async (colName, onProgress) => {
@@ -598,7 +599,11 @@ export default function AdminUpload() {
     // ── Step 2: Deduplicate ──────────────────────────────────────────────────
     const { unique, dupeCount } = deduplicate(allEntries);
     const filtered = totalRaw - allEntries.length;
-    setStats(s => ({ ...s, total: totalRaw, filtered, dupes: dupeCount, excludeReasons: { ...reasonCounts } }));
+    const withCity    = unique.filter(e => e.city).length;
+    const withState   = unique.filter(e => e.state).length;
+    const withAddress = unique.filter(e => e.address).length;
+    setStats(s => ({ ...s, total: totalRaw, filtered, dupes: dupeCount, excludeReasons: { ...reasonCounts },
+                     uniqueCount: unique.length, withCity, withState, withAddress }));
 
     // ── Step 3: Batch upload ─────────────────────────────────────────────────
     setPhase('uploading');
@@ -1026,6 +1031,30 @@ export default function AdminUpload() {
               <span>Duplicates removed</span>
               <span className="text-paper-white">{stats.dupes.toLocaleString()}</span>
             </div>
+
+            {/* Address coverage breakdown — shown when data is available */}
+            {stats.uniqueCount > 0 && (
+              <>
+                <div className="h-px bg-starlight-turquoise/10 my-1" />
+                <p className="font-bungee text-starlight-turquoise text-xs tracking-widest">ADDRESS COVERAGE</p>
+                {[
+                  { label: 'Has city',           count: stats.withCity,    target: 80 },
+                  { label: 'Has state',           count: stats.withState,   target: 90 },
+                  { label: 'Has street address',  count: stats.withAddress, target: 50 },
+                ].map(({ label, count, target }) => {
+                  const pct = Math.round(count / stats.uniqueCount * 100);
+                  const ok  = pct >= target;
+                  return (
+                    <div key={label} className="flex justify-between text-xs">
+                      <span className="text-chrome-silver">{label}</span>
+                      <span className={ok ? 'text-starlight-turquoise' : 'text-atomic-orange'}>
+                        {count.toLocaleString()} / {stats.uniqueCount.toLocaleString()} ({pct}%{ok ? ' ✓' : ` — target ${target}%`})
+                      </span>
+                    </div>
+                  );
+                })}
+              </>
+            )}
 
             <div className="h-px bg-starlight-turquoise/10 my-1" />
 
