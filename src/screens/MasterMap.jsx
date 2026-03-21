@@ -1448,10 +1448,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         const { latitude, longitude } = position.coords;
 
         const [places, nearFestivals, nearDriveIns, nearExtra] = await Promise.all([
-          searchNearbyPlaces(latitude, longitude, 10),
-          Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 75)),
-          getDriveInsNear(latitude, longitude, 75),
-          getExtraLocationsNear(latitude, longitude, 75),
+          searchNearbyPlaces(latitude, longitude, 15),
+          Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 15)),
+          getDriveInsNear(latitude, longitude, 15),
+          getExtraLocationsNear(latitude, longitude, 15),
         ]);
 
         setSearchTarget({ center: [latitude, longitude], zoom: 12 });
