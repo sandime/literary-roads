@@ -14,10 +14,10 @@ const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
 export const CATEGORY_RADII = {
   // Abundant — reduce only libraries to prevent swamping
   library: 5,
-  // Normal — original working radius for everything else
-  cafe: 15,
+  // Normal — slightly wider for bookstores/cafes so sparse areas aren't missed; caps handle density
+  cafe: 20,
   museum: 15,
-  bookstore: 15,
+  bookstore: 20,
   restaurant: 15,
   park: 15,
   historicSite: 15,
