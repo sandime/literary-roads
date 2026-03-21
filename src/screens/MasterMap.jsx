@@ -1678,6 +1678,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             THE LITERARY ROADS
           </h1>
 
+          {/* My Trips bookmark */}
+          <button onClick={() => setShowRoadTrip(true)} title="My Trips"
+            className="relative flex-shrink-0 text-starlight-turquoise active:text-atomic-orange transition-colors"
+            style={{ minWidth: 44, minHeight: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            {tripItems.length > 0 && (
+              <span className="absolute top-1 right-1 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center leading-none">
+                {tripItems.length > 9 ? '9+' : tripItems.length}
+              </span>
+            )}
+          </button>
+
           {/* Profile / Login */}
           <div ref={mobileMenuRef} style={{ position: 'relative' }} className="flex-shrink-0">
             <button
@@ -1865,8 +1880,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </svg>
             </button>
 
-            {/* My Trip */}
-            <button onClick={() => setShowRoadTrip(true)} title="My Road Trip"
+            {/* My Trips */}
+            <button onClick={() => setShowRoadTrip(true)} title="My Trips"
               className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2646,7 +2661,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               className="flex-1 md:flex-none bg-atomic-orange text-midnight-navy font-bungee rounded-lg hover:bg-starlight-turquoise transition-colors"
               style={{ minHeight: 44, padding: '10px 14px', boxShadow: '0 0 12px rgba(255,78,0,0.4)', fontSize: '0.8rem' }}
             >
-              <span className="md:hidden">🗺️ NAVIGATE MY STOPS</span>
+              <span className="md:hidden">NAVIGATE MY STOPS</span>
               <span className="hidden md:inline">NAVIGATE →</span>
             </button>
           </div>
@@ -2680,7 +2695,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 className="flex-1 bg-atomic-orange text-midnight-navy font-bungee text-xs py-2 rounded-lg hover:bg-starlight-turquoise transition-colors"
                 style={{ boxShadow: '0 0 10px rgba(255,78,0,0.35)' }}
               >
-                🗺️ NAVIGATE
+                NAVIGATE
               </button>
               <button
                 onClick={handleClearRoute}
@@ -2720,7 +2735,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               onClick={() => setShowRouteNavigate(true)}
               className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"
             >
-              🗺️ PLAN NAVIGATION
+              PLAN NAVIGATION
             </button>
           </div>
         </div>
@@ -3009,7 +3024,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               rel="noopener noreferrer"
               className="w-full bg-atomic-orange/10 border border-atomic-orange/50 text-atomic-orange font-bungee py-1.5 rounded-lg hover:bg-atomic-orange hover:text-midnight-navy transition-all text-xs flex items-center justify-center gap-1.5"
             >
-              🗺️ DIRECTIONS TO THIS STOP
+              DIRECTIONS TO THIS STOP
             </a>
 
             {/* Row 3: Park Here — bookstores, cafes & drive-ins, logged-in users only */}

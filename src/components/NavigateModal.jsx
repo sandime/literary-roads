@@ -334,7 +334,7 @@ const NavigateModal = ({ items, onClose, selectable = false }) => {
               boxShadow: startText.trim() ? '0 0 20px rgba(255,78,0,0.4)' : 'none',
             }}
           >
-            🗺️ START NAVIGATION
+            START NAVIGATION
           </button>
           <p className="text-chrome-silver/40 font-special-elite text-xs text-center mt-1.5">
             Opens Google Maps with {waypointStops.length} stop{waypointStops.length !== 1 ? 's' : ''}

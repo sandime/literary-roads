@@ -631,7 +631,7 @@ const buildFestivalGoogleMapsUrl = (startCoords, stops) => {
 };
 
 // ── Main Component ─────────────────────────────────────────────────────────────
-const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
+const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
   const { user } = useAuth();
 
   const [step, setStep] = useState('filter'); // filter → select → preferences → generating → itinerary
@@ -867,7 +867,19 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             {step === 'itinerary' && `${itinerary?.days.length}-day journey · ${selectedFests.map(f=>f.city).join(' + ')}`}
           </p>
         </div>
-        {/* Right side: step dots (filter) or Start Over button (all other steps) */}
+        {/* Home button */}
+        {onHome && (
+          <button onClick={onHome}
+            className="text-chrome-silver/50 hover:text-starlight-turquoise transition-colors flex-shrink-0"
+            style={{ minWidth:36, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
+            title="Home"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </button>
+        )}
+        {/* Right side: step dots (filter) or New Trip button (all other steps) */}
         {step === 'filter' ? (
           <div className="flex gap-1 flex-shrink-0">
             {['filter','select','preferences','itinerary'].map((s, i) => (
@@ -888,7 +900,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
             }}
             className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
           >
-            ↺ START OVER
+            ↺ NEW TRIP
           </button>
         )}
       </div>
@@ -1473,7 +1485,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 </a>
               );
             })()}
-            {/* Start over */}
+            {/* New Trip */}
             <button
               onClick={() => {
                 isCancelledRef.current = true;
@@ -1485,7 +1497,7 @@ const FestivalTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               }}
               className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
             >
-              ↺ START OVER
+              ↺ NEW TRIP
             </button>
           </div>
 

@@ -281,6 +281,7 @@ function AppInner() {
       {screen === 'festivalTrip' && (
         <FestivalTripPlanner
           onBack={handleAuthBack}
+          onHome={handleHome}
           onLoadTrip={handleLoadDayTrip}
           onShowLogin={handleShowLogin}
         />

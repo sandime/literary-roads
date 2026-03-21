@@ -235,7 +235,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
             THE LITERARY ROADS
           </h1>
           <div className="flex-shrink-0 flex items-center gap-1 ml-2">
-            <button onClick={() => setShowMyRoutes(true)} title="My Trip"
+            <button onClick={() => setShowMyRoutes(true)} title="My Trips"
               className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors px-2 py-0.5"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -385,7 +385,7 @@ const StateSelector = ({ onStateSelect, onShowLogin, onShowProfile, onShowResour
               </svg>
             </button>
 
-            {/* My Trip */}
+            {/* My Trips */}
             <button onClick={() => setShowMyRoutes(true)} title="My Road Trip"
               className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >

@@ -117,7 +117,7 @@ const TripProgressPanel = ({ stops, startCoords, onDismiss }) => {
                 <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
                   className="px-3 py-1.5 rounded-lg font-bungee text-xs bg-atomic-orange/15 text-atomic-orange border border-atomic-orange/30 hover:bg-atomic-orange/25 text-center"
                 >
-                  🗺️ MAPS
+                  MAPS
                 </a>
               )}
             </div>

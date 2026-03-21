@@ -40,7 +40,7 @@ const StopCard = ({ item, onSelect, onRemove, badge }) => (
 );
 
 const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute, onShareRoute, savedStops = [], onRemoveSaved }) => {
-  const [activeTab, setActiveTab] = useState('stops');
+  const [activeTab, setActiveTab] = useState('routes');
 
   return (
     <div className="absolute inset-0 z-[1002] bg-midnight-navy flex flex-col animate-slide-up">
@@ -61,12 +61,12 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
         {/* Title */}
         <div className="text-center">
           <h1 className="text-starlight-turquoise font-bungee text-xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
-            MY ROAD TRIP
+            MY TRIPS
           </h1>
           <p className="text-atomic-orange font-special-elite text-xs mt-0.5">
-            {activeTab === 'stops'
-              ? `${items.length + savedStops.length} stop${(items.length + savedStops.length) !== 1 ? 's' : ''} saved`
-              : `${savedRoutes.length} saved route${savedRoutes.length !== 1 ? 's' : ''}`}
+            {activeTab === 'routes'
+              ? `${savedRoutes.length} saved trip${savedRoutes.length !== 1 ? 's' : ''}`
+              : `${items.length + savedStops.length} saved place${(items.length + savedStops.length) !== 1 ? 's' : ''}`}
           </p>
         </div>
 
@@ -89,23 +89,6 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
       {/* ── Tabs ── */}
       <div className="flex border-b border-white/10 flex-shrink-0 bg-midnight-navy">
         <button
-          onClick={() => setActiveTab('stops')}
-          className="flex-1 font-bungee py-2.5 transition-all relative"
-          style={{
-            fontSize: '11px',
-            color: activeTab === 'stops' ? '#40E0D0' : 'rgba(192,192,192,0.5)',
-            background: activeTab === 'stops' ? 'rgba(64,224,208,0.06)' : 'transparent',
-            borderBottom: activeTab === 'stops' ? '2px solid #40E0D0' : '2px solid transparent',
-          }}
-        >
-          MY STOPS
-          {(items.length + savedStops.length) > 0 && (
-            <span className="ml-1.5 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-4 h-4 rounded-full inline-flex items-center justify-center leading-none">
-              {(items.length + savedStops.length) > 9 ? '9+' : items.length + savedStops.length}
-            </span>
-          )}
-        </button>
-        <button
           onClick={() => setActiveTab('routes')}
           className="flex-1 font-bungee py-2.5 transition-all relative"
           style={{
@@ -115,10 +98,27 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
             borderBottom: activeTab === 'routes' ? '2px solid #40E0D0' : '2px solid transparent',
           }}
         >
-          MY ROUTES
+          MY TRIPS
           {savedRoutes.length > 0 && (
             <span className="ml-1.5 bg-starlight-turquoise text-midnight-navy font-bungee text-[9px] w-4 h-4 rounded-full inline-flex items-center justify-center leading-none">
               {savedRoutes.length > 9 ? '9+' : savedRoutes.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('stops')}
+          className="flex-1 font-bungee py-2.5 transition-all relative"
+          style={{
+            fontSize: '11px',
+            color: activeTab === 'stops' ? '#40E0D0' : 'rgba(192,192,192,0.5)',
+            background: activeTab === 'stops' ? 'rgba(64,224,208,0.06)' : 'transparent',
+            borderBottom: activeTab === 'stops' ? '2px solid #40E0D0' : '2px solid transparent',
+          }}
+        >
+          SAVED PLACES
+          {(items.length + savedStops.length) > 0 && (
+            <span className="ml-1.5 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-4 h-4 rounded-full inline-flex items-center justify-center leading-none">
+              {(items.length + savedStops.length) > 9 ? '9+' : items.length + savedStops.length}
             </span>
           )}
         </button>
@@ -127,7 +127,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
       {/* ── Content ── */}
       <div className="flex-1 overflow-y-auto p-4">
 
-        {/* MY STOPS tab */}
+        {/* SAVED PLACES tab */}
         {activeTab === 'stops' && (
           items.length === 0 && savedStops.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-16">
@@ -135,9 +135,9 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                   d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
-              <p className="text-paper-white font-bungee text-xl mb-2">NO STOPS YET</p>
+              <p className="text-paper-white font-bungee text-xl mb-2">NO SAVED PLACES YET</p>
               <p className="text-chrome-silver font-special-elite text-sm max-w-xs">
-                Tap any pin on the map, then tap "SAVE TO MY ROAD TRIP" to bookmark it here.
+                Tap any pin on the map, then tap the bookmark button to save a place here.
               </p>
               <button
                 onClick={onClose}
@@ -180,7 +180,7 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
           )
         )}
 
-        {/* MY ROUTES tab */}
+        {/* MY TRIPS tab */}
         {activeTab === 'routes' && (
           <MyRoutes
             savedRoutes={savedRoutes}
