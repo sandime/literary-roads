@@ -760,6 +760,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [searchTarget, setSearchTarget] = useState(null);
   const [showSaveRouteModal, setShowSaveRouteModal] = useState(false);
   const [showMyStopsNavigate, setShowMyStopsNavigate] = useState(false);
+  const [showRouteNavigate, setShowRouteNavigate] = useState(false);
   const [pendingSavePrompt, setPendingSavePrompt]   = useState(!!saved.pendingSavePrompt);
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
@@ -2613,25 +2614,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
               Found {visibleLocations.length} literary stop{visibleLocations.length !== 1 ? 's' : ''} along your route
             </p>
-            {(startCity || endCity) && (() => {
-              const origin = encodeURIComponent(startCity || '');
-              const destination = encodeURIComponent(endCity || '');
-              const waypts = visibleLocations
-                .slice(0, 8)
-                .map(l => `${l.lat},${l.lng}`)
-                .join('|');
-              const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypts ? `&waypoints=${encodeURIComponent(waypts)}` : ''}`;
-              return (
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"
-                >
-                  🗺️ NAVIGATE
-                </a>
-              );
-            })()}
+            {visibleLocations.length > 0 && (
+              <button
+                onClick={() => setShowRouteNavigate(true)}
+                className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"
+              >
+                🗺️ NAVIGATE
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -3024,6 +3014,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         <NavigateModal
           items={sortStopsAlongRoute(currentRouteStops, route)}
           onClose={() => setShowMyStopsNavigate(false)}
+        />
+      )}
+
+      {/* ── Navigate loaded route modal (from Route Info bar) ── */}
+      {showRouteNavigate && visibleLocations.length > 0 && (
+        <NavigateModal
+          items={visibleLocations}
+          selectable
+          onClose={() => setShowRouteNavigate(false)}
         />
       )}
 

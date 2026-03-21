@@ -85,7 +85,7 @@ const AddrInput = ({ value, onChange, onSelect, placeholder, disabled }) => {
 };
 
 // ── Main modal ────────────────────────────────────────────────────────────────
-const NavigateModal = ({ items, onClose }) => {
+const NavigateModal = ({ items, onClose, selectable = false }) => {
   const [startText, setStartText]     = useState('');
   const [startCoords, setStartCoords] = useState(null);
   const [endSameAsStart, setEndSameAsStart] = useState(true);
@@ -94,9 +94,19 @@ const NavigateModal = ({ items, onClose }) => {
   const [gpsLoading, setGpsLoading]   = useState(false);
   const [gpsError, setGpsError]       = useState('');
   const [formError, setFormError]     = useState('');
+  const [selectedIds, setSelectedIds] = useState(() => new Set(items.map(s => s.id)));
 
-  const waypointStops = items.slice(0, MAX_WAYPOINTS);
-  const overflow      = items.length - MAX_WAYPOINTS;
+  const toggleStop = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const activeItems   = selectable ? items.filter(s => selectedIds.has(s.id)) : items;
+  const waypointStops = activeItems.slice(0, MAX_WAYPOINTS);
+  const overflow      = activeItems.length - MAX_WAYPOINTS;
 
   const handleSelectStart = async (suggestion) => {
     const label = typeof suggestion === 'string' ? suggestion : (suggestion.label || suggestion.display || '');
@@ -239,36 +249,69 @@ const NavigateModal = ({ items, onClose }) => {
             )}
           </div>
 
-          {/* ── Stops preview ── */}
+          {/* ── Stops ── */}
           <div>
             <label className="text-chrome-silver font-bungee text-xs tracking-widest block mb-2">
-              YOUR STOPS
+              {selectable ? 'CHOOSE YOUR STOPS' : 'YOUR STOPS'}
               {overflow > 0 && (
                 <span className="text-atomic-orange ml-2 normal-case font-special-elite tracking-normal">
-                  (first {MAX_WAYPOINTS} of {items.length} — Google Maps limit)
+                  (first {MAX_WAYPOINTS} selected — Google Maps limit)
                 </span>
               )}
             </label>
-            {overflow > 0 && (
+            {selectable && (
+              <p className="text-chrome-silver/60 font-special-elite text-xs mb-2">
+                {selectedIds.size} of {items.length} selected · uncheck stops you want to skip
+              </p>
+            )}
+            {overflow > 0 && !selectable && (
               <p className="text-atomic-orange/70 font-special-elite text-xs mb-2">
                 Remove {overflow} stop{overflow !== 1 ? 's' : ''} from My Stops to include all in navigation.
               </p>
             )}
             <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
-              {waypointStops.map((stop, i) => (
-                <div key={stop.id} className="flex items-start gap-2.5">
-                  <span className="w-5 h-5 rounded-full bg-atomic-orange text-midnight-navy font-bungee text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-paper-white font-special-elite text-xs leading-tight truncate">{stop.name}</p>
-                    <p className="text-chrome-silver/50 font-special-elite text-[10px] truncate">
-                      {TYPE_LABEL[stop.type] ?? '📍'}
-                      {stop.address ? ` · ${stop.address}` : ''}
-                    </p>
+              {items.map((stop, i) => {
+                const isChecked = !selectable || selectedIds.has(stop.id);
+                const orderNum  = selectable
+                  ? (isChecked ? waypointStops.findIndex(s => s.id === stop.id) + 1 : null)
+                  : i + 1;
+                const isOverflow = selectable && isChecked && waypointStops.findIndex(s => s.id === stop.id) === -1;
+                return (
+                  <div
+                    key={stop.id}
+                    className={`flex items-start gap-2.5 ${selectable ? 'cursor-pointer' : ''} ${isOverflow ? 'opacity-40' : ''}`}
+                    onClick={selectable ? () => toggleStop(stop.id) : undefined}
+                  >
+                    {selectable ? (
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleStop(stop.id)}
+                        onClick={e => e.stopPropagation()}
+                        className="accent-starlight-turquoise w-4 h-4 mt-0.5 flex-shrink-0"
+                      />
+                    ) : (
+                      <span className="w-5 h-5 rounded-full bg-atomic-orange text-midnight-navy font-bungee text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {orderNum}
+                      </span>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className={`font-special-elite text-xs leading-tight truncate ${isChecked ? 'text-paper-white' : 'text-chrome-silver/40 line-through'}`}>
+                        {stop.name}
+                      </p>
+                      <p className="text-chrome-silver/50 font-special-elite text-[10px] truncate">
+                        {TYPE_LABEL[stop.type] ?? '📍'}
+                        {stop.address ? ` · ${stop.address}` : ''}
+                      </p>
+                    </div>
+                    {selectable && isChecked && orderNum && (
+                      <span className="w-5 h-5 rounded-full bg-atomic-orange text-midnight-navy font-bungee text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        {orderNum}
+                      </span>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -294,7 +337,8 @@ const NavigateModal = ({ items, onClose }) => {
             🗺️ START NAVIGATION
           </button>
           <p className="text-chrome-silver/40 font-special-elite text-xs text-center mt-1.5">
-            Opens Google Maps with {waypointStops.length} stop{waypointStops.length !== 1 ? 's' : ''} in geographic order
+            Opens Google Maps with {waypointStops.length} stop{waypointStops.length !== 1 ? 's' : ''}
+            {selectable && selectedIds.size > MAX_WAYPOINTS ? ` (${MAX_WAYPOINTS} max)` : ' in geographic order'}
           </p>
         </div>
       </div>
