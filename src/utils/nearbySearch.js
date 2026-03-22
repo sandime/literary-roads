@@ -1,4 +1,5 @@
 // Combined nearby search: Firestore bookstores + Firestore coffeeShops + libraries
+// Libraries are excluded from the exploratory map (route planner) but kept in Near Me.
 import { getNearbyBookstores, getNearbyCoffeeShops, getNearbyLibraries } from './firestorePlaces';
 
 const distanceMiles = ([lat1, lng1], [lat2, lng2]) => {
@@ -42,13 +43,13 @@ export const searchNearbyPlaces = async (lat, lng, radiusMiles = 5) => {
 };
 
 // Tiered-radius version — used for route endpoints and single-point destination searches
+// Libraries excluded from route planner results (too abundant, obscure unique discoveries)
 export const searchNearbyPlacesTiered = async (lat, lng) => {
-  const [bookstores, cafes, libraries] = await Promise.all([
+  const [bookstores, cafes] = await Promise.all([
     getNearbyBookstores(lat, lng, CATEGORY_RADII.bookstore),
     getNearbyCoffeeShops(lat, lng, CATEGORY_RADII.cafe),
-    getNearbyLibraries(lat, lng, CATEGORY_RADII.library),
   ]);
-  return [...bookstores, ...cafes, ...libraries];
+  return [...bookstores, ...cafes];
 };
 
 // Route search with tiered radii per category
@@ -71,18 +72,17 @@ export const searchAlongRoute = async (routePoints) => {
 
   console.log(`[nearbySearch] ${routePoints.length} pts → ${samplePoints.length} samples @ ${SAMPLE_INTERVAL}mi`);
 
-  const [bookstoreResults, cafeResults, libraryResults] = await Promise.all([
+  const [bookstoreResults, cafeResults] = await Promise.all([
     Promise.all(samplePoints.map(([lat, lng]) => getNearbyBookstores(lat, lng, CATEGORY_RADII.bookstore))),
     Promise.all(samplePoints.map(([lat, lng]) => getNearbyCoffeeShops(lat, lng, CATEGORY_RADII.cafe))),
-    Promise.all(samplePoints.map(([lat, lng]) => getNearbyLibraries(lat, lng, CATEGORY_RADII.library))),
   ]);
 
   // Deduplicate then cap per type to prevent dense-city routes from overwhelming
   // (e.g. Seattle→Spokane: 18 sample points × many Seattle bookstores = hundreds)
-  const CAP = { bookstore: 40, cafe: 40, library: 15 };
+  const CAP = { bookstore: 40, cafe: 40 };
   const seenIds = new Set();
-  const typeCounts = { bookstore: 0, cafe: 0, library: 0 };
-  return [...bookstoreResults.flat(), ...cafeResults.flat(), ...libraryResults.flat()]
+  const typeCounts = { bookstore: 0, cafe: 0 };
+  return [...bookstoreResults.flat(), ...cafeResults.flat()]
     .filter(p => {
       if (seenIds.has(p.id)) return false;
       seenIds.add(p.id);
