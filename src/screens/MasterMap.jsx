@@ -30,6 +30,7 @@ import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
 import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon } from '../components/Icons';
 import TripProgressPanel from '../components/TripProgressPanel';
+import HamburgerDrawer from '../components/HamburgerDrawer';
 import NavigateModal from '../components/NavigateModal';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
@@ -2036,241 +2037,38 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       ══════════════════════════════════════════════ */}
       {showHamburger && (
         <div className="md:hidden">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-[2000] bg-black/60"
-            onClick={() => setShowHamburger(false)}
+          <HamburgerDrawer
+            onClose={() => setShowHamburger(false)}
+            onHome={onHome}
+            onSearch={() => setShowSearch(v => !v)}
+            onNearMe={handleNearMe}
+            onMyTrips={() => setShowRoadTrip(true)}
+            onResources={onShowResources}
+            onBookLog={onShowBookLog}
+            onBadges={onShowBadges}
+            tripItems={tripItems}
+            earnedBadgeCount={earnedBadgeData.length}
+            onDayTrip={onShowDayTrip}
+            onFestivalTrip={onShowFestivalTrip}
+            onAbout={onShowAbout}
+            onEthics={onShowEthics}
+            onPrivacy={onShowPrivacy}
+            onCredits={onShowCredits}
+            route={route}
+            loadedRoute={loadedRoute}
+            onSaveRoute={() => {
+              if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); }
+              else { onShowLogin(); }
+            }}
+            onClearRoute={handleClearRoute}
+            onProfile={onShowProfile}
+            onLogin={onShowLogin}
+            onSignOut={async () => { await logout(); onHome(); }}
           />
-          {/* Drawer */}
-          <div
-            className="fixed top-0 left-0 h-full z-[2001] bg-midnight-navy border-r-2 border-starlight-turquoise flex flex-col shadow-2xl"
-            style={{ width: 'min(280px, 82vw)', animation: 'lr-slide-in-left 0.22s ease' }}
-          >
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-starlight-turquoise/30 flex-shrink-0">
-              <span className="font-bungee text-starlight-turquoise text-sm tracking-widest drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">
-                MENU
-              </span>
-              <button
-                onClick={() => setShowHamburger(false)}
-                className="text-chrome-silver hover:text-atomic-orange transition-colors p-1"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Neon accent */}
-            <div className="h-0.5 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-60 flex-shrink-0" />
-
-            {/* Nav items */}
-            <nav className="flex-1 overflow-y-auto py-2">
-
-              {/* ── EXPLORE ── */}
-              <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">EXPLORE</p>
-              <button
-                onClick={() => { setShowHamburger(false); onHome(); }}
-                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-              >
-                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                HOME
-              </button>
-              <button
-                onClick={() => { setShowHamburger(false); setShowSearch((v) => !v); }}
-                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-              >
-                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                SEARCH
-              </button>
-              <button
-                onClick={() => { setShowHamburger(false); handleNearMe(); }}
-                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-              >
-                <svg className="w-5 h-5 flex-shrink-0 text-atomic-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                NEAR ME
-              </button>
-
-              {/* ── MY STUFF ── */}
-              <div className="border-t border-starlight-turquoise/10 mt-1">
-                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">MY STUFF</p>
-                <button
-                  onClick={() => { setShowHamburger(false); setShowRoadTrip(true); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                >
-                  <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                  </svg>
-                  MY TRIPS
-                  {tripItems.length > 0 && (
-                    <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] w-5 h-5 rounded-full flex items-center justify-center leading-none">
-                      {tripItems.length > 9 ? '9+' : tripItems.length}
-                    </span>
-                  )}
-                </button>
-                <button
-                  onClick={() => { setShowHamburger(false); onShowResources(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                >
-                  <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
-                  </svg>
-                  HIGHWAY SNACKS
-                </button>
-                {user && onShowBookLog && (
-                  <button
-                    onClick={() => { setShowHamburger(false); onShowBookLog(); }}
-                    className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                  >
-                    <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                    BOOK LOG
-                  </button>
-                )}
-                {user && onShowBadges && (
-                  <button
-                    onClick={() => { setShowHamburger(false); onShowBadges(); }}
-                    className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                  >
-                    <BadgesIcon size={20} className="flex-shrink-0" />
-                    BADGES
-                    {earnedBadgeData.length > 0 && (
-                      <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] px-1.5 py-0.5 rounded-full leading-none">
-                        {earnedBadgeData.length}
-                      </span>
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* ── PLAN A TRIP ── */}
-              <div className="border-t border-starlight-turquoise/10 mt-1">
-                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">PLAN A TRIP</p>
-                <button
-                  onClick={() => { setShowHamburger(false); onShowDayTrip?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                >
-                  <DayTripsIcon size={20} className="flex-shrink-0" />
-                  <div>
-                    <p className="font-bungee text-[13px]">DAY TRIPS</p>
-                    <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Local literary loop</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => { setShowHamburger(false); onShowFestivalTrip?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                >
-                  <FestivalTentIcon size={20} className="flex-shrink-0" />
-                  <div>
-                    <p className="font-bungee text-[13px]">FESTIVAL TRIPS</p>
-                    <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Plan a trip around a festival</p>
-                  </div>
-                </button>
-              </div>
-
-              {/* ── ACCOUNT ── */}
-              <div className="border-t border-starlight-turquoise/10 mt-1">
-                <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">ACCOUNT</p>
-                <button onClick={() => { setShowHamburger(false); onShowAbout?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <AboutIcon size={20} className="flex-shrink-0" /> ABOUT
-                </button>
-                <button onClick={() => { setShowHamburger(false); onShowEthics?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <CodeOfEthicsIcon size={20} className="flex-shrink-0" /> CODE OF ETHICS
-                </button>
-                <button onClick={() => { setShowHamburger(false); onShowPrivacy?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <PrivacyPolicyIcon size={20} className="flex-shrink-0" /> PRIVACY POLICY
-                </button>
-                <button onClick={() => { setShowHamburger(false); onShowCredits?.(); }}
-                  className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors">
-                  <CreditsIcon size={20} className="flex-shrink-0" /> CREDITS
-                </button>
-              </div>
-
-              {/* ── CURRENT ROUTE — only when a route is active ── */}
-              {(route.length > 0 || loadedRoute) && (
-                <div className="border-t border-starlight-turquoise/10 mt-1">
-                  <p className="px-5 pt-3 pb-1 text-starlight-turquoise/50 font-bungee text-[10px] tracking-widest">CURRENT ROUTE</p>
-                  {route.length > 0 && (
-                    <button
-                      onClick={() => { setShowHamburger(false); if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); } else { onShowLogin(); } }}
-                      className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
-                    >
-                      <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                      </svg>
-                      SAVE ROUTE
-                    </button>
-                  )}
-                  <button
-                    onClick={() => { setShowHamburger(false); handleClearRoute(); }}
-                    className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
-                  >
-                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    CLEAR ROUTE
-                  </button>
-                </div>
-              )}
-            </nav>
-
-            {/* Profile footer */}
-            <div className="flex-shrink-0 border-t border-starlight-turquoise/30">
-              {user ? (
-                <>
-                  <div className="px-5 py-3">
-                    <p className="font-bungee text-[10px] text-starlight-turquoise tracking-wide leading-tight">
-                      {user.displayName || 'Literary Traveler'}
-                    </p>
-                    <p className="font-special-elite text-[9px] text-chrome-silver/50 mt-0.5 truncate">
-                      {user.email}
-                    </p>
-                  </div>
-                  <div className="flex border-t border-starlight-turquoise/20">
-                    <button
-                      onClick={() => { setShowHamburger(false); onShowProfile(); }}
-                      className="flex-1 py-3 font-bungee text-[11px] text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors"
-                    >
-                      PROFILE
-                    </button>
-                    <div className="w-px bg-starlight-turquoise/20" />
-                    <button
-                      onClick={async () => { setShowHamburger(false); await logout(); onHome(); }}
-                      className="flex-1 py-3 font-bungee text-[11px] text-atomic-orange hover:bg-atomic-orange/10 transition-colors"
-                    >
-                      SIGN OUT
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <button
-                  onClick={() => { setShowHamburger(false); onShowLogin(); }}
-                  className="w-full py-3.5 font-bungee text-[13px] text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors flex items-center justify-center gap-3"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  LOG IN
-                </button>
-              )}
-            </div>
-          </div>
         </div>
       )}
 
-      {/* Map */}
+            {/* Map */}
       <div className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
         <MapContainer
           center={mapCenter}
