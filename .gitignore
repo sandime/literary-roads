@@ -11,3 +11,10 @@ dist/
 # Local NRHP data files
 downloadNRHP.cjs
 nrhp_points.geojson
+*.geojson
+enrich_*.py
+*_cache.json
+__pycache__/
+*.pyc
+*.pyo
+
