@@ -101,10 +101,21 @@ const STATE_MAJOR_CITIES = {
 };
 
 // City autocomplete input with Googie-style dropdown
-const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, className, style, selectedStates = [] }) => {
+// filterToState: if true and exactly 1 state selected, restricts results to that state
+const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, className, style, selectedStates = [], filterToState = false }) => {
   const hasPR = selectedStates.includes('Puerto Rico');
   const hasOtherStates = selectedStates.some((s) => s !== 'Puerto Rico');
   const regionCodes = hasPR && !hasOtherStates ? ['PR'] : hasPR ? ['US', 'PR'] : ['US'];
+
+  // Derive state info for filtering (single-state only)
+  const singleState    = selectedStates.length === 1 ? selectedStates[0] : null;
+  const filterStateCode = filterToState && singleState
+    ? (STATE_MAJOR_CITIES[singleState]?.abbr || null)
+    : null;
+
+  const [stateExpanded, setStateExpanded] = useState(false); // escape hatch: search all states
+  const activeCode = stateExpanded ? null : filterStateCode;
+
   const [suggestions, setSuggestions] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -115,12 +126,15 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
   const skipRef = useRef(false);
   const debounceRef = useRef(null);
 
+  // Reset expanded state when selected state changes
+  useEffect(() => { setStateExpanded(false); }, [singleState]);
+
   useEffect(() => {
     clearTimeout(debounceRef.current);
     if (skipRef.current) { skipRef.current = false; return; }
     if (!value || value.length < 2) { setSuggestions([]); setShowDropdown(false); return; }
     debounceRef.current = setTimeout(async () => {
-      const results = await autocompleteCity(value, regionCodes);
+      const results = await autocompleteCity(value, regionCodes, activeCode);
       setSuggestions(results);
       if (results.length > 0 && inputRef.current) {
         const r = inputRef.current.getBoundingClientRect();
@@ -132,7 +146,7 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
       setActiveIndex(-1);
     }, 500);
     return () => clearTimeout(debounceRef.current);
-  }, [value]);
+  }, [value, activeCode]);
 
   useEffect(() => {
     const close = (e) => {
@@ -174,6 +188,22 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
         style={style}
         autoComplete="off"
       />
+      {filterStateCode && (
+        <div className="flex items-center justify-between mt-1 px-0.5">
+          <span className="font-special-elite text-[11px] text-chrome-silver/50">
+            {stateExpanded ? 'Searching all states' : `Searching ${singleState} cities…`}
+          </span>
+          {!stateExpanded && (
+            <button
+              type="button"
+              onClick={() => setStateExpanded(true)}
+              className="font-special-elite text-[11px] text-starlight-turquoise hover:underline"
+            >
+              Search all states ↗
+            </button>
+          )}
+        </div>
+      )}
       {showDropdown && suggestions.length > 0 && createPortal(
         <ul
           ref={dropdownRef}
@@ -2325,6 +2355,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
                   selectedStates={selectedStates}
+                  filterToState={selectedStates.length === 1}
                 />
                 <CityAutocomplete
                   value={endCity}
@@ -2381,6 +2412,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
                   selectedStates={selectedStates}
+                  filterToState={selectedStates.length === 1}
                 />
               </div>
               <div>
