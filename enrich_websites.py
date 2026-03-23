@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enrich historicsites_enriched.geojson with website URLs from OSM fields.
+Enrich a GeoJSON file with website URLs from OSM fields.
 
 Sources (in priority order):
   1. Direct URL fields: website, contact:website, url, contact:url, homepage
@@ -12,13 +12,21 @@ without a dedicated website field. Coverage improvement depends on OSM tagging
 density for your dataset — typical gain is 5-20% from Wikipedia alone.
 
 Run from:  ~/Desktop/literary-roads/
-Input/out: historicsites_enriched.geojson  (updated in-place; .bak backup)
-Usage:     python3 enrich_websites.py
+Defaults:  reads/writes historicsites_enriched.geojson  (backward-compatible)
+
+Usage:
+  python3 enrich_websites.py                                  # historic sites
+  python3 enrich_websites.py --input coffee-shops-enriched.geojson
 """
 
-import json, shutil
+import json, shutil, sys
 
-INPUT = 'historicsites_enriched.geojson'
+_args = sys.argv[1:]
+def _flag(name):
+    try: return _args[_args.index(name) + 1]
+    except (ValueError, IndexError): return None
+
+INPUT = _flag('--input') or 'historicsites_enriched.geojson'
 
 # ── Website extraction ────────────────────────────────────────────────────────
 
@@ -95,4 +103,4 @@ shutil.copy(INPUT, INPUT + '.bak')
 print(f'\nWriting {INPUT}...')
 with open(INPUT, 'w') as f:
     json.dump(data, f)
-print('Done!  Upload historicsites_enriched.geojson via admin panel (Historic Sites → GeoJSON, delete existing first).')
+print(f'Done!  Upload {INPUT} via admin panel (delete existing collection first).')

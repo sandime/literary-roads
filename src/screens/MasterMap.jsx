@@ -279,6 +279,40 @@ const createLandmarkClusterIcon = (cluster) => {
   });
 };
 
+// Returns a fixed-color cluster icon function for a single category layer.
+// Each category has its own MarkerClusterGroup so children are always homogeneous.
+const makeClusterIcon = (color) => (cluster) => {
+  const count = cluster.getChildCount();
+  const fontSize = count > 99 ? '11px' : count > 9 ? '13px' : '15px';
+  return L.divIcon({
+    html: `
+      <div style="
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: ${color}22;
+        border: 2.5px solid ${color};
+        border-radius: 50%;
+        box-shadow: 0 0 10px ${color}99, 0 0 4px ${color}55;
+      ">
+        <span style="
+          color: ${color};
+          font-family: Bungee, sans-serif;
+          font-size: ${fontSize};
+          line-height: 1;
+          text-shadow: 0 0 8px ${color};
+          pointer-events: none;
+        ">${count}</span>
+      </div>
+    `,
+    className: 'literary-cluster-marker',
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+  });
+};
+
 // Custom Googie-style neon outline icons
 const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
   const uid = ++_iconUid;
@@ -599,13 +633,16 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
   };
 
   const isSearch = type === 'search';
-  return L.divIcon({
+  const icon = L.divIcon({
     html: `<div style="position:relative;display:inline-block;${glowBoost}">${icons[type] || icons.cafe}${starburstOverlay}${inTripOverlay}</div>`,
     className: 'custom-googie-marker',
     iconSize: isSearch ? [32, 40] : [40, 40],
     iconAnchor: isSearch ? [16, 40] : [20, 40],
     popupAnchor: [0, -40],
   });
+  // Tag the icon so cluster functions can identify the marker's category
+  icon._locationType = type;
+  return icon;
 };
 
 // Pixel offsets (as iconAnchor values) to spread individual cars above a pin.
@@ -1648,21 +1685,48 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
   };
 
-  const handleSearchSelect = (place) => {
+  const handleSearchSelect = async (place) => {
     // Non-literary search results (landmark tagged by Google but not ALA/Wikipedia)
     // get a yellow pin and no Shelf — just zoom + popup
     const isLiteraryResult = place.type === 'bookstore' || place.type === 'cafe' ||
       (place.type === 'landmark' && place.source !== 'search');
     const normalizedPlace = isLiteraryResult ? place : { ...place, type: 'search' };
 
-    setVisibleLocations((prev) => {
-      if (prev.some((l) => l.id === normalizedPlace.id)) return prev;
-      return [...prev, normalizedPlace];
-    });
-    setSearchTarget({ center: [place.lat, place.lng], zoom: 15 });
-    if (isLiteraryResult) setSelectedLocation(place);
-    setShowPlanner(false);
-    setShowSearch(false);
+    if (!isLiteraryResult) {
+      // Generic address/city: clear previous route + results, then load nearby literary places
+      setRoute([]);
+      setLoadedRoute(null);
+      setCurrentRouteStops([]);
+      setLoading(true);
+      setShowPlanner(false);
+      setShowSearch(false);
+
+      const { lat, lng } = place;
+      const [nearby, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+        searchNearbyPlacesTiered(lat, lng),
+        Promise.resolve(getLiteraryFestivalsNear(lat, lng, 15)),
+        getDriveInsNear(lat, lng, 15),
+        getCuratedLandmarks([[lat, lng]], 15),
+      ]);
+
+      const seenIds = new Set([normalizedPlace.id]);
+      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+        .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
+
+      setVisibleLocations(combined);
+      setSearchTarget({ center: [lat, lng], zoom: 13 });
+      setLoading(false);
+    } else {
+      // Literary result: just add it and open the Shelf
+      setVisibleLocations((prev) => {
+        if (prev.some((l) => l.id === normalizedPlace.id)) return prev;
+        return [...prev, normalizedPlace];
+      });
+      setSearchTarget({ center: [place.lat, place.lng], zoom: 15 });
+      setSelectedLocation(place);
+      setShowPlanner(false);
+      setShowSearch(false);
+    }
   };
 
   const handleClearRoute = () => {
@@ -1706,7 +1770,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {/* ══════════════════════════════════════════════
            HEADER
       ══════════════════════════════════════════════ */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
+      <div className="fixed top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
 
         {/* ── Mobile header: hamburger | title | profile ── */}
         <div className="flex items-center md:hidden">
@@ -2151,32 +2215,64 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             }
           </MarkerClusterGroup>
 
-          {/* Bookstore, cafe, and search markers — not clustered */}
+          {/* Search-pin markers — gold pin, never clustered */}
           {visibleLocations
-            .filter(l => l.type !== 'landmark')
-            .map(location =>
-              location.type === 'search' ? (
-                <Marker
-                  key={location.id}
-                  position={[location.lat, location.lng]}
-                  icon={createCustomIcon('search')}
-                >
-                  <Popup className="search-pin-popup">
-                    <div style={{ fontFamily: 'Special Elite, serif', minWidth: '140px' }}>
-                      <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '2px' }}>{location.name}</div>
-                      {location.address && <div style={{ fontSize: '11px', color: '#888' }}>{location.address}</div>}
-                    </div>
-                  </Popup>
-                </Marker>
-              ) : (
-                <Marker
-                  key={location.id}
-                  position={[location.lat, location.lng]}
-                  icon={createCustomIcon(location.type, starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
-                  eventHandlers={{ click: () => setSelectedLocation(location) }}
-                />
-              )
-            )
+            .filter(l => l.type === 'search')
+            .map(location => (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon('search')}
+              >
+                <Popup className="search-pin-popup">
+                  <div style={{ fontFamily: 'Special Elite, serif', minWidth: '140px' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '13px', marginBottom: '2px' }}>{location.name}</div>
+                    {location.address && <div style={{ fontSize: '11px', color: '#888' }}>{location.address}</div>}
+                  </div>
+                </Popup>
+              </Marker>
+            ))
+          }
+
+          {/* Per-category cluster groups — each type clusters only with its own kind */}
+          {[
+            { type: 'bookstore', color: '#FF5E00' },
+            { type: 'cafe',      color: '#40E0D0' },
+            { type: 'festival',  color: '#9B59B6' },
+          ].map(({ type, color }) => (
+            <MarkerClusterGroup
+              key={type}
+              iconCreateFunction={makeClusterIcon(color)}
+              maxClusterRadius={50}
+              showCoverageOnHover={false}
+              zoomToBoundsOnClick={true}
+              spiderfyOnMaxZoom={true}
+            >
+              {visibleLocations
+                .filter(l => l.type === type)
+                .map(location => (
+                  <Marker
+                    key={location.id}
+                    position={[location.lat, location.lng]}
+                    icon={createCustomIcon(location.type, starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                    eventHandlers={{ click: () => setSelectedLocation(location) }}
+                  />
+                ))
+              }
+            </MarkerClusterGroup>
+          ))}
+
+          {/* Drive-in markers — not clustered (too sparse to benefit) */}
+          {visibleLocations
+            .filter(l => l.type === 'drivein')
+            .map(location => (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon('drivein', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                eventHandlers={{ click: () => setSelectedLocation(location) }}
+              />
+            ))
           }
 
           {/* Car check-in badges — rendered above location pins */}

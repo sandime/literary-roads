@@ -1,23 +1,32 @@
 #!/usr/bin/env python3
 """
-Enrich historicsites_enriched.geojson with street addresses.
+Enrich a GeoJSON file with street addresses.
 
 Phase 1 (fast):   extracts addr:street, tiger:name_base, addr:full from existing OSM props.
 Phase 2 (slow):   reverse-geocodes remaining features via Nominatim (~1 req/sec).
                   Run overnight — 35k features ≈ 10 hours. Results cached; safe to interrupt.
 
 Run from:   ~/Desktop/literary-roads/
-Input/out:  historicsites_enriched.geojson  (updated in-place; .bak backup created)
+Defaults:   reads/writes historicsites_enriched.geojson  (backward-compatible)
 
 Usage:
-  python3 enrich_addresses.py              # Phase 1 only (seconds)
-  python3 enrich_addresses.py --geocode    # Phase 1 + Nominatim (overnight)
+  python3 enrich_addresses.py                                          # historic sites, Phase 1
+  python3 enrich_addresses.py --geocode                                # historic sites, Phase 1+2
+  python3 enrich_addresses.py --input coffee-shops.geojson --output coffee-shops-enriched.geojson
+  python3 enrich_addresses.py --input coffee-shops-enriched.geojson --output coffee-shops-enriched.geojson --geocode
 """
 
 import json, sys, time, shutil, urllib.request
 
-INPUT      = 'historicsites_enriched.geojson'
-GEOCODE    = '--geocode' in sys.argv
+# ── Argument parsing ──────────────────────────────────────────────────────────
+_args = sys.argv[1:]
+def _flag(name):
+    try: return _args[_args.index(name) + 1]
+    except (ValueError, IndexError): return None
+
+INPUT      = _flag('--input')  or 'historicsites_enriched.geojson'
+OUTPUT     = _flag('--output') or INPUT
+GEOCODE    = '--geocode' in _args
 CACHE_FILE = '/tmp/nominatim_addr_cache.json'
 
 # ── Load Nominatim cache ──────────────────────────────────────────────────────
@@ -183,7 +192,8 @@ if GEOCODE:
 
 # ── Save ──────────────────────────────────────────────────────────────────────
 shutil.copy(INPUT, INPUT + '.bak')
-print(f'\nWriting {INPUT}...')
-with open(INPUT, 'w') as f:
+print(f'\nWriting {OUTPUT}...')
+with open(OUTPUT, 'w') as f:
     json.dump(data, f)
-print('Done!  Next: python3 enrich_websites.py  then upload via admin panel.')
+next_cmd = f'python3 enrich_websites.py --input {OUTPUT}' if OUTPUT != 'historicsites_enriched.geojson' else 'python3 enrich_websites.py'
+print(f'Done!  Next: {next_cmd}  then upload via admin panel.')

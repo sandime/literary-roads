@@ -14,7 +14,9 @@ nrhp_points.geojson
 *.geojson
 enrich_*.py
 *_cache.json
+*.bak
 __pycache__/
 *.pyc
 *.pyo
 
+coffeeshops-state-geojson
