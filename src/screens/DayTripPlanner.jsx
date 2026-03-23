@@ -1,20 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon, CoffeeCupIcon, RestaurantsIcon, MuseumsIcon, ParksIcon, HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon, LivePerformanceIcon, FestivalTentIcon, StarburstIcon, PlayIcon } from '../components/Icons';
-import { MapContainer, TileLayer, Polyline, Marker } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
 import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
 import { saveRoute } from '../utils/savedRoutes';
 import { generateDayTrip, buildRoute, VISIT_MINUTES, RADIUS_MILES } from '../utils/dayTripAlgorithm';
-
-// Fix default Leaflet icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
 
 // ── Navigation URL builders ───────────────────────────────────────────────────
 const buildGoogleMapsUrl = (startCoords, stops) => {
@@ -94,35 +83,6 @@ const CATEGORY_GROUPS = [
 ];
 const CATEGORY_OPTIONS = CATEGORY_GROUPS.flatMap(g => g.items);
 const ALL_CATEGORIES   = new Set(CATEGORY_OPTIONS.map(c => c.key));
-
-const makeStopMarker = (num) => L.divIcon({
-  className: '',
-  html: `<div style="width:30px;height:30px;border-radius:50%;background:#FF4E00;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:12px;color:#1A1B2E;font-weight:900;box-shadow:0 0 10px rgba(255,78,0,0.7)">${num}</div>`,
-  iconSize:   [30, 30],
-  iconAnchor: [15, 15],
-});
-
-const makeStartMarker = () => L.divIcon({
-  className: '',
-  html: `<div style="width:30px;height:30px;border-radius:50%;background:#40E0D0;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:0 0 10px rgba(64,224,208,0.7);color:#1A1B2E;font-family:Bungee,sans-serif;font-weight:bold">▶</div>`,
-  iconSize:   [30, 30],
-  iconAnchor: [15, 15],
-});
-
-// Fit map to route bounds
-const FitBounds = ({ coords }) => {
-  const mapRef = useRef(null);
-  // Use a portal-free approach: attach after render
-  useEffect(() => {
-    if (!coords?.length) return;
-    const map = mapRef.current;
-    if (map) {
-      const bounds = L.latLngBounds(coords);
-      map.fitBounds(bounds, { padding: [30, 30] });
-    }
-  });
-  return null;
-};
 
 // Address autocomplete input with integrated GPS button
 const AddressInput = ({ value, onChange, onSelect, placeholder, confirmed, gpsLoading, onGPS, onClear }) => {
@@ -516,8 +476,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   const [activeTrip, setActiveTrip]         = useState(null); // route for checked stops
   const [isUpdatingRoute, setIsUpdatingRoute] = useState(false);
 
-  const mapRef = useRef(null);
-
   const handleSelectSuggestion = async (suggestion) => {
     const label = typeof suggestion === 'string' ? suggestion : (suggestion.label || suggestion.display || '');
     setStartText(label);
@@ -690,6 +648,7 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         selectedStates: [],
         routeCoordinates: routeData.routeCoordinates,
         stops: routeData.stops,
+        routeType: 'dayTrip',
       });
       setSaved(true);
     } catch (e) {
@@ -698,28 +657,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
       setSaving(false);
     }
   };
-
-  const handleLoadOnMap = () => {
-    const routeData = activeTrip || trip;
-    setShowNavModal(false);
-    onLoadTrip({
-      startCity:        startText,
-      endCity:          startText,
-      route:            routeData.routeCoordinates,
-      visibleLocations: routeData.stops,
-      tripStops:        routeData.stops, // ordered list for progress tracker
-      showPlanner:      false,
-    });
-  };
-
-  // Fit map bounds when result renders
-  useEffect(() => {
-    if (step !== 'result' || !trip || !mapRef.current) return;
-    try {
-      const bounds = L.latLngBounds(trip.routeCoordinates);
-      mapRef.current.fitBounds(bounds, { padding: [30, 30] });
-    } catch {}
-  }, [step, trip]);
 
   const DURATION_OPTIONS = [
     { key: 'quick',   label: 'Quick',    sub: '30 min – 1 hr',  stops: '2–3',  radius: 20  },
@@ -927,28 +864,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 <p className="text-atomic-orange font-special-elite text-xs text-center">{genError}</p>
               </div>
             )}
-
-            {/* Map — uses activeTrip (checked stops only) */}
-            <div className="h-56 md:h-72 w-full">
-              <MapContainer
-                center={trip.startCoords}
-                zoom={10}
-                className="h-full w-full"
-                style={{ background: '#1A1B2E' }}
-                whenCreated={m => { mapRef.current = m; }}
-              >
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  attribution='&copy; OpenStreetMap contributors'
-                />
-                <Polyline positions={activeTrip.routeCoordinates}
-                  pathOptions={{ color: '#FF4E00', weight: 4, opacity: 0.85 }}
-                />
-                <Marker position={trip.startCoords} icon={makeStartMarker()} />
-                {activeTrip.stops.map((stop, i) => (
-                  <Marker key={stop.id} position={stop.coords} icon={makeStopMarker(i + 1)} />
-                ))}
-              </MapContainer>
-            </div>
 
             {/* Restored trip banner — shown after sign-in recovery */}
             {pendingDaySave && (
@@ -1238,21 +1153,6 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                 ) : null;
               })()}
 
-              {/* View in Literary Roads */}
-              <button onClick={handleLoadOnMap}
-                style={{ display: 'flex', alignItems: 'center', gap: 12,
-                         background: 'rgba(64,224,208,0.08)', border: '1px solid rgba(64,224,208,0.3)',
-                         borderRadius: 12, padding: '12px 16px', cursor: 'pointer',
-                         textAlign: 'left', width: '100%', minHeight: 60 }}
-              >
-                <span style={{ fontSize: 22, flexShrink: 0 }}>📍</span>
-                <div style={{ flex: 1 }}>
-                  <span className="font-bungee text-paper-white" style={{ display: 'block', fontSize: 14 }}>View in Literary Roads</span>
-                  <span className="font-special-elite" style={{ display: 'block', fontSize: 11, color: 'rgba(192,192,192,0.4)' }}>
-                    Shows stops on the book map · in-app progress tracker
-                  </span>
-                </div>
-              </button>
             </div>
 
             {/* Sticky footer — Cancel button */}

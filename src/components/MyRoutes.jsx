@@ -78,7 +78,14 @@ const MyRoutes = ({ savedRoutes, onLoad, onDelete, onRename, onShare }) => {
             </button>
           </div>
 
-          {/* Cities */}
+          {/* Type badge + cities */}
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            {route.routeType && route.routeType !== 'literary' && (
+              <span className="font-bungee text-[9px] tracking-wider px-2 py-0.5 rounded-full border border-atomic-orange/50 text-atomic-orange/80">
+                {route.routeType === 'dayTrip' ? 'DAY TRIP' : route.routeType === 'festivalTrip' ? 'FESTIVAL TRIP' : route.routeType.toUpperCase()}
+              </span>
+            )}
+          </div>
           <p className="text-chrome-silver font-special-elite text-xs mb-2">
             {route.startCity} &rarr; {route.endCity}
           </p>

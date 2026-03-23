@@ -1,7 +1,4 @@
 import { useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import { useAuth } from '../contexts/AuthContext';
 import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
 import { saveRoute } from '../utils/savedRoutes';
@@ -20,13 +17,6 @@ import {
   HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon,
   LivePerformanceIcon, FestivalTentIcon,
 } from '../components/Icons';
-
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -86,24 +76,6 @@ const haversine = (lat1, lng1, lat2, lng2) => {
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 };
-
-const makeStopMarker = (num, color = '#FF4E00') => L.divIcon({
-  className: '',
-  html: `<div style="width:28px;height:28px;border-radius:50%;background:${color};border:2px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-family:'Bungee',sans-serif;font-size:11px;color:#1A1B2E;box-shadow:0 0 8px ${color}88">${num}</div>`,
-  iconSize: [28,28], iconAnchor: [14,14],
-});
-
-const makeFestivalMarker = () => L.divIcon({
-  className: '',
-  html: `<div style="width:32px;height:32px;border-radius:50%;background:#B044FB;border:2.5px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 0 14px rgba(176,68,251,0.8)">★</div>`,
-  iconSize: [32,32], iconAnchor: [16,16],
-});
-
-const makeStartMarker = () => L.divIcon({
-  className: '',
-  html: `<div style="width:28px;height:28px;border-radius:50%;background:#40E0D0;border:2px solid #1A1B2E;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 10px rgba(64,224,208,0.7)">▶</div>`,
-  iconSize: [28,28], iconAnchor: [14,14],
-});
 
 // ── Googie atomic starburst accent ────────────────────────────────────────────
 const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
@@ -661,10 +633,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
   const [genError, setGenError]   = useState('');
   const [saving, setSaving]       = useState(false);
   const [saved, setSaved]         = useState(false);
-  const [showMapView, setShowMapView] = useState(false);
-
-  const mapRef = useRef(null);
-
   // ── Filter logic ─────────────────────────────────────────────────────────────
   const handleFindFestivals = () => {
     const results = festivalsData.filter(f => {
@@ -791,6 +759,7 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
         selectedStates: [],
         routeCoordinates: allStops.map(s => s.coords),
         stops: allStops,
+        routeType: 'festivalTrip',
       });
       setSaved(true);
     } catch (e) {
@@ -798,12 +767,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
     } finally {
       setSaving(false);
     }
-  };
-
-  // ── Show internal map view ────────────────────────────────────────────────────
-  const handleLoadOnMap = () => {
-    if (!itinerary) return;
-    setShowMapView(true);
   };
 
   // ── Render helpers ────────────────────────────────────────────────────────────
@@ -897,7 +860,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
               setSelectedFests([]);
               setItinerary(null);
               setSaved(false);
-              setShowMapView(false);
             }}
             className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
           >
@@ -1238,30 +1200,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
         {step === 'itinerary' && itinerary && (
           <div className="lr-fade pb-4">
 
-            {/* Mini map */}
-            {itinerary.allCoords.length > 0 && (
-              <div className="h-52 md:h-64 w-full">
-                <MapContainer
-                  center={itinerary.allCoords[0] || [39.5, -98.35]}
-                  zoom={5}
-                  className="h-full w-full"
-                  style={{ background: '#1A1B2E' }}
-                  whenCreated={m => { mapRef.current = m; }}
-                >
-                  <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; OpenStreetMap contributors' />
-                  <Polyline positions={itinerary.allCoords}
-                    pathOptions={{ color: '#B044FB', weight: 3, opacity: 0.7, dashArray: '6, 6' }} />
-                  {itinerary.startCoords && (
-                    <Marker position={itinerary.startCoords} icon={makeStartMarker()} />
-                  )}
-                  {itinerary.festivals.map(f => (
-                    <Marker key={f.id} position={[f.lat, f.lng]} icon={makeFestivalMarker()} />
-                  ))}
-                </MapContainer>
-              </div>
-            )}
-
             {/* Festival anchor cards */}
             <div className="px-4 pt-4 flex gap-3 overflow-x-auto pb-1">
               {itinerary.festivals.map(f => (
@@ -1339,16 +1277,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
 
             {/* Action buttons */}
             <div className="px-4 pt-4 pb-8 space-y-3">
-              <button onClick={handleLoadOnMap}
-                className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise transition-all shadow-lg flex items-center justify-center gap-2"
-                style={{ boxShadow: '0 0 20px rgba(255,78,0,0.4)' }}
-              >
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                VIEW ON LITERARY MAP
-              </button>
-
               {(() => {
                 const allStops = itinerary.days
                   .flatMap(d => d.stops.filter(s => s.coords && s.type !== 'travel'))
@@ -1444,104 +1372,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
         </div>
       )}
 
-      {/* ── Full-screen internal map view ── */}
-      {showMapView && itinerary && (
-        <div style={{ position:'fixed', inset:0, zIndex:1050, background:'#1A1B2E', display:'flex', flexDirection:'column' }}>
-
-          {/* Map header */}
-          <div className="flex-shrink-0 bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3 flex items-center gap-3">
-            <button
-              onClick={() => setShowMapView(false)}
-              className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
-              style={{ minWidth:40, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-starlight-turquoise font-bungee text-base drop-shadow-[0_0_8px_rgba(64,224,208,0.7)] leading-tight truncate">
-                FESTIVAL ROUTE
-              </h2>
-              <p className="text-chrome-silver font-special-elite text-xs mt-0.5 truncate">
-                {itinerary.festivals.map(f => f.name).join(' + ')}
-              </p>
-            </div>
-            {/* Google Maps link */}
-            {(() => {
-              const allStops = itinerary.days
-                .flatMap(d => d.stops.filter(s => s.coords && s.type !== 'travel'))
-                .map(s => ({ ...s, lat: s.lat ?? s.coords[0], lng: s.lng ?? s.coords[1] }));
-              const mapsUrl = buildFestivalGoogleMapsUrl(itinerary.startCoords, allStops);
-              if (!mapsUrl) return null;
-              return (
-                <a href={mapsUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex-shrink-0 border border-starlight-turquoise/60 text-starlight-turquoise font-bungee text-[10px] px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all no-underline flex items-center gap-1.5"
-                >
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                  MAPS
-                </a>
-              );
-            })()}
-            {/* New Trip */}
-            <button
-              onClick={() => {
-                isCancelledRef.current = true;
-                setShowMapView(false);
-                setStep('filter');
-                setSelectedFests([]);
-                setItinerary(null);
-                setSaved(false);
-              }}
-              className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
-            >
-              ↺ NEW TRIP
-            </button>
-          </div>
-
-          {/* Full-screen map */}
-          <div className="flex-1" style={{ minHeight:0 }}>
-            {itinerary.allCoords.length > 0 && (
-              <MapContainer
-                center={itinerary.allCoords[Math.floor(itinerary.allCoords.length / 2)] || [39.5, -98.35]}
-                zoom={6}
-                className="h-full w-full"
-                style={{ background: '#1A1B2E', height: '100%' }}
-                whenCreated={m => {
-                  if (itinerary.allCoords.length > 1) {
-                    const bounds = itinerary.allCoords.reduce(
-                      (b, c) => b.extend(c),
-                      L.latLngBounds(itinerary.allCoords[0], itinerary.allCoords[0])
-                    );
-                    m.fitBounds(bounds, { padding: [40, 40] });
-                  }
-                }}
-              >
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                  attribution='&copy; OpenStreetMap contributors' />
-                <Polyline positions={itinerary.allCoords}
-                  pathOptions={{ color: '#B044FB', weight: 3, opacity: 0.8, dashArray: '8, 6' }} />
-                {itinerary.startCoords && (
-                  <Marker position={itinerary.startCoords} icon={makeStartMarker()} />
-                )}
-                {itinerary.festivals.map(f => (
-                  <Marker key={f.id} position={[f.lat, f.lng]} icon={makeFestivalMarker()} />
-                ))}
-                {itinerary.days.flatMap((day, di) =>
-                  day.stops
-                    .filter(s => s.coords && !s.isFestival && s.type !== 'travel')
-                    .map((stop, si) => (
-                      <Marker key={`${di}-${si}`} position={stop.coords} icon={makeStopMarker(si + 1)} />
-                    ))
-                )}
-              </MapContainer>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

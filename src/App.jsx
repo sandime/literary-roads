@@ -6,7 +6,6 @@ import SharedRoutePage from './screens/SharedRoutePage';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from './config/firebase';
 import Odometer from './screens/Odometer';
-import StateSelector from './screens/StateSelector';
 import MasterMap from './screens/MasterMap';
 import DayTripPlanner from './screens/DayTripPlanner';
 import FestivalTripPlanner from './screens/FestivalTripPlanner';
@@ -25,11 +24,11 @@ import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'stateSelector' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics' | 'credits' | 'badges' | 'privacy'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics' | 'credits' | 'badges' | 'privacy'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
-  // Tracks where Profile was opened from (map or stateSelector) — never clobbered by sub-navigation
-  const [profileOrigin, setProfileOrigin] = useState('stateSelector');
+  // Tracks where Profile was opened from — never clobbered by sub-navigation
+  const [profileOrigin, setProfileOrigin] = useState('map');
   const [showEthicsModal, setShowEthicsModal] = useState(false);
 
   // Check if logged-in user has accepted the Code of Ethics; show modal if not
@@ -49,34 +48,11 @@ function AppInner() {
     showPlanner: true,
   });
 
-  const handleLoadingComplete = () => setScreen('stateSelector');
-
-  const handleStateSelect = (statesArray) => {
-    setSelectedStates(statesArray);
-    setScreen('map');
-  };
+  const handleLoadingComplete = () => setScreen('map');
 
   const handleHome = () => {
-    // Clear saved route when going back to state selection
-    routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
-    setSelectedStates([]);
-    setScreen('stateSelector');
-  };
-
-  const handleNearMeFromSelector = () => {
-    setSelectedStates([]);
-    routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: false, pendingNearMe: true };
-    setScreen('map');
-  };
-
-  const handleSelectStopFromSelector = (item) => {
-    setSelectedStates([]);
-    routeStateRef.current = {
-      startCity: '', endCity: '', route: [],
-      visibleLocations: [item],
-      showPlanner: false,
-      pendingLocation: item,   // MasterMap reads this to open the Shelf on mount
-    };
+    // MasterMap handles its own state-selection mode internally;
+    // this is kept as a no-op safety valve (e.g., back from profile when screen was 'stateSelector')
     setScreen('map');
   };
 
@@ -169,10 +145,10 @@ function AppInner() {
     setScreen('privacy');
   };
 
-  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops, selectedStates: _ignored }) => {
+  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops, selectedStates: _ignored, routeType }) => {
     setSelectedStates([]);
     setPreviousScreen(screen);
-    const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [] };
+    const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [], routeType: routeType || 'dayTrip' };
     if (route?.length > 0) {
       const lats = route.map(p => p[0]);
       const lngs = route.map(p => p[1]);
@@ -198,7 +174,7 @@ function AppInner() {
   const handleProfileBack = () => setScreen(profileOrigin);
 
   const handleAuthBack = () => {
-    setScreen(previousScreen || 'stateSelector');
+    setScreen(previousScreen || 'map');
   };
 
   const handleLoginSuccess = () => {
@@ -223,31 +199,12 @@ function AppInner() {
         localStorage.removeItem('lr_pending_route');
       }
     } catch {}
-    setScreen(previousScreen || 'stateSelector');
+    setScreen(previousScreen || 'map');
   };
 
   return (
     <>
       {screen === 'loading' && <Odometer onComplete={handleLoadingComplete} />}
-      {screen === 'stateSelector' && (
-        <StateSelector
-          onStateSelect={handleStateSelect}
-          onShowLogin={handleShowLogin}
-          onShowProfile={handleShowProfile}
-          onShowResources={handleShowResources}
-          onShowBookLog={handleShowBookLog}
-          onShowAbout={handleShowAbout}
-          onShowEthics={handleShowEthics}
-          onShowCredits={handleShowCredits}
-          onLoadSavedRoute={handleLoadSavedRoute}
-          onSelectStop={handleSelectStopFromSelector}
-          onNearMe={handleNearMeFromSelector}
-          onShowDayTrip={handleShowDayTrip}
-          onShowFestivalTrip={handleShowFestivalTrip}
-          onShowBadges={handleShowBadges}
-          onShowPrivacy={handleShowPrivacy}
-        />
-      )}
       {screen === 'map' && (
         <MasterMap
           selectedStates={selectedStates}

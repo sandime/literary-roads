@@ -18,7 +18,7 @@ const stripUndefined = (value) => {
   return value;
 };
 
-export const saveRoute = async (userId, { routeName, notes, startCity, endCity, selectedStates, routeCoordinates, stops, myStops }) => {
+export const saveRoute = async (userId, { routeName, notes, startCity, endCity, selectedStates, routeCoordinates, stops, myStops, routeType }) => {
   const bookstoreCount = stops.filter(s => s.type === 'bookstore').length;
   const cafeCount      = stops.filter(s => s.type === 'cafe').length;
   const landmarkCount  = stops.filter(s => s.type === 'landmark').length;
@@ -33,6 +33,7 @@ export const saveRoute = async (userId, { routeName, notes, startCity, endCity, 
     startCity,
     endCity,
     selectedStates: selectedStates || [],
+    routeType: routeType || 'literary',
     // Firestore doesn't support nested arrays ([[lat,lng],...]), so stringify
     routeCoordinates: JSON.stringify(routeCoordinates),
     stops: cleanStops,

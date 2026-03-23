@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-cluster/lib/assets/MarkerCluster.css';
@@ -99,6 +99,22 @@ const STATE_MAJOR_CITIES = {
   'District of Columbia': { abbr: 'DC', cities: ['Washington'] },
   'Puerto Rico':          { abbr: 'PR', cities: ['San Juan', 'Ponce', 'Mayagüez'] },
 };
+
+// ── State-selection overlay constants ────────────────────────────────────────
+const SS_DEFAULT_STYLE   = { fillColor: '#1A1B2E', fillOpacity: 0.65, color: '#40E0D0', weight: 1 };
+const SS_SELECTED_STYLE  = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40E0D0', weight: 3 };
+const SS_HOVER_STYLE     = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
+const SS_HOVER_SEL_STYLE = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
+const SS_FALLBACK_STATES = [
+  'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
+  'Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
+  'Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan',
+  'Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada',
+  'New Hampshire','New Jersey','New Mexico','New York','North Carolina',
+  'North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island',
+  'South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont',
+  'Virginia','Washington','West Virginia','Wisconsin','Wyoming',
+];
 
 // City autocomplete input with Googie-style dropdown
 // filterToState: if true and exactly 1 state selected, restricts results to that state
@@ -279,39 +295,6 @@ const createLandmarkClusterIcon = (cluster) => {
   });
 };
 
-// Returns a fixed-color cluster icon function for a single category layer.
-// Each category has its own MarkerClusterGroup so children are always homogeneous.
-const makeClusterIcon = (color) => (cluster) => {
-  const count = cluster.getChildCount();
-  const fontSize = count > 99 ? '11px' : count > 9 ? '13px' : '15px';
-  return L.divIcon({
-    html: `
-      <div style="
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: ${color}22;
-        border: 2.5px solid ${color};
-        border-radius: 50%;
-        box-shadow: 0 0 10px ${color}99, 0 0 4px ${color}55;
-      ">
-        <span style="
-          color: ${color};
-          font-family: Bungee, sans-serif;
-          font-size: ${fontSize};
-          line-height: 1;
-          text-shadow: 0 0 8px ${color};
-          pointer-events: none;
-        ">${count}</span>
-      </div>
-    `,
-    className: 'literary-cluster-marker',
-    iconSize: [44, 44],
-    iconAnchor: [22, 22],
-  });
-};
 
 // Custom Googie-style neon outline icons
 const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
@@ -691,20 +674,32 @@ const MapController = ({ target }) => {
 
 // Tracks live map position into routeStateRef so navigating to Profile/Snacks/etc and back
 // restores the exact view the user was on — not the hardcoded default.
-const MapPositionTracker = ({ routeStateRef }) => {
+const MapPositionTracker = ({ routeStateRef, onMove }) => {
   const map = useMap();
   useEffect(() => {
     const save = () => {
-      if (!routeStateRef) return;
       const c = map.getCenter();
-      routeStateRef.current.mapCenter = [c.lat, c.lng];
-      routeStateRef.current.mapZoom   = map.getZoom();
+      if (routeStateRef) {
+        routeStateRef.current.mapCenter = [c.lat, c.lng];
+        routeStateRef.current.mapZoom   = map.getZoom();
+      }
+      if (onMove) onMove([c.lat, c.lng]);
     };
     map.on('moveend', save);
     map.on('zoomend', save);
     return () => { map.off('moveend', save); map.off('zoomend', save); };
-  }, [map, routeStateRef]);
+  }, [map, routeStateRef, onMove]);
   return null;
+};
+
+// Inline Haversine — miles between two [lat, lng] pairs
+const distMiles = ([lat1, lng1], [lat2, lng2]) => {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
 // Fits the map to a lat/lng bounding box — used when loading routes/stops
@@ -714,6 +709,17 @@ const FitBoundsController = ({ target }) => {
     if (!target) return;
     map.fitBounds(target.bounds, target.options ?? { padding: [60, 60] });
   }, [target]);
+  return null;
+};
+
+// Flies map back to US overview when entering state-selection mode
+const UiModeController = ({ uiMode }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (uiMode === 'stateSelect') {
+      map.flyTo(MAP_CONFIG.defaultCenter, MAP_CONFIG.defaultZoom, { duration: 1.2 });
+    }
+  }, [uiMode]);
   return null;
 };
 
@@ -827,6 +833,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
+  // Determine initial UI mode — go to explore if there's existing route/state data
+  const hasExploreState = (saved.route?.length > 0) || (saved.visibleLocations?.length > 0) || (selectedStates?.length > 0);
+  const [uiMode, setUiMode] = useState(hasExploreState ? 'explore' : 'stateSelect');
+  // Local copy of active states — initialized from prop, updated when user clicks EXPLORE
+  const [activeStates, setActiveStates] = useState(selectedStates ?? []);
+  // State-selection overlay state
+  const [ssGeoJson, setSsGeoJson] = useState(null);
+  const [ssLoadError, setSsLoadError] = useState(false);
+  const [ssHovered, setSsHovered] = useState('');
+  const [ssSelected, setSsSelected] = useState(new Set());
+  const ssSelectedRef = useRef(new Set());
+  const ssLayersRef = useRef({});
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
   const [startPickedCoords, setStartPickedCoords] = useState(null);
@@ -863,6 +881,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showRouteNavigate, setShowRouteNavigate] = useState(false);
   const [fitTarget, setFitTarget] = useState(null);
   const [loadedRoute, setLoadedRoute] = useState(null);
+  const [itineraryRoute, setItineraryRoute] = useState(null);   // day/festival trips shown as list
+  const [loadedRouteType, setLoadedRouteType] = useState(saved.routeType ?? 'literary');
   const [pendingSavePrompt, setPendingSavePrompt]   = useState(!!saved.pendingSavePrompt);
   const [savingRoute, setSavingRoute] = useState(false);
   const [saveRouteError, setSaveRouteError] = useState('');
@@ -926,6 +946,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     return () => { document.removeEventListener('mousedown', onMouse); document.removeEventListener('keydown', onKey); };
   }, [showJourneysMenu]);
 
+  // Fetch GeoJSON for state-selection overlay (lazy — only when entering stateSelect mode)
+  useEffect(() => {
+    if (uiMode !== 'stateSelect' || ssGeoJson || ssLoadError) return;
+    fetch('https://raw.githubusercontent.com/PublicaMundi/MappingAPI/master/data/geojson/us-states.json')
+      .then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); })
+      .then(setSsGeoJson)
+      .catch(() => setSsLoadError(true));
+  }, [uiMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Reset shelf snap/minimize when a new location is opened
   useEffect(() => {
     if (selectedLocation) { setShelfSnap('half'); setShelfDeskMinimized(false); }
@@ -941,11 +970,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       routeStateRef.current.pendingNearMe = false;
       handleNearMe();
     }
-    // Set fitBounds and loadedRoute panel when a saved route is loaded from StateSelector
+    // Set fitBounds and loadedRoute panel when a saved route is loaded externally (e.g. shared URL)
     if (routeStateRef?.current?.pendingLoadedRoute) {
       const pending = routeStateRef.current.pendingLoadedRoute;
       routeStateRef.current.pendingLoadedRoute = null;
       setLoadedRoute(pending);
+      setUiMode('explore');
       if (pending.myStops?.length) setCurrentRouteStops(pending.myStops);
       const coords = typeof pending.routeCoordinates === 'string'
         ? JSON.parse(pending.routeCoordinates)
@@ -1062,10 +1092,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Smart placeholder city hints: first selected state → start, last selected state → end
   const cityHint = useMemo(() => {
-    if (!selectedStates.length) return { start: null, end: null };
-    const firstInfo = STATE_MAJOR_CITIES[selectedStates[0]];
-    const lastInfo  = STATE_MAJOR_CITIES[selectedStates[selectedStates.length - 1]];
-    if (selectedStates.length === 1 && firstInfo) {
+    if (!activeStates.length) return { start: null, end: null };
+    const firstInfo = STATE_MAJOR_CITIES[activeStates[0]];
+    const lastInfo  = STATE_MAJOR_CITIES[activeStates[activeStates.length - 1]];
+    if (activeStates.length === 1 && firstInfo) {
       // Single state: suggest two different cities so start ≠ end
       const endCity = firstInfo.cities[1] ?? firstInfo.cities[0];
       return {
@@ -1077,7 +1107,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       start: firstInfo ? `${firstInfo.cities[0]}, ${firstInfo.abbr}` : null,
       end:   lastInfo  ? `${lastInfo.cities[0]}, ${lastInfo.abbr}`   : null,
     };
-  }, [selectedStates]);
+  }, [activeStates]);
 
   // Trip source: Firestore for auth users, localStorage for guests — never mixed
   useEffect(() => {
@@ -1202,10 +1232,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Record which states were being explored when an item is added (unique, cumulative)
   const trackVisitedStates = () => {
-    if (!user || !selectedStates.length) return;
+    if (!user || !activeStates.length) return;
     setDoc(
       doc(db, 'users', user.uid),
-      { visitedStates: arrayUnion(...selectedStates) },
+      { visitedStates: arrayUnion(...activeStates) },
       { merge: true },
     ).catch((err) => console.error('[MasterMap] track states:', err));
   };
@@ -1258,7 +1288,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         notes,
         startCity,
         endCity,
-        selectedStates,
+        selectedStates: activeStates,
+        routeType: loadedRouteType,
         routeCoordinates: route,
         stops: visibleLocations,
         myStops: currentRouteStops,
@@ -1279,6 +1310,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   };
 
   const handleLoadRoute = (savedRoute) => {
+    const type = savedRoute.routeType || 'literary';
+
+    // Day/festival trips → itinerary list only, no map
+    if (type === 'dayTrip' || type === 'festivalTrip') {
+      // Normalize stops that only have coords:[lat,lng] so NAVIGATE button works
+      const normalizedStops = (savedRoute.stops || []).map(s =>
+        s.lat == null && s.coords?.length ? { ...s, lat: s.coords[0], lng: s.coords[1] } : s
+      );
+      setItineraryRoute({ ...savedRoute, stops: normalizedStops });
+      setShowRoadTrip(false);
+      return;
+    }
+
+    // Literary routes → load on map as normal
+    setItineraryRoute(null);
     const coords = typeof savedRoute.routeCoordinates === 'string'
       ? JSON.parse(savedRoute.routeCoordinates)
       : (savedRoute.routeCoordinates || []);
@@ -1299,6 +1345,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setCurrentRouteStops(savedRoute.myStops || []);
     // Track which saved route is currently displayed
     setLoadedRoute(savedRoute);
+    setLoadedRouteType(type);
+    // Switch to explore mode so markers and route line are visible
+    setUiMode('explore');
 
     // Fit map to route bounds. If no polyline (festival/day-trip), use stop coordinates.
     const pts = coords;
@@ -1484,9 +1533,88 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     'Wyoming': [42.755966, -107.302490, 7]
   };
 
+  // ── State-selection overlay functions ────────────────────────────────────────
+  const toggleStateSelect = (name) => {
+    setSsSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name); else next.add(name);
+      ssSelectedRef.current = next;
+      Object.entries(ssLayersRef.current).forEach(([n, layer]) => {
+        layer.setStyle(next.has(n) ? SS_SELECTED_STYLE : SS_DEFAULT_STYLE);
+      });
+      return next;
+    });
+  };
+
+  const onEachStateFeature = (feature, layer) => {
+    const name = feature.properties.name;
+    ssLayersRef.current[name] = layer;
+    layer.on({
+      mouseover: () => {
+        layer.setStyle(ssSelectedRef.current.has(name) ? SS_HOVER_SEL_STYLE : SS_HOVER_STYLE);
+        setSsHovered(name);
+      },
+      mouseout: () => {
+        layer.setStyle(ssSelectedRef.current.has(name) ? SS_SELECTED_STYLE : SS_DEFAULT_STYLE);
+        setSsHovered('');
+      },
+      click: () => toggleStateSelect(name),
+    });
+  };
+
+  const clearStateSelections = () => {
+    setSsSelected(new Set());
+    ssSelectedRef.current = new Set();
+    Object.values(ssLayersRef.current).forEach(l => l.setStyle(SS_DEFAULT_STYLE));
+  };
+
+  const handleExploreStates = () => {
+    const statesArray = [...ssSelected];
+    setActiveStates(statesArray);
+    setUiMode('explore');
+    setShowPlanner(true);
+    if (statesArray.length > 0) {
+      const centers = statesArray.map(s => STATE_CENTERS[s]).filter(Boolean);
+      if (centers.length) {
+        const lats = centers.map(c => c[0]);
+        const lngs = centers.map(c => c[1]);
+        const midLat = (Math.min(...lats) + Math.max(...lats)) / 2;
+        const midLng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+        const spread = Math.max(Math.max(...lats) - Math.min(...lats), Math.max(...lngs) - Math.min(...lngs));
+        let zoom = 7;
+        if (spread > 20) zoom = 4;
+        else if (spread > 15) zoom = 5;
+        else if (spread > 8) zoom = 6;
+        setSearchTarget({ center: [midLat, midLng], zoom });
+      }
+    }
+  };
+
+  // Go back to state-selection mode, resetting all route/explore state
+  const handleGoHome = () => {
+    if (routeStateRef) {
+      routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
+    }
+    setStartCity('');
+    setEndCity('');
+    setRoute([]);
+    setVisibleLocations([]);
+    setCurrentRouteStops([]);
+    setLoadedRoute(null);
+    setActiveTripStops([]);
+    setSelectedLocation(null);
+    setItineraryRoute(null);
+    setLoadedRouteType('literary');
+    // Clear stale layer refs so GeoJSON re-registers handlers on next render
+    ssLayersRef.current = {};
+    setSsSelected(new Set());
+    ssSelectedRef.current = new Set();
+    setUiMode('stateSelect');
+  };
+
   // Compute initial map view from all selected states
   const initMapState = (() => {
-    const centers = selectedStates.map((s) => STATE_CENTERS[s]).filter(Boolean);
+    const centers = activeStates.map((s) => STATE_CENTERS[s]).filter(Boolean);
     if (!centers.length) return { center: MAP_CONFIG.defaultCenter, zoom: MAP_CONFIG.defaultZoom };
     const lats = centers.map((c) => c[0]);
     const lngs = centers.map((c) => c[1]);
@@ -1514,11 +1642,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Label shown in the planner panel header
   const stateLabel =
-    selectedStates.length === 1
-      ? selectedStates[0]
-      : selectedStates.length <= 3
-      ? selectedStates.join(' · ')
-      : `${selectedStates.length} States`;
+    activeStates.length === 1
+      ? activeStates[0]
+      : activeStates.length <= 3
+      ? activeStates.join(' · ')
+      : `${activeStates.length} States`;
 
   const handleNearMe = () => {
     setLoading(true);
@@ -1551,6 +1679,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         setRoute([]);
         setLoadedRoute(null);
         setCurrentRouteStops([]);
+        setUiMode('explore');
         setLoading(false);
       },
       () => {
@@ -1572,8 +1701,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     try {
       // Single state: append state name to help geocoder disambiguate.
       // Multiple states: use raw input so cities in any selected state resolve.
-      const startQuery = selectedStates.length === 1 ? `${startCity.trim()}, ${selectedStates[0]}` : startCity.trim();
-      const endQuery   = selectedStates.length === 1 ? `${endCity.trim()}, ${selectedStates[0]}`   : endCity.trim();
+      const startQuery = activeStates.length === 1 ? `${startCity.trim()}, ${activeStates[0]}` : startCity.trim();
+      const endQuery   = activeStates.length === 1 ? `${endCity.trim()}, ${activeStates[0]}`   : endCity.trim();
 
       // Prefer coords from autocomplete selection (no extra API call);
       // fall back to Mapbox geocoding when user typed a city manually.
@@ -1642,6 +1771,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       const phase1Locations = [];
       mergeInto(phase1Locations, [...curatedLandmarks, ...driveIns, ...festivals, ...places, ...destPlaces]);
       setVisibleLocations(phase1Locations);
+      setUiMode('explore');
 
       // Fit map to route immediately using fitBounds for accurate city-level zoom
       const lats = routePoints.map(p => p[0]);
@@ -1715,6 +1845,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       setVisibleLocations(combined);
       setSearchTarget({ center: [lat, lng], zoom: 13 });
+      setUiMode('explore');
       setLoading(false);
     } else {
       // Literary result: just add it and open the Shelf
@@ -1726,19 +1857,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setSelectedLocation(place);
       setShowPlanner(false);
       setShowSearch(false);
+      setUiMode('explore');
     }
   };
 
   const handleClearRoute = () => {
-    // Reset the persisted route ref so MasterMap starts clean if user returns
-    if (routeStateRef) {
-      routeStateRef.current = { startCity: '', endCity: '', route: [], visibleLocations: [], showPlanner: true };
-    }
-    setActiveTripStops([]);
-    setCurrentRouteStops([]);
-    setLoadedRoute(null);
-    // Go back to the state selector — that's the 50-state interactive map
-    onHome();
+    handleGoHome();
   };
 
   // ── Shelf drag handlers (mobile touch) ─────────────────────────────────────
@@ -1843,7 +1967,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 </button>
                 <div style={{ height: 1, background: 'rgba(64,224,208,0.15)', margin: '0 12px' }} />
                 <button
-                  onPointerDown={async () => { setShowMobileMenu(false); await logout(); onHome(); }}
+                  onPointerDown={async () => { setShowMobileMenu(false); await logout(); handleGoHome(); }}
                   className="w-full text-left font-bungee"
                   style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px', fontSize: 12, color: '#FF4E00', background: 'transparent', border: 'none', cursor: 'pointer', minHeight: 44 }}
                 >
@@ -1892,7 +2016,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 </svg>
               </button>
             )}
-            <button onClick={onHome} title="Home"
+            <button onClick={handleGoHome} title="Home"
               className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1932,7 +2056,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             <h1 className="text-starlight-turquoise font-bungee text-2xl drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight">
               THE LITERARY ROADS
             </h1>
-            <p className="text-atomic-orange font-special-elite text-sm mt-1">Where every mile is a new chapter</p>
+            <p className="text-atomic-orange font-special-elite text-sm mt-1">
+              {uiMode === 'stateSelect'
+                ? 'Click states to select your journey'
+                : 'Where every mile is a new chapter'}
+            </p>
           </div>
 
           {/* Right buttons */}
@@ -2104,7 +2232,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     VIEW PROFILE
                   </button>
                   <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
-                  <button onClick={async () => { setShowUserMenu(false); await logout(); onHome(); }}
+                  <button onClick={async () => { setShowUserMenu(false); await logout(); handleGoHome(); }}
                     className="font-bungee w-full text-left"
                     style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FF4E00', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
                     onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,78,0,0.08)'}
@@ -2133,7 +2261,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         <div className="md:hidden">
           <HamburgerDrawer
             onClose={() => setShowHamburger(false)}
-            onHome={onHome}
+            onHome={handleGoHome}
             onSearch={() => setShowSearch(v => !v)}
             onNearMe={handleNearMe}
             onMyTrips={() => setShowRoadTrip(true)}
@@ -2157,7 +2285,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             onClearRoute={handleClearRoute}
             onProfile={onShowProfile}
             onLogin={onShowLogin}
-            onSignOut={async () => { await logout(); onHome(); }}
+            onSignOut={async () => { await logout(); handleGoHome(); }}
           />
         </div>
       )}
@@ -2182,9 +2310,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           />
           <MapController target={searchTarget} />
           <FitBoundsController target={fitTarget} />
-          <MapPositionTracker routeStateRef={routeStateRef} />
+          <MapPositionTracker routeStateRef={routeStateRef} onMove={setMapCenter} />
+          <UiModeController uiMode={uiMode} />
 
-          {route.length > 1 && (
+          {/* State-selection GeoJSON — shown only in stateSelect mode */}
+          {uiMode === 'stateSelect' && ssGeoJson && (
+            <GeoJSON
+              key="state-select-geojson"
+              data={ssGeoJson}
+              style={SS_DEFAULT_STYLE}
+              onEachFeature={onEachStateFeature}
+            />
+          )}
+
+          {uiMode === 'explore' && route.length > 1 && (
             <Polyline
               positions={route}
               color="#40E0D0"
@@ -2192,6 +2331,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               opacity={0.8}
             />
           )}
+
+          {/* All place markers — only shown in explore mode */}
+          {uiMode === 'explore' && <>
 
           {/* Landmark markers — clustered into neon green badges */}
           <MarkerClusterGroup
@@ -2234,33 +2376,50 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             ))
           }
 
-          {/* Per-category cluster groups — each type clusters only with its own kind */}
-          {[
-            { type: 'bookstore', color: '#FF5E00' },
-            { type: 'cafe',      color: '#40E0D0' },
-            { type: 'festival',  color: '#9B59B6' },
-          ].map(({ type, color }) => (
-            <MarkerClusterGroup
-              key={type}
-              iconCreateFunction={makeClusterIcon(color)}
-              maxClusterRadius={50}
-              showCoverageOnHover={false}
-              zoomToBoundsOnClick={true}
-              spiderfyOnMaxZoom={true}
-            >
-              {visibleLocations
-                .filter(l => l.type === type)
-                .map(location => (
-                  <Marker
-                    key={location.id}
-                    position={[location.lat, location.lng]}
-                    icon={createCustomIcon(location.type, starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
-                    eventHandlers={{ click: () => setSelectedLocation(location) }}
-                  />
-                ))
-              }
-            </MarkerClusterGroup>
-          ))}
+          {/* Bookstore markers — closest 5 to map center, never clustered */}
+          {visibleLocations
+            .filter(l => l.type === 'bookstore')
+            .map(l => ({ l, d: distMiles(mapCenter, [l.lat, l.lng]) }))
+            .sort((a, b) => a.d - b.d)
+            .slice(0, 5)
+            .map(({ l: location }) => (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon('bookstore', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                eventHandlers={{ click: () => setSelectedLocation(location) }}
+              />
+            ))
+          }
+
+          {/* Cafe markers — closest 5 to map center, never clustered */}
+          {visibleLocations
+            .filter(l => l.type === 'cafe')
+            .map(l => ({ l, d: distMiles(mapCenter, [l.lat, l.lng]) }))
+            .sort((a, b) => a.d - b.d)
+            .slice(0, 5)
+            .map(({ l: location }) => (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon('cafe', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                eventHandlers={{ click: () => setSelectedLocation(location) }}
+              />
+            ))
+          }
+
+          {/* Festival markers — never clustered (sparse by nature) */}
+          {visibleLocations
+            .filter(l => l.type === 'festival')
+            .map(location => (
+              <Marker
+                key={location.id}
+                position={[location.lat, location.lng]}
+                icon={createCustomIcon('festival', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                eventHandlers={{ click: () => setSelectedLocation(location) }}
+              />
+            ))
+          }
 
           {/* Drive-in markers — not clustered (too sparse to benefit) */}
           {visibleLocations
@@ -2362,8 +2521,86 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               );
             });
           })}
+
+          </>} {/* end uiMode === 'explore' markers */}
+
         </MapContainer>
       </div>
+
+      {/* ══════════════════════════════════════════════
+           STATE-SELECTION OVERLAY (stateSelect mode)
+      ══════════════════════════════════════════════ */}
+      {uiMode === 'stateSelect' && (
+        <>
+          {/* Hovered state label */}
+          {ssHovered && (
+            <div className="absolute left-1/2 transform -translate-x-1/2 z-[1002] bg-midnight-navy/95 border-2 border-atomic-orange px-6 py-3 rounded-lg pointer-events-none shadow-2xl"
+              style={{ bottom: ssSelected.size > 0 ? '10rem' : '2rem' }}
+            >
+              <p className="text-atomic-orange font-bungee text-xl tracking-wider text-center">{ssHovered}</p>
+              <p className="text-paper-white font-special-elite text-xs text-center mt-1">
+                {ssSelected.has(ssHovered) ? 'Click to deselect' : 'Click to add to journey'}
+              </p>
+            </div>
+          )}
+
+          {/* Loading indicator */}
+          {!ssGeoJson && !ssLoadError && (
+            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[1000]">
+              <p className="text-starlight-turquoise font-special-elite text-sm animate-pulse">Loading map...</p>
+            </div>
+          )}
+
+          {/* Bottom panel: selected chips + EXPLORE button */}
+          <div
+            className={`z-[1001] bg-midnight-navy/97 border-t-2 border-starlight-turquoise transition-transform duration-300 ease-out ${ssSelected.size > 0 ? 'translate-y-0' : 'translate-y-full'}`}
+            style={{ position: 'fixed', bottom: 0, left: 0, right: 0, paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.5rem)' }}
+          >
+            <div className="h-0.5 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-70" />
+            <div className="p-4 pb-2">
+              <div className="flex flex-wrap gap-2 mb-3 max-h-20 overflow-y-auto">
+                {[...ssSelected].map(state => (
+                  <button key={state} onClick={() => toggleStateSelect(state)}
+                    className="bg-starlight-turquoise/15 text-starlight-turquoise border border-starlight-turquoise font-special-elite text-xs px-3 py-1 rounded-full flex items-center gap-1 hover:bg-atomic-orange/20 hover:border-atomic-orange hover:text-atomic-orange transition-all"
+                  >
+                    {state}<span className="text-sm leading-none ml-0.5">×</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={handleExploreStates}
+                className="w-full bg-atomic-orange text-midnight-navy font-bungee py-4 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg text-base"
+              >
+                EXPLORE {ssSelected.size} STATE{ssSelected.size > 1 ? 'S' : ''} →
+              </button>
+            </div>
+          </div>
+
+          {/* Fallback: GeoJSON failed — show dropdown selector */}
+          {ssLoadError && (
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[1000] bg-midnight-navy/95 border-4 border-starlight-turquoise rounded-lg p-6 max-w-sm w-full shadow-2xl">
+              <h2 className="text-starlight-turquoise font-bungee text-xl mb-2 text-center drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">Choose Your States</h2>
+              <p className="text-paper-white font-special-elite text-xs mb-3 text-center">Hold Ctrl / Cmd to select multiple</p>
+              <select multiple size={8}
+                onChange={e => {
+                  const vals = new Set([...e.target.selectedOptions].map(o => o.value));
+                  setSsSelected(vals);
+                  ssSelectedRef.current = vals;
+                }}
+                className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-1 rounded focus:outline-none focus:border-atomic-orange text-sm mb-3"
+              >
+                {SS_FALLBACK_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              {ssSelected.size > 0 && (
+                <button onClick={handleExploreStates}
+                  className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-all"
+                >
+                  EXPLORE {ssSelected.size} STATE{ssSelected.size > 1 ? 'S' : ''} →
+                </button>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       {/* ── Honk received toast ── */}
       {honkToast && (
@@ -2413,7 +2650,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       )}
 
       {/* Route Planner — mobile: slide-up from bottom (50vh); desktop: centered dialog */}
-      {showPlanner && (
+      {uiMode === 'explore' && showPlanner && (
         <>
           {/* Mobile bottom drawer
               - maxHeight keeps it below the header on any screen/orientation
@@ -2438,7 +2675,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             {/* Scrollable: inputs + buttons — handles overflow on short/landscape screens */}
             <div className="flex-1 overflow-y-auto px-4 pb-4">
               <div className="space-y-2">
-                {selectedStates.length > 1 && (
+                {activeStates.length > 1 && (
                   <p className="text-chrome-silver font-special-elite text-xs text-center">
                     Include state if needed — e.g. "Memphis, TN"
                   </p>
@@ -2450,8 +2687,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.start ? `Starting city — e.g. ${cityHint.start}` : 'Starting city, e.g. New York City'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
-                  selectedStates={selectedStates}
-                  filterToState={selectedStates.length === 1}
+                  selectedStates={activeStates}
+                  filterToState={activeStates.length === 1}
                 />
                 <CityAutocomplete
                   value={endCity}
@@ -2460,7 +2697,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.end ? `Destination — e.g. ${cityHint.end}` : 'Destination city, e.g. Buffalo'}
                   className="w-full border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem', background: '#1A1B2E' }}
-                  selectedStates={selectedStates}
+                  selectedStates={activeStates}
                 />
                 {error && (
                   <p className="text-atomic-orange font-special-elite text-xs">{error}</p>
@@ -2474,7 +2711,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
                   </button>
                   <button
-                    onClick={onHome}
+                    onClick={handleGoHome}
                     className="px-4 bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
                   >
                     ← State
@@ -2493,7 +2730,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               Plot your literary journey
             </p>
             <div className="space-y-3">
-              {selectedStates.length > 1 && (
+              {activeStates.length > 1 && (
                 <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
                   Include state if needed — e.g. "Memphis, TN"
                 </p>
@@ -2507,8 +2744,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.start ? `e.g., ${cityHint.start}` : 'e.g., New York City'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
-                  selectedStates={selectedStates}
-                  filterToState={selectedStates.length === 1}
+                  selectedStates={activeStates}
+                  filterToState={activeStates.length === 1}
                 />
               </div>
               <div>
@@ -2520,7 +2757,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   placeholder={cityHint.end ? `e.g., ${cityHint.end}` : 'e.g., Buffalo'}
                   className="w-full bg-black/50 border-2 border-starlight-turquoise text-paper-white font-special-elite px-3 py-2 rounded focus:outline-none focus:border-atomic-orange"
                   style={{ fontSize: '1rem' }}
-                  selectedStates={selectedStates}
+                  selectedStates={activeStates}
                 />
               </div>
               {error && (
@@ -2536,7 +2773,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {loading ? 'SEARCHING...' : 'PLOT ROUTE'}
               </button>
               <button
-                onClick={onHome}
+                onClick={handleGoHome}
                 className="w-full bg-transparent text-starlight-turquoise border-2 border-starlight-turquoise font-special-elite py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all text-[0.875rem]"
               >
                 ← Change State
@@ -3020,6 +3257,93 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
         );
       })()}
+
+      {/* ── Itinerary overlay — day/festival trips shown as list, no map ── */}
+      {itineraryRoute && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1003, background: '#0D0E1A', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <div className="border-b-2 border-starlight-turquoise bg-midnight-navy px-4 py-3 flex items-center gap-3 flex-shrink-0">
+            <button
+              onClick={() => setItineraryRoute(null)}
+              className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1 flex-shrink-0"
+              title="Back to map"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-starlight-turquoise font-bungee text-lg leading-tight truncate drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">
+                {itineraryRoute.routeName}
+              </h2>
+              <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5">
+                {itineraryRoute.startCity && itineraryRoute.endCity
+                  ? `${itineraryRoute.startCity} → ${itineraryRoute.endCity} · `
+                  : ''}
+                {(itineraryRoute.stops || []).length} stop{(itineraryRoute.stops || []).length !== 1 ? 's' : ''}
+                {' · '}
+                <span className="text-atomic-orange">{itineraryRoute.routeType === 'festivalTrip' ? 'Festival Trip' : 'Day Trip'}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Stop list */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {(itineraryRoute.stops || []).length === 0 ? (
+              <p className="text-chrome-silver/50 font-special-elite text-sm text-center py-12">No stops saved with this route.</p>
+            ) : (
+              (itineraryRoute.stops || []).map((stop, i) => (
+                <div key={stop.id || i} className="bg-black/40 border border-starlight-turquoise/30 rounded-lg p-3 flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-full bg-starlight-turquoise/15 border border-starlight-turquoise/60 text-starlight-turquoise font-bungee text-[11px] flex items-center justify-center flex-shrink-0">
+                    {i + 1}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    {stop.type && (
+                      <span className="text-chrome-silver/50 font-bungee text-[9px] tracking-wider uppercase block mb-0.5">
+                        {stop.type === 'bookstore' ? 'Bookstore' : stop.type === 'cafe' ? 'Coffee Shop' : stop.type === 'festival' ? 'Festival' : stop.type === 'landmark' ? 'Landmark' : stop.type}
+                      </span>
+                    )}
+                    <p className="text-starlight-turquoise font-bungee text-sm leading-tight">{stop.name}</p>
+                    {stop.address && <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5 truncate">{stop.address}</p>}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="border-t border-starlight-turquoise/20 p-4 flex gap-3 flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}>
+            <button
+              onClick={() => {
+                const stops = (itineraryRoute.stops || []).filter(s => s.lat != null || s.address);
+                if (!stops.length) return;
+                const waypoints = stops
+                  .map(s => encodeURIComponent(s.address || `${s.lat},${s.lng}`))
+                  .join('/');
+                window.open(`https://www.google.com/maps/dir/${waypoints}`, '_blank');
+              }}
+              className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-colors"
+              style={{ boxShadow: '0 0 12px rgba(255,78,0,0.35)' }}
+            >
+              NAVIGATE →
+            </button>
+            <button
+              onClick={() => {
+                if (user && window.confirm(`Delete "${itineraryRoute.routeName}"?`)) {
+                  deleteSavedRoute(user.uid, itineraryRoute.id).catch(console.error);
+                  setItineraryRoute(null);
+                }
+              }}
+              className="border border-chrome-silver/30 text-chrome-silver/50 hover:text-atomic-orange hover:border-atomic-orange font-bungee text-xs py-2 px-4 rounded-lg transition-colors"
+              title="Delete route"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Road Trip overlay ── */}
       {showRoadTrip && (
