@@ -20,3 +20,5 @@ __pycache__/
 *.pyo
 
 coffeeshops-state-geojson
+bookshops-geojson
+RESTAURANTS-GEOJSON

@@ -2899,8 +2899,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
-              {visibleLocations.length} stop{visibleLocations.length !== 1 ? 's' : ''} along your route
-              {visibleLocations.length > 0 && <span className="text-[#FFD700]"> · tap a stop then ➕ ADD TO ROUTE to plan navigation</span>}
+              <span className="text-[#FFD700]">tap a stop then ➕ ADD TO ROUTE to plan navigation</span>
             </p>
           </div>
         </div>
@@ -2910,9 +2909,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {route.length === 0 && visibleLocations.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg flex items-center gap-3">
-            <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
-              {visibleLocations.length} stop{visibleLocations.length !== 1 ? 's' : ''} found
-            </p>
             <button
               onClick={() => setShowRouteNavigate(true)}
               className="flex-shrink-0 bg-atomic-orange text-midnight-navy font-bungee text-[10px] md:text-xs px-3 py-1.5 rounded-lg hover:bg-starlight-turquoise transition-colors whitespace-nowrap"

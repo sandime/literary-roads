@@ -1247,21 +1247,6 @@ export default function Profile({ onBack, onShowBookLog, onShowBadges, selectedS
         </div>
       )}
 
-      {/* ALA Attribution */}
-      <div className="w-full max-w-lg rounded-xl p-4 mb-5 text-center"
-        style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-        <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-          Literary landmarks courtesy of the{' '}
-          <a
-            href="https://www.ala.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-starlight-turquoise hover:text-atomic-orange transition-colors underline"
-          >
-            American Library Association's Literary Landmarks Registry
-          </a>
-        </p>
-      </div>
 
       {/* Book search modal */}
       {showBookModal && (
