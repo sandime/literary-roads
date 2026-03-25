@@ -626,6 +626,26 @@ export const AquariumsIcon = ({ size = 24, className = '' }) => (
   </svg>
 );
 
+export const LibraryIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Shelf */}
+    <line className="o" x1="8" y1="97" x2="120" y2="97" style={{ strokeWidth: 6 }} />
+    {/* Book 1 — tall, teal */}
+    <rect className="t" x="18" y="28" width="16" height="69" rx="1" />
+    <line className="c" x1="21" y1="42" x2="31" y2="42" />
+    {/* Book 2 — short, pink */}
+    <rect className="p" x="40" y="52" width="14" height="45" rx="1" />
+    {/* Book 3 — tallest, cream */}
+    <rect className="c" x="60" y="18" width="18" height="79" rx="1" />
+    <line className="t" x1="63" y1="33" x2="75" y2="33" />
+    {/* Book 4 — medium, orange */}
+    <rect className="o" x="84" y="38" width="14" height="59" rx="1" />
+    {/* Atomic starburst above tallest book */}
+    <path className="p" d="M 69 10 L 71 4 L 73 10 L 79 12 L 73 14 L 71 20 L 69 14 L 63 12 Z" />
+  </svg>
+);
+
 export const LivePerformanceIcon = ({ size = 24, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
     <style>{STYLES}</style>

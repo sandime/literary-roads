@@ -13,6 +13,7 @@ import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
 import BookLog from './screens/BookLog';
+import Library from './screens/Library';
 import About from './screens/About';
 import Ethics from './screens/Ethics';
 import Credits from './screens/Credits';
@@ -24,7 +25,7 @@ import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'ethics' | 'credits' | 'badges' | 'privacy'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
   // Tracks where Profile was opened from — never clobbered by sub-navigation
@@ -125,6 +126,11 @@ function AppInner() {
     setScreen('bookLog');
   };
 
+  const handleShowLibrary = () => {
+    setPreviousScreen(screen);
+    setScreen('library');
+  };
+
   const handleShowDayTrip = () => {
     setPreviousScreen(screen);
     setScreen('dayTripPlanner');
@@ -213,6 +219,7 @@ function AppInner() {
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
           onShowBookLog={handleShowBookLog}
+          onShowLibrary={handleShowLibrary}
           onShowAbout={handleShowAbout}
           onShowEthics={handleShowEthics}
           onShowCredits={handleShowCredits}
@@ -256,6 +263,7 @@ function AppInner() {
         <Profile
           onBack={handleProfileBack}
           onShowBookLog={handleShowBookLog}
+          onShowLibrary={handleShowLibrary}
           onShowBadges={handleShowBadges}
           selectedStates={selectedStates}
         />
@@ -265,6 +273,9 @@ function AppInner() {
       )}
       {screen === 'bookLog' && (
         <BookLog onBack={handleAuthBack} />
+      )}
+      {screen === 'library' && (
+        <Library onBack={handleAuthBack} />
       )}
       {screen === 'resources' && (
         <Resources onBack={handleAuthBack} />

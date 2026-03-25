@@ -1,7 +1,7 @@
 import { useAuth } from '../contexts/AuthContext';
 import {
   BadgesIcon, DayTripsIcon, FestivalTentIcon,
-  AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon,
+  AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, LibraryIcon,
 } from './Icons';
 
 /**
@@ -28,7 +28,7 @@ const HamburgerDrawer = ({
   // EXPLORE
   onHome, onSearch, onNearMe,
   // GLOVE BOX
-  onMyTrips, onResources, onBookLog, onBadges,
+  onMyTrips, onLibrary, onResources, onBookLog, onBadges,
   tripItems = [],
   earnedBadgeCount = 0,
   // GUIDED JOURNEYS
@@ -122,6 +122,10 @@ const HamburgerDrawer = ({
                   {tripItems.length > 9 ? '9+' : tripItems.length}
                 </span>
               )
+            )}
+            {user && onLibrary && navBtn(onLibrary,
+              <LibraryIcon size={20} className="flex-shrink-0" />,
+              'LIBRARY'
             )}
             {onResources && navBtn(onResources,
               <svg className={iconCls} fill="none" stroke="currentColor" viewBox="0 0 24 24">

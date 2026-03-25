@@ -28,7 +28,7 @@ import HitchhikerTale from '../components/HitchhikerTale';
 import PostcardStudio from '../components/PostcardStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
-import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon } from '../components/Icons';
+import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon, LibraryIcon } from '../components/Icons';
 import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
 import NavigateModal from '../components/NavigateModal';
@@ -114,6 +114,7 @@ const SS_FALLBACK_STATES = [
   'North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island',
   'South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont',
   'Virginia','Washington','West Virginia','Wisconsin','Wyoming',
+  'District of Columbia',
 ];
 
 // City autocomplete input with Googie-style dropdown
@@ -829,7 +830,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowBookLog, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowBookLog, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
   const { user, logout } = useAuth();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
@@ -1530,7 +1531,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     'Washington': [47.400902, -121.490494, 7],
     'West Virginia': [38.491226, -80.954453, 7],
     'Wisconsin': [44.268543, -89.616508, 7],
-    'Wyoming': [42.755966, -107.302490, 7]
+    'Wyoming': [42.755966, -107.302490, 7],
+    'District of Columbia': [38.9072, -77.0369, 13],
   };
 
   // ── State-selection overlay functions ────────────────────────────────────────
@@ -1587,6 +1589,35 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         else if (spread > 8) zoom = 6;
         setSearchTarget({ center: [midLat, midLng], zoom });
       }
+    }
+  };
+
+  // Jump directly into DC — auto-load pins, no route planner
+  const handleExploreDC = async () => {
+    const DC_LAT = 38.9072, DC_LNG = -77.0369;
+    setActiveStates(['District of Columbia']);
+    setUiMode('explore');
+    setShowPlanner(false);
+    setRoute([]);
+    setLoadedRoute(null);
+    setCurrentRouteStops([]);
+    setSearchTarget({ center: [DC_LAT, DC_LNG], zoom: 13 });
+    setLoading(true);
+    try {
+      const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+        searchNearbyPlaces(DC_LAT, DC_LNG, 10),
+        Promise.resolve(getLiteraryFestivalsNear(DC_LAT, DC_LNG, 10)),
+        getDriveInsNear(DC_LAT, DC_LNG, 10),
+        getCuratedLandmarks([[DC_LAT, DC_LNG]], 10),
+      ]);
+      const seenIds = new Set();
+      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+        .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
+      setVisibleLocations(combined);
+    } catch (err) {
+      console.error('[handleExploreDC]', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -2147,6 +2178,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <span className="font-bungee text-[10px] leading-tight tracking-wide">SNACKS</span>
             </button>
 
+            {/* Library */}
+            {user && (
+              <button onClick={onShowLibrary} title="My Library"
+                className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
+              >
+                <LibraryIcon size={24} />
+                <span className="font-bungee text-[10px] leading-tight tracking-wide">LIBRARY</span>
+              </button>
+            )}
+
             {/* AFTERWORD dropdown */}
             <div ref={infoMenuRef} style={{ position: 'relative' }}>
               <button
@@ -2265,6 +2306,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             onSearch={() => setShowSearch(v => !v)}
             onNearMe={handleNearMe}
             onMyTrips={() => setShowRoadTrip(true)}
+            onLibrary={onShowLibrary}
             onResources={onShowResources}
             onBookLog={onShowBookLog}
             onBadges={onShowBadges}
@@ -2532,6 +2574,23 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       ══════════════════════════════════════════════ */}
       {uiMode === 'stateSelect' && (
         <>
+          {/* D.C. button — too small to reliably click on the map; jumps straight to explore */}
+          <button
+            onClick={handleExploreDC}
+            className="font-bungee"
+            style={{
+              position: 'fixed', top: '4.5rem', right: '1rem', zIndex: 1002,
+              padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
+              border: '2px solid rgba(64,224,208,0.4)',
+              background: 'rgba(26,27,46,0.92)',
+              color: '#F5F5DC',
+              cursor: 'pointer', backdropFilter: 'blur(4px)',
+              transition: 'all 0.2s',
+            }}
+          >
+            EXPLORE D.C.
+          </button>
+
           {/* Hovered state label */}
           {ssHovered && (
             <div className="absolute left-1/2 transform -translate-x-1/2 z-[1002] bg-midnight-navy/95 border-2 border-atomic-orange px-6 py-3 rounded-lg pointer-events-none shadow-2xl"
