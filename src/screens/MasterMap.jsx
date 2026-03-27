@@ -3189,6 +3189,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     locationId={selectedLocation.id}
                     user={user}
                     onShowLogin={onShowLogin}
+                    placeName={selectedLocation?.name}
+                    placeState={selectedLocation?.state}
                   />
                 )}
               </div>
@@ -3201,6 +3203,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 locationId={selectedLocation.id}
                 user={user}
                 onShowLogin={onShowLogin}
+                placeName={selectedLocation?.name}
+                placeState={selectedLocation?.state}
               />
             )}
 

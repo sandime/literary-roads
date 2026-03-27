@@ -112,14 +112,25 @@ const COLLECTIONS = {
     icon: '🍽️',
     type: 'restaurant',
     presetFiles: [],
-    isValid: (name) => {
+    isValid: (name, props) => {
+      if (!name) return false;
       const l = name.toLowerCase();
       if (hasJunk(l)) return false;
-      if (['mcdonald','burger king','wendy','taco bell','kfc','domino','subway',
-           'chipotle','sonic','arby','dairy queen','popeyes','five guys','panda express',
-           'panera','dunkin','7-eleven','circle k','sheetz','wawa'].some(t => l.includes(t))) return false;
-      return ['restaurant','diner','bistro','eatery','brasserie','tavern','grill',
-              'kitchen','grille','chophouse','steakhouse','pub','inn'].some(k => l.includes(k));
+      // Exclude fast food chains
+      if ([
+        'mcdonald', 'burger king', "wendy's", 'wendys', 'taco bell', 'kfc',
+        'domino', 'subway', 'chipotle', 'sonic drive', 'sonic ', "arby's", 'arbys',
+        'dairy queen', 'popeyes', 'five guys', 'panda express', 'panera',
+        'dunkin', '7-eleven', '7eleven', 'circle k', 'sheetz', 'wawa',
+        'jack in the box', "carl's jr", 'carls jr', 'hardees', "hardee's",
+        'chick-fil-a', 'chick fil a', 'whataburger', 'culver', 'steak n shake',
+        'steak \'n shake', 'checkers', 'rally', 'del taco', 'long john silver',
+        'captain d', 'church\'s chicken', 'churches chicken',
+        "mcdonald's", 'in-n-out', 'in n out', 'wingstop', 'raising cane',
+        'zaxby', 'bojangles', 'shake shack', 'habit burger',
+      ].some(t => l.includes(t))) return false;
+      // Accept any named restaurant (OSM amenity=restaurant or amenity=fast_casual etc.)
+      return true;
     },
   },
   museums: {
@@ -279,8 +290,8 @@ const transformFeature = (feature, config, reasonCounts) => {
     return null;
   }
 
-  // CITY — addr:city → addr:municipality → tiger:county (first part) → is_in → gnis:county
-  let city = (p['addr:city'] || p['addr:municipality'] || '').trim();
+  // CITY — enriched direct field → addr:city → addr:municipality → tiger:county → is_in → gnis:county
+  let city = (p['city'] || p['addr:city'] || p['addr:municipality'] || '').trim();
   if (!city && p['tiger:county']) city = p['tiger:county'].split(', ')[0].trim();
   if (!city) city = (p['is_in:city'] || p['is_in:municipality'] || '').trim();
   if (!city && p['gnis:county']) city = p['gnis:county'].split(', ')[0].trim();
@@ -292,9 +303,12 @@ const transformFeature = (feature, config, reasonCounts) => {
   if (!state) state = (p['is_in:state'] || p['is_in:state_code'] || p['gnis:state_name'] || p['state'] || '').trim();
   state = state || null;
 
-  // STREET ADDRESS — addr:housenumber+addr:street → TIGER name parts → addr:full → address
+  // STREET ADDRESS — enriched direct field → addr:housenumber+addr:street → TIGER name parts → addr:full → address
   let address = null;
-  if (p['addr:street']) {
+  if (p['street_address']) {
+    address = p['street_address'].trim() || null;
+  }
+  if (!address && p['addr:street']) {
     const houseNum = (p['addr:housenumber'] || '').trim();
     address = [houseNum, p['addr:street'].trim()].filter(Boolean).join(' ');
   }
@@ -313,15 +327,24 @@ const transformFeature = (feature, config, reasonCounts) => {
   const osmId    = (feature.id || p['@id'] || '').replace(/\//g, '_');
   const docId    = osmId || `osm_${lat.toFixed(6)}_${lng.toFixed(6)}`;
 
-  // Restaurant-specific fields (cuisine + dietary options from OSM tags)
+  // Restaurant-specific fields (cuisine + dietary options + accessibility from OSM/enriched tags)
   const extra = {};
   if (config.type === 'restaurant') {
     const cuisine = (p['cuisine'] || '').trim();
     if (cuisine) extra.cuisine = cuisine;
     for (const diet of ['vegan', 'vegetarian', 'gluten_free', 'halal', 'kosher']) {
-      const val = (p[`diet:${diet}`] || '').toLowerCase();
-      if (val) extra[`diet_${diet}`] = val; // Firestore key: diet_vegan (no colon)
+      // enriched script writes booleans (vegan: true); OSM writes strings (diet:vegan: "yes")
+      const raw = p[diet] !== undefined ? p[diet] : p[`diet:${diet}`];
+      if (raw === true || raw === 'yes') extra[`diet_${diet}`] = 'yes';
+      else if (raw === false || raw === 'no') extra[`diet_${diet}`] = 'no';
     }
+    // Accessibility + amenities from enriched GeoJSON (booleans or strings)
+    const wcRaw = p['wheelchair_accessible'] !== undefined ? p['wheelchair_accessible'] : p['wheelchair'];
+    if (wcRaw === true || wcRaw === 'yes') extra.wheelchair_accessible = true;
+    const outRaw = p['outdoor_seating'];
+    if (outRaw === true || outRaw === 'yes') extra.outdoor_seating = true;
+    const hours = (p['opening_hours'] || p['hours'] || '');
+    if (hours && typeof hours === 'string' && hours.trim()) extra.hours = hours.trim();
   }
 
   const result = { docId, name, address, city, state, zipcode, lat, lng, phone, website,

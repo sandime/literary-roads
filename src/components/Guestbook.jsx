@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
 import {
   subscribeToGuestbook,
@@ -32,7 +34,7 @@ const BookCoverPlaceholder = ({ title }) => (
   </div>
 );
 
-export default function Guestbook({ locationId, user, onShowLogin }) {
+export default function Guestbook({ locationId, user, onShowLogin, placeName = '', placeState = '' }) {
   const [view, setView] = useState('carousel'); // 'carousel' | 'expanded' | 'search' | 'write'
   const [entries, setEntries] = useState([]);
   const [loadingEntries, setLoadingEntries] = useState(true);
@@ -45,6 +47,7 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
   const [writeSource, setWriteSource] = useState('search'); // 'search' | 'expanded'
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [readNextAdded, setReadNextAdded] = useState(() => new Set());
   // search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -173,6 +176,28 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
         await addBookEntry(locationId, pendingBook, recommendation);
       }
       console.log('[Guestbook] Save succeeded');
+
+      // Write to My Recs in Library
+      if (user && pendingBook) {
+        try {
+          await setDoc(
+            doc(db, 'users', user.uid, 'libraryRecs', pendingBook.id),
+            {
+              title: pendingBook.title || '',
+              author: pendingBook.author || '',
+              coverUrl: pendingBook.coverURL || '',
+              placeId: locationId,
+              placeName,
+              state: placeState,
+              date: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } catch (recErr) {
+          console.warn('[Guestbook] libraryRecs write failed:', recErr);
+        }
+      }
+
       goToCarousel();
     } catch (err) {
       console.error('[Guestbook] Save failed — code:', err.code, '| message:', err.message, '| full error:', err);
@@ -187,6 +212,31 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
       setView('expanded');
     } else {
       setView('search');
+    }
+  };
+
+  const handleAddToReadNext = async (entry) => {
+    if (!user) { onShowLogin?.(); return; }
+    const bookId = (entry.googleBooksId || entry.id || '').replace(/\//g, '_');
+    if (!bookId) return;
+    try {
+      await setDoc(
+        doc(db, 'users', user.uid, 'libraryReadNext', bookId),
+        {
+          title: entry.bookTitle || '',
+          author: entry.bookAuthor || '',
+          coverUrl: entry.bookCover || '',
+          recommendedBy: (entry.recommendations?.[0]?.userName) || 'A Literary Traveler',
+          placeName,
+          state: placeState,
+          date: serverTimestamp(),
+          whoWhatWhere: [entry.bookTitle, placeName, placeState].filter(Boolean).join(' · '),
+        },
+        { merge: true }
+      );
+      setReadNextAdded(prev => new Set([...prev, bookId]));
+    } catch (err) {
+      console.warn('[Guestbook] libraryReadNext write failed:', err);
     }
   };
 
@@ -327,13 +377,27 @@ export default function Guestbook({ locationId, user, onShowLogin }) {
 
         {/* Add voice / sign-in */}
         {user ? (
-          <button
-            onClick={handleAddVoiceFromExpanded}
-            className="w-full border-2 border-starlight-turquoise text-starlight-turquoise font-bungee py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all"
-            style={{ fontSize: '11px' }}
-          >
-            + ADD YOUR VOICE
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={handleAddVoiceFromExpanded}
+              className="flex-1 border-2 border-starlight-turquoise text-starlight-turquoise font-bungee py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all"
+              style={{ fontSize: '11px' }}
+            >
+              + ADD YOUR VOICE
+            </button>
+            <button
+              onClick={() => handleAddToReadNext(expandedEntry)}
+              className="flex-none border-2 font-bungee py-2 px-3 rounded-lg transition-all"
+              style={{
+                fontSize: '11px',
+                borderColor: readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? '#38C5C5' : 'rgba(56,197,197,0.4)',
+                color: readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? '#38C5C5' : 'rgba(56,197,197,0.7)',
+                background: readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? 'rgba(56,197,197,0.1)' : 'transparent',
+              }}
+            >
+              {readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? 'SAVED' : '+ READ NEXT'}
+            </button>
+          </div>
         ) : (
           <button
             onClick={onShowLogin}

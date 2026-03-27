@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useState, useRef, useEffect } from 'react';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
@@ -172,12 +172,11 @@ export async function downloadPostcardImage(data) {
   ctx.lineWidth = 1;
   ctx.strokeRect(13, 13, W - 26, H - 26);
 
-  // ── Book cover ──────────────────────────────────────────────────────────────
-  const coverX = 22, coverY = 50, coverW = 168, coverH = 260;
+  // ── Book cover — standard proportions ───────────────────────────────────────
+  const coverX = 18, coverY = 26, coverW = 135, coverH = 200;
   if (data.bookCover) {
     const img = await loadImageEl(data.bookCover);
     if (img) {
-      // Clip to cover rect
       ctx.save();
       ctx.beginPath();
       ctx.rect(coverX, coverY, coverW, coverH);
@@ -200,52 +199,66 @@ export async function downloadPostcardImage(data) {
   ctx.lineWidth = 2;
   ctx.strokeRect(coverX, coverY, coverW, coverH);
 
-  // ── Text area ───────────────────────────────────────────────────────────────
-  const tx = coverX + coverW + 18;
-  const textMaxW = W - tx - 130;
+  // ── Stamp — top right corner ─────────────────────────────────────────────────
+  drawStamp(ctx, W - 62, 58, 94, data.stateCode, data.state);
 
-  // Title
+  // ── TOP zone: title / author only (no state) ─────────────────────────────────
+  const rx = coverX + coverW + 10;  // right column x
+  const stampClearRight = W - 106;  // leave room for stamp
+  const topMaxW = stampClearRight - rx;
+
   ctx.fillStyle = '#2c1810';
   ctx.textAlign = 'left';
-  ctx.font = `bold 21px Georgia, serif`;
-  const titleBottom = wrapText(ctx, data.bookTitle, tx, 78, textMaxW, 26);
+  ctx.font = 'bold 22px Georgia, serif';
+  const titleBottom = wrapText(ctx, data.bookTitle || '', rx, 46, topMaxW, 27);
 
-  // Author
-  ctx.font = `italic 16px Georgia, serif`;
+  ctx.font = 'italic 16px Georgia, serif';
   ctx.fillStyle = '#8B4513';
-  ctx.fillText('by ' + data.bookAuthor, tx, Math.max(titleBottom, 112));
+  const authorY = Math.max(titleBottom + 2, 90);
+  ctx.fillText('by ' + (data.bookAuthor || ''), rx, authorY);
 
-  // Location
-  const locLine = Math.max(titleBottom, 112) + 24;
-  ctx.font = '14px Georgia, serif';
-  ctx.fillStyle = '#666';
-  const loc = data.city ? `${data.city}, ${data.state}` : data.state;
-  ctx.fillText(loc, tx, locLine);
+  // ── Divider 1 ────────────────────────────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(139,69,19,0.25)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(rx, 128); ctx.lineTo(W - 14, 128); ctx.stroke();
 
-  // Vibe tags (small caps)
-  if (data.vibeTags?.length) {
-    ctx.font = '13px Georgia, serif';
-    ctx.fillStyle = '#8B4513';
-    const tagText = data.vibeTags.map(t => t.toUpperCase()).join('  ·  ');
-    wrapText(ctx, tagText, tx, locLine + 22, textMaxW, 17);
+  // ── MIDDLE zone: message + signature ─────────────────────────────────────────
+  if (data.message) {
+    ctx.font = 'italic 13px Georgia, serif';
+    ctx.fillStyle = '#2c1810';
+    const msgBottom = wrapText(ctx, '\u201C' + data.message + '\u201D', rx, 146, W - rx - 14, 20);
+
+    ctx.font = 'bold 12px Georgia, serif';
+    ctx.fillStyle = '#2c1810';
+    ctx.fillText('\u2014 ' + (data.authorName || 'A Literary Traveler'), rx, Math.min(msgBottom + 4, H - 68));
   }
 
-  // ── Stamp ───────────────────────────────────────────────────────────────────
-  drawStamp(ctx, W - 74, 68, 110, data.stateCode, data.state);
+  // ── Divider 2 ────────────────────────────────────────────────────────────────
+  ctx.strokeStyle = 'rgba(139,69,19,0.2)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(rx, H - 58); ctx.lineTo(W - 14, H - 58); ctx.stroke();
 
-  // ── Hashtags ─────────────────────────────────────────────────────────────────
-  if (data.hashtags?.length) {
+  // ── BOTTOM zone: vibe tags + hashtags ────────────────────────────────────────
+  const bottomRightW = W - rx - 14;
+  if (data.vibeTags?.length) {
     ctx.font = 'bold 10px Georgia, serif';
-    ctx.fillStyle = 'rgba(139,69,19,0.8)';
+    ctx.fillStyle = '#8B4513';
     ctx.textAlign = 'left';
-    wrapText(ctx, data.hashtags.join(' '), 28, H - 44, W - 56, 14);
+    const tagText = data.vibeTags.map(t => t.toUpperCase()).join('  ·  ');
+    wrapText(ctx, tagText, rx, H - 44, bottomRightW, 14);
+  }
+  if (data.hashtags?.length) {
+    ctx.font = '9px Georgia, serif';
+    ctx.fillStyle = 'rgba(139,69,19,0.65)';
+    ctx.textAlign = 'left';
+    wrapText(ctx, data.hashtags.join(' '), rx, H - 28, bottomRightW, 12);
   }
 
   // ── Branding ─────────────────────────────────────────────────────────────────
-  ctx.font = 'italic 10px Georgia, serif';
-  ctx.fillStyle = 'rgba(139,69,19,0.45)';
+  ctx.font = 'italic 9px Georgia, serif';
+  ctx.fillStyle = 'rgba(139,69,19,0.4)';
   ctx.textAlign = 'right';
-  ctx.fillText('Literary Roads', W - 20, H - 14);
+  ctx.fillText('Literary Roads', W - 14, H - 10);
 
   return canvas;
 }
@@ -299,10 +312,10 @@ export function PostcardFront({ data, scale = 1 }) {
       {/* Inner border */}
       <div style={{ position: 'absolute', inset: fs(10), border: `${fs(0.5)}px solid rgba(139,69,19,0.25)`, pointerEvents: 'none' }} />
 
-      {/* Book cover */}
+      {/* Book cover — standard proportions left side */}
       <div style={{
-        position: 'absolute', left: fs(22), top: fs(50),
-        width: fs(168), height: fs(260),
+        position: 'absolute', left: fs(18), top: fs(26),
+        width: fs(135), height: fs(200),
         border: `${fs(2)}px solid #8B4513`,
         boxShadow: `${fs(3)}px ${fs(3)}px ${fs(10)}px rgba(0,0,0,0.3)`,
         background: '#2c1810', overflow: 'hidden',
@@ -313,48 +326,66 @@ export function PostcardFront({ data, scale = 1 }) {
         }
       </div>
 
-      {/* Text area */}
-      <div style={{ position: 'absolute', left: fs(208), top: fs(54), right: fs(128), bottom: fs(50) }}>
-        <p style={{ margin: 0, fontWeight: 'bold', fontSize: fs(18), color: '#2c1810', lineHeight: 1.3,
+      {/* Stamp — top right corner */}
+      {data.stateCode && (
+        <div style={{ position: 'absolute', top: fs(14), right: fs(14) }}>
+          <StampPreview stateCode={data.stateCode} stateName={data.state} size={fs(84)} />
+        </div>
+      )}
+
+      {/* TOP zone: title / author only (no state — it's on the stamp) */}
+      <div style={{ position: 'absolute', left: fs(163), top: fs(22), right: fs(108), overflow: 'hidden' }}>
+        <p style={{ margin: 0, fontWeight: 'bold', fontSize: fs(22), color: '#2c1810', lineHeight: 1.25,
           overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
           {data.bookTitle}
         </p>
-        <p style={{ margin: `${fs(5)}px 0 0`, fontStyle: 'italic', fontSize: fs(14), color: '#8B4513' }}>
+        <p style={{ margin: `${fs(5)}px 0 0`, fontStyle: 'italic', fontSize: fs(16), color: '#8B4513' }}>
           by {data.bookAuthor}
         </p>
-        {(data.city || data.state) && (
-          <p style={{ margin: `${fs(10)}px 0 0`, fontSize: fs(13), color: '#666' }}>
-            {data.city ? `${data.city}, ${data.state}` : data.state}
+      </div>
+
+      {/* Divider 1 */}
+      <div style={{ position: 'absolute', left: fs(163), right: fs(14), top: fs(130),
+        height: fs(1), background: 'rgba(139,69,19,0.25)' }} />
+
+      {/* MIDDLE zone: message + signature */}
+      <div style={{ position: 'absolute', left: fs(163), top: fs(138), right: fs(14), bottom: fs(66) }}>
+        {data.message ? (
+          <>
+            <p style={{ margin: 0, fontStyle: 'italic', fontSize: fs(13), color: '#2c1810', lineHeight: 1.7,
+              overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical' }}>
+              &ldquo;{data.message}&rdquo;
+            </p>
+            <p style={{ margin: `${fs(7)}px 0 0`, fontSize: fs(12), color: '#2c1810', fontWeight: 'bold' }}>
+              &mdash; {data.authorName || 'A Literary Traveler'}
+            </p>
+          </>
+        ) : null}
+      </div>
+
+      {/* Divider 2 */}
+      <div style={{ position: 'absolute', left: fs(163), right: fs(14), bottom: fs(56),
+        height: fs(1), background: 'rgba(139,69,19,0.2)' }} />
+
+      {/* BOTTOM zone: vibe tags + hashtags */}
+      <div style={{ position: 'absolute', left: fs(163), right: fs(14), bottom: fs(16) }}>
+        {data.vibeTags?.length > 0 && (
+          <p style={{ margin: 0, fontSize: fs(10), color: '#8B4513', fontWeight: 'bold',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {data.vibeTags.map(t => t.toUpperCase()).join('  ·  ')}
           </p>
         )}
-        {data.vibeTags?.length > 0 && (
-          <p style={{ margin: `${fs(10)}px 0 0`, fontSize: fs(12), color: '#8B4513', lineHeight: 1.6,
-            overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-            {data.vibeTags.map(t => t.toUpperCase()).join('  ·  ')}
+        {data.hashtags?.length > 0 && (
+          <p style={{ margin: `${fs(3)}px 0 0`, fontSize: fs(9), color: 'rgba(139,69,19,0.65)',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {data.hashtags.join(' ')}
           </p>
         )}
       </div>
 
-      {/* Stamp — top right */}
-      {data.stateCode && (
-        <div style={{ position: 'absolute', top: fs(18), right: fs(18) }}>
-          <StampPreview stateCode={data.stateCode} stateName={data.state} size={fs(90)} />
-        </div>
-      )}
-
-      {/* Hashtags — bottom */}
-      {data.hashtags?.length > 0 && (
-        <div style={{ position: 'absolute', bottom: fs(14), left: fs(26), right: fs(16) }}>
-          <p style={{ margin: 0, fontSize: fs(10), color: 'rgba(139,69,19,0.8)', fontWeight: 'bold',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {data.hashtags.join(' ')}
-          </p>
-        </div>
-      )}
-
       {/* Branding */}
-      <p style={{ position: 'absolute', bottom: fs(5), right: fs(12), margin: 0,
-        fontStyle: 'italic', fontSize: fs(9), color: 'rgba(139,69,19,0.4)' }}>
+      <p style={{ position: 'absolute', bottom: fs(4), right: fs(10), margin: 0,
+        fontStyle: 'italic', fontSize: fs(8), color: 'rgba(139,69,19,0.35)' }}>
         Literary Roads
       </p>
     </div>
@@ -464,23 +495,23 @@ function Step1({ loggedBooks, onNext, onClose }) {
       style={{
         width: '100%', display: 'flex', gap: 12, alignItems: 'center',
         padding: '10px 12px', textAlign: 'left', cursor: 'pointer',
-        background: selected?.id === book.id ? 'rgba(255,78,0,0.08)' : 'rgba(255,255,255,0.03)',
-        borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+        background: selected?.id === book.id ? 'rgba(255,107,122,0.07)' : PB.white,
+        borderTop: i > 0 ? `1px solid ${PB.divider}` : 'none',
         border: 'none', transition: 'background 0.15s',
-        outline: selected?.id === book.id ? '1.5px solid rgba(255,78,0,0.4)' : 'none',
+        outline: selected?.id === book.id ? `1.5px solid rgba(255,107,122,0.4)` : 'none',
       }}
-      onMouseEnter={e => { if (selected?.id !== book.id) e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-      onMouseLeave={e => { if (selected?.id !== book.id) e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+      onMouseEnter={e => { if (selected?.id !== book.id) e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; }}
+      onMouseLeave={e => { if (selected?.id !== book.id) e.currentTarget.style.background = PB.white; }}
     >
-      <div style={{ width: 40, height: 56, flexShrink: 0, borderRadius: 3, overflow: 'hidden', background: '#1A1B2E', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ width: 40, height: 56, flexShrink: 0, borderRadius: 3, overflow: 'hidden', background: '#e8e4dc', border: `1px solid ${PB.divider}` }}>
         {book.coverURL
           ? <img src={book.coverURL} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: 'rgba(255,255,255,0.2)' }}>?</div>
+          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: PB.muted }}>?</div>
         }
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p className="font-bungee" style={{ fontSize: 11, color: '#F0E6CC', margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>{book.title}</p>
-        <p className="font-special-elite" style={{ fontSize: 11, color: 'rgba(192,192,192,0.55)', margin: '2px 0 0' }}>{book.author}</p>
+        <p className="font-bungee" style={{ fontSize: 11, color: PB.dark, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>{book.title}</p>
+        <p className="font-special-elite" style={{ fontSize: 11, color: PB.muted, margin: '2px 0 0' }}>{book.author}</p>
       </div>
     </button>
   );
@@ -491,16 +522,16 @@ function Step1({ loggedBooks, onNext, onClose }) {
       <button key={entry.id} type="button" onClick={() => pickBook(book)}
         style={{
           flexShrink: 0, width: 76, background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-          borderRadius: 6, outline: selected?.id === book.id ? '2px solid #FF4E00' : '2px solid transparent',
+          borderRadius: 6, outline: selected?.id === book.id ? `2px solid ${PB.coral}` : '2px solid transparent',
           transition: 'outline 0.15s',
         }}>
-        <div style={{ width: 68, height: 96, borderRadius: 4, overflow: 'hidden', background: '#1A1B2E', border: '1.5px solid rgba(255,255,255,0.12)' }}>
+        <div style={{ width: 68, height: 96, borderRadius: 4, overflow: 'hidden', background: '#e8e4dc', border: `1.5px solid ${PB.divider}` }}>
           {book.coverURL
             ? <img src={book.coverURL} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: 'rgba(255,255,255,0.2)' }}>?</div>
+            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: PB.muted }}>?</div>
           }
         </div>
-        <p className="font-special-elite" style={{ fontSize: 9, color: 'rgba(192,192,192,0.55)', textAlign: 'center', marginTop: 4, lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+        <p className="font-special-elite" style={{ fontSize: 9, color: PB.mid, textAlign: 'center', marginTop: 4, lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
           {book.title}
         </p>
       </button>
@@ -512,13 +543,13 @@ function Step1({ loggedBooks, onNext, onClose }) {
       <StepHeader step={1} title="SELECT BOOK" onClose={onClose} />
 
       {/* Tab bar */}
-      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: 16 }}>
+      <div style={{ display: 'flex', borderBottom: `1px solid ${PB.divider}`, marginBottom: 16 }}>
         {[['search', 'Search Books'], ['log', 'From My Log']].map(([key, label]) => (
           <button key={key} onClick={() => setTab(key)} className="font-bungee"
             style={{ flex: 1, padding: '10px 0', border: 'none', cursor: 'pointer', fontSize: 11,
               background: 'transparent', letterSpacing: '0.06em',
-              color: tab === key ? '#FF4E00' : 'rgba(192,192,192,0.5)',
-              borderBottom: tab === key ? '2px solid #FF4E00' : '2px solid transparent',
+              color: tab === key ? PB.coral : PB.muted,
+              borderBottom: tab === key ? `2px solid ${PB.coral}` : '2px solid transparent',
               transition: 'color 0.15s', marginBottom: -1 }}>
             {label.toUpperCase()}
           </button>
@@ -531,40 +562,40 @@ function Step1({ loggedBooks, onNext, onClose }) {
             <input value={query} onChange={e => handleQuery(e.target.value)}
               placeholder="Search by title or author..."
               style={inputStyle}
-              onFocus={e => e.currentTarget.style.borderColor = '#FF4E00'}
-              onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
+              onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+              onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
             />
-            {searching && <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, border: '2px solid #FF4E00', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pb-spin 0.7s linear infinite' }} />}
+            {searching && <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, border: `2px solid ${PB.coral}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'pb-spin 0.7s linear infinite' }} />}
           </div>
           {results.length > 0 && (
-            <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', maxHeight: 260, overflowY: 'auto' }}>
+            <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${PB.divider}`, maxHeight: 260, overflowY: 'auto' }}>
               {results.map((b, i) => searchResultItem(b, i))}
             </div>
           )}
           {!searching && query.length > 1 && results.length === 0 && (
-            <p className="font-special-elite" style={{ textAlign: 'center', color: 'rgba(192,192,192,0.35)', fontSize: 13, fontStyle: 'italic', padding: '12px 0' }}>No results found</p>
+            <p className="font-special-elite" style={{ textAlign: 'center', color: PB.muted, fontSize: 13, fontStyle: 'italic', padding: '12px 0' }}>No results found</p>
           )}
         </>
       )}
 
       {tab === 'log' && (
         loggedBooks.length === 0
-          ? <p className="font-special-elite" style={{ textAlign: 'center', color: 'rgba(192,192,192,0.4)', fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>No books in your log yet. Use the Search tab above.</p>
+          ? <p className="font-special-elite" style={{ textAlign: 'center', color: PB.muted, fontSize: 13, fontStyle: 'italic', padding: '20px 0' }}>No books in your log yet. Use the Search tab above.</p>
           : <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 8 }}>
               {loggedBooks.map((e, i) => logItem(e, i))}
             </div>
       )}
 
       {selected && (
-        <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: 'rgba(255,78,0,0.06)', border: '1px solid rgba(255,78,0,0.3)', display: 'flex', gap: 12, alignItems: 'center' }}>
+        <div style={{ marginTop: 16, padding: 12, borderRadius: 10, background: 'rgba(255,107,122,0.06)', border: `1px solid rgba(255,107,122,0.25)`, display: 'flex', gap: 12, alignItems: 'center' }}>
           {selected.coverURL && (
-            <img src={selected.coverURL} alt={selected.title} style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 3, border: '1px solid rgba(255,78,0,0.3)' }} />
+            <img src={selected.coverURL} alt={selected.title} style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 3, border: `1px solid rgba(255,107,122,0.25)` }} />
           )}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p className="font-bungee" style={{ fontSize: 11, color: '#FF4E00', margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>{selected.title}</p>
-            <p className="font-special-elite" style={{ fontSize: 11, color: 'rgba(192,192,192,0.55)', margin: '2px 0 0' }}>by {selected.author}</p>
+            <p className="font-bungee" style={{ fontSize: 11, color: PB.coral, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>{selected.title}</p>
+            <p className="font-special-elite" style={{ fontSize: 11, color: PB.muted, margin: '2px 0 0' }}>by {selected.author}</p>
           </div>
-          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'rgba(192,192,192,0.4)', cursor: 'pointer', fontSize: 18 }}>x</button>
+          <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: PB.muted, cursor: 'pointer', fontSize: 18 }}>×</button>
         </div>
       )}
 
@@ -574,12 +605,29 @@ function Step1({ loggedBooks, onNext, onClose }) {
 }
 
 function Step2({ book, onNext, onBack, onClose }) {
+  const { user } = useAuth();
   const [stateCode, setStateCode] = useState('');
-  const [city, setCity] = useState('');
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState('');
+  const [message, setMessage] = useState('');
+  const [authorName, setAuthorName] = useState(user?.displayName || '');
+  const [vibeTags, setVibeTags] = useState([]);
+  const [hashtags, setHashtags] = useState(() => {
+    const slug = (book.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+    return ['#literaryroads', slug ? `#${slug}` : ''].filter(Boolean).join(' ');
+  });
 
   const selectedState = STATES.find(s => s.code === stateCode);
+
+  // Refresh hashtags when state changes
+  const handleStateChange = (code) => {
+    setStateCode(code);
+    const slug = (book.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
+    const tags = ['#literaryroads'];
+    if (code) tags.push(`#read${code.toLowerCase()}`);
+    if (slug) tags.push(`#${slug}`);
+    setHashtags(tags.join(' '));
+  };
 
   const handleGPS = () => {
     if (!navigator.geolocation) { setGpsError('Geolocation not available.'); return; }
@@ -590,12 +638,11 @@ function Step2({ book, onNext, onBack, onClose }) {
         const { latitude: lat, longitude: lng } = pos.coords;
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=5&addressdetails=1`;
         const resp = await fetch(url, { headers: { 'User-Agent': 'literary-roads-app/1.0' } });
-        const data = await resp.json();
-        const stateNameRaw = data.address?.state || '';
+        const json = await resp.json();
+        const stateNameRaw = json.address?.state || '';
         const match = STATES.find(s => s.name.toLowerCase() === stateNameRaw.toLowerCase());
-        if (match) setStateCode(match.code);
+        if (match) handleStateChange(match.code);
         else setGpsError('Could not identify state. Please select manually.');
-        setCity(data.address?.city || data.address?.town || '');
       } catch {
         setGpsError('Location lookup failed.');
       } finally {
@@ -604,188 +651,237 @@ function Step2({ book, onNext, onBack, onClose }) {
     }, () => { setGpsError('Location access denied.'); setGpsLoading(false); });
   };
 
-  return (
-    <div style={stepWrap}>
-      <StepHeader step={2} title="CHOOSE STATE" onClose={onClose} />
-
-      <label className="font-bungee" style={labelStyle}>WHERE DID YOU START READING THIS BOOK?</label>
-
-      <select value={stateCode} onChange={e => setStateCode(e.target.value)} className="font-special-elite"
-        style={{ ...inputStyle, cursor: 'pointer', marginBottom: 10, color: stateCode ? '#F5F5DC' : 'rgba(192,192,192,0.4)' }}>
-        <option value="">Select a state...</option>
-        {STATES.map(s => <option key={s.code} value={s.code}>{s.name}</option>)}
-      </select>
-
-      <button onClick={handleGPS} disabled={gpsLoading} className="font-bungee"
-        style={{ ...outlineBtn, marginBottom: gpsError ? 6 : 16, opacity: gpsLoading ? 0.6 : 1 }}>
-        {gpsLoading ? 'DETECTING...' : 'USE MY CURRENT LOCATION'}
-      </button>
-      {gpsError && <p className="font-special-elite" style={{ color: '#FF6060', fontSize: 12, marginBottom: 12 }}>{gpsError}</p>}
-
-      <label className="font-bungee" style={labelStyle}>CITY (OPTIONAL)</label>
-      <input value={city} onChange={e => setCity(e.target.value)} placeholder="e.g. Portland"
-        style={{ ...inputStyle, marginBottom: 20 }}
-        onFocus={e => e.currentTarget.style.borderColor = '#FF4E00'}
-        onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-      />
-
-      {stateCode && (
-        <div style={{ marginBottom: 16 }}>
-          <p className="font-bungee" style={{ ...labelStyle, marginBottom: 10 }}>STAMP PREVIEW</p>
-          <div style={{ display: 'flex', justifyContent: 'center' }}>
-            <StampPreview stateCode={stateCode} stateName={selectedState?.name || stateCode} size={100} />
-          </div>
-        </div>
-      )}
-
-      <StepFooter onBack={onBack} onNext={() => stateCode && onNext({ stateCode, state: selectedState?.name || stateCode, city })} nextDisabled={!stateCode} onClose={onClose} />
-    </div>
-  );
-}
-
-function Step3({ book, stateData, onNext, onBack, onClose }) {
-  const { user } = useAuth();
-  const [message, setMessage] = useState('');
-  const [authorName, setAuthorName] = useState(user?.displayName || '');
-  const [vibeTags, setVibeTags] = useState([]);
-  const [hashtags, setHashtags] = useState(() => {
-    const tags = ['#literaryroads'];
-    if (stateData.stateCode) tags.push(`#read${stateData.stateCode.toLowerCase()}`);
-    const slug = (book.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
-    if (slug) tags.push(`#${slug}`);
-    return tags.join(' ');
-  });
-
-  const toggleVibeTag = (tag) => {
+  const toggleVibeTag = (tag) =>
     setVibeTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
-  };
 
   const remaining = MSG_LIMIT - message.length;
+  const canNext = stateCode && message.trim();
 
   return (
     <div style={stepWrap}>
-      <StepHeader step={3} title="WRITE YOUR MESSAGE" onClose={onClose} />
+      <StepHeader step={2} title="STATE & MESSAGE" onClose={onClose} />
+      <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
 
-      <label className="font-bungee" style={labelStyle}>YOUR MESSAGE</label>
-      <div style={{ position: 'relative', marginBottom: 8 }}>
-        <textarea
-          value={message}
-          onChange={e => setMessage(e.target.value.slice(0, MSG_LIMIT))}
-          placeholder="What does this book mean to you?"
-          rows={5}
-          style={{ ...inputStyle, resize: 'none', lineHeight: 1.6, paddingBottom: 28 }}
-          onFocus={e => e.currentTarget.style.borderColor = '#FF4E00'}
-          onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
+        {/* State */}
+        <label className="font-bungee" style={labelStyle}>WHERE DID YOU START READING?</label>
+        <select value={stateCode} onChange={e => handleStateChange(e.target.value)} className="font-special-elite"
+          style={{ ...inputStyle, cursor: 'pointer', marginBottom: 8, color: stateCode ? PB.dark : PB.muted }}>
+          <option value="">Select a state...</option>
+          {STATES.map(s => <option key={s.code} value={s.code}>{s.name}</option>)}
+        </select>
+        <button onClick={handleGPS} disabled={gpsLoading} className="font-bungee"
+          style={{ ...outlineBtn, marginBottom: gpsError ? 6 : 14, opacity: gpsLoading ? 0.6 : 1, padding: '8px 0', width: '100%' }}>
+          {gpsLoading ? 'DETECTING...' : 'USE MY CURRENT LOCATION'}
+        </button>
+        {gpsError && <p className="font-special-elite" style={{ color: '#c0392b', fontSize: 12, marginBottom: 10 }}>{gpsError}</p>}
+
+        {stateCode && (
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
+            <StampPreview stateCode={stateCode} stateName={selectedState?.name || stateCode} size={80} />
+          </div>
+        )}
+
+        {/* Message */}
+        <label className="font-bungee" style={labelStyle}>YOUR MESSAGE</label>
+        <div style={{ position: 'relative', marginBottom: 8 }}>
+          <textarea value={message} onChange={e => setMessage(e.target.value.slice(0, MSG_LIMIT))}
+            placeholder="What does this book mean to you?"
+            rows={4}
+            style={{ ...inputStyle, resize: 'none', lineHeight: 1.6, paddingBottom: 28 }}
+            onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+            onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+          />
+          <span className="font-bungee" style={{ position: 'absolute', bottom: 8, right: 12, fontSize: 10,
+            color: remaining < 40 ? PB.coral : PB.muted, letterSpacing: '0.04em' }}>
+            {remaining}
+          </span>
+        </div>
+
+        {/* Inspiration */}
+        <div style={{ marginBottom: 14, padding: '8px 12px', borderRadius: 8, background: `rgba(56,197,197,0.05)`, border: `1px solid ${PB.divider}` }}>
+          <p className="font-bungee" style={{ fontSize: 9, color: PB.turq, letterSpacing: '0.08em', margin: '0 0 6px' }}>INSPIRATION</p>
+          {PROMPTS.map((p, i) => (
+            <p key={i} className="font-special-elite" style={{ margin: i > 0 ? '3px 0 0' : 0, fontSize: 10, color: PB.mid, fontStyle: 'italic' }}>{p}</p>
+          ))}
+        </div>
+
+        {/* Vibe tags */}
+        <label className="font-bungee" style={labelStyle}>VIBE TAGS</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
+          {VIBE_TAGS.map(tag => (
+            <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
+              style={{
+                padding: '3px 9px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                background: vibeTags.includes(tag) ? PB.coral : 'rgba(56,197,197,0.08)',
+                color: vibeTags.includes(tag) ? PB.white : PB.mid,
+                boxShadow: vibeTags.includes(tag) ? '0 2px 8px rgba(255,107,122,0.3)' : 'none',
+              }}>
+              {tag.toUpperCase()}
+            </button>
+          ))}
+        </div>
+
+        {/* Signature */}
+        <label className="font-bungee" style={labelStyle}>SIGN YOUR POSTCARD</label>
+        <input value={authorName} onChange={e => setAuthorName(e.target.value)}
+          placeholder="Your name or pen name"
+          style={{ ...inputStyle, marginBottom: 14 }}
+          onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+          onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
         />
-        <span className="font-bungee" style={{ position: 'absolute', bottom: 8, right: 12, fontSize: 10,
-          color: remaining < 40 ? '#FF4E00' : 'rgba(192,192,192,0.4)', letterSpacing: '0.04em' }}>
-          {remaining}
-        </span>
+
+        {/* Hashtags */}
+        <label className="font-bungee" style={labelStyle}>HASHTAGS</label>
+        <input value={hashtags} onChange={e => setHashtags(e.target.value)}
+          placeholder="#literaryroads #bookstagram"
+          style={{ ...inputStyle, marginBottom: 4 }}
+          onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+          onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+        />
+        <p className="font-special-elite" style={{ fontSize: 10, color: PB.muted, margin: '0 0 16px', fontStyle: 'italic' }}>
+          Suggested: #read{(stateCode || 'state').toLowerCase()} #literaryroads #bookstagram
+        </p>
       </div>
-
-      {/* Prompt suggestions */}
-      <div style={{ marginBottom: 16, padding: '10px 12px', borderRadius: 8, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <p className="font-bungee" style={{ fontSize: 9, color: '#fcd8c5', letterSpacing: '0.08em', margin: '0 0 8px' }}>INSPIRATION</p>
-        {PROMPTS.map((p, i) => (
-          <p key={i} className="font-special-elite" style={{ margin: i > 0 ? '4px 0 0' : 0, fontSize: 11, color: '#fcd8c5', fontStyle: 'italic' }}>
-            {p}
-          </p>
-        ))}
-      </div>
-
-      {/* Vibe tags */}
-      <label className="font-bungee" style={labelStyle}>VIBE TAGS</label>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-        {VIBE_TAGS.map(tag => (
-          <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
-            style={{
-              padding: '4px 10px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
-              border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-              background: vibeTags.includes(tag) ? '#FF4E00' : 'rgba(255,255,255,0.08)',
-              color: vibeTags.includes(tag) ? '#1A1B2E' : '#fcd8c5',
-              boxShadow: vibeTags.includes(tag) ? '0 0 10px rgba(255,78,0,0.35)' : 'none',
-            }}>
-            {tag.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      {/* Signature */}
-      <label className="font-bungee" style={labelStyle}>SIGN YOUR POSTCARD</label>
-      <input value={authorName} onChange={e => setAuthorName(e.target.value)}
-        placeholder="Your name or pen name"
-        style={{ ...inputStyle, marginBottom: 20 }}
-        onFocus={e => e.currentTarget.style.borderColor = '#FF4E00'}
-        onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-      />
-
-      {/* Hashtags */}
-      <label className="font-bungee" style={labelStyle}>HASHTAGS</label>
-      <input value={hashtags} onChange={e => setHashtags(e.target.value)}
-        placeholder="#literaryroads #bookstagram"
-        style={{ ...inputStyle, marginBottom: 6 }}
-        onFocus={e => e.currentTarget.style.borderColor = '#FF4E00'}
-        onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'}
-      />
-      <p className="font-special-elite" style={{ fontSize: 10, color: 'rgba(192,192,192,0.3)', margin: '0 0 20px', fontStyle: 'italic' }}>
-        Suggested: #read{(stateData.stateCode || 'state').toLowerCase()} #literaryroads #bookstagram
-      </p>
 
       <StepFooter onBack={onBack}
-        onNext={() => message.trim() && onNext({ message, vibeTags, hashtags: hashtags.trim().split(/\s+/).filter(h => h.startsWith('#')), authorName: authorName.trim() || 'A Literary Traveler' })}
-        nextDisabled={!message.trim()} onClose={onClose} />
+        onNext={() => canNext && onNext({
+          stateCode,
+          state: selectedState?.name || stateCode,
+          message,
+          vibeTags,
+          hashtags: hashtags.trim().split(/\s+/).filter(h => h.startsWith('#')),
+          authorName: authorName.trim() || 'A Literary Traveler',
+        })}
+        nextDisabled={!canNext} onClose={onClose} />
     </div>
   );
 }
 
-function Step4({ data, onBack, onSave, saving, onClose }) {
-  const [side, setSide] = useState('front');
+function Step3({ data, onBack, saving, saved, onClose }) {
+  const [downloading, setDownloading] = useState(false);
+
+  const caption = [data.message, ...(data.hashtags || [])].join(' ');
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const canvas = await downloadPostcardImage(data);
+      const link = document.createElement('a');
+      link.download = `literary-roads-postcard.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    try {
+      const canvas = await downloadPostcardImage(data);
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+      const file = new File([blob], 'literary-roads-postcard.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: data.bookTitle, text: caption });
+      } else {
+        await handleDownload();
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') await handleDownload();
+    }
+  };
+
+  const handleFacebook = () => {
+    window.open(
+      `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(caption)}`,
+      '_blank', 'noopener,width=600,height=400'
+    );
+  };
+
+  const handleInstagram = async () => {
+    try {
+      await navigator.clipboard.writeText(caption);
+    } catch { /* clipboard unavailable */ }
+    await handleNativeShare();
+  };
+
+  const handleTikTok = async () => {
+    try {
+      await navigator.clipboard.writeText(caption);
+    } catch { /* clipboard unavailable */ }
+    await handleNativeShare();
+  };
+
+  const shareBtn = (label, color, onClick, icon) => (
+    <button onClick={onClick} className="font-bungee"
+      style={{
+        flex: 1, padding: '10px 4px', borderRadius: 8, fontSize: 10, letterSpacing: '0.04em',
+        border: `1.5px solid ${color}55`, background: `${color}0f`, color,
+        cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+      }}>
+      {icon}
+      {label}
+    </button>
+  );
 
   return (
     <div style={stepWrap}>
-      <StepHeader step={4} title="PREVIEW & SHARE" onClose={onClose} />
+      <StepHeader step={3} title="PREVIEW & SHARE" onClose={onClose} />
 
-      {/* Side toggle */}
-      <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: '1.5px solid rgba(255,255,255,0.12)', marginBottom: 16 }}>
-        {[['front', 'FRONT'], ['back', 'BACK']].map(([key, label]) => (
-          <button key={key} onClick={() => setSide(key)} className="font-bungee"
-            style={{ flex: 1, padding: '8px 0', border: 'none', cursor: 'pointer', fontSize: 11,
-              background: side === key ? '#FF4E00' : 'transparent',
-              color: side === key ? '#1A1B2E' : 'rgba(192,192,192,0.5)',
-              letterSpacing: '0.06em', transition: 'all 0.15s' }}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Preview — scaled down */}
+      {/* Preview */}
       <div style={{ width: '100%', overflowX: 'auto', marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
         <div style={{ transform: 'scale(0.5)', transformOrigin: 'top center', height: 200, pointerEvents: 'none' }}>
-          {side === 'front'
-            ? <PostcardFront data={data} scale={1} />
-            : <PostcardBack data={data} scale={1} />
-          }
+          <PostcardFront data={data} scale={1} />
         </div>
       </div>
 
-      <div style={{ padding: '12px 14px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', marginBottom: 20 }}>
-        <p className="font-bungee" style={{ fontSize: 10, color: 'rgba(192,192,192,0.4)', letterSpacing: '0.08em', margin: '0 0 6px' }}>AFTER SAVING YOU CAN</p>
-        {['Download as image', 'Share to Facebook', 'Share to Pinterest', 'Copy caption for Instagram'].map((item, i) => (
-          <p key={i} className="font-special-elite" style={{ margin: i > 0 ? '3px 0 0' : 0, fontSize: 12, color: 'rgba(192,192,192,0.5)' }}>
-            {item}
-          </p>
-        ))}
+      {/* Save status */}
+      <div style={{ textAlign: 'center', padding: '10px 0', marginBottom: 12,
+        borderRadius: 8,
+        background: saved ? 'rgba(56,197,197,0.08)' : 'rgba(255,107,122,0.05)',
+        border: saved ? `1px solid rgba(56,197,197,0.25)` : `1px solid rgba(255,107,122,0.15)` }}>
+        <p className="font-bungee" style={{
+          color: saved ? PB.turq : PB.muted, fontSize: 12, letterSpacing: '0.06em', margin: 0 }}>
+          {saving ? 'SAVING TO LIBRARY...' : saved ? 'SAVED TO YOUR LIBRARY ✓' : 'PREPARING YOUR POSTCARD'}
+        </p>
       </div>
 
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button onClick={onBack} className="font-bungee" style={{ ...outlineBtn, flex: 'none', padding: '12px 18px' }}>BACK</button>
-        <button onClick={onSave} disabled={saving} className="font-bungee"
-          style={{ flex: 1, padding: 12, background: saving ? 'rgba(255,78,0,0.4)' : '#FF4E00',
-            color: '#1A1B2E', borderRadius: 8, border: 'none', fontSize: 12, letterSpacing: '0.08em',
-            cursor: saving ? 'default' : 'pointer', boxShadow: saving ? 'none' : '0 0 14px rgba(255,78,0,0.4)' }}>
-          {saving ? 'SAVING...' : 'SAVE POSTCARD'}
-        </button>
+      {/* Download */}
+      <button onClick={handleDownload} disabled={downloading} className="font-bungee"
+        style={{ width: '100%', padding: '10px 0', marginBottom: 14,
+          background: 'transparent', border: `1.5px solid ${PB.divider}`,
+          borderRadius: 8, color: PB.mid, fontSize: 11, letterSpacing: '0.06em',
+          cursor: downloading ? 'default' : 'pointer', opacity: downloading ? 0.5 : 1 }}>
+        {downloading ? 'GENERATING...' : 'DOWNLOAD IMAGE'}
+      </button>
+
+      {/* Share row */}
+      <p className="font-bungee" style={{ fontSize: 9, color: PB.muted, letterSpacing: '0.1em', marginBottom: 8 }}>SHARE</p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        {shareBtn('INSTAGRAM', '#E1306C', handleInstagram,
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        )}
+        {shareBtn('FACEBOOK', '#1877F2', handleFacebook,
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+        )}
+        {shareBtn('TIKTOK', '#69C9D0', handleTikTok,
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.69a8.18 8.18 0 004.78 1.52V6.76a4.86 4.86 0 01-1.01-.07z"/></svg>
+        )}
       </div>
+
+      {saved ? (
+        <button onClick={onClose} className="font-bungee"
+          style={{ width: '100%', padding: '10px 0', fontSize: 11,
+            background: PB.turq, color: PB.white, borderRadius: 8, border: 'none', cursor: 'pointer',
+            letterSpacing: '0.08em', boxShadow: '0 2px 12px rgba(56,197,197,0.3)' }}>
+          DONE — VIEW MY SHELF
+        </button>
+      ) : (
+        <button onClick={onBack} className="font-bungee"
+          style={{ ...outlineBtn, width: '100%', padding: '10px 0', fontSize: 11 }}>
+          BACK
+        </button>
+      )}
     </div>
   );
 }
@@ -795,15 +891,14 @@ function Step4({ data, onBack, onSave, saving, onClose }) {
 function StepHeader({ step, title, onClose }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-      <span className="font-bungee" style={{ fontSize: 10, color: 'rgba(255,78,0,0.5)', letterSpacing: '0.1em' }}>
-        STEP {step} OF 4
+      <span className="font-bungee" style={{ fontSize: 10, color: 'rgba(255,107,122,0.55)', letterSpacing: '0.1em' }}>
+        STEP {step} OF 3
       </span>
-      <h2 className="font-bungee" style={{ margin: 0, fontSize: 14, color: '#FF4E00',
-        textShadow: '0 0 12px rgba(255,78,0,0.5)', letterSpacing: '0.06em' }}>
+      <h2 className="font-bungee" style={{ margin: 0, fontSize: 14, color: PB.coral, letterSpacing: '0.06em' }}>
         {title}
       </h2>
       <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer',
-        color: 'rgba(192,192,192,0.4)', fontSize: 20, lineHeight: 1, padding: 2 }}>x</button>
+        color: PB.muted, fontSize: 20, lineHeight: 1, padding: 2 }}>×</button>
     </div>
   );
 }
@@ -816,10 +911,11 @@ function StepFooter({ onBack, onNext, nextDisabled, onClose }) {
         : <button onClick={onClose} className="font-bungee" style={{ ...outlineBtn, flex: 'none', padding: '12px 16px' }}>CANCEL</button>
       }
       <button onClick={onNext} disabled={nextDisabled} className="font-bungee"
-        style={{ flex: 1, padding: 12, background: nextDisabled ? 'rgba(255,78,0,0.3)' : '#FF4E00',
-          color: '#1A1B2E', borderRadius: 8, border: 'none', fontSize: 12, letterSpacing: '0.08em',
+        style={{ flex: 1, padding: 12,
+          background: nextDisabled ? 'rgba(255,107,122,0.25)' : PB.coral,
+          color: PB.white, borderRadius: 8, border: 'none', fontSize: 12, letterSpacing: '0.08em',
           cursor: nextDisabled ? 'default' : 'pointer',
-          boxShadow: nextDisabled ? 'none' : '0 0 14px rgba(255,78,0,0.4)' }}>
+          boxShadow: nextDisabled ? 'none' : '0 2px 12px rgba(255,107,122,0.35)' }}>
         NEXT
       </button>
     </div>
@@ -828,27 +924,42 @@ function StepFooter({ onBack, onNext, nextDisabled, onClose }) {
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
+// ── Library palette (matches Library.jsx) ────────────────────────────────────
+const PB = {
+  bg:       '#FFF8E7',
+  coral:    '#FF6B7A',
+  turq:     '#38C5C5',
+  gold:     '#F5A623',
+  dark:     '#2D2D2D',
+  mid:      '#555555',
+  muted:    '#999999',
+  white:    '#FFFFFF',
+  card:     '#FAFAFA',
+  inputBdr: 'rgba(56,197,197,0.45)',
+  divider:  'rgba(56,197,197,0.18)',
+};
+
 const stepWrap = {
   display: 'flex', flexDirection: 'column', height: '100%',
 };
 
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
-  background: '#111220', border: '1.5px solid rgba(255,255,255,0.2)',
-  borderRadius: 10, color: '#F5F5DC',
+  background: PB.white, border: `1.5px solid ${PB.inputBdr}`,
+  borderRadius: 10, color: PB.dark,
   padding: '11px 14px', fontSize: 14,
   fontFamily: 'Special Elite, serif', outline: 'none',
   transition: 'border-color 0.2s',
 };
 
 const labelStyle = {
-  fontSize: 10, color: 'rgba(255,78,0,0.7)', letterSpacing: '0.08em',
+  fontSize: 10, color: 'rgba(255,107,122,0.85)', letterSpacing: '0.08em',
   display: 'block', marginBottom: 8,
 };
 
 const outlineBtn = {
-  background: 'transparent', border: '1.5px solid rgba(192,192,192,0.25)',
-  borderRadius: 8, color: 'rgba(192,192,192,0.5)', fontSize: 11,
+  background: 'transparent', border: '1.5px solid rgba(0,0,0,0.18)',
+  borderRadius: 8, color: PB.mid, fontSize: 11,
   letterSpacing: '0.06em', cursor: 'pointer',
 };
 
@@ -858,43 +969,49 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [bookData, setBookData] = useState(null);
-  const [stateData, setStateData] = useState(null);
-  const [messageData, setMessageData] = useState(null);
+  const [stepData, setStepData] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const postcardData = bookData && stateData && messageData ? {
+  const postcardData = bookData && stepData ? {
     bookTitle: bookData.title,
     bookAuthor: bookData.author,
     bookCover: bookData.coverURL || null,
-    state: stateData.state,
-    stateCode: stateData.stateCode,
-    city: stateData.city || '',
-    message: messageData.message,
-    vibeTags: messageData.vibeTags,
-    hashtags: messageData.hashtags,
-    authorName: messageData.authorName || 'A Literary Traveler',
+    state: stepData.state,
+    stateCode: stepData.stateCode,
+    message: stepData.message,
+    vibeTags: stepData.vibeTags,
+    hashtags: stepData.hashtags,
+    authorName: stepData.authorName || 'A Literary Traveler',
   } : null;
 
-  const handleSave = async () => {
-    if (!user || !postcardData) return;
+  // Save the book entry once all data is ready and step 3 is showing
+  useEffect(() => {
+    if (step !== 3 || !user || !bookData || !stepData || saving || saved) return;
+    const bookId = (bookData.id || bookData.googleBooksId || '')
+      .replace(/\//g, '_') ||
+      bookData.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 40);
+    const entry = {
+      bookId,
+      title:     bookData.title,
+      author:    bookData.author,
+      coverUrl:  bookData.coverURL || null,
+      state:     stepData.state,
+      stateCode: stepData.stateCode,
+      createdAt: serverTimestamp(),
+    };
     setSaving(true);
-    try {
-      const docRef = await addDoc(
-        collection(db, 'users', user.uid, 'postcards'),
-        { ...postcardData, createdAt: serverTimestamp() }
-      );
-      onSaved({ id: docRef.id, ...postcardData, createdAt: new Date().toISOString() });
-    } catch (err) {
-      console.error('[PostcardBuilder] save:', err);
-    } finally {
-      setSaving(false);
-    }
-  };
+    setDoc(doc(db, 'users', user.uid, 'libraryPostcards', bookId), entry)
+      .then(() => setSaved(true))
+      .catch(err => console.error('[PostcardBuilder] save book:', err))
+      .finally(() => setSaving(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 500,
-      background: 'rgba(4,5,15,0.96)', backdropFilter: 'blur(6px)',
+      background: 'rgba(255,248,231,0.97)', backdropFilter: 'blur(6px)',
       display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
       overflowY: 'auto', padding: '20px 16px 60px',
     }}>
@@ -902,29 +1019,28 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
 
       <div style={{
         width: '100%', maxWidth: 520,
-        background: '#0D0E1A', borderRadius: 16,
-        border: '1.5px solid rgba(255,78,0,0.3)',
-        boxShadow: '0 0 40px rgba(255,78,0,0.12), 0 16px 48px rgba(0,0,0,0.7)',
+        background: PB.white, borderRadius: 16,
+        border: `1.5px solid rgba(255,107,122,0.3)`,
+        boxShadow: '0 0 32px rgba(255,107,122,0.1), 0 12px 40px rgba(0,0,0,0.1)',
         padding: '24px 20px', minHeight: 520,
         display: 'flex', flexDirection: 'column',
       }}>
         {/* Global header */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24,
-          paddingBottom: 16, borderBottom: '1px solid rgba(255,78,0,0.15)' }}>
+          paddingBottom: 16, borderBottom: `1px solid rgba(255,107,122,0.15)` }}>
           <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <BackArrowIcon size={20} />
           </button>
           <span className="font-bungee" style={{ flex: 1, textAlign: 'center', fontSize: 13,
-            color: '#FF4E00', letterSpacing: '0.06em',
-            textShadow: '0 0 12px rgba(255,78,0,0.5)' }}>
+            color: PB.coral, letterSpacing: '0.06em' }}>
             CREATE BOOK POSTCARD
           </span>
           {/* Step indicator dots */}
           <div style={{ display: 'flex', gap: 5 }}>
-            {[1,2,3,4].map(n => (
+            {[1,2,3].map(n => (
               <div key={n} style={{ width: 8, height: 8, borderRadius: '50%',
-                background: n <= step ? '#FF4E00' : 'rgba(255,78,0,0.2)',
-                boxShadow: n === step ? '0 0 6px rgba(255,78,0,0.7)' : 'none',
+                background: n <= step ? PB.coral : 'rgba(255,107,122,0.18)',
+                boxShadow: n === step ? `0 0 6px rgba(255,107,122,0.5)` : 'none',
                 transition: 'all 0.2s' }} />
             ))}
           </div>
@@ -937,17 +1053,12 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
         {step === 2 && (
           <Step2 book={bookData} onClose={onClose}
             onBack={() => setStep(1)}
-            onNext={sd => { setStateData(sd); setStep(3); }} />
+            onNext={sd => { setStepData(sd); setStep(3); }} />
         )}
-        {step === 3 && (
-          <Step3 book={bookData} stateData={stateData} onClose={onClose}
+        {step === 3 && postcardData && (
+          <Step3 data={postcardData} onClose={onClose}
             onBack={() => setStep(2)}
-            onNext={md => { setMessageData(md); setStep(4); }} />
-        )}
-        {step === 4 && postcardData && (
-          <Step4 data={postcardData} onClose={onClose}
-            onBack={() => setStep(3)}
-            onSave={handleSave} saving={saving} />
+            saving={saving} saved={saved} />
         )}
       </div>
     </div>

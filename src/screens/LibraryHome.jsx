@@ -1,0 +1,291 @@
+import { useState } from 'react';
+
+// ── Library palette ────────────────────────────────────────────────────────────
+const L = {
+  turquoise: '#38C5C5',
+  coral:     '#FF6B7A',
+  cream:     '#FFF8E7',
+  peach:     '#FFB8A3',
+  gold:      '#F5A623',
+  white:     '#FFFFFF',
+  dark:      '#2D2D2D',
+  sparkle1:  '#5FE3D0',
+  sparkle2:  '#FF8FA3',
+  sparkle3:  '#FFD166',
+};
+
+const SPINE_PALETTE = [
+  '#38C5C5','#FF6B7A','#FFB8A3','#F5A623','#5FE3D0',
+  '#FF8FA3','#FFD166','#FFFFFF','#B5E7E7','#E8C4A0',
+];
+const SPINE_H = [82, 70, 92, 68, 86, 74, 90, 66, 80, 76];
+const SPINE_W = [22, 28, 20, 26, 24, 30, 20, 24, 26, 22];
+const SPINE_LABELS = ['ROAD','NOVEL','JOURNEY','STORY','VERSE',
+                      'PROSE','TALES','PAGES','WORDS','MAPS'];
+
+const SHELVES = [
+  { key: 'bookLog',   label: 'BOOK LOG',      sub: 'Your reading journey',     spines: [0,1,2,3,4,5,6,7,8] },
+  { key: 'postcards', label: 'POSTCARD BOOKS', sub: 'Books sent from the road', spines: [3,6,1,8,4,0,7,2,5] },
+  { key: 'myRecs',    label: 'MY RECS',        sub: 'Recommended at pit stops', spines: [7,2,5,0,8,3,1,6,4] },
+  { key: 'readNext',  label: 'READ NEXT',      sub: 'Your literary wish list',  spines: [5,8,0,4,2,7,3,1,6] },
+];
+
+// ── Retro SVG shapes ──────────────────────────────────────────────────────────
+const Starburst = ({ color, size = 30 }) => (
+  <svg width={size} height={size} viewBox="0 0 30 30" aria-hidden="true">
+    <polygon
+      points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10"
+      fill={color}
+    />
+  </svg>
+);
+
+const Diamond = ({ color, size = 24 }) => (
+  <svg width={size} height={Math.round(size * 1.2)} viewBox="0 0 24 30" aria-hidden="true">
+    <polygon points="12,0 24,15 12,30 0,15" fill={color} />
+  </svg>
+);
+
+const Boomerang = ({ color, size = 36 }) => (
+  <svg width={size} height={Math.round(size * 0.6)} viewBox="0 0 36 22" aria-hidden="true">
+    <path d="M2,20 Q9,2 18,9 Q27,16 34,3"
+      stroke={color} strokeWidth="5" fill="none" strokeLinecap="round" />
+  </svg>
+);
+
+const Ring = ({ color, size = 22 }) => (
+  <svg width={size} height={size} viewBox="0 0 22 22" aria-hidden="true">
+    <circle cx="11" cy="11" r="8" fill="none" stroke={color} strokeWidth="3.5" />
+  </svg>
+);
+
+const Trapezoid = ({ color, size = 36 }) => (
+  <svg width={size} height={Math.round(size * 0.55)} viewBox="0 0 36 20" aria-hidden="true">
+    <polygon points="7,0 29,0 36,20 0,20" fill={color} />
+  </svg>
+);
+
+// ── Single shelf unit ─────────────────────────────────────────────────────────
+function ShelfUnit({ shelf, onNavigate, count }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate(shelf.key)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: 0, width: '100%', textAlign: 'left',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        transition: 'transform 0.22s ease',
+      }}
+    >
+      {/* Label row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '0 2px' }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, letterSpacing: '0.05em' }}>
+          {shelf.label}
+        </span>
+        {count > 0 && (
+          <span style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.white,
+            background: L.coral, borderRadius: 10, padding: '2px 6px',
+          }}>
+            {count}
+          </span>
+        )}
+        <span style={{
+          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10,
+          color: L.turquoise, fontStyle: 'italic',
+        }}>
+          {shelf.sub}
+        </span>
+      </div>
+
+      {/* Books */}
+      <div style={{
+        background: '#FEF3D0',
+        border: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderBottom: 'none',
+        borderRadius: '6px 6px 0 0',
+        padding: '8px 8px 0',
+        display: 'flex', alignItems: 'flex-end', gap: 2,
+        minHeight: 92,
+        transition: 'border-color 0.2s',
+      }}>
+        {shelf.spines.map((si, idx) => (
+          <div key={idx} style={{
+            width:  SPINE_W[si % SPINE_W.length],
+            height: SPINE_H[si % SPINE_H.length],
+            background: SPINE_PALETTE[(si + idx * 2) % SPINE_PALETTE.length],
+            borderRadius: '2px 2px 0 0',
+            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+            boxShadow: 'inset -1px 0 3px rgba(0,0,0,0.12)',
+          }}>
+            <span style={{
+              writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+              fontFamily: 'Special Elite, serif', fontSize: 6,
+              color: 'rgba(255,255,255,0.8)', letterSpacing: '0.08em',
+              overflow: 'hidden', textOverflow: 'clip', whiteSpace: 'nowrap',
+              maxHeight: '85%',
+            }}>
+              {SPINE_LABELS[si % SPINE_LABELS.length]}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Shelf board */}
+      <div style={{
+        height: 14,
+        background: `linear-gradient(180deg, ${L.gold} 0%, #B8721A 100%)`,
+        borderRadius: '0 0 5px 5px',
+        border: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderTop: 'none',
+        boxShadow: hov
+          ? `0 5px 14px rgba(56,197,197,0.35)`
+          : '0 3px 8px rgba(0,0,0,0.14)',
+        transition: 'box-shadow 0.22s, border-color 0.2s',
+      }} />
+    </button>
+  );
+}
+
+// ── LibraryHome ───────────────────────────────────────────────────────────────
+export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, zIndex: 300,
+      background: L.cream, overflowY: 'auto',
+      fontFamily: 'Special Elite, serif',
+    }}>
+      <style>{`
+        @keyframes lib-float {
+          0%,100% { transform: translateY(0px); }
+          50%      { transform: translateY(-7px); }
+        }
+        @keyframes lib-spin-slow {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+      `}</style>
+
+      {/* Sticky header */}
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 10,
+        background: L.cream, borderBottom: `2px solid ${L.turquoise}`,
+        padding: '12px 16px',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 680, margin: '0 auto' }}>
+          <button
+            onClick={onBack}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.dark,
+              letterSpacing: '0.06em', padding: '4px 8px',
+              borderRadius: 6,
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => e.currentTarget.style.color = L.turquoise}
+            onMouseLeave={e => e.currentTarget.style.color = L.dark}
+          >
+            BACK
+          </button>
+          <h1 style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 18, color: L.turquoise, letterSpacing: '0.08em' }}>
+            THE LIBRARY
+          </h1>
+          <div style={{ width: 56 }} />
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 16px 80px' }}>
+        <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+
+          {/* Left column: shelves */}
+          <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+            {/* Top accent row */}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 22 }}>
+              <Starburst color={L.coral}    size={22} />
+              <Diamond   color={L.gold}     size={16} />
+              <Ring      color={L.turquoise} size={18} />
+              <Boomerang color={L.peach}    size={26} />
+              <Trapezoid color={L.sparkle3} size={28} />
+              <Starburst color={L.sparkle2} size={16} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+              {SHELVES.map(shelf => (
+                <ShelfUnit
+                  key={shelf.key}
+                  shelf={shelf}
+                  onNavigate={onNavigate}
+                  count={bookCounts[shelf.key] || 0}
+                />
+              ))}
+            </div>
+
+            {/* Bottom accent row */}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 22 }}>
+              <Starburst color={L.turquoise} size={18} />
+              <Diamond   color={L.coral}     size={14} />
+              <Ring      color={L.gold}      size={16} />
+              <Trapezoid color={L.peach}     size={24} />
+              <Boomerang color={L.sparkle1}  size={28} />
+            </div>
+          </div>
+
+          {/* Right column: cat + accents */}
+          <div style={{ flex: '0 0 180px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <Starburst color={L.gold}  size={28} />
+              <Starburst color={L.coral} size={18} />
+            </div>
+
+            <img
+              src="/literary-roads/images/library-cat.png"
+              alt="Library cat reading in a chair"
+              style={{
+                width: '100%', maxWidth: 180, height: 'auto',
+                borderRadius: 12,
+                boxShadow: '0 8px 28px rgba(0,0,0,0.12)',
+                animation: 'lib-float 4s ease-in-out infinite',
+              }}
+            />
+
+            <p style={{
+              fontFamily: 'Special Elite, serif', fontSize: 12,
+              color: L.turquoise, fontStyle: 'italic',
+              textAlign: 'center', margin: 0, lineHeight: 1.6,
+            }}>
+              Every road trip deserves a good book.
+            </p>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Boomerang color={L.coral}    size={30} />
+              <Ring      color={L.peach}    size={20} />
+              <Trapezoid color={L.turquoise} size={32} />
+              <Diamond   color={L.sparkle3} size={14} />
+            </div>
+
+            {/* Mid-century decorative badge */}
+            <div style={{
+              marginTop: 8, padding: '10px 14px',
+              border: `2px solid ${L.turquoise}`,
+              borderRadius: '50%',
+              width: 100, height: 100,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              background: L.white,
+              boxShadow: `0 0 0 4px ${L.cream}, 0 0 0 6px rgba(56,197,197,0.25)`,
+            }}>
+              <p style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 8, color: L.turquoise, letterSpacing: '0.1em', textAlign: 'center' }}>EST.</p>
+              <p style={{ margin: '2px 0', fontFamily: 'Bungee, sans-serif', fontSize: 18, color: L.coral, lineHeight: 1 }}>LR</p>
+              <p style={{ margin: 0, fontFamily: 'Special Elite, serif', fontSize: 7, color: L.dark, textAlign: 'center', lineHeight: 1.3 }}>LITERARY ROADS</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
