@@ -16,23 +16,35 @@ function setCache(key, data) {
 }
 
 async function fetchGoogle(query) {
-  const cacheKey = `lr_gbooks_q_${query}`;
+  const cacheKey = `lr_gbooks_v2_${query}`;
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
   const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink)${key}`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers)${key}`;
   const res = await fetch(url);
   if (!res.ok) return []; // includes 429 — Open Library fills the gap
   const data = await res.json();
-  const results = (data.items || []).map((item) => ({
-    id: `g_${item.id}`,
-    title: item.volumeInfo?.title || 'Unknown Title',
-    author: item.volumeInfo?.authors?.[0] || 'Unknown Author',
-    coverURL: item.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:') || null,
-    link: item.volumeInfo?.infoLink || `https://books.google.com/books?id=${item.id}`,
-    source: 'google',
-  }));
+  const results = (data.items || []).map((item) => {
+    const identifiers = item.volumeInfo?.industryIdentifiers || [];
+    const isbn13 = identifiers.find(i => i.type === 'ISBN_13')?.identifier;
+    const isbn10 = identifiers.find(i => i.type === 'ISBN_10')?.identifier;
+    const isbn = isbn13 || isbn10 || null;
+    // Prefer Google's own thumbnail — it's a real cover when present.
+    // Only fall back to the Open Library ISBN URL when Google has no thumbnail,
+    // since OL ISBN URLs can return a 1×1 placeholder for uncatalogued covers.
+    const googleThumb = item.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:') || null;
+    const coverURL = googleThumb || (isbn ? `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg` : null);
+    return {
+      id: `g_${item.id}`,
+      title: item.volumeInfo?.title || 'Unknown Title',
+      author: item.volumeInfo?.authors?.[0] || 'Unknown Author',
+      coverURL,
+      isbn,
+      link: item.volumeInfo?.infoLink || `https://books.google.com/books?id=${item.id}`,
+      source: 'google',
+    };
+  });
   setCache(cacheKey, results);
   return results;
 }

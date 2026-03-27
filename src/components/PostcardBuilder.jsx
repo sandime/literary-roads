@@ -7,34 +7,77 @@ import { BackArrowIcon } from './Icons';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
+const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
+const onCoverLoad  = (e) => { if (e.target.naturalWidth <= 1) e.target.src = CAT_SRC; };
+const onCoverError = (e) => { e.target.onerror = null; e.target.src = CAT_SRC; };
+
 const STATES = [
-  { name: 'Alabama', code: 'AL' }, { name: 'Alaska', code: 'AK' },
-  { name: 'Arizona', code: 'AZ' }, { name: 'Arkansas', code: 'AR' },
-  { name: 'California', code: 'CA' }, { name: 'Colorado', code: 'CO' },
-  { name: 'Connecticut', code: 'CT' }, { name: 'Delaware', code: 'DE' },
-  { name: 'Florida', code: 'FL' }, { name: 'Georgia', code: 'GA' },
-  { name: 'Hawaii', code: 'HI' }, { name: 'Idaho', code: 'ID' },
-  { name: 'Illinois', code: 'IL' }, { name: 'Indiana', code: 'IN' },
-  { name: 'Iowa', code: 'IA' }, { name: 'Kansas', code: 'KS' },
-  { name: 'Kentucky', code: 'KY' }, { name: 'Louisiana', code: 'LA' },
-  { name: 'Maine', code: 'ME' }, { name: 'Maryland', code: 'MD' },
-  { name: 'Massachusetts', code: 'MA' }, { name: 'Michigan', code: 'MI' },
-  { name: 'Minnesota', code: 'MN' }, { name: 'Mississippi', code: 'MS' },
-  { name: 'Missouri', code: 'MO' }, { name: 'Montana', code: 'MT' },
-  { name: 'Nebraska', code: 'NE' }, { name: 'Nevada', code: 'NV' },
-  { name: 'New Hampshire', code: 'NH' }, { name: 'New Jersey', code: 'NJ' },
-  { name: 'New Mexico', code: 'NM' }, { name: 'New York', code: 'NY' },
-  { name: 'North Carolina', code: 'NC' }, { name: 'North Dakota', code: 'ND' },
-  { name: 'Ohio', code: 'OH' }, { name: 'Oklahoma', code: 'OK' },
-  { name: 'Oregon', code: 'OR' }, { name: 'Pennsylvania', code: 'PA' },
-  { name: 'Rhode Island', code: 'RI' }, { name: 'South Carolina', code: 'SC' },
-  { name: 'South Dakota', code: 'SD' }, { name: 'Tennessee', code: 'TN' },
-  { name: 'Texas', code: 'TX' }, { name: 'Utah', code: 'UT' },
-  { name: 'Vermont', code: 'VT' }, { name: 'Virginia', code: 'VA' },
-  { name: 'Washington', code: 'WA' }, { name: 'West Virginia', code: 'WV' },
-  { name: 'Wisconsin', code: 'WI' }, { name: 'Wyoming', code: 'WY' },
-  { name: 'Washington DC', code: 'DC' }, { name: 'Puerto Rico', code: 'PR' },
+  { name: 'Alabama',       code: 'AL', nickname: 'Yellowhammer State' },
+  { name: 'Alaska',        code: 'AK', nickname: 'The Last Frontier' },
+  { name: 'Arizona',       code: 'AZ', nickname: 'Grand Canyon State' },
+  { name: 'Arkansas',      code: 'AR', nickname: 'The Natural State' },
+  { name: 'California',    code: 'CA', nickname: 'Golden State' },
+  { name: 'Colorado',      code: 'CO', nickname: 'Centennial State' },
+  { name: 'Connecticut',   code: 'CT', nickname: 'Constitution State' },
+  { name: 'Delaware',      code: 'DE', nickname: 'First State' },
+  { name: 'Florida',       code: 'FL', nickname: 'Sunshine State' },
+  { name: 'Georgia',       code: 'GA', nickname: 'Peach State' },
+  { name: 'Hawaii',        code: 'HI', nickname: 'Aloha State' },
+  { name: 'Idaho',         code: 'ID', nickname: 'Gem State' },
+  { name: 'Illinois',      code: 'IL', nickname: 'Prairie State' },
+  { name: 'Indiana',       code: 'IN', nickname: 'Hoosier State' },
+  { name: 'Iowa',          code: 'IA', nickname: 'Hawkeye State' },
+  { name: 'Kansas',        code: 'KS', nickname: 'Sunflower State' },
+  { name: 'Kentucky',      code: 'KY', nickname: 'Bluegrass State' },
+  { name: 'Louisiana',     code: 'LA', nickname: 'Pelican State' },
+  { name: 'Maine',         code: 'ME', nickname: 'Pine Tree State' },
+  { name: 'Maryland',      code: 'MD', nickname: 'Old Line State' },
+  { name: 'Massachusetts', code: 'MA', nickname: 'Bay State' },
+  { name: 'Michigan',      code: 'MI', nickname: 'Great Lakes State' },
+  { name: 'Minnesota',     code: 'MN', nickname: 'North Star State' },
+  { name: 'Mississippi',   code: 'MS', nickname: 'Magnolia State' },
+  { name: 'Missouri',      code: 'MO', nickname: 'Show Me State' },
+  { name: 'Montana',       code: 'MT', nickname: 'Treasure State' },
+  { name: 'Nebraska',      code: 'NE', nickname: 'Cornhusker State' },
+  { name: 'Nevada',        code: 'NV', nickname: 'Silver State' },
+  { name: 'New Hampshire', code: 'NH', nickname: 'Granite State' },
+  { name: 'New Jersey',    code: 'NJ', nickname: 'Garden State' },
+  { name: 'New Mexico',    code: 'NM', nickname: 'Land of Enchantment' },
+  { name: 'New York',      code: 'NY', nickname: 'Empire State' },
+  { name: 'North Carolina',code: 'NC', nickname: 'Tar Heel State' },
+  { name: 'North Dakota',  code: 'ND', nickname: 'Peace Garden State' },
+  { name: 'Ohio',          code: 'OH', nickname: 'Buckeye State' },
+  { name: 'Oklahoma',      code: 'OK', nickname: 'Sooner State' },
+  { name: 'Oregon',        code: 'OR', nickname: 'Beaver State' },
+  { name: 'Pennsylvania',  code: 'PA', nickname: 'Keystone State' },
+  { name: 'Rhode Island',  code: 'RI', nickname: 'Ocean State' },
+  { name: 'South Carolina',code: 'SC', nickname: 'Palmetto State' },
+  { name: 'South Dakota',  code: 'SD', nickname: 'Mt. Rushmore State' },
+  { name: 'Tennessee',     code: 'TN', nickname: 'Volunteer State' },
+  { name: 'Texas',         code: 'TX', nickname: 'Lone Star State' },
+  { name: 'Utah',          code: 'UT', nickname: 'Beehive State' },
+  { name: 'Vermont',       code: 'VT', nickname: 'Green Mountain State' },
+  { name: 'Virginia',      code: 'VA', nickname: 'Old Dominion' },
+  { name: 'Washington',    code: 'WA', nickname: 'Evergreen State' },
+  { name: 'West Virginia', code: 'WV', nickname: 'Mountain State' },
+  { name: 'Wisconsin',     code: 'WI', nickname: 'Badger State' },
+  { name: 'Wyoming',       code: 'WY', nickname: 'Equality State' },
+  { name: 'Washington DC', code: 'DC', nickname: 'District of Columbia' },
+  { name: 'Puerto Rico',   code: 'PR', nickname: 'Isla del Encanto' },
 ];
+
+// Stamp palettes — cycles per state index
+const STAMP_PALETTES = [
+  { ink: '#38C5C5', accent: '#FFB8A3', sparkle: '#5FE3D0' },
+  { ink: '#FF6B7A', accent: '#F5A623', sparkle: '#FF8FA3' },
+  { ink: '#F5A623', accent: '#38C5C5', sparkle: '#FFD166' },
+  { ink: '#38C5C5', accent: '#FF6B7A', sparkle: '#5FE3D0' },
+];
+
+function getStampPalette(stateCode) {
+  const idx = STATES.findIndex(s => s.code === stateCode);
+  return STAMP_PALETTES[(idx < 0 ? 0 : idx) % STAMP_PALETTES.length];
+}
 
 const VIBE_TAGS = [
   'immersive', 'family drama', 'character driven', 'beautiful prose',
@@ -58,7 +101,7 @@ function loadImageEl(src) {
     const img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);  // graceful fallback
+    img.onerror = () => resolve(null);
     img.src = src;
   });
 }
@@ -81,59 +124,140 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   return curY + lineHeight;
 }
 
+// Canvas stamp — matches the new SVG stamp design
+// SVG internal coords: 0-100 wide, 0-140 tall → we scale uniformly
 function drawStamp(ctx, cx, cy, size, stateCode, stateName) {
+  const stateInfo = STATES.find(s => s.code === stateCode) || {};
+  const nickname = stateInfo.nickname || '';
+  const pal = getStampPalette(stateCode);
+
+  // SVG viewBox is 0–100 × 0–140; scale to fit requested size (height-based)
+  const S = size / 140;          // scale factor
+  const W = 100 * S;             // stamp width
+  const H = 140 * S;             // stamp height
+
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(-0.12);  // ~-7 degrees
-
-  const h = size;
-  const w = size * 0.88;  // slightly narrow rectangle
+  ctx.rotate(-0.12);             // slight tilt
 
   // Drop shadow
-  ctx.shadowColor = 'rgba(0,0,0,0.35)';
-  ctx.shadowBlur = 8;
-  ctx.shadowOffsetX = 3;
-  ctx.shadowOffsetY = 4;
+  ctx.shadowColor = 'rgba(0,0,0,0.28)';
+  ctx.shadowBlur = 8 * S;
+  ctx.shadowOffsetX = 3 * S;
+  ctx.shadowOffsetY = 4 * S;
 
-  // Background
-  ctx.fillStyle = '#F4ECCC';
-  ctx.fillRect(-w / 2, -h / 2, w, h);
+  // Paper background
+  ctx.fillStyle = '#FFF8E7';
+  ctx.fillRect(-W / 2, -H / 2, W, H);
   ctx.shadowColor = 'transparent';
 
-  // Perforated edge (dashed inner border)
-  ctx.setLineDash([3, 3]);
-  ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 1.5;
-  ctx.strokeRect(-w / 2 + 5, -h / 2 + 5, w - 10, h - 10);
-  ctx.setLineDash([]);
+  // Inner dashed border (matches SVG x=5,y=5,w=90,h=130)
+  ctx.save();
+  ctx.setLineDash([2 * S, 2 * S]);
+  ctx.strokeStyle = pal.ink;
+  ctx.lineWidth = 0.5 * S;
+  ctx.globalAlpha = 0.4;
+  ctx.strokeRect(-W / 2 + 5 * S, -H / 2 + 5 * S, 90 * S, 130 * S);
+  ctx.restore();
 
-  // Decorative inner thin border
-  ctx.strokeStyle = 'rgba(139,69,19,0.3)';
-  ctx.lineWidth = 0.5;
-  ctx.strokeRect(-w / 2 + 10, -h / 2 + 10, w - 20, h - 20);
+  // Inner solid border (matches SVG x=8,y=8,w=84,h=124)
+  ctx.strokeStyle = pal.ink;
+  ctx.lineWidth = 1.2 * S;
+  ctx.strokeRect(-W / 2 + 8 * S, -H / 2 + 8 * S, 84 * S, 124 * S);
 
-  // State code
-  ctx.fillStyle = '#2c1810';
-  ctx.font = `bold ${Math.floor(size * 0.28)}px Georgia, serif`;
+  // Perforation dots
+  ctx.fillStyle = '#fcf9f2';
+  const dotR = 2.8 * S;
+  for (let i = 0; i <= 10; i++) {
+    const px = (-W / 2) + (i / 10) * W;
+    ctx.beginPath(); ctx.arc(px, -H / 2, dotR, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(px,  H / 2, dotR, 0, Math.PI * 2); ctx.fill();
+  }
+  for (let i = 0; i <= 14; i++) {
+    const py = (-H / 2) + (i / 14) * H;
+    ctx.beginPath(); ctx.arc(-W / 2, py, dotR, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc( W / 2, py, dotR, 0, Math.PI * 2); ctx.fill();
+  }
+
   ctx.textAlign = 'center';
+
+  // State name (Courier, bold, 9px scaled, y=24)
+  ctx.fillStyle = pal.ink;
+  ctx.font = `900 ${9 * S}px "Courier New", Courier, monospace`;
   ctx.textBaseline = 'middle';
-  ctx.fillText(stateCode, 0, -h * 0.09);
+  ctx.fillText(stateName.toUpperCase(), 0, -H / 2 + 24 * S);
 
-  // "LITERARY ROADS"
-  ctx.fillStyle = '#8B4513';
-  ctx.font = `${Math.floor(size * 0.082)}px Georgia, serif`;
-  ctx.fillText('LITERARY ROADS', 0, h * 0.18);
+  // Badge circle (cx=50→0, cy=70 → offset from center = 70-70=-0 since center is at y=70)
+  // Center of stamp = (0,0) in our translated ctx; SVG center = (50, 70)
+  const bcy = -H / 2 + 70 * S;  // badge center y in our coords
+  ctx.save();
+  ctx.globalAlpha = 0.3;
+  ctx.strokeStyle = pal.ink;
+  ctx.lineWidth = 0.5 * S;
+  ctx.setLineDash([1 * S, 2 * S]);
+  ctx.beginPath(); ctx.arc(0, bcy, 26 * S, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
 
-  // State name
-  ctx.fillStyle = '#666';
-  ctx.font = `${Math.floor(size * 0.076)}px Georgia, serif`;
-  const name = stateName.length > 14 ? stateName.slice(0, 13) + '.' : stateName.toUpperCase();
-  ctx.fillText(name, 0, h * 0.33);
+  // Wave fill inside badge
+  ctx.save();
+  ctx.globalAlpha = 0.2;
+  ctx.fillStyle = pal.accent;
+  ctx.beginPath();
+  // SVG path: M30 70 Q50 35 70 70 T30 70  → translate so SVG(50,70)=(0,bcy)
+  ctx.moveTo(-20 * S, bcy);
+  ctx.quadraticCurveTo(0, bcy - 35 * S, 20 * S, bcy);
+  ctx.quadraticCurveTo(40 * S, bcy + 35 * S, -20 * S, bcy);
+  ctx.fill();
+  ctx.restore();
 
-  // Outer solid frame
-  ctx.strokeStyle = '#8B4513';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(-w / 2, -h / 2, w, h);
+  // Sparkle at SVG(80,50) and SVG(25,85)
+  const drawSparkle = (sx, sy) => {
+    const ox = (sx - 50) * S, oy = -H / 2 + sy * S;
+    ctx.fillStyle = pal.sparkle;
+    ctx.beginPath();
+    ctx.moveTo(ox, oy - 7 * S);
+    ctx.lineTo(ox + 2 * S, oy - 2 * S);
+    ctx.lineTo(ox + 7 * S, oy);
+    ctx.lineTo(ox + 2 * S, oy + 2 * S);
+    ctx.lineTo(ox, oy + 7 * S);
+    ctx.lineTo(ox - 2 * S, oy + 2 * S);
+    ctx.lineTo(ox - 7 * S, oy);
+    ctx.lineTo(ox - 2 * S, oy - 2 * S);
+    ctx.closePath();
+    ctx.fill();
+  };
+  drawSparkle(80, 50);
+  drawSparkle(25, 85);
+
+  // State code (Georgia bold 28px, y=80)
+  ctx.fillStyle = pal.ink;
+  ctx.globalAlpha = 0.9;
+  ctx.font = `bold ${28 * S}px Georgia, serif`;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(stateCode, 0, -H / 2 + 80 * S);
+  ctx.globalAlpha = 1;
+
+  // Nickname (Georgia italic 5.5px, y=114)
+  ctx.fillStyle = pal.ink;
+  ctx.font = `italic ${5.5 * S}px Georgia, serif`;
+  ctx.textBaseline = 'middle';
+  const nick = nickname.length > 22 ? nickname.slice(0, 21) + '.' : nickname;
+  ctx.fillText(nick, 0, -H / 2 + 114 * S);
+
+  // Divider line (x1=25→-25*S, x2=75→25*S, y=120)
+  ctx.strokeStyle = pal.accent;
+  ctx.lineWidth = 0.5 * S;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(-25 * S, -H / 2 + 120 * S);
+  ctx.lineTo( 25 * S, -H / 2 + 120 * S);
+  ctx.stroke();
+
+  // "LITERARY ROADS" (Courier bold 6.5px, y=130)
+  ctx.fillStyle = pal.ink;
+  ctx.font = `bold ${6.5 * S}px "Courier New", Courier, monospace`;
+  ctx.textBaseline = 'middle';
+  ctx.fillText('LITERARY ROADS', 0, -H / 2 + 130 * S);
 
   ctx.textBaseline = 'alphabetic';
   ctx.restore();
@@ -174,25 +298,18 @@ export async function downloadPostcardImage(data) {
 
   // ── Book cover — standard proportions ───────────────────────────────────────
   const coverX = 18, coverY = 26, coverW = 135, coverH = 200;
-  if (data.bookCover) {
-    const img = await loadImageEl(data.bookCover);
-    if (img) {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(coverX, coverY, coverW, coverH);
-      ctx.clip();
-      ctx.drawImage(img, coverX, coverY, coverW, coverH);
-      ctx.restore();
-    } else {
-      ctx.fillStyle = '#2c1810';
-      ctx.fillRect(coverX, coverY, coverW, coverH);
-      ctx.fillStyle = 'rgba(255,255,255,0.3)';
-      ctx.font = 'bold 36px Georgia, serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('?', coverX + coverW / 2, coverY + coverH / 2 + 12);
-    }
+  const coverSrc = data.bookCover || null;
+  let coverImg = coverSrc ? await loadImageEl(coverSrc) : null;
+  if (!coverImg || coverImg.naturalWidth <= 1) coverImg = await loadImageEl(CAT_SRC);
+  if (coverImg) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(coverX, coverY, coverW, coverH);
+    ctx.clip();
+    ctx.drawImage(coverImg, coverX, coverY, coverW, coverH);
+    ctx.restore();
   } else {
-    ctx.fillStyle = '#3a2010';
+    ctx.fillStyle = '#f5f0e8';
     ctx.fillRect(coverX, coverY, coverW, coverH);
   }
   ctx.strokeStyle = '#8B4513';
@@ -209,10 +326,10 @@ export async function downloadPostcardImage(data) {
 
   ctx.fillStyle = '#2c1810';
   ctx.textAlign = 'left';
-  ctx.font = 'bold 22px Georgia, serif';
-  const titleBottom = wrapText(ctx, data.bookTitle || '', rx, 46, topMaxW, 27);
+  ctx.font = 'bold 24px Georgia, serif';
+  const titleBottom = wrapText(ctx, data.bookTitle || '', rx, 46, topMaxW, 29);
 
-  ctx.font = 'italic 16px Georgia, serif';
+  ctx.font = 'italic 17px Georgia, serif';
   ctx.fillStyle = '#8B4513';
   const authorY = Math.max(titleBottom + 2, 90);
   ctx.fillText('by ' + (data.bookAuthor || ''), rx, authorY);
@@ -224,13 +341,14 @@ export async function downloadPostcardImage(data) {
 
   // ── MIDDLE zone: message + signature ─────────────────────────────────────────
   if (data.message) {
-    ctx.font = 'italic 13px Georgia, serif';
+    ctx.font = 'italic 15px Georgia, serif';
     ctx.fillStyle = '#2c1810';
-    const msgBottom = wrapText(ctx, '\u201C' + data.message + '\u201D', rx, 146, W - rx - 14, 20);
+    const msgBottom = wrapText(ctx, '\u201C' + data.message + '\u201D', rx, 146, W - rx - 14, 22);
 
-    ctx.font = 'bold 12px Georgia, serif';
+    // Two line heights of spacing (2 × 28px) before signature
+    ctx.font = 'bold 14px Georgia, serif';
     ctx.fillStyle = '#2c1810';
-    ctx.fillText('\u2014 ' + (data.authorName || 'A Literary Traveler'), rx, Math.min(msgBottom + 4, H - 68));
+    ctx.fillText('\u2014 ' + (data.authorName || 'A Literary Traveler'), rx, Math.min(msgBottom + 30, H - 68));
   }
 
   // ── Divider 2 ────────────────────────────────────────────────────────────────
@@ -241,17 +359,17 @@ export async function downloadPostcardImage(data) {
   // ── BOTTOM zone: vibe tags + hashtags ────────────────────────────────────────
   const bottomRightW = W - rx - 14;
   if (data.vibeTags?.length) {
-    ctx.font = 'bold 10px Georgia, serif';
+    ctx.font = 'bold 13px Georgia, serif';
     ctx.fillStyle = '#8B4513';
     ctx.textAlign = 'left';
     const tagText = data.vibeTags.map(t => t.toUpperCase()).join('  ·  ');
-    wrapText(ctx, tagText, rx, H - 44, bottomRightW, 14);
+    wrapText(ctx, tagText, rx, H - 44, bottomRightW, 16);
   }
   if (data.hashtags?.length) {
-    ctx.font = '9px Georgia, serif';
+    ctx.font = '13px Georgia, serif';
     ctx.fillStyle = 'rgba(139,69,19,0.65)';
     ctx.textAlign = 'left';
-    wrapText(ctx, data.hashtags.join(' '), rx, H - 28, bottomRightW, 12);
+    wrapText(ctx, data.hashtags.join(' '), rx, H - 26, bottomRightW, 16);
   }
 
   // ── Branding ─────────────────────────────────────────────────────────────────
@@ -265,29 +383,90 @@ export async function downloadPostcardImage(data) {
 
 // ── Stamp SVG preview ────────────────────────────────────────────────────────
 
+// SVG stamp preview — used in PostcardFront and Step2 selector
 function StampPreview({ stateCode, stateName, size = 90 }) {
-  const w = size * 0.88;
-  const h = size;
+  const stateInfo = STATES.find(s => s.code === stateCode) || {};
+  const nickname = stateInfo.nickname || '';
+  const { ink, accent, sparkle } = getStampPalette(stateCode);
+  // SVG internal space: 0–100 × 0–140; display size is height-based
+  const displayH = size;
+  const displayW = size * (100 / 140);
+
+  const dots = [];
+  for (let i = 0; i <= 10; i++) {
+    const p = (i / 10) * 100;
+    dots.push(<circle key={`t${i}`} cx={p} cy="0"   r="2.8" fill="#fcf9f2" />);
+    dots.push(<circle key={`b${i}`} cx={p} cy="140" r="2.8" fill="#fcf9f2" />);
+  }
+  for (let i = 0; i <= 14; i++) {
+    const p = (i / 14) * 140;
+    dots.push(<circle key={`l${i}`} cx="0"   cy={p} r="2.8" fill="#fcf9f2" />);
+    dots.push(<circle key={`r${i}`} cx="100" cy={p} r="2.8" fill="#fcf9f2" />);
+  }
+
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}
-      style={{ transform: 'rotate(-5deg)', filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.3))' }}>
-      <rect width={w} height={h} fill="#F4ECCC" />
-      <rect x="5" y="5" width={w - 10} height={h - 10}
-        fill="none" stroke="#8B4513" strokeWidth="1.5" strokeDasharray="3,3" />
-      <rect x="10" y="10" width={w - 20} height={h - 20}
-        fill="none" stroke="rgba(139,69,19,0.3)" strokeWidth="0.5" />
-      <text x={w / 2} y={h * 0.44} textAnchor="middle" dominantBaseline="middle"
-        fontFamily="Georgia, serif" fontWeight="bold" fontSize={size * 0.28}
-        fill="#2c1810">{stateCode}</text>
-      <text x={w / 2} y={h * 0.66} textAnchor="middle"
-        fontFamily="Georgia, serif" fontSize={size * 0.082} fill="#8B4513">
+    <svg viewBox="-5 -5 110 150" width={displayW} height={displayH}
+      style={{ transform: 'rotate(-5deg)', filter: 'drop-shadow(2px 3px 4px rgba(0,0,0,0.3))', flexShrink: 0 }}>
+
+      {/* Paper */}
+      <rect x="0" y="0" width="100" height="140" fill="#FFF8E7" />
+
+      {/* Borders */}
+      <rect x="5" y="5" width="90" height="130" fill="none"
+        stroke={ink} strokeWidth="0.5" strokeDasharray="2,2" opacity="0.4" />
+      <rect x="8" y="8" width="84" height="124" fill="none"
+        stroke={ink} strokeWidth="1.2" />
+
+      {/* Perf dots */}
+      {dots}
+
+      {/* State name */}
+      <text x="50" y="24" textAnchor="middle" dominantBaseline="middle"
+        fill={ink} fontSize="9" fontWeight="900"
+        fontFamily="'Courier New', Courier, monospace" letterSpacing="0.5">
+        {stateName.toUpperCase()}
+      </text>
+
+      {/* Badge circle */}
+      <circle cx="50" cy="70" r="26" fill="white" fillOpacity="0.3"
+        stroke={ink} strokeWidth="0.5" strokeDasharray="1,2" />
+
+      {/* Wave */}
+      <path d="M30 70 Q50 35 70 70 T30 70" fill={accent} opacity="0.2" />
+
+      {/* Sparkles */}
+      <path d="M80 50 L82 55 L87 57 L82 59 L80 64 L78 59 L73 57 L78 55 Z" fill={sparkle} />
+      <path d="M25 85 L26 88 L29 89 L26 90 L25 93 L24 90 L21 89 L24 88 Z" fill={sparkle} />
+
+      {/* State code */}
+      <text x="50" y="80" textAnchor="middle" dominantBaseline="middle"
+        fill={ink} fontSize="28" fontWeight="bold" fontFamily="Georgia, serif" opacity="0.9">
+        {stateCode}
+      </text>
+
+      {/* Nickname */}
+      <text x="50" y="114" textAnchor="middle" dominantBaseline="middle"
+        fill={ink} fontSize="5.5" fontStyle="italic" fontFamily="Georgia, serif">
+        {nickname.length > 22 ? nickname.slice(0, 21) + '.' : nickname}
+      </text>
+
+      {/* Divider */}
+      <line x1="25" y1="120" x2="75" y2="120" stroke={accent} strokeWidth="0.5" />
+
+      {/* Branding */}
+      <text x="50" y="130" textAnchor="middle" dominantBaseline="middle"
+        fill={ink} fontSize="6.5" fontWeight="bold"
+        fontFamily="'Courier New', Courier, monospace" letterSpacing="1">
         LITERARY ROADS
       </text>
-      <text x={w / 2} y={h * 0.80} textAnchor="middle"
-        fontFamily="Georgia, serif" fontSize={size * 0.076} fill="#666">
-        {stateName.length > 14 ? stateName.slice(0, 13) + '.' : stateName.toUpperCase()}
-      </text>
-      <rect width={w} height={h} fill="none" stroke="#8B4513" strokeWidth="2" />
+
+      {/* Grain overlay */}
+      <filter id={`grain-${stateCode}`}>
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch" />
+        <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0" />
+      </filter>
+      <rect x="0" y="0" width="100" height="140"
+        filter={`url(#grain-${stateCode})`} pointerEvents="none" opacity="0.3" />
     </svg>
   );
 }
@@ -318,12 +497,11 @@ export function PostcardFront({ data, scale = 1 }) {
         width: fs(135), height: fs(200),
         border: `${fs(2)}px solid #8B4513`,
         boxShadow: `${fs(3)}px ${fs(3)}px ${fs(10)}px rgba(0,0,0,0.3)`,
-        background: '#2c1810', overflow: 'hidden',
+        background: '#f5f0e8', overflow: 'hidden',
       }}>
-        {data.bookCover
-          ? <img src={data.bookCover} alt={data.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', fontSize: fs(32) }}>?</div>
-        }
+        <img src={data.bookCover || CAT_SRC}
+          onLoad={onCoverLoad} onError={onCoverError}
+          alt={data.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
 
       {/* Stamp — top right corner */}
@@ -335,11 +513,11 @@ export function PostcardFront({ data, scale = 1 }) {
 
       {/* TOP zone: title / author only (no state — it's on the stamp) */}
       <div style={{ position: 'absolute', left: fs(163), top: fs(22), right: fs(108), overflow: 'hidden' }}>
-        <p style={{ margin: 0, fontWeight: 'bold', fontSize: fs(22), color: '#2c1810', lineHeight: 1.25,
+        <p style={{ margin: 0, fontWeight: 'bold', fontSize: fs(24), color: '#2c1810', lineHeight: 1.25,
           overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
           {data.bookTitle}
         </p>
-        <p style={{ margin: `${fs(5)}px 0 0`, fontStyle: 'italic', fontSize: fs(16), color: '#8B4513' }}>
+        <p style={{ margin: `${fs(5)}px 0 0`, fontStyle: 'italic', fontSize: fs(17), color: '#8B4513' }}>
           by {data.bookAuthor}
         </p>
       </div>
@@ -352,11 +530,11 @@ export function PostcardFront({ data, scale = 1 }) {
       <div style={{ position: 'absolute', left: fs(163), top: fs(138), right: fs(14), bottom: fs(66) }}>
         {data.message ? (
           <>
-            <p style={{ margin: 0, fontStyle: 'italic', fontSize: fs(13), color: '#2c1810', lineHeight: 1.7,
+            <p style={{ margin: 0, fontStyle: 'italic', fontSize: fs(15), color: '#2c1810', lineHeight: 1.7,
               overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical' }}>
               &ldquo;{data.message}&rdquo;
             </p>
-            <p style={{ margin: `${fs(7)}px 0 0`, fontSize: fs(12), color: '#2c1810', fontWeight: 'bold' }}>
+            <p style={{ margin: `${fs(30)}px 0 0`, fontSize: fs(14), color: '#2c1810', fontWeight: 'bold' }}>
               &mdash; {data.authorName || 'A Literary Traveler'}
             </p>
           </>
@@ -370,13 +548,13 @@ export function PostcardFront({ data, scale = 1 }) {
       {/* BOTTOM zone: vibe tags + hashtags */}
       <div style={{ position: 'absolute', left: fs(163), right: fs(14), bottom: fs(16) }}>
         {data.vibeTags?.length > 0 && (
-          <p style={{ margin: 0, fontSize: fs(10), color: '#8B4513', fontWeight: 'bold',
+          <p style={{ margin: 0, fontSize: fs(13), color: '#8B4513', fontWeight: 'bold',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {data.vibeTags.map(t => t.toUpperCase()).join('  ·  ')}
           </p>
         )}
         {data.hashtags?.length > 0 && (
-          <p style={{ margin: `${fs(3)}px 0 0`, fontSize: fs(9), color: 'rgba(139,69,19,0.65)',
+          <p style={{ margin: `${fs(3)}px 0 0`, fontSize: fs(13), color: 'rgba(139,69,19,0.65)',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {data.hashtags.join(' ')}
           </p>
@@ -504,10 +682,9 @@ function Step1({ loggedBooks, onNext, onClose }) {
       onMouseLeave={e => { if (selected?.id !== book.id) e.currentTarget.style.background = PB.white; }}
     >
       <div style={{ width: 40, height: 56, flexShrink: 0, borderRadius: 3, overflow: 'hidden', background: '#e8e4dc', border: `1px solid ${PB.divider}` }}>
-        {book.coverURL
-          ? <img src={book.coverURL} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: PB.muted }}>?</div>
-        }
+        <img src={book.coverURL || CAT_SRC}
+          onLoad={onCoverLoad} onError={onCoverError}
+          alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p className="font-bungee" style={{ fontSize: 11, color: PB.dark, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.3 }}>{book.title}</p>
@@ -526,10 +703,9 @@ function Step1({ loggedBooks, onNext, onClose }) {
           transition: 'outline 0.15s',
         }}>
         <div style={{ width: 68, height: 96, borderRadius: 4, overflow: 'hidden', background: '#e8e4dc', border: `1.5px solid ${PB.divider}` }}>
-          {book.coverURL
-            ? <img src={book.coverURL} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: PB.muted }}>?</div>
-          }
+          <img src={book.coverURL || CAT_SRC}
+            onLoad={onCoverLoad} onError={onCoverError}
+            alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
         <p className="font-special-elite" style={{ fontSize: 9, color: PB.mid, textAlign: 'center', marginTop: 4, lineHeight: 1.3, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
           {book.title}

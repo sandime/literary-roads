@@ -9,6 +9,12 @@ import { BackArrowIcon, LibraryIcon } from '../components/Icons';
 import PostcardBuilder from '../components/PostcardBuilder';
 import LibraryHome from './LibraryHome';
 
+// ── Cover image helpers ───────────────────────────────────────────────────────
+const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
+// onLoad: catches Open Library's 1×1 placeholder GIF (loads but naturalWidth === 1)
+const onCoverLoad  = (e) => { if (e.target.naturalWidth <= 1) e.target.src = CAT_SRC; };
+const onCoverError = (e) => { e.target.onerror = null; e.target.src = CAT_SRC; };
+
 // ── Library palette ────────────────────────────────────────────────────────────
 const L = {
   bg:       '#FFF8E7',
@@ -179,10 +185,9 @@ function BookSearch({ onSelect }) {
             >
               <div style={{ width: 40, height: 56, flexShrink: 0, borderRadius: 3, overflow: 'hidden',
                 border: `1px solid ${L.divider}`, background: L.card }}>
-                {book.coverURL
-                  ? <img src={book.coverURL} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 16 }}>?</div>
-                }
+                <img src={book.coverURL || CAT_SRC}
+                  onLoad={onCoverLoad} onError={onCoverError}
+                  alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.dark, margin: 0,
@@ -226,10 +231,9 @@ function EntryForm({ book, onSave, onCancel, saving, saveError, initialRating = 
         <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 18 }}>
           <div style={{ width: 56, height: 80, flexShrink: 0, borderRadius: 4,
             overflow: 'hidden', border: `2px solid ${L.divider}`, background: L.card }}>
-            {book.coverURL
-              ? <img src={book.coverURL} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 22 }}>?</div>
-            }
+            <img src={book.coverURL || CAT_SRC}
+              onLoad={onCoverLoad} onError={onCoverError}
+              alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: L.dark, lineHeight: 1.35, margin: 0,
@@ -319,10 +323,9 @@ function BookCarouselCard({ entry, isActive, onClick }) {
         border: isActive ? `2px solid ${L.turquoise}` : `2px solid rgba(56,197,197,0.2)`,
         boxShadow: isActive ? `0 0 8px rgba(56,197,197,0.25)` : '0 2px 8px rgba(0,0,0,0.1)',
         background: L.card }}>
-        {entry.bookCover
-          ? <img src={entry.bookCover} alt={entry.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 28 }}>?</div>
-        }
+        <img src={entry.bookCover || CAT_SRC}
+          onLoad={onCoverLoad} onError={onCoverError}
+          alt={entry.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
       <MiniCatRating value={entry.rating} />
       <p style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: L.mid,
@@ -349,10 +352,9 @@ function CoverCard({ item, isActive, onClick }) {
       <div style={{ width: 78, height: 112, borderRadius: 5, overflow: 'hidden',
         border: isActive ? `2px solid ${L.gold}` : `2px solid rgba(245,166,35,0.2)`,
         background: L.card }}>
-        {cover
-          ? <img src={cover} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 26 }}>?</div>
-        }
+        <img src={cover || CAT_SRC}
+          onLoad={onCoverLoad} onError={onCoverError}
+          alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       </div>
       <p style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: L.mid,
         textAlign: 'center', lineHeight: 1.3, marginTop: 4,
@@ -377,10 +379,9 @@ function PostcardShelfCard({ pc, isActive, onClick }) {
         border: isActive ? `2px solid ${L.coral}` : `2px solid rgba(255,107,122,0.2)`,
         boxShadow: isActive ? `0 0 8px rgba(255,107,122,0.25)` : '0 2px 8px rgba(0,0,0,0.1)',
         background: L.card }}>
-        {pc.bookCover
-          ? <img src={pc.bookCover} alt={pc.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 28 }}>?</div>
-        }
+        <img src={pc.bookCover || CAT_SRC}
+          onLoad={onCoverLoad} onError={onCoverError}
+          alt={pc.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         {pc.stateCode && (
           <div style={{ position: 'absolute', bottom: 4, right: 4,
             background: '#F4ECCC', border: '1px solid #8B4513',
@@ -690,10 +691,9 @@ export default function Library({ onBack }) {
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <div style={{ width: 52, height: 74, flexShrink: 0, borderRadius: 4,
                         overflow: 'hidden', border: `1.5px solid ${L.divider}`, background: L.card }}>
-                        {activeEntry.bookCover
-                          ? <img src={activeEntry.bookCover} alt={activeEntry.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 20 }}>?</div>
-                        }
+                        <img src={activeEntry.bookCover || CAT_SRC}
+                          onLoad={onCoverLoad} onError={onCoverError}
+                          alt={activeEntry.bookTitle} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.dark, lineHeight: 1.3, marginBottom: 3 }}>
@@ -824,10 +824,9 @@ export default function Library({ onBack }) {
                       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 12 }}>
                         <div style={{ width: 52, height: 74, flexShrink: 0, borderRadius: 4,
                           overflow: 'hidden', border: `1.5px solid rgba(255,107,122,0.2)`, background: L.card }}>
-                          {pb.coverUrl
-                            ? <img src={pb.coverUrl} alt={pb.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 20 }}>?</div>
-                          }
+                          <img src={pb.coverUrl || CAT_SRC}
+                            onLoad={onCoverLoad} onError={onCoverError}
+                            alt={pb.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.dark, lineHeight: 1.3, marginBottom: 2 }}>
@@ -919,10 +918,9 @@ export default function Library({ onBack }) {
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <div style={{ width: 56, height: 80, flexShrink: 0, borderRadius: 4,
                         overflow: 'hidden', border: `1.5px solid rgba(245,166,35,0.3)`, background: L.card }}>
-                        {activeRec.coverUrl
-                          ? <img src={activeRec.coverUrl} alt={activeRec.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 22 }}>?</div>
-                        }
+                        <img src={activeRec.coverUrl || CAT_SRC}
+                          onLoad={onCoverLoad} onError={onCoverError}
+                          alt={activeRec.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: L.dark, lineHeight: 1.3, marginBottom: 3 }}>
@@ -1012,10 +1010,9 @@ export default function Library({ onBack }) {
                     <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <div style={{ width: 56, height: 80, flexShrink: 0, borderRadius: 4,
                         overflow: 'hidden', border: `1.5px solid rgba(255,184,163,0.5)`, background: L.card }}>
-                        {activeReadNext.coverUrl
-                          ? <img src={activeReadNext.coverUrl} alt={activeReadNext.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: L.muted, fontSize: 22 }}>?</div>
-                        }
+                        <img src={activeReadNext.coverUrl || CAT_SRC}
+                          onLoad={onCoverLoad} onError={onCoverError}
+                          alt={activeReadNext.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: L.dark, lineHeight: 1.3, marginBottom: 3 }}>

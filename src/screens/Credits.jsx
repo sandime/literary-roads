@@ -217,7 +217,7 @@ export default function Credits({ onBack }) {
 
           <Section title="DATA SOURCES" color="#FF4E00" items={[
             { name: 'American Library Association', desc: 'Literary Landmarks registry' },
-            { name: 'Open Library',                  desc: 'Book metadata and information' },
+            { name: 'Open Library (openlibrary.org)', desc: 'Book covers and metadata' },
           ]} />
 
           <Section title="DESIGN & ASSETS" color="#FFD700" items={[

@@ -105,7 +105,9 @@ function ShelfUnit({ shelf, onNavigate, count }) {
       {/* Books */}
       <div style={{
         background: '#FEF3D0',
-        border: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderTop: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderLeft: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderRight: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
         borderBottom: 'none',
         borderRadius: '6px 6px 0 0',
         padding: '8px 8px 0',
@@ -142,7 +144,9 @@ function ShelfUnit({ shelf, onNavigate, count }) {
         height: 14,
         background: `linear-gradient(180deg, ${L.gold} 0%, #B8721A 100%)`,
         borderRadius: '0 0 5px 5px',
-        border: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderBottom: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderLeft: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderRight: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
         borderTop: 'none',
         boxShadow: hov
           ? `0 5px 14px rgba(56,197,197,0.35)`
@@ -244,7 +248,7 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
             </div>
 
             <img
-              src="/literary-roads/images/library-cat.png"
+              src={`${import.meta.env.BASE_URL}images/library-cat.png`}
               alt="Library cat reading in a chair"
               style={{
                 width: '100%', maxWidth: 180, height: 'auto',

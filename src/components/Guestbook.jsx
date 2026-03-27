@@ -23,6 +23,10 @@ const StarBurst = ({ className, style }) => (
   </svg>
 );
 
+const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
+const onCoverLoad  = (e) => { if (e.target.naturalWidth <= 1) e.target.src = CAT_SRC; };
+const onCoverError = (e) => { e.target.onerror = null; e.target.src = CAT_SRC; };
+
 const BookCoverPlaceholder = ({ title }) => (
   <div className="w-full h-full bg-midnight-navy border border-starlight-turquoise/20 flex items-center justify-center">
     <span
@@ -270,17 +274,14 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
               {/* Cover with star badge */}
               <div
                 className="w-full rounded-sm overflow-hidden border border-white/10 group-hover:border-atomic-orange/60 transition-colors relative"
-                style={{ height: '96px' }}
+                style={{ height: '96px', background: 'white' }}
               >
-                {entry.bookCover ? (
-                  <img
-                    src={entry.bookCover}
-                    alt={entry.bookTitle}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <BookCoverPlaceholder title={entry.bookTitle} />
-                )}
+                <img
+                  src={entry.bookCover || CAT_SRC}
+                  onLoad={onCoverLoad} onError={onCoverError}
+                  alt={entry.bookTitle}
+                  className="w-full h-full object-cover"
+                />
                 {/* Star badge bottom-right */}
                 <div className="absolute bottom-1 right-1 bg-midnight-navy/85 rounded-sm px-1 py-0.5 flex items-center gap-0.5">
                   <StarBurst className="w-2.5 h-2.5 text-atomic-orange" />
@@ -337,13 +338,13 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
         <div className="flex gap-3 mb-3">
           <div
             className="flex-shrink-0 rounded-sm overflow-hidden border border-white/10"
-            style={{ width: '52px', height: '72px' }}
+            style={{ width: '52px', height: '72px', background: 'white' }}
           >
-            {expandedEntry.bookCover ? (
-              <img src={expandedEntry.bookCover} alt={expandedEntry.bookTitle} className="w-full h-full object-cover" />
-            ) : (
-              <BookCoverPlaceholder title={expandedEntry.bookTitle} />
-            )}
+            <img
+              src={expandedEntry.bookCover || CAT_SRC}
+              onLoad={onCoverLoad} onError={onCoverError}
+              alt={expandedEntry.bookTitle} className="w-full h-full object-cover"
+            />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-starlight-turquoise font-bungee text-sm leading-tight">
@@ -453,15 +454,13 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
             >
               <div
                 className="flex-shrink-0 rounded-sm overflow-hidden border border-white/10"
-                style={{ width: '30px', height: '42px' }}
+                style={{ width: '30px', height: '42px', background: 'white' }}
               >
-                {book.coverURL ? (
-                  <img src={book.coverURL} alt={book.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                    <span style={{ fontSize: '10px' }}>📚</span>
-                  </div>
-                )}
+                <img
+                  src={book.coverURL || CAT_SRC}
+                  onLoad={onCoverLoad} onError={onCoverError}
+                  alt={book.title} className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-paper-white font-special-elite text-xs leading-tight truncate group-hover:text-starlight-turquoise transition-colors">
@@ -509,13 +508,13 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
         <div className="flex items-center gap-3 mb-3 bg-white/5 border border-white/10 rounded-lg p-2">
           <div
             className="flex-shrink-0 rounded-sm overflow-hidden border border-white/10"
-            style={{ width: '38px', height: '52px' }}
+            style={{ width: '38px', height: '52px', background: 'white' }}
           >
-            {pendingBook.coverURL ? (
-              <img src={pendingBook.coverURL} alt={pendingBook.title} className="w-full h-full object-cover" />
-            ) : (
-              <BookCoverPlaceholder title={pendingBook.title} />
-            )}
+            <img
+              src={pendingBook.coverURL || CAT_SRC}
+              onLoad={onCoverLoad} onError={onCoverError}
+              alt={pendingBook.title} className="w-full h-full object-cover"
+            />
           </div>
           <div className="min-w-0">
             <p className="text-starlight-turquoise font-bungee leading-tight truncate" style={{ fontSize: '11px' }}>
