@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Literary Roads Gazette — Weekly Literary Newspaper</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal:       #4a9fa5;
+      --teal-dark:  #2d6d74;
+      --coral:      #e8956b;
+      --cream:      #f5f1eb;
+      --cream-dark: #ede7dc;
+      --gold:       #f39c12;
+      --orange:     #e67e22;
+      --pink:       #f9c5d5;
+      --ink:        #1c2b2d;
+      --ink-light:  #3a4f52;
+    }
+
+    body {
+      font-family: 'Special Elite', serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Paper texture overlay ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 31px,
+          rgba(28,43,45,0.04) 31px,
+          rgba(28,43,45,0.04) 32px
+        );
+    }
+
+    .page-wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px 80px;
+    }
+
+    /* ── Typography helpers ── */
+    .bungee { font-family: 'Bungee', sans-serif; }
+    .elite  { font-family: 'Special Elite', serif; }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 2px solid var(--teal);
+      margin: 24px 0;
+    }
+    .divider-dashed {
+      border: none;
+      border-top: 2px dashed var(--coral);
+      margin: 20px 0;
+    }
+    .divider-double {
+      height: 6px;
+      border-top: 2px solid var(--ink);
+      border-bottom: 2px solid var(--ink);
+      margin: 0;
+    }
+
+    /* ── SVG accent helpers (inline) ── */
+    .accent-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Section labels ── */
+    .section-tag {
+      display: inline-block;
+      font-family: 'Bungee', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 2px;
+      margin-bottom: 6px;
+    }
+    .tag-teal   { background: var(--teal);  color: #fff; }
+    .tag-coral  { background: var(--coral); color: #fff; }
+    .tag-gold   { background: var(--gold);  color: #fff; }
+    .tag-pink   { background: var(--pink);  color: var(--ink); }
+    .tag-orange { background: var(--orange); color: #fff; }
+    .tag-ink    { background: var(--ink);   color: var(--cream); }
+
+    /* ── Book card ── */
+    .book-card {
+      background: #fff;
+      border: 1.5px solid var(--cream-dark);
+      border-radius: 6px;
+      padding: 14px;
+      display: flex;
+      gap: 12px;
+      transition: box-shadow 0.2s;
+    }
+    .book-card:hover { box-shadow: 0 4px 16px rgba(74,159,165,0.18); }
+    .book-cover {
+      width: 64px;
+      min-width: 64px;
+      height: 90px;
+      border-radius: 3px;
+      object-fit: cover;
+      background: var(--cream-dark);
+      border: 1px solid rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .book-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .book-cover-placeholder {
+      width: 64px;
+      min-width: 64px;
+      height: 90px;
+      border-radius: 3px;
+      border: 1.5px dashed var(--teal);
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Bungee', sans-serif;
+      font-size: 7px;
+      color: var(--teal);
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .book-meta { flex: 1; min-width: 0; }
+    .book-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.3;
+      margin-bottom: 3px;
+    }
+    .book-author {
+      font-size: 11px;
+      color: var(--ink-light);
+      margin-bottom: 6px;
+      font-style: italic;
+    }
+    .book-desc {
+      font-size: 11px;
+      color: var(--ink);
+      line-height: 1.6;
+    }
+    .book-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .book-tag {
+      font-family: 'Bungee', sans-serif;
+      font-size: 8px;
+      letter-spacing: 0.06em;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: var(--cream-dark);
+      color: var(--ink-light);
+    }
+
+    /* ── Rank badge ── */
+    .rank-badge {
+      font-family: 'Bungee', sans-serif;
+      font-size: 22px;
+      color: var(--coral);
+      line-height: 1;
+      min-width: 28px;
+    }
+    .rank-badge.gold { color: var(--gold); }
+    .rank-badge.teal { color: var(--teal); }
+
+    /* ── Grid layouts ── */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 24px; }
+
+    @media (max-width: 900px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+      .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ── Masthead ── */
+    .masthead {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 0;
+      margin: 0 -16px;
+    }
+    .masthead-top {
+      background: var(--teal-dark);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .masthead-top .elite {
+      font-size: 11px;
+      color: rgba(255,255,255,0.8);
+      letter-spacing: 0.04em;
+    }
+    .masthead-main {
+      padding: 20px 24px 14px;
+      text-align: center;
+      border-bottom: 3px solid var(--coral);
+      position: relative;
+    }
+    .masthead-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: clamp(28px, 6vw, 62px);
+      color: var(--cream);
+      letter-spacing: 0.03em;
+      line-height: 1;
+      text-shadow: 3px 3px 0 var(--teal-dark);
+    }
+    .masthead-subtitle {
+      font-family: 'Special Elite', serif;
+      font-size: clamp(12px, 2vw, 16px);
+      color: var(--coral);
+      letter-spacing: 0.12em;
+      margin-top: 6px;
+      font-style: italic;
+    }
+    .masthead-dateline {
+      font-family: 'Special Elite', serif;
+      font-size: 11px;
+      color: rgba(245,241,235,0.6);
+      margin-top: 8px;
+      letter-spacing: 0.06em;
+    }
+    .masthead-accents {
+      position: absolute;
+      top: 50%;
+      left: 24px;
+      transform: translateY(-50%);
+    }
+    .masthead-accents-right {
+      position: absolute;
+      top: 50%;
+      right: 24px;
+      transform: translateY(-50%);
+    }
+    .issue-badge {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--coral);
+      color: #fff;
+      font-family: 'Bungee', sans-serif;
+      border: 3px solid var(--cream);
+    }
+    .issue-badge .num { font-size: 22px; line-height: 1; }
+    .issue-badge .lbl { font-size: 7px; letter-spacing: 0.12em; }
+
+    /* ── Nav bar ── */
+    .nav-bar {
+      background: var(--teal);
+      padding: 0 24px;
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 -16px;
+    }
+    .nav-bar::-webkit-scrollbar { display: none; }
+    .nav-link {
+      font-family: 'Bungee', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      padding: 10px 14px;
+      white-space: nowrap;
+      border-bottom: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .nav-link:hover { color: #fff; border-bottom-color: var(--cream); }
+
+    /* ── Section wrapper ── */
+    .section {
+      padding: 28px 0;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .section-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: 20px;
+      color: var(--ink);
+      letter-spacing: 0.04em;
+    }
+    .section-sub {
+      font-size: 12px;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    /* ── Feature story card ── */
+    .feature-card {
+      background: var(--teal-dark);
+      color: var(--cream);
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 24px;
+      position: relative;
+    }
+    .feature-card .section-tag { margin-bottom: 10px; }
+    .feature-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: clamp(18px, 3vw, 26px);
+      line-height: 1.2;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .feature-byline {
+      font-size: 11px;
+      color: rgba(245,241,235,0.65);
+      margin-bottom: 14px;
+      letter-spacing: 0.04em;
+    }
+    .feature-body {
+      font-size: 13px;
+      line-height: 1.8;
+      color: rgba(245,241,235,0.9);
+    }
+    .feature-pull {
+      font-family: 'Bungee', sans-serif;
+      font-size: 16px;
+      color: var(--coral);
+      border-left: 4px solid var(--coral);
+      padding-left: 14px;
+      margin: 16px 0;
+      line-height: 1.4;
+    }
+
+    /* ── Map highlight card ── */
+    .map-card {
+      background: #fff;
+      border: 2px solid var(--teal);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .map-placeholder {
+      width: 100%;
+      height: 160px;
+      background: linear-gradient(135deg, var(--teal-dark) 0%, var(--teal) 100%);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+    .map-placeholder::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(255,255,255,0.06) 19px, rgba(255,255,255,0.06) 20px),
+        repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(255,255,255,0.06) 19px, rgba(255,255,255,0.06) 20px);
+    }
+    .map-label {
+      font-family: 'Bungee', sans-serif;
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.08em;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Festival card ── */
+    .festival-card {
+      background: #fff;
+      border: 1.5px solid var(--cream-dark);
+      border-radius: 6px;
+      padding: 16px;
+      border-top: 4px solid var(--coral);
+    }
+    .festival-date {
+      font-family: 'Bungee', sans-serif;
+      font-size: 11px;
+      color: var(--coral);
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .festival-name {
+      font-family: 'Bungee', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .festival-loc {
+      font-size: 11px;
+      color: var(--ink-light);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .festival-desc {
+      font-size: 11px;
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    /* ── Debut spotlight ── */
+    .debut-card {
+      background: var(--pink);
+      border-radius: 8px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .debut-card::after {
+      content: 'NEW VOICE';
+      position: absolute;
+      top: 12px;
+      right: -20px;
+      background: var(--coral);
+      color: #fff;
+      font-family: 'Bungee', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      padding: 4px 28px;
+      transform: rotate(30deg);
+    }
+
+    /* ── Indie picks strip ── */
+    .indie-strip {
+      background: var(--ink);
+      color: var(--cream);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .indie-strip .section-title { color: var(--cream); }
+    .indie-list { list-style: none; }
+    .indie-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(245,241,235,0.2);
+    }
+    .indie-list li:last-child { border-bottom: none; }
+    .indie-num {
+      font-family: 'Bungee', sans-serif;
+      font-size: 18px;
+      color: var(--gold);
+      min-width: 28px;
+      line-height: 1;
+    }
+    .indie-store {
+      font-family: 'Bungee', sans-serif;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      color: var(--teal);
+      display: block;
+      margin-top: 2px;
+    }
+
+    /* ── Newsletter subscribe box ── */
+    .subscribe-box {
+      background: linear-gradient(135deg, var(--teal-dark) 0%, var(--ink) 100%);
+      border-radius: 10px;
+      padding: 28px 24px;
+      text-align: center;
+      color: var(--cream);
+      position: relative;
+      overflow: hidden;
+    }
+    .subscribe-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 24px,
+        rgba(74,159,165,0.06) 24px,
+        rgba(74,159,165,0.06) 25px
+      );
+      pointer-events: none;
+    }
+    .sub-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: clamp(18px, 3.5vw, 28px);
+      color: #fff;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    .sub-desc {
+      font-size: 13px;
+      color: rgba(245,241,235,0.8);
+      margin-bottom: 20px;
+      line-height: 1.7;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+    }
+    .sub-btn {
+      display: inline-block;
+      font-family: 'Bungee', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      background: var(--gold);
+      padding: 12px 32px;
+      border-radius: 4px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .sub-btn:hover { background: var(--coral); color: #fff; transform: translateY(-2px); }
+
+    /* ── Trip report card ── */
+    .trip-card {
+      background: #fff;
+      border: 1.5px solid var(--cream-dark);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .trip-img {
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(135deg, var(--coral) 0%, var(--orange) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .trip-img-label {
+      font-family: 'Bungee', sans-serif;
+      font-size: 11px;
+      color: rgba(255,255,255,0.9);
+      letter-spacing: 0.06em;
+    }
+    .trip-body { padding: 14px; }
+    .trip-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .trip-meta {
+      font-size: 10px;
+      color: var(--ink-light);
+      letter-spacing: 0.04em;
+      margin-bottom: 8px;
+    }
+    .trip-desc {
+      font-size: 11px;
+      color: var(--ink);
+      line-height: 1.65;
+    }
+
+    /* ── Quote pullout ── */
+    .pullquote {
+      border-left: 5px solid var(--coral);
+      padding: 12px 18px;
+      background: var(--cream-dark);
+      border-radius: 0 6px 6px 0;
+      margin: 16px 0;
+    }
+    .pullquote p {
+      font-size: 15px;
+      font-style: italic;
+      line-height: 1.7;
+      color: var(--ink);
+    }
+    .pullquote cite {
+      font-size: 10px;
+      color: var(--ink-light);
+      display: block;
+      margin-top: 6px;
+      letter-spacing: 0.06em;
+      font-style: normal;
+    }
+
+    /* ── Booktok trending ── */
+    .tiktok-card {
+      background: var(--ink);
+      color: var(--cream);
+      border-radius: 8px;
+      padding: 16px;
+      border-top: 4px solid var(--teal);
+      position: relative;
+    }
+    .tiktok-views {
+      font-family: 'Bungee', sans-serif;
+      font-size: 11px;
+      color: var(--teal);
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .tiktok-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: 13px;
+      color: #fff;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .tiktok-author {
+      font-size: 10px;
+      color: rgba(245,241,235,0.6);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+    .tiktok-badge {
+      font-family: 'Bungee', sans-serif;
+      font-size: 8px;
+      letter-spacing: 0.1em;
+      padding: 3px 8px;
+      background: var(--teal);
+      color: #fff;
+      border-radius: 10px;
+      display: inline-block;
+    }
+
+    /* ── NYT list box ── */
+    .nyt-box {
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .nyt-header {
+      background: var(--ink);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nyt-header .bungee {
+      font-size: 13px;
+      color: var(--cream);
+      letter-spacing: 0.08em;
+    }
+    .nyt-header .sub { font-size: 10px; color: rgba(245,241,235,0.5); font-style: italic; }
+    .nyt-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .nyt-row:last-child { border-bottom: none; }
+    .nyt-row:nth-child(odd) { background: #fff; }
+    .nyt-rank {
+      font-family: 'Bungee', sans-serif;
+      font-size: 18px;
+      color: var(--coral);
+      min-width: 28px;
+    }
+    .nyt-info { flex: 1; }
+    .nyt-title { font-family: 'Bungee', sans-serif; font-size: 12px; color: var(--ink); }
+    .nyt-author { font-size: 10px; color: var(--ink-light); font-style: italic; }
+    .nyt-wks { font-family: 'Bungee', sans-serif; font-size: 9px; color: var(--teal-dark); }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--ink);
+      color: rgba(245,241,235,0.7);
+      margin: 40px -16px 0;
+      padding: 28px 32px;
+    }
+    .footer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    @media (max-width: 700px) { .footer-grid { grid-template-columns: 1fr; } }
+    .footer-title {
+      font-family: 'Bungee', sans-serif;
+      font-size: 12px;
+      color: var(--teal);
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+    }
+    .footer p { font-size: 11px; line-height: 1.7; }
+    .footer a { color: var(--coral); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .footer-bottom {
+      border-top: 1px solid rgba(245,241,235,0.1);
+      margin-top: 20px;
+      padding-top: 16px;
+      text-align: center;
+      font-size: 10px;
+      color: rgba(245,241,235,0.4);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Misc ── */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'Bungee', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+    .chip-teal  { background: rgba(74,159,165,0.15); color: var(--teal-dark); border: 1px solid var(--teal); }
+    .chip-coral { background: rgba(232,149,107,0.15); color: var(--coral); border: 1px solid var(--coral); }
+    .chip-gold  { background: rgba(243,156,18,0.15);  color: #a06800; border: 1px solid var(--gold); }
+
+    .read-more {
+      font-family: 'Bungee', sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      color: var(--teal-dark);
+      text-decoration: none;
+      border-bottom: 1.5px solid var(--teal);
+      padding-bottom: 1px;
+      display: inline-block;
+      margin-top: 8px;
+      transition: color 0.15s;
+    }
+    .read-more:hover { color: var(--coral); border-color: var(--coral); }
+
+    .auto-note {
+      font-size: 9px;
+      color: var(--ink-light);
+      font-style: italic;
+      opacity: 0.7;
+    }
+
+    /* starburst SVG badge on book card */
+    .trending-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+    }
+
+    @keyframes float-slow {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-5px); }
+    }
+    .float { animation: float-slow 4s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     MASTHEAD
+══════════════════════════════════════════════════════ -->
+<div class="masthead">
+  <div class="masthead-top">
+    <span class="elite">Est. on a long stretch of highway</span>
+    <span class="elite" style="text-align:center;">
+      <!-- AUTO-INJECT: issue date from Cloud Functions -->
+      Vol. 1 &nbsp;·&nbsp; Issue 12 &nbsp;·&nbsp; Week of March 30, 2026
+    </span>
+    <span class="elite">Free &nbsp;·&nbsp; Delivered Sundays</span>
+  </div>
+
+  <div class="masthead-main">
+    <!-- Left accent -->
+    <div class="masthead-accents">
+      <svg width="60" height="80" viewBox="0 0 60 80" aria-hidden="true">
+        <!-- Boomerang -->
+        <path d="M4,72 Q16,20 30,36 Q44,52 56,8" stroke="#e8956b" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <!-- Starburst -->
+        <polygon points="12,16 14,22 20,20 17,26 24,26 18,30 21,37 15,33 12,40 9,33 3,37 6,30 0,26 7,26 4,20 10,22"
+          fill="#f39c12" transform="translate(18,0) scale(0.7)" opacity="0.8"/>
+      </svg>
+    </div>
+
+    <h1 class="masthead-title">The Literary Roads Gazette</h1>
+    <p class="masthead-subtitle">Books for the road. Roads for the books.</p>
+    <!-- AUTO-INJECT: date from Cloud Functions -->
+    <p class="masthead-dateline">Sunday Edition &nbsp;·&nbsp; March 30, 2026 &nbsp;·&nbsp; theliteraryroads.com/newspaper</p>
+
+    <!-- Right accent -->
+    <div class="masthead-accents-right">
+      <div class="float">
+        <div class="issue-badge">
+          <span class="num">12</span>
+          <span class="lbl">ISSUE</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nav bar -->
+  <nav class="nav-bar" aria-label="Sections">
+    <a href="#trending"   class="nav-link">Trending</a>
+    <a href="#nyt"        class="nav-link">NYT List</a>
+    <a href="#booktok"    class="nav-link">BookTok</a>
+    <a href="#indie"      class="nav-link">Indie Picks</a>
+    <a href="#debuts"     class="nav-link">Debut Authors</a>
+    <a href="#festivals"  class="nav-link">Festivals</a>
+    <a href="#trip"       class="nav-link">Trip Reports</a>
+    <a href="#subscribe"  class="nav-link">Subscribe</a>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE BODY
+══════════════════════════════════════════════════════ -->
+<div class="page-wrap">
+
+  <!-- ── Week's headline note ── -->
+  <div class="section" style="padding-bottom: 0;">
+    <div class="accent-row" style="margin-bottom:12px;">
+      <svg width="22" height="22" viewBox="0 0 30 30" aria-hidden="true">
+        <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#e8956b"/>
+      </svg>
+      <svg width="18" height="22" viewBox="0 0 24 30" aria-hidden="true">
+        <polygon points="12,0 24,15 12,30 0,15" fill="#f39c12"/>
+      </svg>
+      <svg width="26" height="16" viewBox="0 0 36 22" aria-hidden="true">
+        <path d="M2,20 Q9,2 18,9 Q27,16 34,3" stroke="#4a9fa5" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <hr class="divider" style="flex:1; margin:0;"/>
+      <span class="auto-note">Data auto-refreshed weekly via Cloud Functions</span>
+    </div>
+
+    <!-- Editor's intro -->
+    <div class="pullquote">
+      <p>"This week: a BookTok sensation that broke a five-year-old novel wide open, the indie store list is a who's-who of debut authors, and we've mapped a 3-state road trip through the Pacific Northwest's best literary landmarks."</p>
+      <cite>— The Editors, Literary Roads</cite>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 1: WHAT'S TRENDING THIS WEEK
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="trending">
+    <div class="section-header">
+      <svg width="20" height="20" viewBox="0 0 30 30" aria-hidden="true" style="flex-shrink:0;">
+        <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#e8956b"/>
+      </svg>
+      <h2 class="section-title">What's Trending This Week</h2>
+      <span class="section-sub">Across BookTok, Bookshop.org &amp; indie buzz</span>
+      <!-- AUTO-INJECT: populated by Cloud Functions (NYT + BookTok + Bookshop.org APIs) -->
+    </div>
+
+    <div class="grid-2-1">
+      <!-- Feature trending book -->
+      <div class="feature-card">
+        <div class="accent-row" style="margin-bottom: 14px;">
+          <span class="section-tag tag-coral">This Week's Breakout</span>
+        </div>
+        <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
+          <div class="book-cover-placeholder" style="width:80px; min-width:80px; height:112px; font-size:8px;">
+            COVER<br/>IMAGE
+          </div>
+          <div style="flex:1; min-width:180px;">
+            <div class="feature-title">James</div>
+            <div class="feature-byline">Percival Everett &nbsp;·&nbsp; Doubleday, 2024</div>
+            <div class="feature-body">
+              A reimagining of <em>Huckleberry Finn</em> through the eyes of Jim — now James — that refuses to let the American canon off the hook. Everett's prose cuts with surgical precision, alternating between a private inner voice and the performed dialect forced on James by white society.
+            </div>
+            <div class="feature-pull">"A masterwork of perspective. Every page demands you reckon with what you thought you knew."</div>
+            <div class="accent-row" style="margin-top:10px; gap:6px;">
+              <span class="chip chip-teal">Pulitzer 2024</span>
+              <span class="chip chip-coral">3.2M BookTok Views</span>
+              <span class="chip chip-gold">NYT No. 1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side trending list -->
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <span class="section-tag tag-teal" style="align-self:flex-start;">Also Buzzing</span>
+
+        <!-- AUTO-INJECT: top 4 trending from aggregated APIs -->
+
+        <div class="book-card" style="padding:10px;">
+          <div class="rank-badge" style="font-size:18px;">2</div>
+          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
+          <div class="book-meta">
+            <div class="book-title" style="font-size:11px;">The Women</div>
+            <div class="book-author">Kristin Hannah</div>
+          </div>
+        </div>
+
+        <div class="book-card" style="padding:10px;">
+          <div class="rank-badge teal" style="font-size:18px;">3</div>
+          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
+          <div class="book-meta">
+            <div class="book-title" style="font-size:11px;">Intermezzo</div>
+            <div class="book-author">Sally Rooney</div>
+          </div>
+        </div>
+
+        <div class="book-card" style="padding:10px;">
+          <div class="rank-badge gold" style="font-size:18px;">4</div>
+          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
+          <div class="book-meta">
+            <div class="book-title" style="font-size:11px;">Orbital</div>
+            <div class="book-author">Samantha Harvey</div>
+          </div>
+        </div>
+
+        <div class="book-card" style="padding:10px;">
+          <div class="rank-badge" style="font-size:18px; color: var(--ink-light);">5</div>
+          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
+          <div class="book-meta">
+            <div class="book-title" style="font-size:11px;">All Fours</div>
+            <div class="book-author">Miranda July</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-dashed" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 2: NYT BESTSELLER LIST
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="nyt">
+    <div class="section-header">
+      <svg width="18" height="22" viewBox="0 0 24 30" aria-hidden="true" style="flex-shrink:0;">
+        <polygon points="12,0 24,15 12,30 0,15" fill="#f39c12"/>
+      </svg>
+      <h2 class="section-title">NYT Bestsellers</h2>
+      <span class="section-sub">Fiction &amp; Nonfiction &nbsp;·&nbsp; <!-- AUTO-INJECT: date --> March 30, 2026</span>
+    </div>
+    <!-- AUTO-INJECT: top 5 each from NYT Books API (Cloud Function) -->
+
+    <div class="grid-2">
+      <!-- Fiction -->
+      <div class="nyt-box">
+        <div class="nyt-header">
+          <span class="bungee">Fiction</span>
+          <span class="sub">Combined Print &amp; E-Book</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank">1</span>
+          <div class="nyt-info">
+            <div class="nyt-title">James</div>
+            <div class="nyt-author">Percival Everett</div>
+          </div>
+          <span class="nyt-wks">12 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--teal);">2</span>
+          <div class="nyt-info">
+            <div class="nyt-title">The Women</div>
+            <div class="nyt-author">Kristin Hannah</div>
+          </div>
+          <span class="nyt-wks">28 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--gold);">3</span>
+          <div class="nyt-info">
+            <div class="nyt-title">Intermezzo</div>
+            <div class="nyt-author">Sally Rooney</div>
+          </div>
+          <span class="nyt-wks">6 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--ink-light);">4</span>
+          <div class="nyt-info">
+            <div class="nyt-title">All Fours</div>
+            <div class="nyt-author">Miranda July</div>
+          </div>
+          <span class="nyt-wks">9 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--ink-light);">5</span>
+          <div class="nyt-info">
+            <div class="nyt-title">The God of the Woods</div>
+            <div class="nyt-author">Liz Moore</div>
+          </div>
+          <span class="nyt-wks">3 wks</span>
+        </div>
+      </div>
+
+      <!-- Nonfiction -->
+      <div class="nyt-box">
+        <div class="nyt-header">
+          <span class="bungee">Nonfiction</span>
+          <span class="sub">Combined Print &amp; E-Book</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank">1</span>
+          <div class="nyt-info">
+            <div class="nyt-title">Nexus</div>
+            <div class="nyt-author">Yuval Noah Harari</div>
+          </div>
+          <span class="nyt-wks">18 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--teal);">2</span>
+          <div class="nyt-info">
+            <div class="nyt-title">Eruption</div>
+            <div class="nyt-author">Michael Crichton &amp; Eric Singer</div>
+          </div>
+          <span class="nyt-wks">4 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--gold);">3</span>
+          <div class="nyt-info">
+            <div class="nyt-title">Revenge of the Tipping Point</div>
+            <div class="nyt-author">Malcolm Gladwell</div>
+          </div>
+          <span class="nyt-wks">11 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--ink-light);">4</span>
+          <div class="nyt-info">
+            <div class="nyt-title">Nuclear War: A Scenario</div>
+            <div class="nyt-author">Annie Jacobsen</div>
+          </div>
+          <span class="nyt-wks">7 wks</span>
+        </div>
+        <div class="nyt-row">
+          <span class="nyt-rank" style="color:var(--ink-light);">5</span>
+          <div class="nyt-info">
+            <div class="nyt-title">Say Nothing</div>
+            <div class="nyt-author">Patrick Radden Keefe</div>
+          </div>
+          <span class="nyt-wks">82 wks</span>
+        </div>
+      </div>
+    </div>
+    <p class="auto-note" style="margin-top:8px;">Source: NYT Books API &nbsp;·&nbsp; Auto-refreshed each Sunday via Cloud Functions</p>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 3: BOOKTOK THIS WEEK
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="booktok">
+    <div class="section-header">
+      <svg width="28" height="17" viewBox="0 0 36 22" aria-hidden="true" style="flex-shrink:0;">
+        <path d="M2,20 Q9,2 18,9 Q27,16 34,3" stroke="#4a9fa5" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <h2 class="section-title">BookTok This Week</h2>
+      <span class="section-sub">Books breaking through on #BookTok</span>
+    </div>
+    <!-- AUTO-INJECT: scraped/aggregated BookTok trending titles (Cloud Function) -->
+
+    <div class="grid-4">
+      <div class="tiktok-card">
+        <div class="tiktok-views">4.1M views</div>
+        <div class="tiktok-title">Fourth Wing</div>
+        <div class="tiktok-author">Rebecca Yarros</div>
+        <p style="font-size:10px; color:rgba(245,241,235,0.7); line-height:1.6; margin-bottom:8px;">Still dominating the fantasy romance corner — a 3-year-old release that refuses to leave the conversation.</p>
+        <span class="tiktok-badge">Fantasy Romance</span>
+      </div>
+
+      <div class="tiktok-card" style="border-top-color: var(--coral);">
+        <div class="tiktok-views" style="color:var(--coral);">2.8M views</div>
+        <div class="tiktok-title">James</div>
+        <div class="tiktok-author">Percival Everett</div>
+        <p style="font-size:10px; color:rgba(245,241,235,0.7); line-height:1.6; margin-bottom:8px;">Award season pushed this into a new audience — BookTok creators calling it "the most important American novel in a decade."</p>
+        <span class="tiktok-badge" style="background:var(--coral);">Literary Fiction</span>
+      </div>
+
+      <div class="tiktok-card" style="border-top-color: var(--gold);">
+        <div class="tiktok-views" style="color:var(--gold);">1.9M views</div>
+        <div class="tiktok-title">The Atlas Six</div>
+        <div class="tiktok-author">Olivie Blake</div>
+        <p style="font-size:10px; color:rgba(245,241,235,0.7); line-height:1.6; margin-bottom:8px;">A new audiobook narrator breathed fresh life into this dark academia series — the entire trilogy is trending simultaneously.</p>
+        <span class="tiktok-badge" style="background:var(--gold); color:var(--ink);">Dark Academia</span>
+      </div>
+
+      <div class="tiktok-card" style="border-top-color: var(--pink);">
+        <div class="tiktok-views" style="color:var(--pink);">1.4M views</div>
+        <div class="tiktok-title">I Need You to Read This</div>
+        <div class="tiktok-author">Jessa Maxwell</div>
+        <p style="font-size:10px; color:rgba(245,241,235,0.7); line-height:1.6; margin-bottom:8px;">A debut literary thriller about a book editor who receives a manuscript that seems to predict real murders. Unputdownable.</p>
+        <span class="tiktok-badge" style="background:var(--pink); color:var(--ink);">Thriller</span>
+      </div>
+    </div>
+    <p class="auto-note" style="margin-top:10px;">BookTok view counts aggregated from top creator posts &nbsp;·&nbsp; Auto-refreshed weekly</p>
+  </section>
+
+  <hr class="divider-dashed" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 4: INDIE BOOKSTORE PICKS
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="indie">
+    <div class="indie-strip">
+      <div class="section-header" style="margin-bottom:16px;">
+        <svg width="22" height="22" viewBox="0 0 30 30" aria-hidden="true" style="flex-shrink:0;">
+          <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#f9c5d5"/>
+        </svg>
+        <h2 class="section-title">Indie Bookseller Picks</h2>
+        <span class="section-sub" style="color:rgba(245,241,235,0.6);">Hand-selected by stores on the Literary Roads map</span>
+      </div>
+      <!-- AUTO-INJECT: Indie Next list + curated bookseller picks (Cloud Function) -->
+
+      <div class="grid-2">
+        <ol class="indie-list">
+          <li>
+            <span class="indie-num">1</span>
+            <div>
+              <div class="book-title" style="color:#fff; font-size:13px;">The God of the Woods</div>
+              <div style="font-size:10px; font-style:italic; color:rgba(245,241,235,0.65); margin-bottom:2px;">Liz Moore</div>
+              <div style="font-size:10px; color:rgba(245,241,235,0.75); line-height:1.5;">"A missing-girl thriller wrapped in a decades-long family secret. Once you pick it up you will not sleep."</div>
+              <span class="indie-store">Powell's Books, Portland OR</span>
+            </div>
+          </li>
+          <li>
+            <span class="indie-num">2</span>
+            <div>
+              <div class="book-title" style="color:#fff; font-size:13px;">Small Things Like These</div>
+              <div style="font-size:10px; font-style:italic; color:rgba(245,241,235,0.65); margin-bottom:2px;">Claire Keegan</div>
+              <div style="font-size:10px; color:rgba(245,241,235,0.75); line-height:1.5;">"Slim, devastating, and unexpectedly hopeful. Every independent bookstore in America should carry this."</div>
+              <span class="indie-store">Raven Book Store, Lawrence KS</span>
+            </div>
+          </li>
+          <li>
+            <span class="indie-num">3</span>
+            <div>
+              <div class="book-title" style="color:#fff; font-size:13px;">All the Light We Cannot See</div>
+              <div style="font-size:10px; font-style:italic; color:rgba(245,241,235,0.65); margin-bottom:2px;">Anthony Doerr</div>
+              <div style="font-size:10px; color:rgba(245,241,235,0.75); line-height:1.5;">"The Netflix series sent an entirely new generation to us for this. We cannot keep it on the shelf."</div>
+              <span class="indie-store">Tattered Cover, Denver CO</span>
+            </div>
+          </li>
+        </ol>
+
+        <ol class="indie-list" start="4">
+          <li>
+            <span class="indie-num">4</span>
+            <div>
+              <div class="book-title" style="color:#fff; font-size:13px;">Orbital</div>
+              <div style="font-size:10px; font-style:italic; color:rgba(245,241,235,0.65); margin-bottom:2px;">Samantha Harvey</div>
+              <div style="font-size:10px; color:rgba(245,241,235,0.75); line-height:1.5;">"A quiet miracle. Six astronauts, sixteen orbits, one planet in crisis. The prose is unlike anything else this year."</div>
+              <span class="indie-store">Bookshop Santa Cruz, CA</span>
+            </div>
+          </li>
+          <li>
+            <span class="indie-num">5</span>
+            <div>
+              <div class="book-title" style="color:#fff; font-size:13px;">The Familiar</div>
+              <div style="font-size:10px; font-style:italic; color:rgba(245,241,235,0.65); margin-bottom:2px;">Leigh Bardugo</div>
+              <div style="font-size:10px; color:rgba(245,241,235,0.75); line-height:1.5;">"Her adult literary debut. Spanish Inquisition, a servant girl, and a witch trial — brilliantly researched and completely gripping."</div>
+              <span class="indie-store">Books Are Magic, Brooklyn NY</span>
+            </div>
+          </li>
+          <li>
+            <span class="indie-num">6</span>
+            <div>
+              <div class="book-title" style="color:#fff; font-size:13px;">Notes on an Execution</div>
+              <div style="font-size:10px; font-style:italic; color:rgba(245,241,235,0.65); margin-bottom:2px;">Danya Kukafka</div>
+              <div style="font-size:10px; color:rgba(245,241,235,0.75); line-height:1.5;">"A killer's last hours told through the women in his life. Harrowing and beautifully structured."</div>
+              <span class="indie-store">Square Books, Oxford MS</span>
+            </div>
+          </li>
+        </ol>
+      </div>
+      <p class="auto-note" style="margin-top:12px; color:rgba(245,241,235,0.4);">Sources: American Booksellers Association Indie Next list &nbsp;·&nbsp; Bookshop.org staff picks &nbsp;·&nbsp; Auto-refreshed monthly</p>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 5: DEBUT AUTHOR SPOTLIGHT
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="debuts">
+    <div class="section-header">
+      <svg width="26" height="16" viewBox="0 0 36 22" aria-hidden="true" style="flex-shrink:0;">
+        <path d="M2,20 Q9,2 18,9 Q27,16 34,3" stroke="#e8956b" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <h2 class="section-title">Debut Author Spotlight</h2>
+      <span class="section-sub">First novels worth your next road trip detour</span>
+    </div>
+    <!-- AUTO-INJECT: Publishers Weekly debut picks (Cloud Function) -->
+
+    <div class="grid-3">
+      <div class="debut-card">
+        <span class="section-tag tag-teal">Debut Novel</span>
+        <div class="book-title" style="font-size:15px; margin-bottom:4px;">The Familiar</div>
+        <div style="font-size:11px; font-style:italic; color:var(--teal-dark); margin-bottom:10px;">Leigh Bardugo</div>
+        <p style="font-size:11px; line-height:1.7; color:var(--ink); margin-bottom:10px;">
+          Bardugo steps into adult literary fiction with a story set in Inquisition-era Spain. Luzia Cotado, a scullery maid who hides small magical abilities, is thrust into the service of a nobleman who wants to use her gifts to advance his standing at court.
+        </p>
+        <div class="book-tags">
+          <span class="book-tag">Historical Fiction</span>
+          <span class="book-tag">Magic Realism</span>
+          <span class="book-tag">Spain</span>
+        </div>
+        <a href="#" class="read-more">Read our review</a>
+      </div>
+
+      <div class="debut-card" style="background: rgba(74,159,165,0.1); border: 1.5px solid var(--teal);">
+        <span class="section-tag tag-coral">Debut Novel</span>
+        <div class="book-title" style="font-size:15px; margin-bottom:4px;">I Need You to Read This</div>
+        <div style="font-size:11px; font-style:italic; color:var(--teal-dark); margin-bottom:10px;">Jessa Maxwell</div>
+        <p style="font-size:11px; line-height:1.7; color:var(--ink); margin-bottom:10px;">
+          A literary thriller about a book editor who receives a manuscript that seems to predict real murders in her building. Told with sharp wit and a mounting dread that keeps you flipping pages long past midnight. Maxwell is an immediate name to watch.
+        </p>
+        <div class="book-tags">
+          <span class="book-tag">Thriller</span>
+          <span class="book-tag">Publishing World</span>
+          <span class="book-tag">Debut</span>
+        </div>
+        <a href="#" class="read-more">Read our review</a>
+      </div>
+
+      <div class="debut-card" style="background: rgba(243,156,18,0.08); border: 1.5px solid var(--gold);">
+        <span class="section-tag tag-gold">Debut Short Stories</span>
+        <div class="book-title" style="font-size:15px; margin-bottom:4px;">Pure Colour</div>
+        <div style="font-size:11px; font-style:italic; color:var(--teal-dark); margin-bottom:10px;">Sheila Heti</div>
+        <p style="font-size:11px; line-height:1.7; color:var(--ink); margin-bottom:10px;">
+          Heti's lyrical meditation on grief, beauty, and what it means to mourn a parent — and then a whole world. Formally experimental, emotionally devastating, and unexpectedly funny in places. A short book that takes weeks to leave you.
+        </p>
+        <div class="book-tags">
+          <span class="book-tag">Literary</span>
+          <span class="book-tag">Grief</span>
+          <span class="book-tag">Experimental</span>
+        </div>
+        <a href="#" class="read-more">Read our review</a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider-dashed" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 6: UPCOMING LITERARY FESTIVALS
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="festivals">
+    <div class="section-header">
+      <svg width="22" height="22" viewBox="0 0 30 30" aria-hidden="true" style="flex-shrink:0;">
+        <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#f39c12"/>
+      </svg>
+      <h2 class="section-title">Literary Festivals &amp; Events</h2>
+      <span class="section-sub">On the road this season &nbsp;·&nbsp; Curated monthly</span>
+    </div>
+    <!-- CURATOR-MANAGED: Updated monthly by editors in the Admin Dashboard -->
+
+    <div class="grid-2-1">
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div class="festival-card">
+          <div class="festival-date">April 5–7, 2026</div>
+          <div class="festival-name">Los Angeles Times Festival of Books</div>
+          <div class="festival-loc">USC Campus, Los Angeles, CA</div>
+          <p class="festival-desc">The largest book festival in the United States returns for its 30th year. Over 150,000 attendees expected across two days on the USC campus. Featured authors this year include Percival Everett, Kristin Hannah, Colson Whitehead, and over 300 more.</p>
+          <div class="accent-row" style="margin-top:8px;">
+            <span class="chip chip-teal">Free Admission</span>
+            <span class="chip chip-coral">300+ Authors</span>
+            <a href="#" class="read-more">Add to Literary Roads trip</a>
+          </div>
+        </div>
+
+        <div class="festival-card" style="border-top-color: var(--teal);">
+          <div class="festival-date" style="color:var(--teal-dark);">April 25–27, 2026</div>
+          <div class="festival-name">AWP Conference — Minneapolis</div>
+          <div class="festival-loc">Minneapolis Convention Center, MN</div>
+          <p class="festival-desc">The Associated Writing Programs annual conference draws 12,000+ writers, editors, and publishers. The bookfair alone is worth the trip — 800+ small presses and literary journals represented under one roof.</p>
+          <div class="accent-row" style="margin-top:8px;">
+            <span class="chip chip-teal">Writers Conference</span>
+            <span class="chip chip-gold">800+ Small Presses</span>
+          </div>
+        </div>
+
+        <div class="festival-card" style="border-top-color: var(--gold);">
+          <div class="festival-date" style="color:#a06800;">May 9–11, 2026</div>
+          <div class="festival-name">Tucson Festival of Books</div>
+          <div class="festival-loc">University of Arizona, Tucson, AZ</div>
+          <p class="festival-desc">Arizona's premier book festival with a perfect desert setting and strong emphasis on regional writers, Indigenous storytelling traditions, and the American Southwest. Pair with a stay at La Posada in Winslow.</p>
+          <div class="accent-row" style="margin-top:8px;">
+            <span class="chip chip-gold">Southwest Focus</span>
+            <a href="#" class="read-more">Plan a road trip</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: map hint + smaller events -->
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div class="map-card">
+          <div class="map-placeholder">
+            <span class="map-label">Festival Map View</span>
+            <!-- AUTO-INJECT: Leaflet mini-map via iframe or screenshot -->
+          </div>
+          <div style="font-family:'Bungee',sans-serif; font-size:10px; color:var(--teal-dark); margin-bottom:4px; letter-spacing:0.06em;">PLAN YOUR ROUTE</div>
+          <p style="font-size:11px; color:var(--ink-light); line-height:1.6; margin-bottom:10px;">All festival locations are pinned on the Literary Roads map. Click any pin to see nearby bookstores and cafes.</p>
+          <a href="/literary-roads/" class="sub-btn" style="font-size:10px; padding:8px 16px; display:inline-block; text-decoration:none;">Open Literary Roads Map</a>
+        </div>
+
+        <div style="background:var(--cream-dark); border-radius:6px; padding:14px; border:1.5px dashed var(--coral);">
+          <div style="font-family:'Bungee',sans-serif; font-size:11px; color:var(--coral); margin-bottom:10px; letter-spacing:0.06em;">MORE EVENTS THIS SPRING</div>
+          <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px; padding-bottom:5px; border-bottom:1px dashed rgba(0,0,0,0.1);">
+              <span>Decatur Book Festival</span>
+              <span style="color:var(--coral); font-family:'Bungee',sans-serif; font-size:9px;">Sep 5</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px; padding-bottom:5px; border-bottom:1px dashed rgba(0,0,0,0.1);">
+              <span>Portland Book Festival</span>
+              <span style="color:var(--coral); font-family:'Bungee',sans-serif; font-size:9px;">Nov 14</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px; padding-bottom:5px; border-bottom:1px dashed rgba(0,0,0,0.1);">
+              <span>Miami Book Fair</span>
+              <span style="color:var(--coral); font-family:'Bungee',sans-serif; font-size:9px;">Nov 20</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px; padding-bottom:5px; border-bottom:1px dashed rgba(0,0,0,0.1);">
+              <span>Texas Book Festival</span>
+              <span style="color:var(--coral); font-family:'Bungee',sans-serif; font-size:9px;">Oct 24</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:baseline; font-size:11px;">
+              <span>Asheville Literary Festival</span>
+              <span style="color:var(--coral); font-family:'Bungee',sans-serif; font-size:9px;">Aug 8</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 7: ROAD TRIP REPORTS
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="trip">
+    <div class="section-header">
+      <svg width="26" height="16" viewBox="0 0 36 22" aria-hidden="true" style="flex-shrink:0;">
+        <path d="M2,20 Q9,2 18,9 Q27,16 34,3" stroke="#f39c12" stroke-width="5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <h2 class="section-title">Road Trip Reports</h2>
+      <span class="section-sub">Curated literary routes from the community</span>
+    </div>
+    <!-- CURATOR-MANAGED: Updated monthly by editors in the Admin Dashboard -->
+
+    <div class="grid-1-2" style="margin-bottom: 20px;">
+      <!-- Feature trip -->
+      <div>
+        <span class="section-tag tag-teal">This Month's Featured Route</span>
+        <div class="feature-card" style="margin-top:8px;">
+          <div class="feature-title">The Pacific Northwest Literary Loop</div>
+          <div class="feature-byline">Oregon · Washington · Northern California &nbsp;·&nbsp; 7 days</div>
+          <div class="feature-body">
+            Start at Powell's Books in Portland — the world's largest independent bookstore — and wind north through the mist-soaked forests that inspired Le Guin, Kesey, and Raymond Carver. Cross into Washington for the Olympic Peninsula, then south along the California redwoods through Eureka to Arcata's independent scene.
+          </div>
+          <div class="feature-pull">"Powell's alone justified the entire trip. We stayed three hours."</div>
+          <div class="accent-row" style="margin-top:12px; gap:8px;">
+            <span class="chip" style="background:rgba(245,241,235,0.15); color:rgba(245,241,235,0.8); border:1px solid rgba(245,241,235,0.3);">3 States</span>
+            <span class="chip" style="background:rgba(245,241,235,0.15); color:rgba(245,241,235,0.8); border:1px solid rgba(245,241,235,0.3);">14 Bookstores</span>
+            <span class="chip" style="background:rgba(245,241,235,0.15); color:rgba(245,241,235,0.8); border:1px solid rgba(245,241,235,0.3);">8 Cafes</span>
+          </div>
+          <a href="/literary-roads/" class="read-more" style="color:var(--coral); border-color:var(--coral); margin-top:12px; display:inline-block;">Load this route in Literary Roads</a>
+        </div>
+      </div>
+
+      <!-- Trip card grid -->
+      <div style="display:flex; flex-direction:column; gap:14px;">
+        <div class="trip-card">
+          <div class="trip-img" style="background:linear-gradient(135deg,#2d6d74,#4a9fa5);">
+            <span class="trip-img-label">Mississippi Delta Blues &amp; Books</span>
+          </div>
+          <div class="trip-body">
+            <div class="section-tag tag-teal" style="margin-bottom:6px;">Community Report</div>
+            <div class="trip-title">Delta Literary Tour</div>
+            <div class="trip-meta">Mississippi &nbsp;·&nbsp; 4 days &nbsp;·&nbsp; Submitted by @readingandrolling</div>
+            <p class="trip-desc">From Oxford (home of Square Books and Faulkner's Rowan Oak) south through Greenwood and Greenville. Faulkner, Eudora Welty, Richard Wright — the literary geography of the Delta is denser than anywhere in America.</p>
+          </div>
+        </div>
+
+        <div class="trip-card">
+          <div class="trip-img" style="background:linear-gradient(135deg,#e67e22,#e8956b);">
+            <span class="trip-img-label">Southern Gothic Road Trip</span>
+          </div>
+          <div class="trip-body">
+            <div class="section-tag tag-coral" style="margin-bottom:6px;">Community Report</div>
+            <div class="trip-title">Flannery O'Connor Country</div>
+            <div class="trip-meta">Georgia · Tennessee &nbsp;·&nbsp; 5 days &nbsp;·&nbsp; Submitted by @boooksandroads</div>
+            <p class="trip-desc">Savannah to Milledgeville (Andalusia farm, O'Connor's home) up through Atlanta and into the Tennessee foothills. Gothic, strange, deeply American. Don't miss the Flannery O'Connor Childhood Home in Savannah.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--cream-dark); border-radius:8px; padding:16px 20px; border:1.5px solid var(--cream-dark); display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+      <div style="flex:1; min-width:200px;">
+        <div style="font-family:'Bungee',sans-serif; font-size:13px; color:var(--ink); margin-bottom:4px;">Share Your Literary Road Trip</div>
+        <p style="font-size:11px; color:var(--ink-light); line-height:1.6;">Save a route in Literary Roads and share it — community-submitted trips may appear in a future issue of the Gazette.</p>
+      </div>
+      <a href="/literary-roads/" class="sub-btn" style="font-size:10px; padding:9px 20px; text-decoration:none;">Open the Map</a>
+    </div>
+  </section>
+
+  <hr class="divider-dashed" />
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 8: SUBSCRIBE (SUBSTACK)
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" id="subscribe">
+    <div class="subscribe-box">
+      <!-- Decorative SVGs -->
+      <div style="display:flex; justify-content:center; gap:16px; margin-bottom:16px;">
+        <svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true">
+          <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#e8956b" opacity="0.8"/>
+        </svg>
+        <svg width="18" height="22" viewBox="0 0 24 30" aria-hidden="true">
+          <polygon points="12,0 24,15 12,30 0,15" fill="#f39c12" opacity="0.8"/>
+        </svg>
+        <svg width="26" height="16" viewBox="0 0 36 22" aria-hidden="true">
+          <path d="M2,20 Q9,2 18,9 Q27,16 34,3" stroke="#f9c5d5" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.8"/>
+        </svg>
+        <svg width="18" height="22" viewBox="0 0 24 30" aria-hidden="true">
+          <polygon points="12,0 24,15 12,30 0,15" fill="#4a9fa5" opacity="0.8"/>
+        </svg>
+        <svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true">
+          <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#f39c12" opacity="0.8"/>
+        </svg>
+      </div>
+
+      <h2 class="sub-title">The Gazette Arrives Every Sunday</h2>
+      <p class="sub-desc">
+        New books. BookTok buzz. Indie store picks. Literary festivals. Road trip reports.
+        Every Sunday morning, delivered straight to your inbox before the week begins.
+      </p>
+
+      <a href="https://literaryroads.substack.com/subscribe" class="sub-btn" target="_blank" rel="noopener">
+        Subscribe on Substack — Free
+      </a>
+
+      <p style="font-size:10px; color:rgba(245,241,235,0.45); margin-top:14px; position:relative;">
+        No spam. Unsubscribe anytime. The Gazette is free and always will be.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       BOTTOM ACCENT ROW
+  ══════════════════════════════════════════════════════ -->
+  <div class="accent-row" style="justify-content:center; padding:20px 0 10px; gap:16px;">
+    <svg width="24" height="24" viewBox="0 0 30 30" aria-hidden="true">
+      <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#e8956b" opacity="0.5"/>
+    </svg>
+    <hr class="divider" style="flex:1; margin:0; opacity:0.4;" />
+    <span style="font-family:'Bungee',sans-serif; font-size:10px; color:var(--teal-dark); letter-spacing:0.1em; white-space:nowrap;">LITERARY ROADS</span>
+    <hr class="divider" style="flex:1; margin:0; opacity:0.4;" />
+    <svg width="18" height="22" viewBox="0 0 24 30" aria-hidden="true">
+      <polygon points="12,0 24,15 12,30 0,15" fill="#f39c12" opacity="0.5"/>
+    </svg>
+  </div>
+
+</div><!-- end .page-wrap -->
+
+<!-- ══════════════════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════════════ -->
+<footer class="footer">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-title">The Literary Roads Gazette</div>
+        <p>A weekly literary newspaper for readers who love the road. Trending books, indie picks, debut authors, festivals, and road trip routes — every Sunday.</p>
+        <p style="margin-top:8px;"><a href="https://literaryroads.substack.com/subscribe">Subscribe on Substack</a></p>
+      </div>
+      <div>
+        <div class="footer-title">Data Sources</div>
+        <p>
+          NYT Books API &nbsp;·&nbsp; Bookshop.org &nbsp;·&nbsp; American Booksellers Association Indie Next List &nbsp;·&nbsp; Publishers Weekly &nbsp;·&nbsp; Google Books &nbsp;·&nbsp; Open Library
+        </p>
+        <p style="margin-top:8px;">BookTok buzz aggregated from top creator posts each week.</p>
+        <!-- AUTO-INJECT: last updated timestamp from Cloud Functions -->
+        <p style="margin-top:8px;" class="auto-note">Last auto-refresh: Sunday, March 30, 2026 at 6:00 AM</p>
+      </div>
+      <div>
+        <div class="footer-title">Literary Roads</div>
+        <p>The Gazette is published by <a href="/literary-roads/">Literary Roads</a> — a map-based app for literary road trips across America.</p>
+        <p style="margin-top:8px;">Find bookstores, cafes, and literary landmarks along any route. Save trips, leave guestbook entries, and share the road.</p>
+        <p style="margin-top:8px;"><a href="/literary-roads/">Open the Literary Roads Map</a></p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; 2026 Literary Roads &nbsp;·&nbsp; theliteraryroads.com &nbsp;·&nbsp; All book cover rights belong to respective publishers &nbsp;·&nbsp; NYT data used under license
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
