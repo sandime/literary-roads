@@ -39,6 +39,19 @@ const MONTHS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: CURRENT_YEAR - 2019 }, (_, i) => CURRENT_YEAR - i);
 
+const LOG_VIBE_TAGS = [
+  'immersive', 'family drama', 'character-driven', 'beautiful prose',
+  'haunting', 'life changing', 'plot-driven', 'entertaining',
+  'mind-bending', 'redemptive', 'comforting', 'surprising',
+  'great ending', 'notable setting', 'slow', 'thought provoking', 'read again',
+];
+const FOUND_AT_OPTIONS = [
+  'recommendation', 'podcast', 'library', 'bookstore',
+  "friend's shelf", 'book review', 'Instagram', 'BookTok', 'somewhere else',
+];
+const FEEL_OPTIONS = ['joyful', 'changed', 'sad', 'emotional'];
+const EXTRAS_OPTIONS = ['memorable characters', 'unforgettable line', 'scenery', 'great idea'];
+
 const CAT_FILTER_ACTIVE   = 'sepia(1) saturate(8) hue-rotate(-8deg) brightness(1.05) drop-shadow(0 0 6px rgba(245,166,35,0.9))';
 const CAT_FILTER_INACTIVE = 'grayscale(1) brightness(0.55) opacity(0.4)';
 
@@ -213,11 +226,33 @@ function BookSearch({ onSelect }) {
 }
 
 // ── Entry form (Book Log) ─────────────────────────────────────────────────────
-function EntryForm({ book, onSave, onCancel, saving, saveError, initialRating = 0, initialMonth = '', initialYear = '', initialFormat = 'read', editMode = false }) {
+function EntryForm({
+  book, onSave, onCancel, saving, saveError, editMode = false,
+  initialRating = 0, initialMonth = '', initialYear = '', initialFormat = 'read',
+  initialReflection = '', initialVibeTags = [], initialFoundAt = [],
+  initialFeel = [], initialExtras = [], initialRecommend = false,
+}) {
   const [rating, setRating] = useState(initialRating);
   const [finishedMonth, setFinishedMonth] = useState(initialMonth);
   const [finishedYear, setFinishedYear] = useState(initialYear ? String(initialYear) : String(CURRENT_YEAR));
   const [format, setFormat] = useState(initialFormat);
+  const [reflection, setReflection] = useState(initialReflection);
+  const [logVibeTags, setLogVibeTags] = useState(initialVibeTags);
+  const [foundAt, setFoundAt] = useState(initialFoundAt);
+  const [feel, setFeel] = useState(initialFeel);
+  const [extras, setExtras] = useState(initialExtras);
+  const [recommend, setRecommend] = useState(initialRecommend);
+
+  const togglePill = (setter, val) =>
+    () => setter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+
+  const pillBtn = (active) => ({
+    padding: '4px 10px', borderRadius: 20, fontSize: 10, letterSpacing: '0.04em',
+    fontFamily: 'Bungee, sans-serif', border: 'none', cursor: 'pointer',
+    transition: 'all 0.15s',
+    background: active ? L.turquoise : 'rgba(56,197,197,0.08)',
+    color: active ? L.white : L.mid,
+  });
 
   const selectStyle = {
     ...inputStyle, cursor: 'pointer',
@@ -275,7 +310,7 @@ function EntryForm({ book, onSave, onCancel, saving, saveError, initialRating = 
         </div>
       </div>
 
-      <div style={{ marginBottom: 18 }}>
+      <div style={{ marginBottom: 14 }}>
         <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>FORMAT</label>
         <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: `1.5px solid ${L.divider}` }}>
           {[{ value: 'read', label: 'READ' }, { value: 'audio', label: 'LISTENED' }].map(({ value, label }) => (
@@ -291,12 +326,85 @@ function EntryForm({ book, onSave, onCancel, saving, saveError, initialRating = 
         </div>
       </div>
 
+      {/* One-line reflection */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>ONE-LINE REFLECTION</label>
+        <input
+          type="text"
+          value={reflection}
+          onChange={e => setReflection(e.target.value)}
+          placeholder="A single sentence about this book…"
+          style={{ ...inputStyle, padding: '8px 10px' }}
+        />
+      </div>
+
+      {/* Vibe tags */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>VIBE TAGS</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {LOG_VIBE_TAGS.map(tag => (
+            <button key={tag} type="button" onClick={togglePill(setLogVibeTags, tag)} style={pillBtn(logVibeTags.includes(tag))}>
+              {tag.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Where did you find this book? */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHERE DID YOU FIND THIS BOOK?</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {FOUND_AT_OPTIONS.map(opt => (
+            <button key={opt} type="button" onClick={togglePill(setFoundAt, opt)} style={pillBtn(foundAt.includes(opt))}>
+              {opt.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* How did it make you feel? */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>HOW DID THIS BOOK MAKE YOU FEEL?</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {FEEL_OPTIONS.map(opt => (
+            <button key={opt} type="button" onClick={togglePill(setFeel, opt)} style={pillBtn(feel.includes(opt))}>
+              {opt.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* What else? */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHAT ELSE DID YOU WANT TO SAY?</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+          {EXTRAS_OPTIONS.map(opt => (
+            <button key={opt} type="button" onClick={togglePill(setExtras, opt)} style={pillBtn(extras.includes(opt))}>
+              {opt.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Would you recommend? */}
+      <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em' }}>WOULD YOU RECOMMEND?</label>
+        <button type="button" onClick={() => setRecommend(p => !p)}
+          style={{
+            ...pillBtn(recommend),
+            padding: '5px 14px', fontSize: 10,
+            boxShadow: recommend ? '0 2px 8px rgba(56,197,197,0.35)' : 'none',
+          }}>
+          {recommend ? '✓ YES' : 'YES'}
+        </button>
+      </div>
+
       {saveError && (
         <p style={{ fontFamily: 'Special Elite, serif', color: L.coral, fontSize: 12, marginBottom: 10 }}>{saveError}</p>
       )}
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format })}
+        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, feel, extras, recommend })}
           disabled={saving}
           style={{ ...primaryBtn, flex: 1, padding: 10, fontSize: 11, opacity: saving ? 0.5 : 1 }}>
           {saving ? 'SAVING...' : 'SAVE'}
@@ -542,7 +650,7 @@ export default function Library({ onBack }) {
     } catch (err) { console.error('[Library] delete postcard book:', err); }
   };
 
-  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format }) => {
+  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend }) => {
     if (!user || !selectedBook) return;
     setSaving(true); setSaveError('');
     try {
@@ -551,7 +659,8 @@ export default function Library({ onBack }) {
         bookTitle: selectedBook.title, bookAuthor: selectedBook.author,
         bookCover: selectedBook.coverURL || null, googleBooksId: selectedBook.id,
         rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '',
-        format, timestamp: serverTimestamp(),
+        format, reflection, vibeTags, foundAt, feel, extras, recommend,
+        timestamp: serverTimestamp(),
       });
       setSelectedBook(null); setShowAddSearch(false);
       checkAndAwardBadges(user.uid).then(newly => { if (newly.length > 0) setNewBadges(newly); });
@@ -561,11 +670,11 @@ export default function Library({ onBack }) {
     } finally { setSaving(false); }
   };
 
-  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format }) => {
+  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend }) => {
     if (!user || !editingEntry) return;
     setEditSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid, 'booksRead', editingEntry.id), { rating, finishedMonth, finishedYear, format });
+      await updateDoc(doc(db, 'users', user.uid, 'booksRead', editingEntry.id), { rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend });
       setEditingEntry(null); setActiveCard(null);
     } catch (err) { console.error('[Library] edit:', err); }
     finally { setEditSaving(false); }
@@ -748,6 +857,12 @@ export default function Library({ onBack }) {
                       initialMonth={editingEntry.finishedMonth ?? ''}
                       initialYear={editingEntry.finishedYear ?? ''}
                       initialFormat={editingEntry.format ?? 'read'}
+                      initialReflection={editingEntry.reflection ?? ''}
+                      initialVibeTags={editingEntry.vibeTags ?? []}
+                      initialFoundAt={editingEntry.foundAt ?? []}
+                      initialFeel={editingEntry.feel ?? []}
+                      initialExtras={editingEntry.extras ?? []}
+                      initialRecommend={editingEntry.recommend ?? false}
                       onSave={handleEditSave} onCancel={() => setEditingEntry(null)} saving={editSaving} />
                   </div>
                 )}

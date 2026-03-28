@@ -80,19 +80,14 @@ function getStampPalette(stateCode) {
 }
 
 const VIBE_TAGS = [
-  'immersive', 'family drama', 'character driven', 'beautiful prose',
+  'immersive', 'family drama', 'character-driven', 'beautiful prose',
   'haunting', 'life changing', 'plot-driven', 'entertaining',
-  'mind-bending', 'redemptive', 'comforting',
+  'mind-bending', 'redemptive', 'comforting', 'surprising',
+  'great ending', 'notable setting', 'slow', 'thought provoking', 'read again',
 ];
 
 const MSG_LIMIT = 280;
 
-const PROMPTS = [
-  'Where were you when you started this book?',
-  'What drew you to pick it up?',
-  'Who should read this book?',
-  'How did this book make you feel?',
-];
 
 // ── Canvas helpers ────────────────────────────────────────────────────────────
 
@@ -861,7 +856,7 @@ function Step2({ book, onNext, onBack, onClose }) {
         <label className="font-bungee" style={labelStyle}>YOUR MESSAGE</label>
         <div style={{ position: 'relative', marginBottom: 8 }}>
           <textarea value={message} onChange={e => setMessage(e.target.value.slice(0, MSG_LIMIT))}
-            placeholder="What does this book mean to you?"
+            placeholder="What prompted you to read this book? How is it so far? Do you think you'll finish? How does this book make you feel?"
             rows={4}
             style={{ ...inputStyle, resize: 'none', lineHeight: 1.6, paddingBottom: 28 }}
             onFocus={e => e.currentTarget.style.borderColor = PB.coral}
@@ -871,14 +866,6 @@ function Step2({ book, onNext, onBack, onClose }) {
             color: remaining < 40 ? PB.coral : PB.muted, letterSpacing: '0.04em' }}>
             {remaining}
           </span>
-        </div>
-
-        {/* Inspiration */}
-        <div style={{ marginBottom: 14, padding: '8px 12px', borderRadius: 8, background: `rgba(56,197,197,0.05)`, border: `1px solid ${PB.divider}` }}>
-          <p className="font-bungee" style={{ fontSize: 9, color: PB.turq, letterSpacing: '0.08em', margin: '0 0 6px' }}>INSPIRATION</p>
-          {PROMPTS.map((p, i) => (
-            <p key={i} className="font-special-elite" style={{ margin: i > 0 ? '3px 0 0' : 0, fontSize: 10, color: PB.mid, fontStyle: 'italic' }}>{p}</p>
-          ))}
         </div>
 
         {/* Vibe tags */}

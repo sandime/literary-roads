@@ -197,8 +197,8 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
           >
             BACK
           </button>
-          <h1 style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 18, color: L.turquoise, letterSpacing: '0.08em' }}>
-            THE LIBRARY
+          <h1 style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 16, color: L.turquoise, letterSpacing: '0.06em' }}>
+            Literary Roads Library
           </h1>
           <div style={{ width: 56 }} />
         </div>
