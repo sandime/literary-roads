@@ -4,10 +4,11 @@
 // Fetches NYT Fiction + Nonfiction top-5, writes public/gazette-data.json.
 // newspaper.html reads that file on every page load.
 
-"use strict";
+import fs   from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const fs   = require("fs");
-const path = require("path");
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const NYT_API_KEY = process.env.NYT_API_KEY;
 if (!NYT_API_KEY) {
