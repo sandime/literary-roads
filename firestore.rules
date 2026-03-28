@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Gazette: publicly readable, only Cloud Functions can write ────────────
+    // newspaper.html reads gazette/currentIssue on every page load.
+    // Writes happen only from the refreshGazette Cloud Function (admin SDK).
+    match /gazette/{doc} {
+      allow read: if true;
+      allow write: if false; // admin SDK bypasses these rules
+    }
+
+    // ── All other existing collections: auth required ─────────────────────────
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

@@ -1,0 +1,34 @@
+name: Refresh Gazette Data
+
+on:
+  schedule:
+    - cron: '0 10 * * 0'   # Every Sunday 10:00 UTC = 6:00 AM ET
+  workflow_dispatch:         # Also allows manual trigger from GitHub Actions tab
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # Allows committing gazette-data.json back to the repo
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch NYT bestseller data
+        env:
+          NYT_API_KEY: ${{ secrets.NYT_API_KEY }}
+        run: node scripts/refresh-gazette.js
+
+      - name: Commit updated gazette data
+        run: |
+          git config --global user.name  'Literary Roads Bot'
+          git config --global user.email 'bot@literaryroads.com'
+          git add public/gazette-data.json
+          git diff --staged --quiet || git commit -m "chore: refresh gazette data $(date -u +%Y-%m-%d)"
+          git push

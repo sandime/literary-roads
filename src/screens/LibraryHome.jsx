@@ -157,6 +157,53 @@ function ShelfUnit({ shelf, onNavigate, count }) {
   );
 }
 
+// ── Cat link to Gazette ───────────────────────────────────────────────────────
+function CatLink() {
+  const [hov, setHov] = useState(false);
+  return (
+    <a
+      href={`${import.meta.env.BASE_URL}newspaper.html`}
+      target="_blank"
+      rel="noopener noreferrer"
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        display: 'block', position: 'relative',
+        borderRadius: 12, textDecoration: 'none',
+        transform: hov ? 'scale(1.04)' : 'scale(1)',
+        transition: 'transform 0.22s ease',
+        boxShadow: hov
+          ? `0 0 0 3px ${L.coral}, 0 10px 32px rgba(255,107,122,0.28)`
+          : '0 8px 28px rgba(0,0,0,0.12)',
+      }}
+      title="Read The Literary Roads Gazette"
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}images/library-cat.png`}
+        alt="Library cat reading in a chair"
+        style={{
+          width: '100%', maxWidth: 180, height: 'auto',
+          borderRadius: 12, display: 'block',
+          animation: 'lib-float 4s ease-in-out infinite',
+        }}
+      />
+      {hov && (
+        <div style={{
+          position: 'absolute', bottom: 8, left: 0, right: 0,
+          textAlign: 'center',
+          fontFamily: 'Bungee, sans-serif', fontSize: 9,
+          letterSpacing: '0.1em', color: '#fff',
+          background: L.coral,
+          padding: '4px 0',
+          borderRadius: '0 0 10px 10px',
+        }}>
+          READ THE GAZETTE
+        </div>
+      )}
+    </a>
+  );
+}
+
 // ── LibraryHome ───────────────────────────────────────────────────────────────
 export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
   return (
@@ -247,16 +294,7 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
               <Starburst color={L.coral} size={18} />
             </div>
 
-            <img
-              src={`${import.meta.env.BASE_URL}images/library-cat.png`}
-              alt="Library cat reading in a chair"
-              style={{
-                width: '100%', maxWidth: 180, height: 'auto',
-                borderRadius: 12,
-                boxShadow: '0 8px 28px rgba(0,0,0,0.12)',
-                animation: 'lib-float 4s ease-in-out infinite',
-              }}
-            />
+            <CatLink />
 
             <p style={{
               fontFamily: 'Special Elite, serif', fontSize: 12,

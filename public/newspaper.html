@@ -736,9 +736,9 @@
       padding: 4px 10px;
       border-radius: 12px;
     }
-    .chip-teal  { background: rgba(74,159,165,0.15); color: var(--teal-dark); border: 1px solid var(--teal); }
-    .chip-coral { background: rgba(232,149,107,0.15); color: var(--coral); border: 1px solid var(--coral); }
-    .chip-gold  { background: rgba(243,156,18,0.15);  color: #a06800; border: 1px solid var(--gold); }
+    .chip-teal  { background: var(--teal);  color: #fff; border: 1px solid var(--teal); }
+    .chip-coral { background: var(--coral); color: #fff; border: 1px solid var(--coral); }
+    .chip-gold  { background: var(--gold);  color: #fff; border: 1px solid var(--gold); }
 
     .read-more {
       font-family: 'Bungee', sans-serif;
@@ -783,8 +783,7 @@
 <div class="masthead">
   <div class="masthead-top">
     <span class="elite">Est. on a long stretch of highway</span>
-    <span class="elite" style="text-align:center;">
-      <!-- AUTO-INJECT: issue date from Cloud Functions -->
+    <span class="elite" id="masthead-issue" style="text-align:center;">
       Vol. 1 &nbsp;·&nbsp; Issue 12 &nbsp;·&nbsp; Week of March 30, 2026
     </span>
     <span class="elite">Free &nbsp;·&nbsp; Delivered Sundays</span>
@@ -804,14 +803,13 @@
 
     <h1 class="masthead-title">The Literary Roads Gazette</h1>
     <p class="masthead-subtitle">Books for the road. Roads for the books.</p>
-    <!-- AUTO-INJECT: date from Cloud Functions -->
-    <p class="masthead-dateline">Sunday Edition &nbsp;·&nbsp; March 30, 2026 &nbsp;·&nbsp; theliteraryroads.com/newspaper</p>
+    <p class="masthead-dateline" id="masthead-dateline">Sunday Edition &nbsp;·&nbsp; March 30, 2026 &nbsp;·&nbsp; theliteraryroads.com/newspaper</p>
 
     <!-- Right accent -->
     <div class="masthead-accents-right">
       <div class="float">
         <div class="issue-badge">
-          <span class="num">12</span>
+          <span class="num" id="issue-num">12</span>
           <span class="lbl">ISSUE</span>
         </div>
       </div>
@@ -881,20 +879,23 @@
           <span class="section-tag tag-coral">This Week's Breakout</span>
         </div>
         <div style="display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-          <div class="book-cover-placeholder" style="width:80px; min-width:80px; height:112px; font-size:8px;">
-            COVER<br/>IMAGE
+          <div class="book-cover" style="width:80px; min-width:80px; height:112px;">
+            <img id="breakout-img"
+              src="https://books.google.com/books/content?vid=ISBN:9780385550369&printsec=frontcover&img=1&zoom=1"
+              alt="This week's breakout book"
+            />
           </div>
           <div style="flex:1; min-width:180px;">
-            <div class="feature-title">James</div>
-            <div class="feature-byline">Percival Everett &nbsp;·&nbsp; Doubleday, 2024</div>
-            <div class="feature-body">
+            <div class="feature-title" id="breakout-title">James</div>
+            <div class="feature-byline" id="breakout-byline">Percival Everett &nbsp;·&nbsp; NYT #1</div>
+            <div class="feature-body" id="breakout-desc">
               A reimagining of <em>Huckleberry Finn</em> through the eyes of Jim — now James — that refuses to let the American canon off the hook. Everett's prose cuts with surgical precision, alternating between a private inner voice and the performed dialect forced on James by white society.
             </div>
             <div class="feature-pull">"A masterwork of perspective. Every page demands you reckon with what you thought you knew."</div>
             <div class="accent-row" style="margin-top:10px; gap:6px;">
-              <span class="chip chip-teal">Pulitzer 2024</span>
-              <span class="chip chip-coral">3.2M BookTok Views</span>
-              <span class="chip chip-gold">NYT No. 1</span>
+              <span class="chip chip-teal">NYT Fiction</span>
+              <span class="chip chip-coral">This Week's #1</span>
+              <span class="chip chip-gold" id="breakout-wks">12 wks on list</span>
             </div>
           </div>
         </div>
@@ -903,42 +904,46 @@
       <!-- Side trending list -->
       <div style="display:flex; flex-direction:column; gap:12px;">
         <span class="section-tag tag-teal" style="align-self:flex-start;">Also Buzzing</span>
-
-        <!-- AUTO-INJECT: top 4 trending from aggregated APIs -->
-
-        <div class="book-card" style="padding:10px;">
-          <div class="rank-badge" style="font-size:18px;">2</div>
-          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
-          <div class="book-meta">
-            <div class="book-title" style="font-size:11px;">The Women</div>
-            <div class="book-author">Kristin Hannah</div>
+        <div id="trending-side">
+          <div class="book-card" style="padding:10px;">
+            <div class="rank-badge" style="font-size:18px;">2</div>
+            <div class="book-cover" style="width:48px; min-width:48px; height:68px;">
+              <img src="https://books.google.com/books/content?vid=ISBN:9781250178602&printsec=frontcover&img=1&zoom=1" alt="The Women" />
+            </div>
+            <div class="book-meta">
+              <div class="book-title" style="font-size:11px;">The Women</div>
+              <div class="book-author">Kristin Hannah</div>
+            </div>
           </div>
-        </div>
-
-        <div class="book-card" style="padding:10px;">
-          <div class="rank-badge teal" style="font-size:18px;">3</div>
-          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
-          <div class="book-meta">
-            <div class="book-title" style="font-size:11px;">Intermezzo</div>
-            <div class="book-author">Sally Rooney</div>
+          <div class="book-card" style="padding:10px; margin-top:12px;">
+            <div class="rank-badge teal" style="font-size:18px;">3</div>
+            <div class="book-cover" style="width:48px; min-width:48px; height:68px;">
+              <img src="https://books.google.com/books/content?vid=ISBN:9780374611347&printsec=frontcover&img=1&zoom=1" alt="Intermezzo" />
+            </div>
+            <div class="book-meta">
+              <div class="book-title" style="font-size:11px;">Intermezzo</div>
+              <div class="book-author">Sally Rooney</div>
+            </div>
           </div>
-        </div>
-
-        <div class="book-card" style="padding:10px;">
-          <div class="rank-badge gold" style="font-size:18px;">4</div>
-          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
-          <div class="book-meta">
-            <div class="book-title" style="font-size:11px;">Orbital</div>
-            <div class="book-author">Samantha Harvey</div>
+          <div class="book-card" style="padding:10px; margin-top:12px;">
+            <div class="rank-badge gold" style="font-size:18px;">4</div>
+            <div class="book-cover" style="width:48px; min-width:48px; height:68px;">
+              <img src="https://books.google.com/books/content?vid=ISBN:9780802164162&printsec=frontcover&img=1&zoom=1" alt="Orbital" />
+            </div>
+            <div class="book-meta">
+              <div class="book-title" style="font-size:11px;">Orbital</div>
+              <div class="book-author">Samantha Harvey</div>
+            </div>
           </div>
-        </div>
-
-        <div class="book-card" style="padding:10px;">
-          <div class="rank-badge" style="font-size:18px; color: var(--ink-light);">5</div>
-          <div class="book-cover-placeholder" style="width:48px; min-width:48px; height:68px; font-size:7px;">CVR</div>
-          <div class="book-meta">
-            <div class="book-title" style="font-size:11px;">All Fours</div>
-            <div class="book-author">Miranda July</div>
+          <div class="book-card" style="padding:10px; margin-top:12px;">
+            <div class="rank-badge" style="font-size:18px; color:var(--ink-light);">5</div>
+            <div class="book-cover" style="width:48px; min-width:48px; height:68px;">
+              <img src="https://books.google.com/books/content?vid=ISBN:9780593655702&printsec=frontcover&img=1&zoom=1" alt="All Fours" />
+            </div>
+            <div class="book-meta">
+              <div class="book-title" style="font-size:11px;">All Fours</div>
+              <div class="book-author">Miranda July</div>
+            </div>
           </div>
         </div>
       </div>
@@ -956,7 +961,7 @@
         <polygon points="12,0 24,15 12,30 0,15" fill="#f39c12"/>
       </svg>
       <h2 class="section-title">NYT Bestsellers</h2>
-      <span class="section-sub">Fiction &amp; Nonfiction &nbsp;·&nbsp; <!-- AUTO-INJECT: date --> March 30, 2026</span>
+      <span class="section-sub">Fiction &amp; Nonfiction &nbsp;·&nbsp; <span id="nyt-date">March 30, 2026</span></span>
     </div>
     <!-- AUTO-INJECT: top 5 each from NYT Books API (Cloud Function) -->
 
@@ -967,45 +972,47 @@
           <span class="bungee">Fiction</span>
           <span class="sub">Combined Print &amp; E-Book</span>
         </div>
-        <div class="nyt-row">
-          <span class="nyt-rank">1</span>
-          <div class="nyt-info">
-            <div class="nyt-title">James</div>
-            <div class="nyt-author">Percival Everett</div>
+        <div id="nyt-fiction-rows">
+          <div class="nyt-row">
+            <span class="nyt-rank">1</span>
+            <div class="nyt-info">
+              <div class="nyt-title">James</div>
+              <div class="nyt-author">Percival Everett</div>
+            </div>
+            <span class="nyt-wks">12 wks</span>
           </div>
-          <span class="nyt-wks">12 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--teal);">2</span>
-          <div class="nyt-info">
-            <div class="nyt-title">The Women</div>
-            <div class="nyt-author">Kristin Hannah</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--teal);">2</span>
+            <div class="nyt-info">
+              <div class="nyt-title">The Women</div>
+              <div class="nyt-author">Kristin Hannah</div>
+            </div>
+            <span class="nyt-wks">28 wks</span>
           </div>
-          <span class="nyt-wks">28 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--gold);">3</span>
-          <div class="nyt-info">
-            <div class="nyt-title">Intermezzo</div>
-            <div class="nyt-author">Sally Rooney</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--gold);">3</span>
+            <div class="nyt-info">
+              <div class="nyt-title">Intermezzo</div>
+              <div class="nyt-author">Sally Rooney</div>
+            </div>
+            <span class="nyt-wks">6 wks</span>
           </div>
-          <span class="nyt-wks">6 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--ink-light);">4</span>
-          <div class="nyt-info">
-            <div class="nyt-title">All Fours</div>
-            <div class="nyt-author">Miranda July</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--ink-light);">4</span>
+            <div class="nyt-info">
+              <div class="nyt-title">All Fours</div>
+              <div class="nyt-author">Miranda July</div>
+            </div>
+            <span class="nyt-wks">9 wks</span>
           </div>
-          <span class="nyt-wks">9 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--ink-light);">5</span>
-          <div class="nyt-info">
-            <div class="nyt-title">The God of the Woods</div>
-            <div class="nyt-author">Liz Moore</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--ink-light);">5</span>
+            <div class="nyt-info">
+              <div class="nyt-title">The God of the Woods</div>
+              <div class="nyt-author">Liz Moore</div>
+            </div>
+            <span class="nyt-wks">3 wks</span>
           </div>
-          <span class="nyt-wks">3 wks</span>
         </div>
       </div>
 
@@ -1015,45 +1022,47 @@
           <span class="bungee">Nonfiction</span>
           <span class="sub">Combined Print &amp; E-Book</span>
         </div>
-        <div class="nyt-row">
-          <span class="nyt-rank">1</span>
-          <div class="nyt-info">
-            <div class="nyt-title">Nexus</div>
-            <div class="nyt-author">Yuval Noah Harari</div>
+        <div id="nyt-nonfiction-rows">
+          <div class="nyt-row">
+            <span class="nyt-rank">1</span>
+            <div class="nyt-info">
+              <div class="nyt-title">Nexus</div>
+              <div class="nyt-author">Yuval Noah Harari</div>
+            </div>
+            <span class="nyt-wks">18 wks</span>
           </div>
-          <span class="nyt-wks">18 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--teal);">2</span>
-          <div class="nyt-info">
-            <div class="nyt-title">Eruption</div>
-            <div class="nyt-author">Michael Crichton &amp; Eric Singer</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--teal);">2</span>
+            <div class="nyt-info">
+              <div class="nyt-title">Eruption</div>
+              <div class="nyt-author">Michael Crichton &amp; Eric Singer</div>
+            </div>
+            <span class="nyt-wks">4 wks</span>
           </div>
-          <span class="nyt-wks">4 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--gold);">3</span>
-          <div class="nyt-info">
-            <div class="nyt-title">Revenge of the Tipping Point</div>
-            <div class="nyt-author">Malcolm Gladwell</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--gold);">3</span>
+            <div class="nyt-info">
+              <div class="nyt-title">Revenge of the Tipping Point</div>
+              <div class="nyt-author">Malcolm Gladwell</div>
+            </div>
+            <span class="nyt-wks">11 wks</span>
           </div>
-          <span class="nyt-wks">11 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--ink-light);">4</span>
-          <div class="nyt-info">
-            <div class="nyt-title">Nuclear War: A Scenario</div>
-            <div class="nyt-author">Annie Jacobsen</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--ink-light);">4</span>
+            <div class="nyt-info">
+              <div class="nyt-title">Nuclear War: A Scenario</div>
+              <div class="nyt-author">Annie Jacobsen</div>
+            </div>
+            <span class="nyt-wks">7 wks</span>
           </div>
-          <span class="nyt-wks">7 wks</span>
-        </div>
-        <div class="nyt-row">
-          <span class="nyt-rank" style="color:var(--ink-light);">5</span>
-          <div class="nyt-info">
-            <div class="nyt-title">Say Nothing</div>
-            <div class="nyt-author">Patrick Radden Keefe</div>
+          <div class="nyt-row">
+            <span class="nyt-rank" style="color:var(--ink-light);">5</span>
+            <div class="nyt-info">
+              <div class="nyt-title">Say Nothing</div>
+              <div class="nyt-author">Patrick Radden Keefe</div>
+            </div>
+            <span class="nyt-wks">82 wks</span>
           </div>
-          <span class="nyt-wks">82 wks</span>
         </div>
       </div>
     </div>
@@ -1463,6 +1472,62 @@
   </section>
 
   <!-- ══════════════════════════════════════════════════════
+       LITERARY ROADS MAP CTA
+  ══════════════════════════════════════════════════════ -->
+  <section class="section" style="padding-top:0;">
+    <div style="
+      display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+      background:#fff; border-radius:10px; padding:22px 28px;
+      border:2px solid var(--teal); position:relative; overflow:hidden;
+    ">
+      <!-- Road stripe accent -->
+      <div style="
+        position:absolute; inset:0; pointer-events:none;
+        background: repeating-linear-gradient(
+          90deg,
+          transparent, transparent 18px,
+          rgba(74,159,165,0.05) 18px, rgba(74,159,165,0.05) 19px
+        );
+      "></div>
+
+      <!-- SVG map pin -->
+      <svg width="48" height="56" viewBox="0 0 48 56" aria-hidden="true" style="flex-shrink:0; position:relative;">
+        <ellipse cx="24" cy="52" rx="10" ry="4" fill="rgba(74,159,165,0.18)"/>
+        <path d="M24 2 C13 2 4 11 4 22 C4 36 24 52 24 52 C24 52 44 36 44 22 C44 11 35 2 24 2Z" fill="var(--teal)"/>
+        <circle cx="24" cy="22" r="9" fill="#fff"/>
+        <!-- mini book icon inside pin -->
+        <rect x="19" y="18" width="5" height="8" rx="0.5" fill="var(--coral)"/>
+        <rect x="24" y="18" width="5" height="8" rx="0.5" fill="var(--teal-dark)"/>
+        <line x1="24" y1="18" x2="24" y2="26" stroke="#fff" stroke-width="1"/>
+      </svg>
+
+      <div style="flex:1; min-width:200px; position:relative;">
+        <div style="font-family:'Bungee',sans-serif; font-size:16px; color:var(--ink); letter-spacing:0.04em; margin-bottom:4px;">
+          Plan Your Next Literary Road Trip
+        </div>
+        <p style="font-size:12px; color:var(--ink-light); line-height:1.7; margin-bottom:0;">
+          Find bookstores, indie cafes, and literary landmarks along any route in America. Save trips, leave guestbook entries, and share the road.
+        </p>
+      </div>
+
+      <a href="/literary-roads/" style="
+        display:inline-flex; align-items:center; gap:8px;
+        font-family:'Bungee',sans-serif; font-size:12px; letter-spacing:0.08em;
+        color:#fff; background:var(--teal-dark); padding:12px 24px;
+        border-radius:4px; text-decoration:none; white-space:nowrap;
+        position:relative;
+        transition:background 0.15s, transform 0.1s;
+      " onmouseover="this.style.background='var(--teal)';this.style.transform='translateY(-2px)';"
+         onmouseout="this.style.background='var(--teal-dark)';this.style.transform='none';">
+        <svg width="14" height="14" viewBox="0 0 30 30" aria-hidden="true">
+          <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#fff"/>
+        </svg>
+        Open Literary Roads
+      </a>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
        BOTTOM ACCENT ROW
   ══════════════════════════════════════════════════════ -->
   <div class="accent-row" style="justify-content:center; padding:20px 0 10px; gap:16px;">
@@ -1512,5 +1577,84 @@
   </div>
 </footer>
 
+<!-- ══════════════════════════════════════════════════════
+     LIVE DATA — reads public/gazette-data.json
+     Updated every Sunday 6 AM ET by GitHub Actions workflow.
+     Falls back silently to hardcoded static content if unavailable.
+══════════════════════════════════════════════════════ -->
+<script>
+  const RANK_COLORS = [
+    'var(--coral)', 'var(--teal)', 'var(--gold)',
+    'var(--ink-light)', 'var(--ink-light)',
+  ];
+
+  function el(id) { return document.getElementById(id); }
+
+  function nytRowsHtml(books) {
+    return books.map((b, i) => `
+      <div class="nyt-row">
+        <span class="nyt-rank" style="color:${RANK_COLORS[i]};">${b.rank}</span>
+        <div class="nyt-info">
+          <div class="nyt-title">${b.title}</div>
+          <div class="nyt-author">${b.author}</div>
+        </div>
+        <span class="nyt-wks">${b.weeksOnList} wk${b.weeksOnList === 1 ? '' : 's'}</span>
+      </div>`).join('');
+  }
+
+  function trendingSideHtml(books) {
+    return books.slice(1, 5).map((b, i) => `
+      <div class="book-card" style="padding:10px;${i > 0 ? ' margin-top:12px;' : ''}">
+        <div class="rank-badge" style="font-size:18px; color:${RANK_COLORS[i + 1]};">${b.rank}</div>
+        <div class="book-cover" style="width:48px; min-width:48px; height:68px;">
+          ${b.coverUrl ? `<img src="${b.coverUrl}" alt="${b.title}" />` : ''}
+        </div>
+        <div class="book-meta">
+          <div class="book-title" style="font-size:11px;">${b.title}</div>
+          <div class="book-author">${b.author}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  async function loadGazetteData() {
+    try {
+      const res = await fetch('gazette-data.json');
+      if (!res.ok) return;
+      const d = await res.json();
+      const dateStr = d.issueDate || '';
+
+      if (el('masthead-issue'))
+        el('masthead-issue').textContent =
+          `Vol. 1 · Issue ${d.issueNumber} · Week of ${dateStr}`;
+      if (el('masthead-dateline'))
+        el('masthead-dateline').innerHTML =
+          `Sunday Edition &nbsp;·&nbsp; ${dateStr} &nbsp;·&nbsp; theliteraryroads.com/newspaper`;
+      if (el('issue-num'))   el('issue-num').textContent   = d.issueNumber;
+      if (el('nyt-date'))    el('nyt-date').textContent    = dateStr;
+
+      const breakout = d.fiction?.[0];
+      if (breakout) {
+        if (el('breakout-img') && breakout.coverUrl) el('breakout-img').src = breakout.coverUrl;
+        if (el('breakout-title'))  el('breakout-title').textContent  = breakout.title;
+        if (el('breakout-byline')) el('breakout-byline').textContent = `${breakout.author} · NYT #1`;
+        if (el('breakout-desc') && breakout.description)
+          el('breakout-desc').textContent = breakout.description;
+        if (el('breakout-wks'))
+          el('breakout-wks').textContent =
+            `${breakout.weeksOnList} wk${breakout.weeksOnList === 1 ? '' : 's'} on list`;
+      }
+
+      if (el('trending-side') && d.fiction?.length > 1)
+        el('trending-side').innerHTML = trendingSideHtml(d.fiction);
+      if (el('nyt-fiction-rows')    && d.fiction)    el('nyt-fiction-rows').innerHTML    = nytRowsHtml(d.fiction);
+      if (el('nyt-nonfiction-rows') && d.nonfiction) el('nyt-nonfiction-rows').innerHTML = nytRowsHtml(d.nonfiction);
+
+    } catch (err) {
+      console.warn('[Gazette] Could not load live data, showing static content.', err);
+    }
+  }
+
+  loadGazetteData();
+</script>
 </body>
 </html>
