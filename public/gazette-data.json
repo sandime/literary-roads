@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "James",
-      "author": "Percival Everett",
-      "weeksOnList": 12,
-      "isbn13": "9780385550369",
-      "description": "A reimagining of Adventures of Huckleberry Finn is told from the perspective of the enslaved Jim.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780385550369&printsec=frontcover&img=1&zoom=1"
+      "title": "JUDGE STONE",
+      "author": "Viola Davis and James Patterson",
+      "weeksOnList": 2,
+      "isbn13": "9780316579834",
+      "description": "Judge Mary Stone oversees an ethically complex case in her courtroom in Union Springs, Ala.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316579834.jpg"
     },
     {
       "rank": 2,
-      "title": "The Women",
-      "author": "Kristin Hannah",
-      "weeksOnList": 28,
-      "isbn13": "9781250178602",
-      "description": "A young woman follows her brother to serve as a nurse in Vietnam and returns to a divided America.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9781250178602&printsec=frontcover&img=1&zoom=1"
+      "title": "THE CORRESPONDENT",
+      "author": "Virginia Evans",
+      "weeksOnList": 21,
+      "isbn13": "9780593798430",
+      "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
       "rank": 3,
-      "title": "Intermezzo",
-      "author": "Sally Rooney",
-      "weeksOnList": 6,
-      "isbn13": "9780374611347",
-      "description": "Two brothers navigate grief, love, and family in the aftermath of their father's death.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780374611347&printsec=frontcover&img=1&zoom=1"
+      "title": "BLOODLUST",
+      "author": "Sandra Brown",
+      "weeksOnList": 1,
+      "isbn13": "9781538743027",
+      "description": "The mutual attraction between Detective Mitch Haskell and his therapist may hinder his attempt to avenge his murdered wife.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538743027.jpg"
     },
     {
       "rank": 4,
-      "title": "Orbital",
-      "author": "Samantha Harvey",
-      "weeksOnList": 9,
-      "isbn13": "9780802164162",
-      "description": "Six astronauts orbit the earth sixteen times in twenty-four hours, watching the planet below.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780802164162&printsec=frontcover&img=1&zoom=1"
+      "title": "MY HUSBAND'S WIFE",
+      "author": "Alice Feeney",
+      "weeksOnList": 8,
+      "isbn13": "9781250337818",
+      "description": "In an old house in a seaside town, things may not be what they appear to be.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250337818.jpg"
     },
     {
       "rank": 5,
-      "title": "All Fours",
-      "author": "Miranda July",
-      "weeksOnList": 9,
-      "isbn13": "9780593655702",
-      "description": "A woman in her mid-forties sets out on a road trip from Los Angeles to New York.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780593655702&printsec=frontcover&img=1&zoom=1"
+      "title": "INNAMORATA",
+      "author": "Ava Reid",
+      "weeksOnList": 1,
+      "isbn13": "9780593722596",
+      "description": "Passion and revenge fuel Agnes as she seeks to recapture her family’s honor.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593722596.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "Nexus",
-      "author": "Yuval Noah Harari",
-      "weeksOnList": 18,
-      "isbn13": "9780593905685",
-      "description": "A brief history of information networks from the Stone Age to artificial intelligence.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780593905685&printsec=frontcover&img=1&zoom=1"
+      "title": "STRIPPED DOWN",
+      "author": "Bunnie Xo",
+      "weeksOnList": 5,
+      "isbn13": "9780063445192",
+      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
     },
     {
       "rank": 2,
-      "title": "Eruption",
-      "author": "Michael Crichton & Eric Singer",
-      "weeksOnList": 4,
-      "isbn13": "9780063420533",
-      "description": "When Hawaii's Mauna Loa volcano threatens to erupt, a team races to prevent catastrophe.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780063420533&printsec=frontcover&img=1&zoom=1"
+      "title": "STRANGERS",
+      "author": "Belle Burden",
+      "weeksOnList": 9,
+      "isbn13": "9780593733318",
+      "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 3,
-      "title": "Revenge of the Tipping Point",
-      "author": "Malcolm Gladwell",
-      "weeksOnList": 11,
-      "isbn13": "9780316575805",
-      "description": "An examination of the dark side of social epidemics and the tipping point concept.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780316575805&printsec=frontcover&img=1&zoom=1"
+      "title": "YOU WITH THE SAD EYES",
+      "author": "Christina Applegate",
+      "weeksOnList": 3,
+      "isbn13": "9780316594929",
+      "description": "The Emmy Award-winning actress, who received a multiple sclerosis diagnosis in 2021, shares personal stories.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316594929.jpg"
     },
     {
       "rank": 4,
-      "title": "Nuclear War: A Scenario",
-      "author": "Annie Jacobsen",
-      "weeksOnList": 7,
-      "isbn13": "9780593476093",
-      "description": "A minute-by-minute account of what would happen if nuclear war broke out.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780593476093&printsec=frontcover&img=1&zoom=1"
+      "title": "KIDS, WAIT TILL YOU HEAR THIS!",
+      "author": "Liza Minnelli, as told to Michael Feinstein, with Josh Getlin and Heidi Evans",
+      "weeksOnList": 2,
+      "isbn13": "9781538773666",
+      "description": "The EGOT icon shares some of the highs and lows of her life and career.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773666.jpg"
     },
     {
       "rank": 5,
-      "title": "Say Nothing",
-      "author": "Patrick Radden Keefe",
-      "weeksOnList": 82,
-      "isbn13": "9780385521352",
-      "description": "A true story of murder and memory in Northern Ireland.",
-      "coverUrl": "https://books.google.com/books/content?vid=ISBN:9780385521352&printsec=frontcover&img=1&zoom=1"
+      "title": "CHAIN OF IDEAS",
+      "author": "Ibram X. Kendi",
+      "weeksOnList": 1,
+      "isbn13": "9780593978023",
+      "description": "The author of “How to Be an Antiracist” and “Stamped From the Beginning” examines the impact of great replacement theory.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593978023.jpg"
     }
   ],
-  "issueDate": "Sunday, March 30, 2026",
-  "issueNumber": 12,
-  "updatedAt": "2026-03-30T10:00:00.000Z"
+  "issueDate": "Saturday, March 28, 2026",
+  "issueNumber": 64,
+  "updatedAt": "2026-03-28T23:18:58.701Z"
 }
