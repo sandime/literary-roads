@@ -4,12 +4,14 @@
   <meta charset="utf-8">
   <title>The Literary Roads</title>
   <script>
-    // GitHub Pages SPA redirect — preserves the full path for React Router
+    // GitHub Pages SPA redirect — encodes the route for index.html to restore
+    // base = /literary-roads, route = /gazette → redirects to /literary-roads/?/gazette
     var l = window.location;
+    var base  = l.pathname.split('/').slice(0, 2).join('/');   // /literary-roads
+    var route = l.pathname.split('/').slice(2).join('/');       // gazette (or route/id)
     l.replace(
       l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
-      l.pathname.split('/').slice(0, 2).join('/') +
-      '/?p=' + l.pathname.slice(1).replace(/&/g, '~and~') +
+      base + '/?/' + route.replace(/&/g, '~and~') +
       (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
       l.hash
     );
