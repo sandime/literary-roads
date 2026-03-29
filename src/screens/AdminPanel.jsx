@@ -414,13 +414,12 @@ export default function AdminPanel() {
           <p style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, margin: 0 }}>Literary Roads Newsletter</p>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, alignItems: 'center' }}>
-          <a
-            href={`${BASE.replace(/\/$/, '')}/newsletter`}
-            target="_blank" rel="noopener noreferrer"
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em', padding: '7px 13px', borderRadius: 6, border: `1px solid ${C.teal}`, color: C.teal, textDecoration: 'none' }}
+          <button
+            onClick={() => navigate('/newsletter')}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em', padding: '7px 13px', borderRadius: 6, border: `1px solid ${C.teal}`, background: 'transparent', color: C.teal, cursor: 'pointer' }}
           >
             PREVIEW
-          </a>
+          </button>
           <button
             onClick={() => navigate('/')}
             style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em', padding: '7px 13px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer' }}

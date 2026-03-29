@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -833,6 +834,7 @@ const PlaceSearch = ({ onSelect }) => {
 
 const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowBookLog, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
   // Determine initial UI mode — go to explore if there's existing route/state data
@@ -2277,11 +2279,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   {user.uid === ADMIN_UID && (
                     <>
                       <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
-                      <a
-                        href="/literary-roads/gazette"
-                        onClick={() => setShowUserMenu(false)}
+                      <button
+                        onClick={() => { setShowUserMenu(false); navigate('/gazette'); }}
                         className="font-bungee w-full text-left"
-                        style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FFD166', background:'transparent', textDecoration:'none', transition:'background 0.15s' }}
+                        style={{ display:'flex', alignItems:'center', gap:'10px', padding:'11px 14px', fontSize:'11px', letterSpacing:'0.05em', color:'#FFD166', background:'transparent', border:'none', cursor:'pointer', transition:'background 0.15s' }}
                         onMouseEnter={(e) => e.currentTarget.style.background='rgba(255,209,102,0.08)'}
                         onMouseLeave={(e) => e.currentTarget.style.background='transparent'}
                       >
@@ -2289,7 +2290,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         GAZETTE ADMIN
-                      </a>
+                      </button>
                     </>
                   )}
                   <div style={{ height:'1px', background:'rgba(64,224,208,0.1)', margin:'0 10px' }} />
