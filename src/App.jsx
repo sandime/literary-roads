@@ -21,6 +21,8 @@ import Badges from './screens/Badges';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import EthicsModal from './components/EthicsModal';
 import AdminUpload from './screens/AdminUpload';
+import AdminPanel from './screens/AdminPanel';
+import NewsletterPreview from './screens/NewsletterPreview';
 import './App.css';
 
 function AppInner() {
@@ -307,6 +309,8 @@ function App() {
       <Routes>
         <Route path="/route/:routeId" element={<SharedRoutePage />} />
         <Route path="/admin" element={<AdminUpload />} />
+        <Route path="/gazette" element={<AdminPanel />} />
+        <Route path="/newsletter" element={<NewsletterPreview />} />
         <Route path="*" element={<AppInner />} />
       </Routes>
     </AuthProvider>
