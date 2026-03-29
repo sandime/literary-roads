@@ -1127,8 +1127,51 @@ export default function Resources({ onBack }) {
         {/* ── SURPRISE ME ── */}
         <SurpriseMe user={user} />
 
-        {/* ── WANT TO READ CAROUSEL ── */}
-        <WantToReadCarousel user={user} />
+        {/* ── NEWSPAPER ── */}
+        <section style={{ marginBottom: '44px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+            <svg width="22" height="22" viewBox="0 0 30 30" aria-hidden="true" style={{ flexShrink: 0 }}>
+              <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#FF4E00"/>
+            </svg>
+            <h2 style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
+              color: '#FF4E00', letterSpacing: '0.08em', margin: 0,
+              textShadow: '0 0 12px rgba(255,78,0,0.5)', whiteSpace: 'nowrap',
+            }}>
+              NEWSPAPER
+            </h2>
+            <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(255,78,0,0.4), transparent)' }} />
+          </div>
+          <div style={{
+            background: 'rgba(255,78,0,0.04)',
+            border: '1px solid rgba(255,78,0,0.25)',
+            borderRadius: '12px',
+            padding: '20px',
+          }}>
+            <p style={{
+              fontFamily: 'Special Elite, serif', fontSize: '13px',
+              color: 'rgba(245,241,235,0.85)', lineHeight: '1.75',
+              marginBottom: '16px',
+            }}>
+              Read the Literary Roads Gazette — a weekly literary newspaper for readers who love the road.
+              Trending books, indie picks, debut authors, festivals, and road trip routes — every Sunday.
+            </p>
+            <a
+              href={`${import.meta.env.BASE_URL}newspaper.html`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-block',
+                fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.08em',
+                color: '#1A1B2E', background: '#FF4E00',
+                padding: '10px 22px', borderRadius: '4px', textDecoration: 'none',
+                transition: 'background 0.15s',
+              }}
+            >
+              READ THE GAZETTE
+            </a>
+          </div>
+        </section>
 
         {/* ── YOUR FAVORITES ── */}
         {user && favPodcasts.length > 0 && (

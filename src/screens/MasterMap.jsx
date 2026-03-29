@@ -912,6 +912,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showInfoMenu, setShowInfoMenu] = useState(false);
   const infoMenuRef = useRef(null);
   const journeysMenuRef = useRef(null);
+  const [dcPillPos, setDcPillPos] = useState(null); // null = default CSS position
 
   useEffect(() => {
     if (!showUserMenu) return;
@@ -1955,9 +1956,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
             </svg>
-            {tripItems.length > 0 && (
+            {(tripItems.length + savedStops.length + savedRoutes.length) > 0 && (
               <span className="absolute top-1 right-1 bg-atomic-orange text-midnight-navy font-bungee text-[9px] w-3.5 h-3.5 rounded-full flex items-center justify-center leading-none">
-                {tripItems.length > 9 ? '9+' : tripItems.length}
+                {(tripItems.length + savedStops.length + savedRoutes.length) > 9 ? '9+' : (tripItems.length + savedStops.length + savedRoutes.length)}
               </span>
             )}
           </button>
@@ -2160,9 +2161,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
               </svg>
-              {tripItems.length > 0 && (
+              {(tripItems.length + savedStops.length + savedRoutes.length) > 0 && (
                 <span className="absolute -top-0.5 right-0.5 bg-atomic-orange text-midnight-navy font-bungee text-xs w-4 h-4 rounded-full flex items-center justify-center leading-none">
-                  {tripItems.length > 9 ? '9+' : tripItems.length}
+                  {(tripItems.length + savedStops.length + savedRoutes.length) > 9 ? '9+' : (tripItems.length + savedStops.length + savedRoutes.length)}
                 </span>
               )}
             </button>
@@ -2574,18 +2575,49 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       ══════════════════════════════════════════════ */}
       {uiMode === 'stateSelect' && (
         <>
-          {/* D.C. button — too small to reliably click on the map; jumps straight to explore */}
+          {/* D.C. button — draggable; too small to reliably click on the map */}
           <button
             onClick={handleExploreDC}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+              let moved = false;
+              const onMove = (me) => { moved = true; setDcPillPos({ top: me.clientY - offY, left: me.clientX - offX }); };
+              const onUp = (ue) => {
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+                if (moved) ue.stopPropagation();
+              };
+              window.addEventListener('mousemove', onMove);
+              window.addEventListener('mouseup', onUp);
+            }}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+              const rect = e.currentTarget.getBoundingClientRect();
+              const offX = touch.clientX - rect.left, offY = touch.clientY - rect.top;
+              let moved = false;
+              const onMove = (te) => { moved = true; te.preventDefault(); const t = te.touches[0]; setDcPillPos({ top: t.clientY - offY, left: t.clientX - offX }); };
+              const onEnd = () => {
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('touchend', onEnd);
+              };
+              window.addEventListener('touchmove', onMove, { passive: false });
+              window.addEventListener('touchend', onEnd);
+            }}
             className="font-bungee"
             style={{
-              position: 'fixed', top: '4.5rem', right: '1rem', zIndex: 1002,
+              position: 'fixed',
+              top:   dcPillPos ? dcPillPos.top  : '4.5rem',
+              left:  dcPillPos ? dcPillPos.left : undefined,
+              right: dcPillPos ? undefined       : '1rem',
+              zIndex: 1002,
               padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
               border: '2px solid rgba(64,224,208,0.4)',
               background: 'rgba(26,27,46,0.92)',
               color: '#F5F5DC',
-              cursor: 'pointer', backdropFilter: 'blur(4px)',
-              transition: 'all 0.2s',
+              cursor: 'grab', backdropFilter: 'blur(4px)',
+              userSelect: 'none', touchAction: 'none',
             }}
           >
             EXPLORE D.C.
@@ -3419,6 +3451,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           onShareRoute={(r) => { setShareRouteData(r); setShowShareModal(true); }}
           savedStops={savedStops}
           onRemoveSaved={handleUnsaveStop}
+          onShareSaved={(stop) => {
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${stop.lat},${stop.lng}`;
+            const text = stop.address ? `${stop.name} — ${stop.address}` : stop.name;
+            if (navigator.share) {
+              navigator.share({ title: stop.name, text, url: mapsUrl }).catch(() => {});
+            } else {
+              window.open(mapsUrl, '_blank');
+            }
+          }}
         />
       )}
 

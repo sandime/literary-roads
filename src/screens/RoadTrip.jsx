@@ -8,7 +8,7 @@ const TYPE_BADGE = {
   park: 'PARK', restaurant: 'RESTAURANT',
 };
 
-const StopCard = ({ item, onSelect, onRemove, badge }) => (
+const StopCard = ({ item, onSelect, onRemove, onShare, badge }) => (
   <div
     onClick={() => onSelect?.(item)}
     className="bg-black/40 border border-starlight-turquoise/40 hover:border-starlight-turquoise rounded-lg p-4 relative transition-colors cursor-pointer"
@@ -36,10 +36,24 @@ const StopCard = ({ item, onSelect, onRemove, badge }) => (
         )}
       </div>
     </div>
+    {onShare && (
+      <div className="mt-3 flex justify-end" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={() => onShare(item)}
+          className="bg-atomic-orange/10 border border-atomic-orange text-atomic-orange font-bungee text-xs py-1.5 px-3 rounded-lg hover:bg-atomic-orange hover:text-midnight-navy transition-all flex items-center gap-1"
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          SHARE
+        </button>
+      </div>
+    )}
   </div>
 );
 
-const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute, onShareRoute, savedStops = [], onRemoveSaved }) => {
+const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRoutes = [], onLoadRoute, onDeleteRoute, onRenameRoute, onShareRoute, savedStops = [], onRemoveSaved, onShareSaved }) => {
   const [activeTab, setActiveTab] = useState('routes');
 
   return (
@@ -157,7 +171,9 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
                   </p>
                   {savedStops.map((item) => (
                     <StopCard key={item.id} item={item} onSelect={onSelectStop}
-                      onRemove={() => onRemoveSaved?.(item.id)} badgeColor="starlight-turquoise" badge="★" />
+                      onRemove={() => onRemoveSaved?.(item.id)}
+                      onShare={onShareSaved ? () => onShareSaved(item) : undefined}
+                      badgeColor="starlight-turquoise" badge="★" />
                   ))}
                 </>
               )}

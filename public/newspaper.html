@@ -807,12 +807,10 @@
 
     <!-- Right accent -->
     <div class="masthead-accents-right">
-      <div class="float">
-        <div class="issue-badge">
-          <span class="num" id="issue-num">12</span>
-          <span class="lbl">ISSUE</span>
-        </div>
-      </div>
+      <img src="images/newspaper-cat.png" alt="Literary Roads Gazette"
+        style="width:clamp(56px,8vw,96px); height:auto; border-radius:8px; display:block;
+               animation:float-slow 4s ease-in-out infinite;
+               box-shadow:0 4px 18px rgba(0,0,0,0.25); max-height:90px; object-fit:contain;" />
     </div>
   </div>
 
@@ -826,6 +824,7 @@
     <a href="#festivals"  class="nav-link">Festivals</a>
     <a href="#trip"       class="nav-link">Trip Reports</a>
     <a href="#subscribe"  class="nav-link">Subscribe</a>
+    <a href="/literary-roads/" class="nav-link" style="color:var(--coral); border-bottom-color:transparent; font-weight:700;">&#9658; Explore Map</a>
   </nav>
 </div>
 
@@ -1629,7 +1628,6 @@
       if (el('masthead-dateline'))
         el('masthead-dateline').innerHTML =
           `Sunday Edition &nbsp;·&nbsp; ${dateStr} &nbsp;·&nbsp; theliteraryroads.com/newspaper`;
-      if (el('issue-num'))   el('issue-num').textContent   = d.issueNumber;
       if (el('nyt-date'))    el('nyt-date').textContent    = dateStr;
 
       const breakout = d.fiction?.[0];

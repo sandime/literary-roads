@@ -158,7 +158,7 @@ function ShelfUnit({ shelf, onNavigate, count }) {
 }
 
 // ── Cat link to Gazette ───────────────────────────────────────────────────────
-function CatLink() {
+function CatLink({ size = 180 }) {
   const [hov, setHov] = useState(false);
   return (
     <a
@@ -168,13 +168,13 @@ function CatLink() {
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
       style={{
-        display: 'block', position: 'relative',
-        borderRadius: 12, textDecoration: 'none',
-        transform: hov ? 'scale(1.04)' : 'scale(1)',
+        display: 'block', position: 'relative', flexShrink: 0,
+        borderRadius: size <= 60 ? 8 : 12, textDecoration: 'none',
+        transform: hov ? 'scale(1.06)' : 'scale(1)',
         transition: 'transform 0.22s ease',
         boxShadow: hov
-          ? `0 0 0 3px ${L.coral}, 0 10px 32px rgba(255,107,122,0.28)`
-          : '0 8px 28px rgba(0,0,0,0.12)',
+          ? `0 0 0 2px ${L.coral}, 0 6px 20px rgba(255,107,122,0.3)`
+          : 'none',
       }}
       title="Read The Literary Roads Gazette"
     >
@@ -182,24 +182,11 @@ function CatLink() {
         src={`${import.meta.env.BASE_URL}images/library-cat.png`}
         alt="Library cat reading in a chair"
         style={{
-          width: '100%', maxWidth: 180, height: 'auto',
-          borderRadius: 12, display: 'block',
+          width: size, height: size, objectFit: 'contain',
+          borderRadius: size <= 60 ? 8 : 12, display: 'block',
           animation: 'lib-float 4s ease-in-out infinite',
         }}
       />
-      {hov && (
-        <div style={{
-          position: 'absolute', bottom: 8, left: 0, right: 0,
-          textAlign: 'center',
-          fontFamily: 'Bungee, sans-serif', fontSize: 9,
-          letterSpacing: '0.1em', color: '#fff',
-          background: L.coral,
-          padding: '4px 0',
-          borderRadius: '0 0 10px 10px',
-        }}>
-          READ THE GAZETTE
-        </div>
-      )}
     </a>
   );
 }
@@ -221,13 +208,18 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
           from { transform: rotate(0deg); }
           to   { transform: rotate(360deg); }
         }
+        .lib-header-cat { display: none; }
+        @media (max-width: 540px) {
+          .lib-right-col { display: none !important; }
+          .lib-header-cat { display: block; }
+        }
       `}</style>
 
       {/* Sticky header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 10,
         background: L.cream, borderBottom: `2px solid ${L.turquoise}`,
-        padding: '12px 16px',
+        padding: '10px 16px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 680, margin: '0 auto' }}>
           <button
@@ -247,7 +239,7 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
           <h1 style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 16, color: L.turquoise, letterSpacing: '0.06em' }}>
             Literary Roads Library
           </h1>
-          <div style={{ width: 56 }} />
+          <div className="lib-header-cat"><CatLink size={44} /></div>
         </div>
       </div>
 
@@ -287,14 +279,14 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
             </div>
           </div>
 
-          {/* Right column: cat + accents */}
-          <div style={{ flex: '0 0 180px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          {/* Right column: cat + accents (desktop only) */}
+          <div className="lib-right-col" style={{ flex: '0 0 160px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
               <Starburst color={L.gold}  size={28} />
               <Starburst color={L.coral} size={18} />
             </div>
 
-            <CatLink />
+            <CatLink size={160} />
 
             <p style={{
               fontFamily: 'Special Elite, serif', fontSize: 12,
@@ -309,21 +301,6 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
               <Ring      color={L.peach}    size={20} />
               <Trapezoid color={L.turquoise} size={32} />
               <Diamond   color={L.sparkle3} size={14} />
-            </div>
-
-            {/* Mid-century decorative badge */}
-            <div style={{
-              marginTop: 8, padding: '10px 14px',
-              border: `2px solid ${L.turquoise}`,
-              borderRadius: '50%',
-              width: 100, height: 100,
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-              background: L.white,
-              boxShadow: `0 0 0 4px ${L.cream}, 0 0 0 6px rgba(56,197,197,0.25)`,
-            }}>
-              <p style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 8, color: L.turquoise, letterSpacing: '0.1em', textAlign: 'center' }}>EST.</p>
-              <p style={{ margin: '2px 0', fontFamily: 'Bungee, sans-serif', fontSize: 18, color: L.coral, lineHeight: 1 }}>LR</p>
-              <p style={{ margin: 0, fontFamily: 'Special Elite, serif', fontSize: 7, color: L.dark, textAlign: 'center', lineHeight: 1.3 }}>LITERARY ROADS</p>
             </div>
           </div>
         </div>

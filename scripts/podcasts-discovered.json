@@ -47,21 +47,6 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/aecf5c1624de441b8ac7ad785225642b/"
   },
   {
-    "id": "all-the-books",
-    "title": "All the Books!",
-    "host": "Book Riot",
-    "description": "All the Books! is a weekly show of recommendations and enthusiasm regarding the week's new book releases.",
-    "url": "https://bookriot.com/listen/shows/allthebooks/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Music"
-    ],
-    "emoji": "📚",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id993284374",
-    "_listenNotesUrl": "https://www.listennotes.com/c/edbab07a1b504cb89d1732d241ea6510/"
-  },
-  {
     "id": "alzabo-soup",
     "title": "Alzabo Soup",
     "host": "Philip Armstrong and Andrew Metzroth",
@@ -93,21 +78,6 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/c8c14e97f8b54990882d32369699ae16/"
   },
   {
-    "id": "ask-penguin",
-    "title": "Ask Penguin",
-    "host": "Penguin Books UK",
-    "description": "What should I read next? Ask Penguin is the podcast where your quirkiest, trickiest, and most urgent book questions get answered. Hosted by Rhianna Dhillon, we bring bestselling authors and Penguin insiders to explore some of your favourite books and discover new ones that you are yet to read.&nbsp; Hosted on Acast. See acast.com/privacy for more information.",
-    "url": "https://www.penguin.co.uk/discover/podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Music"
-    ],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id89411073",
-    "_listenNotesUrl": "https://www.listennotes.com/c/88730ff07125497ebe1002c3d0efe709/"
-  },
-  {
     "id": "authors-who-lead-learn-to-write-a-book-from-bestselling-authors-and-leaders",
     "title": "Authors Who Lead - Learn to write a book from bestselling authors and leaders",
     "host": "Azul Terronez - Author, TEDx Speaker, Coach",
@@ -136,6 +106,19 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/71011adbeb0d4f1492c6aa748f80d095/"
   },
   {
+    "id": "bibliophile-book-talk-and-recommendations-from-independent-booksellers",
+    "title": "Bibliophile | Book talk and recommendations from independent booksellers",
+    "host": "Golden Hare Books",
+    "description": "Each month, three booksellers – David Bloomfield, Julie Danskin and Jonathan “JT” Taylor – discuss current reads, topics from the book world and home in on one book each month. Plus more recommendations than you can handle. (Each episode is recorded after hours at Golden Hare Books, an independent bookshop in Edinburgh, Scotland.)",
+    "url": "https://flat.lowerthenskyactive.ga/det.php?m=421%2Fblog%2F&utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "🏪",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1247128584",
+    "_listenNotesUrl": "https://www.listennotes.com/c/7b1514a104554927b6dbc9bdd1c870c5/"
+  },
+  {
     "id": "book-fare-book-club-fun-wholesome-recommendations-deep-discussions",
     "title": "Book Fare: Book Club Fun, Wholesome Recommendations, Deep Discussions",
     "host": "Book Fare: Book Club Fun, Wholesome Recommendations, Deep Discussions",
@@ -147,6 +130,19 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id1604023656",
     "_listenNotesUrl": "https://www.listennotes.com/c/0947c7c762664d6dbf875e82cbbad57d/"
+  },
+  {
+    "id": "book-news",
+    "title": "Book News",
+    "host": "Book News",
+    "description": "We review all kinds of books and talk about them.",
+    "url": "https://podcasters.spotify.com/pod/show/book-news?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "📚",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1558855513",
+    "_listenNotesUrl": "https://www.listennotes.com/c/ab4337044aac4147bacafa427212adee/"
   },
   {
     "id": "book-recommendations-for-teens",
@@ -162,6 +158,19 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/38456e0cf51044d198450f374b23e491/"
   },
   {
+    "id": "book-reviews-recommendations-with-cherry-picking-books",
+    "title": "Book Reviews & Recommendations with Cherry Picking Books",
+    "host": "Cherry Picking Books",
+    "description": "Are you a book nerd? Do you live and breathe for books? Is your dream to build a personal library of the most amazing books at home? Then join us at Cherry Picking Books, as we recommend one good book every week!",
+    "url": "https://podcasters.spotify.com/pod/show/cherry-picking-books?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "📚",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1567668118",
+    "_listenNotesUrl": "https://www.listennotes.com/c/eb97bb1788f648d99b8f2ea395820c60/"
+  },
+  {
     "id": "bookaholic-author-interviews-book-reviews-book-news",
     "title": "Bookaholic | Author Interviews | Book Reviews | Book News",
     "host": "Deirdre Pippins",
@@ -173,6 +182,21 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id1548158262",
     "_listenNotesUrl": "https://www.listennotes.com/c/50c0342128c442f1a60886ee729c89bd/"
+  },
+  {
+    "id": "brianna-wiest",
+    "title": "Brianna Wiest",
+    "host": "Brianna Wiest",
+    "description": "Brianna is the bestselling author of the books 101 Essays The Will Change The Way You Think, The Mountain Is You, Salt Water, Ceremony, When You're Ready, This Is How You Heal, and more. Her books have sold over 1 million copies worldwide, regularly appear on global bestseller lists, and are currently being translated into 20+ languages. Discover your inner potential with Brianna Wiest's transformative podcast, where she shares powerful insights on emotional intelligence, mental health, and personal growth.",
+    "url": "https://thoughtcatalog.com/brianna-wiest/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Social Sciences"
+    ],
+    "emoji": "🎙️",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1684811111",
+    "_listenNotesUrl": "https://www.listennotes.com/c/128230d444be48c3adb9e777041ca4ae/"
   },
   {
     "id": "c-span-bookshelf",
@@ -201,6 +225,23 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id1102235260",
     "_listenNotesUrl": "https://www.listennotes.com/c/d49a36e668844c09a519d99c36d2a815/"
+  },
+  {
+    "id": "clean-christian-books-reading-list-book-club-books-to-read-tbr-reader",
+    "title": "Clean Christian Books | Reading List, Book Club, Books to Read, TBR, Reader",
+    "host": "Kassidy Griffin | Book Club Host, Book Recommendations",
+    "description": "Do you feel stuck in the “too many books, not enough time” cliche? Wanting to read more, but struggling to find time to actually sit down and read when no one is on top of you? Have you ever felt overwhelmed by book choices and stressed over what to read next? You’re tired of starting a book only to close it because it doesn’t align with your values, leaving you feeling like you wasted time and money. Welcome to Clean Christian Books, where we build a reading life that feels happy, relaxing, and aligned with your values again. I’ll help you find time to read, choose clean books you can trust before you start, and enjoy stories that feel like a true escape without guilt. This is a space for thoughtful reading, shared recommendations, and books that stay with you. Hey, I’m Kassidy. I’m a wife, a mom, a lifelong reader, and my faith matters deeply to me. After kids, I tried to keep reading the way I always had, and it just wasn’t working anymore. I was wasting time on the wrong books, feeling overwhelmed by choices, and constantly guessing if a story would align with my values. I finally realized that if I was going to enjoy reading again, it couldn’t feel rushed or stressful. I simplified how I read and focused on clean books I could trust from the start. Now reading feels relaxing and life-giving. And I’m excited to help you build that kind of reading life, too. If you’re ready to stop guessing, choose clean books you can trust, and build a reading life that feels happy, relaxing, and worth your time, you’re in the right place. Inside the podcast and our book club community, we read for escape, slow down with stories, and talk about books that actually stay with us. You’ll find trusted recommendations, simple ways to find time to read, and stories that are entertaining with purpose. Grab your cozy blanket and a warm drink; this is where reading gets fun again. Ready for Your Next Cozy Chapter? Come join our Clean &amp; Christian Readers Facebook group: www.fruitfulreader.com/group Become a member of Cozy Escape Book Club: www.fruitfulreader.com/bookclub Discover your next clean read: www.fruitfulreader.com Reach out and say hello: kassidy@fruitfulreader.com",
+    "url": "https://www.fruitfulreader.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Design",
+      "Visual Arts",
+      "Society & Culture"
+    ],
+    "emoji": "🧸",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1879320743",
+    "_listenNotesUrl": "https://www.listennotes.com/c/e8e4b89e2a724af0a1c9c9dbfd38e20c/"
   },
   {
     "id": "coffee-with-cole-the-digital-writing-podcast",
@@ -247,25 +288,23 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/8b2ea530707948179f908d2846c309aa/"
   },
   {
-    "id": "curious-matter-anthology",
-    "title": "Curious Matter Anthology",
-    "host": "Knightsville Workshop",
-    "description": "Curious Matter Anthology is a multi-award-winning fiction podcast that adapts stories from the world’s best Sci-fi and Horror writers into fully immersive audio movies. Strap in and let your ears take you on an adventure to the most imaginative places in the literary universe. Season 3 takes a bold leap forward. We've transitioned to a seasonal anthology format, dedicating the entire season to a single epic story titled \"The Exile.\" This audacious adventure will take listeners to the fledgling colony of Mars, where humanity's fate hangs in the balance and includes sounds recorded on the surface of the Red Planet by the NASA Perserverence Rover in its immersive sound design. The Exile stars Tiffany Smith and features an all-star ensemble cast including Phil LaMarr, Tracie Thoms, Kevin Smith, Tricia Helfer, Eugene Byrd, Colin Ferguson, Anjali Bhimani, Todd Stashwick, Malcolm Barrett, Milana Vayntrub, Raymond Lee, Caitlin Bassett and many more.",
-    "url": "https://www.curiousmatterpodcast.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "id": "covidtime-book-recommendations",
+    "title": "Covidtime Book Recommendations",
+    "host": "Mae",
+    "description": "A podcast about books for kids, by a kid! As a quarantine project, a kid (Mae) makes a podcast about what many people have spent time doing recently: reading!",
+    "url": "https://podcasters.spotify.com/pod/show/nicole1365?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
     "rssUrl": "",
-    "tags": [
-      "Society & Culture"
-    ],
-    "emoji": "✍️",
+    "tags": [],
+    "emoji": "🧸",
     "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1483545385",
-    "_listenNotesUrl": "https://www.listennotes.com/c/61a42d2c440246b48941efa3f6f44c23/"
+    "_apple": "https://podcasts.apple.com/podcast/id1563570500",
+    "_listenNotesUrl": "https://www.listennotes.com/c/a8d13885836a4af98a1d18730a98be63/"
   },
   {
     "id": "ear-biscuits-with-rhett-link",
     "title": "Ear Biscuits with Rhett & Link",
     "host": "Mythical",
-    "description": "Join Rhett & Link, hosts of the popular daily YouTube show Good Mythical Morning and authors of the New York Times bestseller “Book of Mythicality” in a candid weekly conversation for your Internetainment.",
+    "description": "Join Rhett & Link, hosts of the popular daily YouTube show Good Mythical Morning and authors of the New York Times bestseller “Book of Mythicality” in a candid weekly conversation for your Internetainment. Check out more on https://x.com/Mythical",
     "url": "",
     "rssUrl": "",
     "tags": [
@@ -326,6 +365,22 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/22d485e141a143dcb38aa5e5b586c7f7/"
   },
   {
+    "id": "great-books-distilled-summaries-of-bestselling-business-and-investing-books",
+    "title": "Great Books Distilled: Summaries of Bestselling Business and Investing Books",
+    "host": "Outlier Academy",
+    "description": "Listen as we decode bestselling books across disciplines with their authors — distilling hours of reading into a short, definitive conversation. We break down the big ideas, how to apply them, and take you behind the scenes into the process of writing the book. Past guests include Yale professor Verlyn Klinkenborg (Several Short Sentences About Writing), polar explorer Erling Kagge (In Praise of Silence and Philosophy for Polar Explorers), survival expert Laurence Gonzales (Deep Survival), geopolitical expert Jacob Halberg (The Wires of Ware), 1-800-GOT-JUNK founder Brian Scudamore (WTF?! - Willing To Fail), and renowned investor Sir Ronald Cohen (IMPACT). Visit OutlierAcademy.com for episode notes, searchable transcripts, videos, and more. Great Books Distilled is a mix of The Knowledge Project, Founders, Oprah's Book Club, and The Tim Ferriss Show.",
+    "url": "https://www.outlieracademy.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Social Sciences",
+      "Philosophy"
+    ],
+    "emoji": "🎙️",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1650090188",
+    "_listenNotesUrl": "https://www.listennotes.com/c/0059e4a3f63e479c8bdbcee04f07a180/"
+  },
+  {
     "id": "hardcore-literature",
     "title": "Hardcore Literature",
     "host": "Benjamin McEvoy",
@@ -370,21 +425,6 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/9d4942f6ae304da78f15ea726617f28e/"
   },
   {
-    "id": "id-rather-be-writing-podcast",
-    "title": "I'd Rather Be Writing Podcast",
-    "host": "Tom Johnson",
-    "description": "A technical writing podcast about the latest trends and practices in the field of technical communication. Technical communication includes topics like technical writing (software help), AI, information architecture, usability, API documentation, information design, web design, illustration, DITA, structured authoring, content strategy, visual communication, and more. If you're a technical writer or interested in technical writing, this is the one of few podcasts in this niche. I also have a blog at https://idratherbewriting.com where the podcasts and other blog topics are published. For an index of all podcasts, see https://idratherbewriting.com/podcasts.",
-    "url": "https://idratherbewriting.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Social Sciences"
-    ],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id277365275",
-    "_listenNotesUrl": "https://www.listennotes.com/c/2cd8afd70b314426a0936c63ca12280c/"
-  },
-  {
     "id": "if-books-could-kill",
     "title": "If Books Could Kill",
     "host": "Michael Hobbes & Peter Shamshiri",
@@ -409,21 +449,6 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id1440334876",
     "_listenNotesUrl": "https://www.listennotes.com/c/92dca9298f064ca79b658d50fda5bfa5/"
-  },
-  {
-    "id": "its-storytime-with-wil-wheaton",
-    "title": "It's Storytime with Wil Wheaton",
-    "host": "Wil Wheaton",
-    "description": "You may recognize Wil Wheaton's name from his acting work in television shows like The Big Bang Theory, Leverage, and Star Trek: The Next Generation, or 1985's timeless classic, Stand By Me. You may recognize his voice from one of the many audio books he's narrated, including number one New York Times bestseller, Ready Player One, John Scalzi's award-winning Collapsing Empire Trilogy, or even his own bestselling memoir, Still Just A Geek. Beginning on March 26th, Wil brings you It's Storytime with Wil Wheaton, a weekly audiobook podcast, featuring stories that Wil loves, pulled from the pages of Uncanny, Lightspeed, On Spec, and others. You're going to meet authors you don't yet know you love, including some who are being narrated for the very first time. Listeners will travel through time, meet some gods, watch people fall in and out of love, and more, brought to life by Wil's remarkable narrative voice.",
-    "url": "",
-    "rssUrl": "",
-    "tags": [
-      "Society & Culture"
-    ],
-    "emoji": "📜",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1803000536",
-    "_listenNotesUrl": "https://www.listennotes.com/c/a113829ef38a49f086217a37da490d79/"
   },
   {
     "id": "kashvireads-book-recommendations-more",
@@ -479,6 +504,19 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id1535598622",
     "_listenNotesUrl": "https://www.listennotes.com/c/d4893debd3314c64bf22bce8b8134aec/"
+  },
+  {
+    "id": "literature",
+    "title": "LITerature",
+    "host": "LITerature",
+    "description": "From the classics to trending series and fanfics, Mel and Sam get lit and give their unqualified opinions on books. check the episode descriptions to see what's coming!",
+    "url": "https://podcasters.spotify.com/pod/show/literaturepod?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "📜",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1611600629",
+    "_listenNotesUrl": "https://www.listennotes.com/c/2a163e8414144b7fa330414ad2582ca0/"
   },
   {
     "id": "literature-and-history",
@@ -542,58 +580,6 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/6b43978030444fdf87242d83401a8c4e/"
   },
   {
-    "id": "new-books-in-anthropology",
-    "title": "New Books in Anthropology",
-    "host": "New Books Network",
-    "description": "This podcast is a channel on the New Books Network. The New Books Network is an academic audio library dedicated to public education. In each episode you will hear scholars discuss their recently published research with another expert in their field. Discover our 150+ channels and browse our 28,000+ episodes on our website: ⁠newbooksnetwork.com⁠ Subscribe to our free weekly Substack newsletter to get informative, engaging content straight to your inbox: ⁠https://newbooksnetwork.substack.com/⁠ Follow us on Instagram and Bluesky to learn about more our latest interviews: @newbooksnetwork Support our show by becoming a premium member! https://newbooksnetwork.supportingcast.fm/anthropology",
-    "url": "https://newbooksnetwork.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id425195053",
-    "_listenNotesUrl": "https://www.listennotes.com/c/0b9f65fc62fe4e2a87ad675c825d6062/"
-  },
-  {
-    "id": "new-books-in-critical-theory",
-    "title": "New Books in Critical Theory",
-    "host": "Marshall Poe",
-    "description": "This podcast is a channel on the New Books Network. The New Books Network is an academic audio library dedicated to public education. In each episode you will hear scholars discuss their recently published research with another expert in their field. Discover our 150+ channels and browse our 28,000+ episodes on our website: ⁠newbooksnetwork.com⁠ Subscribe to our free weekly Substack newsletter to get informative, engaging content straight to your inbox: ⁠https://newbooksnetwork.substack.com/⁠ Follow us on Instagram and Bluesky to learn about more our latest interviews: @newbooksnetwork Support our show by becoming a premium member! https://newbooksnetwork.supportingcast.fm/critical-theory",
-    "url": "https://newbooksnetwork.com/category/politics-society/critical-theory/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id593872749",
-    "_listenNotesUrl": "https://www.listennotes.com/c/bf87e26d1592480a928f5be23196130e/"
-  },
-  {
-    "id": "new-books-in-gender",
-    "title": "New Books in Gender",
-    "host": "New Books Network",
-    "description": "This podcast is a channel on the New Books Network. The New Books Network is an academic audio library dedicated to public education. In each episode you will hear scholars discuss their recently published research with another expert in their field. Discover our 150+ channels and browse our 28,000+ episodes on our website: ⁠newbooksnetwork.com⁠ Subscribe to our free weekly Substack newsletter to get informative, engaging content straight to your inbox: ⁠https://newbooksnetwork.substack.com/⁠ Follow us on Instagram and Bluesky to learn about more our latest interviews: @newbooksnetwork Support our show by becoming a premium member! https://newbooksnetwork.supportingcast.fm/gender-studies",
-    "url": "https://newbooksnetwork.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id425400236",
-    "_listenNotesUrl": "https://www.listennotes.com/c/86ec5d117aec4802982efe3fbbb7af55/"
-  },
-  {
-    "id": "new-books-in-literature",
-    "title": "New Books in Literature",
-    "host": "Marshall Poe",
-    "description": "This podcast is a channel on the New Books Network. The New Books Network is an academic audio library dedicated to public education. In each episode you will hear scholars discuss their recently published research with another expert in their field. Discover our 150+ channels and browse our 28,000+ episodes on our website: newbooksnetwork.com Subscribe to our free weekly Substack newsletter to get informative, engaging content straight to your inbox: https://newbooksnetwork.substack.com/ Follow us on Instagram and Bluesky to learn about more our latest interviews: @newbooksnetwork Support our show by becoming a premium member! https://newbooksnetwork.supportingcast.fm/literature",
-    "url": "https://newbooksnetwork.com/category/arts-letters/literature/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id615392417",
-    "_listenNotesUrl": "https://www.listennotes.com/c/e8fb752b7ecc4d508d965edd95c7fee3/"
-  },
-  {
     "id": "new-books-in-philosophy",
     "title": "New Books in Philosophy",
     "host": "New Books Network",
@@ -639,6 +625,19 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id721122555",
     "_listenNotesUrl": "https://www.listennotes.com/c/b5f749ca86f24ccf8a1be65d3701a61d/"
+  },
+  {
+    "id": "r-w-murphy-book-news",
+    "title": "R.W. Murphy Book News",
+    "host": "R.W. Murphy",
+    "description": "An author living in Clearwater, FL. Chains of the Cosmic Wanderer will have at least three volumes: (1)A Matter of Significance, (2)The Action Manifesto, and (3) The Asgard Imperative. He has also recently published Bending the Curve: An American Healthcare Imperative (now available in audio with a narration by John Christ, MD/PhD).",
+    "url": "http://amazon.com/author/rw_murphy?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "🎙️",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1472271912",
+    "_listenNotesUrl": "https://www.listennotes.com/c/8aceec1fb0024deea902190051799a10/"
   },
   {
     "id": "read-japanese-literature",
@@ -715,6 +714,37 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/0f1859eca09f45a9a7d16c19bd20123a/"
   },
   {
+    "id": "revelation-at-tikal-literary-adventure-fiction-podcast",
+    "title": "Revelation at Tikal | Literary Adventure Fiction Podcast",
+    "host": "Cutty Braughn",
+    "description": "Revelation at Tikal is a literary adventure podcast that releases full, unabridged chapters of a character‑driven road novel with a strong mystery spine. Follow Cutty Braughn across Central America and the Caribbean as he chases clues about his missing sister through Mayan ruins, jungle towns, and back‑room cantinas. If you love immersive travel stories, slow‑burn suspense, and smart, voice‑driven fiction in audio form, this show lets you listen to the novel one chapter at a time.",
+    "url": "https://www.cuttybraughn.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Music",
+      "News"
+    ],
+    "emoji": "📖",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id77698648",
+    "_listenNotesUrl": "https://www.listennotes.com/c/2a6ca4423c374b6d8e815f0b4f3c1cda/"
+  },
+  {
+    "id": "story-grid-writing-podcast",
+    "title": "Story Grid Writing Podcast",
+    "host": "Shawn Coyne and Tim Grahl",
+    "description": "Helping you become a better writer. Join Shawn Coyne, author of Story Grid and a top editor for 30+ years, and Tim Grahl, struggling writer, as they discuss the ins and outs of what makes a story great. More at www.StoryGrid.com.",
+    "url": "http://storygrid.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Social Sciences"
+    ],
+    "emoji": "🎙️",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1049406375",
+    "_listenNotesUrl": "https://www.listennotes.com/c/428d3dbc5b2f40c286b361d0e3e201fd/"
+  },
+  {
     "id": "storyaday-presents-i-writer-a-writing-podcast-about-building-a-successful-writing-practice",
     "title": "StoryADay presents: I, WRITER - A Writing Podcast about Building a Successful Writing Practice",
     "host": "Julie Duffy",
@@ -787,51 +817,22 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/7252423ebd494ba2ab4a5af404b7ec82/"
   },
   {
-    "id": "the-classic-english-literature-podcast",
-    "title": "The Classic English Literature Podcast",
-    "host": "M. G. McDonough",
-    "description": "Where rhyme gets its reason! In a historical survey of English literature, I take a personal and philosophical approach to the major texts of the tradition in order to not only situate the poems, prose, and plays in their own contexts, but also to show their relevance to our own. This show is for the general listener: as a teacher of high school literature and philosophy, I am less than a scholar but more than a buff. I hope to edify and entertain!",
-    "url": "https://theclassicenglishliteraturepodcast.buzzsprout.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "id": "the-h-p-lovecraft-literary-podcast",
+    "title": "The H.P. Lovecraft Literary Podcast",
+    "host": "Strange Studies of Strange Stories",
+    "description": "The H.P. Lovecraft Literary Podcast hatched in 2009 and is still going strong as Strange Studies of Strange Stories!Each week, hosts Chad Fifer and Chris Lackey discuss a piece of genre fiction. Talented voice actors bring the text to life. Music and sound effects create atmosphere while occasional guest experts show up to make things classy. Witch House Media is the gold standard in literary podcasting. JOIN US YOU FOOLS!",
+    "url": "https://www.hppodcraft.com/episodes/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
     "rssUrl": "",
     "tags": [
-      "Music",
-      "Social Sciences"
-    ],
-    "emoji": "📜",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1636358598",
-    "_listenNotesUrl": "https://www.listennotes.com/c/9a711199eca24ba481bd165dda36b1b9/"
-  },
-  {
-    "id": "the-dramione-effect",
-    "title": "The Dramione Effect",
-    "host": "The Dramione Effect",
-    "description": "Welcome to The Dramione Effect! We're obsessed with Dramione Fan Fiction in all forms and love to share and discuss our favorites. This is all for fun and is not meant to be a literary review, so you won't find bashing or negative talk here, unless it's about Ron Weasley. **The Dramione Effect is a fan fiction podcast that discusses and recommends works centering the ultimate FF ship between Draco Malfoy and Hermione Granger. We claim no ownership of these characters or any others related to the Harry Potter series, which was created and solely owned by \"She Who Shall Not Be Named.\"**",
-    "url": "https://podcasters.spotify.com/pod/show/thedramioneeffect?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Society & Culture"
+      "Visual Arts",
+      "Design",
+      "Education",
+      "TV & Film"
     ],
     "emoji": "📖",
     "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1729064765",
-    "_listenNotesUrl": "https://www.listennotes.com/c/620b877a1e5549f08aaa481c07becf72/"
-  },
-  {
-    "id": "the-eclectic-reader",
-    "title": "The Eclectic Reader",
-    "host": "Chelsey Feder",
-    "description": "Book reviews, reading life reflections, and recommendations from an eclectic mood reader and former English teacher. chelsey.substack.com",
-    "url": "https://chelsey.substack.com/podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Social Sciences",
-      "Music"
-    ],
-    "emoji": "📚",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1436207095",
-    "_listenNotesUrl": "https://www.listennotes.com/c/8323f64e8504476d898955ccd2700f3f/"
+    "_apple": "https://podcasts.apple.com/podcast/id369757090",
+    "_listenNotesUrl": "https://www.listennotes.com/c/ed7ea463ada74c9497c2d234c5939c09/"
   },
   {
     "id": "the-history-of-literature",
@@ -969,20 +970,21 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/2c4c13fd16824d11bd80a4d8c82bceae/"
   },
   {
-    "id": "the-writing-worship-podcast-for-worship-songwriters",
-    "title": "The Writing Worship Podcast - For Worship Songwriters",
-    "host": "Hosted by Sharon Byrd, Krissy Nordhoff, Eric Nordhoff",
-    "description": "The Writing Worship Podcast is a resource for Kingdom songwriters everywhere to grow in their worship songwriting craft and hear from trusted voices in the Christian music industry. Join one of our next Worship Songwriter Mentorship Groups. And, know your songwriter personality. It helps you discover who you are as a songwriter and who you write best with in the co-writing room.&nbsp; Visit WritingWorship.co to learn more.",
-    "url": "https://www.writingworship.co?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "id": "the-writing-university-podcast",
+    "title": "The Writing University Podcast",
+    "host": "The Writing University",
+    "description": "The Writing University podcast features recordings of illuminative craft talks from the renowned writers, novelists, poets, and essayists who present at the Eleventh Hour Lecture Series during the University of Iowa's Iowa Summer Writing Festival.",
+    "url": "http://www.writinguniversity.org?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
     "rssUrl": "",
     "tags": [
-      "Arts",
-      "Business"
+      "Social Sciences",
+      "Social Sciences",
+      "Fiction"
     ],
-    "emoji": "✏️",
+    "emoji": "✍️",
     "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1108521975",
-    "_listenNotesUrl": "https://www.listennotes.com/c/1683775389494904b212b5a877c9739f/"
+    "_apple": "https://podcasts.apple.com/podcast/id402005016",
+    "_listenNotesUrl": "https://www.listennotes.com/c/781382ed87ed4eaf93216a60d5fd1395/"
   },
   {
     "id": "two-writing-teachers-podcast",
@@ -1000,17 +1002,17 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/ee3ce6f2f2ea4314bbd395a40c7e4a69/"
   },
   {
-    "id": "well-read",
-    "title": "Well-Read",
-    "host": "Ann Cox and Halle Carlson",
-    "description": "As librarians, books are kind of our thing. Listen in as we talk about what we're reading, make book recommendations, and all sorts of book-related fun.",
-    "url": "https://wellread.podbean.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "id": "webtoon-books-and-manta-mangas-books-entertainment-news",
+    "title": "WEBTOON Books And Manta Mangas Books Entertainment News",
+    "host": "Tasha Monell",
+    "description": "This is my new one 2026 podcast talk show title is WEBTOON Books And Manta Mangas Books Entertainment News. I will be talking about WEBTOON Books and Manta mangas are anime Koreans Webtoon books and Manta mangas books. I will read some Webtoon books and Manta mangas books as well. I will read some Webtoon novels on the website of webtoon.com, and Manta mangas website as well.",
+    "url": "https://podcasters.spotify.com/pod/show/tasha-monell557?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
     "rssUrl": "",
     "tags": [],
-    "emoji": "📚",
+    "emoji": "📖",
     "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id999504241",
-    "_listenNotesUrl": "https://www.listennotes.com/c/247cd0844c854391ae613cea42a1dee4/"
+    "_apple": "https://podcasts.apple.com/podcast/id1788255127",
+    "_listenNotesUrl": "https://www.listennotes.com/c/345fd6faa69e474684c5118c4a26a4c7/"
   },
   {
     "id": "what-to-read-next-podcast-l-book-recommendation-show",
@@ -1029,19 +1031,17 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/247bc57768114692858b8dc2de7c670c/"
   },
   {
-    "id": "when-in-romance",
-    "title": "When In Romance",
-    "host": "Book Riot",
-    "description": "When In Romance is a biweekly show dedicated to romance novel news, gushing, and book recommendations!",
-    "url": "https://bookriot.com/listen/shows/when-in-romance/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "id": "working-class-literature",
+    "title": "Working Class Literature",
+    "host": "Working Class History",
+    "description": "Podcast taking a look at working class and radical literature, fiction and culture. Sister pod to Working Class History.Become a Paid Subscriber here to access exclusive bonus episodes: https://anchor.fm/workingclassliterature/subscribe",
+    "url": "https://workingclasshistory.com/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
     "rssUrl": "",
-    "tags": [
-      "Music"
-    ],
-    "emoji": "📖",
+    "tags": [],
+    "emoji": "📜",
     "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1338807540",
-    "_listenNotesUrl": "https://www.listennotes.com/c/21ca662e42104402a598f56239bc93b5/"
+    "_apple": "https://podcasts.apple.com/podcast/id1481987181",
+    "_listenNotesUrl": "https://www.listennotes.com/c/55b32ec7cf5f49448a3b08cb2a250edd/"
   },
   {
     "id": "youre-booked",
