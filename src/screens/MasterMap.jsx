@@ -1077,6 +1077,38 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [savedStops, setSavedStops] = useState([]);
   const savedStopIds = useMemo(() => new Set(savedStops.map(s => s.id)), [savedStops]);
 
+  // Spread co-located markers across types so they don't hide each other.
+  // Groups any two markers within ~60 m of each other and fans them out ~30 m apart.
+  const spreadMap = useMemo(() => {
+    const TYPES = new Set(['landmark','festival','drivein','bookstore','cafe']);
+    const markers = visibleLocations.filter(l => TYPES.has(l.type));
+    const THRESHOLD = 0.0006; // ~60 m
+    const RADIUS    = 0.00028; // ~30 m
+    const offsets   = {};
+    const processed = new Set();
+
+    for (let i = 0; i < markers.length; i++) {
+      const a = markers[i];
+      if (processed.has(a.id)) continue;
+      const group = [a];
+      for (let j = i + 1; j < markers.length; j++) {
+        const b = markers[j];
+        if (processed.has(b.id)) continue;
+        if (Math.abs(a.lat - b.lat) < THRESHOLD && Math.abs(a.lng - b.lng) < THRESHOLD) {
+          group.push(b);
+        }
+      }
+      if (group.length > 1) {
+        group.forEach((m, k) => {
+          processed.add(m.id);
+          const angle = (2 * Math.PI * k) / group.length - Math.PI / 2;
+          offsets[m.id] = [a.lat + RADIUS * Math.cos(angle), a.lng + RADIUS * Math.sin(angle)];
+        });
+      }
+    }
+    return offsets;
+  }, [visibleLocations]);
+
   const handleSaveStop = (location) => {
     if (!user) { onShowLogin(); return; }
     saveStop(user.uid, location).catch(err => console.error('[savedStops] save error:', err));
@@ -2412,7 +2444,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               .map(location => (
                 <Marker
                   key={location.id}
-                  position={[location.lat, location.lng]}
+                  position={spreadMap[location.id] ?? [location.lat, location.lng]}
                   icon={createCustomIcon('landmark', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                   eventHandlers={{ click: () => setSelectedLocation(location) }}
                 />
@@ -2448,7 +2480,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             .map(({ l: location }) => (
               <Marker
                 key={location.id}
-                position={[location.lat, location.lng]}
+                position={spreadMap[location.id] ?? [location.lat, location.lng]}
                 icon={createCustomIcon('bookstore', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
@@ -2464,7 +2496,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             .map(({ l: location }) => (
               <Marker
                 key={location.id}
-                position={[location.lat, location.lng]}
+                position={spreadMap[location.id] ?? [location.lat, location.lng]}
                 icon={createCustomIcon('cafe', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
@@ -2477,7 +2509,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             .map(location => (
               <Marker
                 key={location.id}
-                position={[location.lat, location.lng]}
+                position={spreadMap[location.id] ?? [location.lat, location.lng]}
                 icon={createCustomIcon('festival', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
@@ -2490,7 +2522,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             .map(location => (
               <Marker
                 key={location.id}
-                position={[location.lat, location.lng]}
+                position={spreadMap[location.id] ?? [location.lat, location.lng]}
                 icon={createCustomIcon('drivein', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
