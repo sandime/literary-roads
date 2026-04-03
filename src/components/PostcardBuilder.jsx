@@ -1156,12 +1156,16 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
       bookData.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 40);
     const entry = {
       bookId,
-      title:     bookData.title,
-      author:    bookData.author,
-      coverUrl:  bookData.coverURL || null,
-      state:     stepData.state,
-      stateCode: stepData.stateCode,
-      createdAt: serverTimestamp(),
+      title:      bookData.title,
+      author:     bookData.author,
+      coverUrl:   bookData.coverURL || null,
+      state:      stepData.state,
+      stateCode:  stepData.stateCode,
+      message:    stepData.message    || '',
+      vibeTags:   stepData.vibeTags   || [],
+      hashtags:   stepData.hashtags   || [],
+      authorName: stepData.authorName || 'A Literary Traveler',
+      createdAt:  serverTimestamp(),
     };
     setSaving(true);
     setDoc(doc(db, 'users', user.uid, 'libraryPostcards', bookId), entry)

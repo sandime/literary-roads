@@ -8,6 +8,7 @@ import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { BackArrowIcon, LibraryIcon } from '../components/Icons';
 import PostcardBuilder from '../components/PostcardBuilder';
 import LibraryHome from './LibraryHome';
+import LibraryArchive from './LibraryArchive';
 
 // ── Cover image helpers ───────────────────────────────────────────────────────
 const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
@@ -231,6 +232,7 @@ function EntryForm({
   initialRating = 0, initialMonth = '', initialYear = '', initialFormat = 'read',
   initialReflection = '', initialVibeTags = [], initialFoundAt = [],
   initialFeel = [], initialExtras = [], initialRecommend = false,
+  initialIsPrivate = false, initialPersonalNotes = '', initialPersonalNotesPrivate = true,
 }) {
   const [rating, setRating] = useState(initialRating);
   const [finishedMonth, setFinishedMonth] = useState(initialMonth);
@@ -242,9 +244,43 @@ function EntryForm({
   const [feel, setFeel] = useState(initialFeel);
   const [extras, setExtras] = useState(initialExtras);
   const [recommend, setRecommend] = useState(initialRecommend);
+  const [isPrivate, setIsPrivate] = useState(initialIsPrivate);
+  const [personalNotes, setPersonalNotes] = useState(initialPersonalNotes);
+  const [personalNotesPrivate, setPersonalNotesPrivate] = useState(initialPersonalNotesPrivate);
 
   const togglePill = (setter, val) =>
     () => setter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+
+  const ToggleSwitch = ({ checked, onChange }) => (
+    <div onClick={onChange} style={{
+      width: 40, height: 22, borderRadius: 11, cursor: 'pointer', flexShrink: 0,
+      background: checked ? '#38C5C5' : 'rgba(56,197,197,0.15)',
+      border: `1.5px solid ${checked ? '#38C5C5' : 'rgba(56,197,197,0.35)'}`,
+      position: 'relative', transition: 'background 0.2s, border-color 0.2s',
+    }}>
+      <div style={{
+        width: 16, height: 16, borderRadius: '50%',
+        background: checked ? '#FFF8E7' : 'rgba(56,197,197,0.6)',
+        position: 'absolute', top: 2,
+        left: checked ? 20 : 2,
+        transition: 'left 0.2s',
+      }} />
+    </div>
+  );
+
+  const ClosedLockSVG = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#38C5C5" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </svg>
+  );
+
+  const OpenLockSVG = () => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F5A623" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+      <rect x="3" y="11" width="18" height="11" rx="2"/>
+      <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+    </svg>
+  );
 
   const pillBtn = (active) => ({
     padding: '4px 10px', borderRadius: 20, fontSize: 10, letterSpacing: '0.04em',
@@ -288,6 +324,23 @@ function EntryForm({
           EDITING: {book.bookTitle || book.title}
         </p>
       )}
+
+      {/* Section 1 — Book Privacy Toggle */}
+      <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 10,
+        background: 'rgba(56,197,197,0.06)', border: '1px solid rgba(56,197,197,0.18)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {isPrivate ? <ClosedLockSVG /> : <OpenLockSVG />}
+            <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em' }}>
+              KEEP THIS BOOK PRIVATE
+            </span>
+          </div>
+          <ToggleSwitch checked={isPrivate} onChange={() => setIsPrivate(p => !p)} />
+        </div>
+        <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted, margin: '6px 0 0 21px', lineHeight: 1.5 }}>
+          Private books never appear on your public profile or Archive
+        </p>
+      </div>
 
       <div style={{ marginBottom: 14 }}>
         <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>RATING</label>
@@ -399,12 +452,43 @@ function EntryForm({
         </button>
       </div>
 
+      {/* Section 2 — Personal Notes */}
+      <div style={{ marginBottom: 18, padding: 14, borderRadius: 10,
+        background: 'rgba(255,184,163,0.2)', border: '1px solid rgba(245,166,35,0.3)' }}>
+        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 4 }}>
+          PERSONAL NOTES
+        </label>
+        <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted, margin: '0 0 10px', lineHeight: 1.5 }}>
+          Private by default — toggle to include when sharing
+        </p>
+        <textarea
+          value={personalNotes}
+          onChange={e => setPersonalNotes(e.target.value)}
+          placeholder="Your private thoughts, notes, and reflections…"
+          rows={7}
+          style={{
+            width: '100%', boxSizing: 'border-box', resize: 'vertical',
+            fontFamily: 'Special Elite, serif', fontSize: 13,
+            color: L.dark, background: L.white,
+            border: `1.5px solid #F5A623`, borderRadius: 8,
+            padding: '10px 12px', lineHeight: 1.6, outline: 'none',
+          }}
+        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+          {personalNotesPrivate ? <ClosedLockSVG /> : <OpenLockSVG />}
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted, flex: 1 }}>
+            {personalNotesPrivate ? 'Notes are private' : 'Notes included when sharing'}
+          </span>
+          <ToggleSwitch checked={!personalNotesPrivate} onChange={() => setPersonalNotesPrivate(p => !p)} />
+        </div>
+      </div>
+
       {saveError && (
         <p style={{ fontFamily: 'Special Elite, serif', color: L.coral, fontSize: 12, marginBottom: 10 }}>{saveError}</p>
       )}
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, feel, extras, recommend })}
+        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate })}
           disabled={saving}
           style={{ ...primaryBtn, flex: 1, padding: 10, fontSize: 11, opacity: saving ? 0.5 : 1 }}>
           {saving ? 'SAVING...' : 'SAVE'}
@@ -650,7 +734,7 @@ export default function Library({ onBack }) {
     } catch (err) { console.error('[Library] delete postcard book:', err); }
   };
 
-  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend }) => {
+  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate }) => {
     if (!user || !selectedBook) return;
     setSaving(true); setSaveError('');
     try {
@@ -660,6 +744,9 @@ export default function Library({ onBack }) {
         bookCover: selectedBook.coverURL || null, googleBooksId: selectedBook.id,
         rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '',
         format, reflection, vibeTags, foundAt, feel, extras, recommend,
+        isPrivate: isPrivate ?? false,
+        personalNotes: personalNotes ?? '',
+        personalNotesPrivate: personalNotesPrivate ?? true,
         timestamp: serverTimestamp(),
       });
       setSelectedBook(null); setShowAddSearch(false);
@@ -670,11 +757,16 @@ export default function Library({ onBack }) {
     } finally { setSaving(false); }
   };
 
-  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend }) => {
+  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate }) => {
     if (!user || !editingEntry) return;
     setEditSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid, 'booksRead', editingEntry.id), { rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend });
+      await updateDoc(doc(db, 'users', user.uid, 'booksRead', editingEntry.id), {
+        rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend,
+        isPrivate: isPrivate ?? false,
+        personalNotes: personalNotes ?? '',
+        personalNotesPrivate: personalNotesPrivate ?? true,
+      });
       setEditingEntry(null); setActiveCard(null);
     } catch (err) { console.error('[Library] edit:', err); }
     finally { setEditSaving(false); }
@@ -706,6 +798,15 @@ export default function Library({ onBack }) {
 
   const activeEntry = sortedBooks.find(b => b.id === activeCard);
 
+  const estYear = user?.metadata?.creationTime
+    ? new Date(user.metadata.creationTime).getFullYear()
+    : null;
+
+  // ── Archive ──────────────────────────────────────────────────────────────────
+  if (view === 'archive') {
+    return <LibraryArchive onBack={() => setView('home')} />;
+  }
+
   // ── Landing page ────────────────────────────────────────────────────────────
   if (view === 'home') {
     return (
@@ -713,6 +814,7 @@ export default function Library({ onBack }) {
         <LibraryHome
           onNavigate={setView}
           onBack={onBack}
+          estYear={estYear}
           bookCounts={{
             bookLog:   loggedBooks.length,
             postcards: postcardBooks.length,
@@ -863,6 +965,9 @@ export default function Library({ onBack }) {
                       initialFeel={editingEntry.feel ?? []}
                       initialExtras={editingEntry.extras ?? []}
                       initialRecommend={editingEntry.recommend ?? false}
+                      initialIsPrivate={editingEntry.isPrivate ?? false}
+                      initialPersonalNotes={editingEntry.personalNotes ?? ''}
+                      initialPersonalNotesPrivate={editingEntry.personalNotesPrivate ?? true}
                       onSave={handleEditSave} onCancel={() => setEditingEntry(null)} saving={editSaving} />
                   </div>
                 )}

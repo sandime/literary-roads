@@ -30,6 +30,108 @@ const SHELVES = [
   { key: 'readNext',  label: 'READ NEXT',      sub: 'Your literary wish list',  spines: [5,8,0,4,2,7,3,1,6] },
 ];
 
+// ── Archive shelf — leather journal spines ────────────────────────────────────
+const ARCHIVE_SPINES = [
+  { w: 26, h: 88, color: '#8B2635', label: 'Vol. I',    lines: true  },
+  { w: 16, h: 74, color: '#2D5A27', label: 'Vol. II',   lines: false },
+  { w: 44, h: 86, color: '#1A3A5C', label: 'Vol. III',  lines: true  },
+  { w: 16, h: 66, color: '#C8960C', label: 'Vol. IV',   lines: false },
+  { w: 28, h: 92, color: '#38C5C5', label: 'Vol. V',    lines: true  },
+  { w: 20, h: 70, color: '#E8D5A3', label: 'Vol. VI',   lines: false },
+  { w: 30, h: 84, color: '#8B2635', label: 'Vol. VII',  lines: true  },
+  { w: 14, h: 62, color: '#1A3A5C', label: 'Vol. VIII', lines: false },
+  { w: 24, h: 80, color: '#C8960C', label: 'Vol. IX',   lines: true  },
+];
+
+function ArchiveSpine({ w, h, color, label, lines }) {
+  const lightText = color !== '#E8D5A3';
+  const textColor = lightText ? 'rgba(255,255,255,0.82)' : '#5C3A1E';
+  const lineColor = lightText ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.14)';
+  return (
+    <div style={{
+      width: w, height: h, flexShrink: 0, borderRadius: '2px 2px 0 0',
+      position: 'relative', overflow: 'hidden',
+      background: `linear-gradient(90deg, ${color}AA 0%, ${color} 25%, ${color}F0 75%, ${color}99 100%)`,
+      boxShadow: 'inset -2px 0 4px rgba(0,0,0,0.22), inset 1px 0 2px rgba(255,255,255,0.08)',
+    }}>
+      {lines && (
+        <svg width={w} height={h} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+          <line x1={3} y1={9}    x2={w-3} y2={9}    stroke={lineColor} strokeWidth="0.9" />
+          <line x1={3} y1={13}   x2={w-3} y2={13}   stroke={lineColor} strokeWidth="0.4" />
+          <line x1={3} y1={h-9}  x2={w-3} y2={h-9}  stroke={lineColor} strokeWidth="0.9" />
+          <line x1={3} y1={h-13} x2={w-3} y2={h-13} stroke={lineColor} strokeWidth="0.4" />
+        </svg>
+      )}
+      <span style={{
+        position: 'absolute', inset: 0,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+        fontFamily: 'Georgia, serif', fontStyle: 'italic',
+        fontSize: Math.max(5, Math.min(7, w - 6)),
+        color: textColor, letterSpacing: '0.04em',
+        padding: '16px 2px', userSelect: 'none',
+      }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function ArchiveShelfUnit({ onNavigate, estYear }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate('archive')}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: 0, width: '100%', textAlign: 'left',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        transition: 'transform 0.22s ease',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '0 2px' }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, letterSpacing: '0.05em' }}>
+          THE ARCHIVE
+        </span>
+        <span style={{
+          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10,
+          color: '#C8960C', fontStyle: 'italic',
+        }}>
+          {estYear ? `est. ${estYear}` : 'your literary history'}
+        </span>
+      </div>
+      <div style={{
+        background: '#EDE0C4',
+        borderTop:   `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
+        borderLeft:  `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
+        borderRight: `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
+        borderBottom: 'none',
+        borderRadius: '6px 6px 0 0',
+        padding: '8px 8px 0',
+        display: 'flex', alignItems: 'flex-end', gap: 2,
+        minHeight: 96,
+        transition: 'border-color 0.2s',
+      }}>
+        {ARCHIVE_SPINES.map((spine, idx) => <ArchiveSpine key={idx} {...spine} />)}
+      </div>
+      <div style={{
+        height: 14,
+        background: 'linear-gradient(180deg, #C8960C 0%, #8B6510 100%)',
+        borderRadius: '0 0 5px 5px',
+        borderBottom: `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
+        borderLeft:   `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
+        borderRight:  `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
+        borderTop: 'none',
+        boxShadow: hov ? '0 5px 14px rgba(200,150,12,0.38)' : '0 3px 8px rgba(0,0,0,0.14)',
+        transition: 'box-shadow 0.22s, border-color 0.2s',
+      }} />
+    </button>
+  );
+}
+
 // ── Retro SVG shapes ──────────────────────────────────────────────────────────
 const Starburst = ({ color, size = 30 }) => (
   <svg width={size} height={size} viewBox="0 0 30 30" aria-hidden="true">
@@ -192,7 +294,7 @@ function CatLink({ size = 180 }) {
 }
 
 // ── LibraryHome ───────────────────────────────────────────────────────────────
-export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
+export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 300,
@@ -267,6 +369,7 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {} }) {
                   count={bookCounts[shelf.key] || 0}
                 />
               ))}
+              <ArchiveShelfUnit onNavigate={onNavigate} estYear={estYear} />
             </div>
 
             {/* Bottom accent row */}

@@ -664,3 +664,95 @@ export const LivePerformanceIcon = ({ size = 24, className = '' }) => (
     <circle className="fo" cx="100" cy="20" r="5" />
   </svg>
 );
+
+export const EditIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <path className="bg" d="M 25 95 Q 64 125 105 85" />
+    <polygon className="p" points="95,15 113,33 45,100 27,82" />
+    <polygon className="t" points="27,82 45,100 15,113" />
+    <line className="o" x1="95" y1="15" x2="36" y2="91" />
+    <circle className="fc" cx="15" cy="113" r="4" />
+  </svg>
+);
+
+export const ClockIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <path className="p" d="M 64 15 L 64 25 M 64 103 L 64 113 M 15 64 L 25 64 M 103 64 L 113 64 M 30 30 L 37 37 M 98 98 L 91 91 M 98 30 L 91 37 M 30 98 L 37 91" />
+    <circle className="bg" cx="64" cy="64" r="28" />
+    <ellipse className="t" cx="60" cy="60" rx="20" ry="25" transform="rotate(15 60 60)" />
+    <path className="o" d="M 45 45 L 60 60 L 80 50" />
+    <circle className="fc" cx="60" cy="60" r="4" />
+  </svg>
+);
+
+export const CalendarIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <polygon className="t" points="25,40 105,25 95,105 15,120" />
+    <path className="p" d="M 25 40 Q 55 10 105 25" />
+    <path className="c" d="M 35 25 Q 40 15 45 35 M 65 20 Q 70 10 75 30 M 95 15 Q 100 5 105 25" />
+    <path className="bg" d="M 23 60 L 102 45 M 20 80 L 100 65 M 50 35 L 40 115 M 75 30 L 65 110" />
+    <circle className="fo" cx="60" cy="70" r="5" />
+  </svg>
+);
+
+export const HomeIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <polygon className="t" points="64,15 15,105 113,105" />
+    <polygon className="p" points="64,35 30,95 98,95" />
+    <polygon className="o" points="85,45 95,50 95,85 85,85" />
+    <polygon className="bg" points="55,102 73,102 73,75 55,70" />
+    <circle className="fc" cx="30" cy="35" r="3" />
+    <circle className="fc" cx="68" cy="85" r="2" />
+  </svg>
+);
+
+export const AntiqueShopIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <path className="t" d="M 10 100 Q 64 120 118 90 L 110 105 Q 64 130 15 115 Z" />
+    <path className="p" d="M 40 100 C 15 80, 25 40, 50 30 C 75 20, 85 60, 75 95 Z" />
+    <path className="o" d="M 50 30 Q 35 10 20 15 M 65 30 Q 85 10 105 20 M 55 30 Q 64 10 75 10" />
+    <circle className="fc" cx="20" cy="15" r="3" />
+    <circle className="fc" cx="105" cy="20" r="3" />
+    <circle className="fc" cx="75" cy="10" r="3" />
+  </svg>
+);
+
+export const StoreIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <path className="t" d="M 5 50 L 64 30 L 123 45 L 64 50 Z" />
+    <line className="p" x1="25" y1="45" x2="35" y2="115" />
+    <line className="p" x1="103" y1="40" x2="93" y2="115" />
+    <polygon className="bg" points="40,60 88,55 83,105 45,110" />
+    <ellipse className="o" cx="64" cy="18" rx="25" ry="10" transform="rotate(-15 64 18)" />
+    <circle className="fc" cx="64" cy="18" r="3" />
+  </svg>
+);
+
+export const MerchIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <polygon className="p" points="40,25 90,35 110,85 60,115 20,70" />
+    <circle className="bg" cx="45" cy="45" r="6" />
+    <path className="t" d="M 45 39 Q 40 15 15 20" />
+    <ellipse className="o" cx="65" cy="75" rx="18" ry="6" transform="rotate(30 65 75)" />
+    <ellipse className="c" cx="65" cy="75" rx="18" ry="6" transform="rotate(-30 65 75)" />
+    <circle className="fc" cx="65" cy="75" r="3" />
+  </svg>
+);
+
+export const StarIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    <path className="bg" d="M 74 15 Q 74 60 30 69 Q 74 78 74 123 Q 74 78 118 69 Q 74 60 74 15 Z" />
+    <path className="t" d="M 64 10 Q 64 55 20 64 Q 64 73 64 118 Q 64 73 108 64 Q 64 55 64 10 Z" />
+    <ellipse className="p" cx="64" cy="64" rx="45" ry="12" transform="rotate(-25 64 64)" />
+    <circle className="fo" cx="64" cy="64" r="5" />
+    <circle className="fc" cx="85" cy="35" r="2" />
+  </svg>
+);
