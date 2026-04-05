@@ -331,7 +331,7 @@ export default function About({ onBack }) {
           <p className="font-special-elite" style={{
             fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, margin: 0,
           }}>
-            The app doubles as your <Highlight>BOOK LOG</Highlight>. Track what you've read, rate books with our signature cat ratings, and never forget a favorite. Need inspiration? Click "Surprise Me" in <Highlight>HIGHWAY SNACKS</Highlight> for your next great read, or explore curated literary podcast recommendations like our favorite, <em>What Should I Read Next?</em>
+            The app doubles as your <Highlight>BOOK LOG</Highlight>. Step into the Literary Roads Library and track what you've read and reflect in a journal entry, rate books with our signature cat ratings, share book postcards on social media, and curate your next read list. Need inspiration? Click "Surprise Me" in <Highlight>HIGHWAY SNACKS</Highlight> for your next great read, or explore curated literary podcast recommendations like our favorite, <em>What Should I Read Next?</em>
           </p>
         </div>
 
