@@ -44,14 +44,17 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
   const [loadingEntries, setLoadingEntries] = useState(true);
   const [expandedEntry, setExpandedEntry] = useState(null);
 
-  // write-flow state
+  // write-flow state (search → new book only)
   const [pendingBook, setPendingBook] = useState(null);
   const [isDuplicate, setIsDuplicate] = useState(false);
   const [existingEntryId, setExistingEntryId] = useState(null);
-  const [writeSource, setWriteSource] = useState('search'); // 'search' | 'expanded'
+  const [writeSource, setWriteSource] = useState('search');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [readNextAdded, setReadNextAdded] = useState(() => new Set());
+  // expanded-view direct voice state
+  const [submittingVoice, setSubmittingVoice] = useState(false);
+  const [voiceError, setVoiceError] = useState('');
   // search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -124,6 +127,7 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
     setIsDuplicate(false);
     setExistingEntryId(null);
     setSubmitError('');
+    setVoiceError('');
   };
 
   const handleOpenSearch = () => {
@@ -142,18 +146,48 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
     setView('write');
   };
 
-  const handleAddVoiceFromExpanded = () => {
+  const handleAddVoiceDirectly = async () => {
+    if (!user) { onShowLogin?.(); return; }
     if (!expandedEntry) return;
-    setIsDuplicate(true);
-    setExistingEntryId(expandedEntry.id);
-    setPendingBook({
-      id: expandedEntry.googleBooksId || expandedEntry.id,
-      title: expandedEntry.bookTitle,
-      author: expandedEntry.bookAuthor,
-      coverURL: expandedEntry.bookCover,
-    });
-    setWriteSource('expanded');
-    setView('write');
+
+    const recommendation = {
+      userId: user.uid,
+      userName: user.displayName || 'Anonymous Traveler',
+      timestamp: new Date().toISOString(),
+    };
+
+    setSubmittingVoice(true);
+    setVoiceError('');
+    try {
+      await addRecommendationToEntry(locationId, expandedEntry.id, recommendation);
+
+      // Mirror to libraryRecs so it shows up in the user's Library
+      const bookId = (expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_');
+      if (bookId) {
+        try {
+          await setDoc(
+            doc(db, 'users', user.uid, 'libraryRecs', bookId),
+            {
+              title: expandedEntry.bookTitle || '',
+              author: expandedEntry.bookAuthor || '',
+              coverUrl: expandedEntry.bookCover || '',
+              placeId: locationId,
+              placeName,
+              state: placeState,
+              date: serverTimestamp(),
+            },
+            { merge: true }
+          );
+        } catch (recErr) {
+          console.warn('[Guestbook] libraryRecs write failed:', recErr);
+        }
+      }
+    } catch (err) {
+      console.error('[Guestbook] Add voice failed:', err.code, err.message);
+      setVoiceError(`Failed to add voice. (${err.code || err.message})`);
+    } finally {
+      setSubmittingVoice(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -211,13 +245,7 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
     }
   };
 
-  const handleWriteBack = () => {
-    if (writeSource === 'expanded') {
-      setView('expanded');
-    } else {
-      setView('search');
-    }
-  };
+  const handleWriteBack = () => setView('search');
 
   const handleAddToReadNext = async (entry) => {
     if (!user) { onShowLogin?.(); return; }
@@ -377,36 +405,66 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
         </div>
 
         {/* Add voice / sign-in */}
-        {user ? (
-          <div className="flex gap-2">
-            <button
-              onClick={handleAddVoiceFromExpanded}
-              className="flex-1 border-2 border-starlight-turquoise text-starlight-turquoise font-bungee py-2 rounded-lg hover:bg-starlight-turquoise hover:text-midnight-navy transition-all"
-              style={{ fontSize: '11px' }}
-            >
-              + ADD YOUR VOICE
-            </button>
+        {(() => {
+          const readNextKey = (expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_');
+          const alreadyAdded = !!user && (expandedEntry.recommendations || []).some(r => r.userId === user.uid);
+
+          const readNextBtn = (
             <button
               onClick={() => handleAddToReadNext(expandedEntry)}
               className="flex-none border-2 font-bungee py-2 px-3 rounded-lg transition-all"
               style={{
                 fontSize: '11px',
-                borderColor: readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? '#38C5C5' : 'rgba(56,197,197,0.4)',
-                color: readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? '#38C5C5' : 'rgba(56,197,197,0.7)',
-                background: readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? 'rgba(56,197,197,0.1)' : 'transparent',
+                borderColor: readNextAdded.has(readNextKey) ? '#38C5C5' : 'rgba(56,197,197,0.4)',
+                color: readNextAdded.has(readNextKey) ? '#38C5C5' : 'rgba(56,197,197,0.7)',
+                background: readNextAdded.has(readNextKey) ? 'rgba(56,197,197,0.1)' : 'transparent',
               }}
             >
-              {readNextAdded.has((expandedEntry.googleBooksId || expandedEntry.id || '').replace(/\//g, '_')) ? 'SAVED' : '+ READ NEXT'}
+              {readNextAdded.has(readNextKey) ? 'SAVED' : '+ READ NEXT'}
             </button>
-          </div>
-        ) : (
-          <button
-            onClick={onShowLogin}
-            className="w-full border border-dashed border-starlight-turquoise/40 text-chrome-silver font-special-elite py-2 rounded-lg hover:border-starlight-turquoise hover:text-starlight-turquoise transition-all text-xs"
-          >
-            Sign in to add your voice
-          </button>
-        )}
+          );
+
+          if (!user) {
+            return (
+              <button
+                onClick={onShowLogin}
+                className="w-full border border-dashed border-starlight-turquoise/40 text-chrome-silver font-special-elite py-2 rounded-lg hover:border-starlight-turquoise hover:text-starlight-turquoise transition-all text-xs"
+              >
+                Sign in to add your voice
+              </button>
+            );
+          }
+
+          return (
+            <div className="space-y-1.5">
+              <div className="flex gap-2">
+                <button
+                  onClick={alreadyAdded ? undefined : handleAddVoiceDirectly}
+                  disabled={alreadyAdded || submittingVoice}
+                  className={`flex-1 border-2 font-bungee py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                    alreadyAdded
+                      ? 'border-chrome-silver/25 text-chrome-silver/35 cursor-not-allowed'
+                      : 'border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
+                  }`}
+                  style={{ fontSize: '11px' }}
+                >
+                  {alreadyAdded ? (
+                    <>
+                      <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                      VOICE ADDED
+                    </>
+                  ) : submittingVoice ? 'ADDING...' : '+ ADD YOUR VOICE'}
+                </button>
+                {readNextBtn}
+              </div>
+              {voiceError && (
+                <p className="text-atomic-orange font-special-elite text-xs">{voiceError}</p>
+              )}
+            </div>
+          );
+        })()}
       </div>
     );
   };
@@ -501,7 +559,7 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          {writeSource === 'expanded' ? 'Back to book' : 'Back to search'}
+          Back to search
         </button>
 
         {/* Selected book preview */}
@@ -526,22 +584,7 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
           </div>
         </div>
 
-        {/* Duplicate notice */}
-        {isDuplicate && (
-          <div className="mb-3 bg-atomic-orange/10 border border-atomic-orange/40 rounded-lg px-3 py-2 flex items-start gap-2">
-            <StarBurst className="w-3.5 h-3.5 text-atomic-orange flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-atomic-orange font-bungee" style={{ fontSize: '10px' }}>
-                Already in the guestbook!
-              </p>
-              <p className="text-paper-white font-special-elite mt-0.5" style={{ fontSize: '10px' }}>
-                Add your voice to the existing recommendation.
-              </p>
-            </div>
-          </div>
-        )}
-
-        {submitError && (
+{submitError && (
           <p className="text-atomic-orange font-special-elite text-xs mb-3">{submitError}</p>
         )}
 
@@ -573,7 +616,7 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
               className="flex-1 bg-atomic-orange text-midnight-navy font-bungee py-2 rounded-lg hover:bg-starlight-turquoise disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               style={{ fontSize: '11px' }}
             >
-              {submitting ? 'SAVING...' : isDuplicate ? 'ADD MY VOICE' : 'RECOMMEND'}
+              {submitting ? 'SAVING...' : 'RECOMMEND'}
             </button>
           </div>
         )}

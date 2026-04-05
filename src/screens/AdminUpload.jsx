@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch, setDoc } from 'firebase/firestore';
 import { geocodeNominatim } from '../utils/nominatimGeocoding';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -465,16 +465,23 @@ const csvRowToEntry = (row, type) => {
 
 const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, geocoded: 0, excludeReasons: {}, uniqueCount: 0, withCity: 0, withState: 0, withAddress: 0 };
 
-// Delete every document in a Firestore collection in 400-doc pages
+// Delete every document in a Firestore collection in 400-doc pages.
+// Docs with source === 'manual' are always preserved.
 const deleteCollection = async (colName, onProgress) => {
   let total = 0;
   while (true) {
     const snap = await getDocs(query(collection(db, colName), limit(400)));
     if (snap.empty) break;
     const batch = writeBatch(db);
-    snap.docs.forEach(d => batch.delete(d.ref));
+    let batchCount = 0;
+    snap.docs.forEach(d => {
+      if (d.data()?.source === 'manual') return; // never delete manual entries
+      batch.delete(d.ref);
+      batchCount++;
+    });
+    if (batchCount === 0) break; // only manual entries remain — stop
     await batch.commit();
-    total += snap.docs.length;
+    total += batchCount;
     onProgress(total);
   }
   return total;
@@ -488,7 +495,7 @@ export default function AdminUpload() {
   const fileInputRef = useRef(null);
 
   const [selectedKey, setSelectedKey]     = useState('bookstores');
-  const [uploadMode, setUploadMode]       = useState('geojson'); // 'geojson' | 'csv'
+  const [uploadMode, setUploadMode]       = useState('geojson'); // 'geojson' | 'csv' | 'manual'
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [usePreset, setUsePreset]         = useState(true);
   const [deleteFirst, setDeleteFirst]     = useState(false);
@@ -498,6 +505,10 @@ export default function AdminUpload() {
   const [csvHeaders, setCsvHeaders]       = useState([]);
   const [needsGeocoding, setNeedsGeocoding] = useState(false);
   const csvInputRef = useRef(null);
+  // Manual entry state
+  const [manualForm, setManualForm]       = useState({ name: '', address: '', city: '', state: '', zipcode: '', lat: '', lng: '', phone: '', website: '', collectionKey: 'bookstores' });
+  const [manualSaving, setManualSaving]   = useState(false);
+  const [manualResult, setManualResult]   = useState(null); // { ok, msg }
   // Shared
   const [phase, setPhase]                 = useState('idle');
   const [stats, setStats]                 = useState(EMPTY_STATS);
@@ -528,6 +539,46 @@ export default function AdminUpload() {
     setStats(EMPTY_STATS);
     setCurrent('');
     setErrorMsg('');
+    setManualResult(null);
+  };
+
+  const handleManualChange = (field, value) => setManualForm(f => ({ ...f, [field]: value }));
+
+  const handleManualSubmit = async () => {
+    const { name, lat, lng, collectionKey } = manualForm;
+    if (!name.trim()) { setManualResult({ ok: false, msg: 'Name is required.' }); return; }
+    const latN = parseFloat(lat), lngN = parseFloat(lng);
+    if (isNaN(latN) || isNaN(lngN)) { setManualResult({ ok: false, msg: 'Valid lat and lng are required.' }); return; }
+
+    const cfg  = COLLECTIONS[collectionKey];
+    const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40);
+    const docId = `manual_${slug}_${latN.toFixed(4)}_${lngN.toFixed(4)}`;
+
+    const entry = {
+      name: name.trim(),
+      lat: latN,
+      lng: lngN,
+      type: cfg.type,
+      source: 'manual',
+    };
+    if (manualForm.address.trim())  entry.address  = manualForm.address.trim();
+    if (manualForm.city.trim())     entry.city      = manualForm.city.trim();
+    if (manualForm.state.trim())    entry.state     = manualForm.state.trim();
+    if (manualForm.zipcode.trim())  entry.zipcode   = manualForm.zipcode.trim();
+    if (manualForm.phone.trim())    entry.phone     = manualForm.phone.trim();
+    if (manualForm.website.trim())  entry.website   = manualForm.website.trim();
+
+    setManualSaving(true);
+    setManualResult(null);
+    try {
+      await setDoc(doc(collection(db, collectionKey), docId), { ...entry, addedAt: serverTimestamp() });
+      setManualResult({ ok: true, msg: `Added "${entry.name}" to ${collectionKey}\nDoc ID: ${docId}` });
+      setManualForm(f => ({ ...f, name: '', address: '', city: '', state: '', zipcode: '', lat: '', lng: '', phone: '', website: '' }));
+    } catch (err) {
+      setManualResult({ ok: false, msg: err.message });
+    } finally {
+      setManualSaving(false);
+    }
   };
 
   const handleCsvFileChange = (e) => {
@@ -639,11 +690,12 @@ export default function AdminUpload() {
       setCurrent(`Uploading ${i + 1}–${Math.min(i + BATCH_SIZE, unique.length)} of ${unique.length}…`);
 
       // Skip existence checks when we just wiped the collection — faster
-      const existChecks = deleteFirst
-        ? chunk.map(() => false)
-        : await Promise.all(
-            chunk.map(entry => getDoc(doc(colRef, entry.docId)).then(s => s.exists()).catch(() => false))
-          );
+      // After deleteFirst, deleteCollection already preserved manual entries.
+      // In both modes, skip any doc that already exists (catches manual entries
+      // that survived a deleteFirst wipe, or duplicates in a normal upload).
+      const existChecks = await Promise.all(
+        chunk.map(entry => getDoc(doc(colRef, entry.docId)).then(s => s.exists()).catch(() => false))
+      );
 
       const batch = writeBatch(db);
       let batchCount = 0;
@@ -750,11 +802,12 @@ export default function AdminUpload() {
       const chunk = unique.slice(i, i + BATCH_SIZE);
       setCurrent(`Uploading ${i + 1}–${Math.min(i + BATCH_SIZE, unique.length)} of ${unique.length}…`);
 
-      const existChecks = deleteFirst
-        ? chunk.map(() => false)
-        : await Promise.all(
-            chunk.map(entry => getDoc(doc(colRef, entry.docId)).then(s => s.exists()).catch(() => false))
-          );
+      // After deleteFirst, deleteCollection already preserved manual entries.
+      // In both modes, skip any doc that already exists (catches manual entries
+      // that survived a deleteFirst wipe, or duplicates in a normal upload).
+      const existChecks = await Promise.all(
+        chunk.map(entry => getDoc(doc(colRef, entry.docId)).then(s => s.exists()).catch(() => false))
+      );
 
       const batch = writeBatch(db);
       let batchCount = 0;
@@ -843,7 +896,7 @@ export default function AdminUpload() {
 
         {/* Upload mode toggle */}
         <div className="flex gap-2 mb-6">
-          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV']].map(([mode, label]) => (
+          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual']].map(([mode, label]) => (
             <button key={mode} onClick={() => handleModeChange(mode)} disabled={busy}
               className={`flex-1 py-2.5 rounded-xl font-bungee text-xs tracking-wider border transition-all disabled:opacity-40 ${
                 uploadMode === mode
@@ -966,8 +1019,184 @@ export default function AdminUpload() {
         </div>
         )}
 
+        {/* ── MANUAL ENTRY MODE ─────────────────────────────────────────────── */}
+        {uploadMode === 'manual' && (
+          <div className="mb-6 space-y-4">
+            {/* Collection picker for manual entry (independent of the bulk selector) */}
+            <div>
+              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
+                COLLECTION
+              </label>
+              <div className="relative">
+                <select
+                  value={manualForm.collectionKey}
+                  onChange={e => handleManualChange('collectionKey', e.target.value)}
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm appearance-none focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                >
+                  {Object.entries(COLLECTIONS).map(([key, cfg]) => (
+                    <option key={key} value={key} className="bg-midnight-navy">
+                      {cfg.icon}  {cfg.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-starlight-turquoise text-xs">▼</span>
+              </div>
+            </div>
+
+            {/* Name */}
+            <div>
+              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-1.5">
+                NAME <span className="text-atomic-orange">*</span>
+              </label>
+              <input
+                type="text"
+                value={manualForm.name}
+                onChange={e => handleManualChange('name', e.target.value)}
+                placeholder="Location name"
+                disabled={manualSaving}
+                className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+              />
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">ADDRESS</label>
+              <input
+                type="text"
+                value={manualForm.address}
+                onChange={e => handleManualChange('address', e.target.value)}
+                placeholder="123 Main St"
+                disabled={manualSaving}
+                className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+              />
+            </div>
+
+            {/* City / State / Zip row */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-1">
+                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">CITY</label>
+                <input
+                  type="text"
+                  value={manualForm.city}
+                  onChange={e => handleManualChange('city', e.target.value)}
+                  placeholder="Portland"
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                />
+              </div>
+              <div className="col-span-1">
+                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">STATE</label>
+                <input
+                  type="text"
+                  value={manualForm.state}
+                  onChange={e => handleManualChange('state', e.target.value)}
+                  placeholder="OR"
+                  maxLength={2}
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                />
+              </div>
+              <div className="col-span-1">
+                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">ZIP</label>
+                <input
+                  type="text"
+                  value={manualForm.zipcode}
+                  onChange={e => handleManualChange('zipcode', e.target.value)}
+                  placeholder="97201"
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                />
+              </div>
+            </div>
+
+            {/* Lat / Lng row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-1.5">
+                  LAT <span className="text-atomic-orange">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={manualForm.lat}
+                  onChange={e => handleManualChange('lat', e.target.value)}
+                  placeholder="45.5231"
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                />
+              </div>
+              <div>
+                <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-1.5">
+                  LNG <span className="text-atomic-orange">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={manualForm.lng}
+                  onChange={e => handleManualChange('lng', e.target.value)}
+                  placeholder="-122.6765"
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                />
+              </div>
+            </div>
+
+            {/* Phone / Website row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">PHONE</label>
+                <input
+                  type="text"
+                  value={manualForm.phone}
+                  onChange={e => handleManualChange('phone', e.target.value)}
+                  placeholder="(503) 555-0100"
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                />
+              </div>
+              <div>
+                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">WEBSITE</label>
+                <input
+                  type="url"
+                  value={manualForm.website}
+                  onChange={e => handleManualChange('website', e.target.value)}
+                  placeholder="https://..."
+                  disabled={manualSaving}
+                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                />
+              </div>
+            </div>
+
+            {/* Result message */}
+            {manualResult && (
+              <div className={`border-2 rounded-xl p-4 ${manualResult.ok ? 'border-starlight-turquoise' : 'border-atomic-orange'}`}>
+                <pre className={`font-special-elite text-sm whitespace-pre-wrap leading-relaxed ${manualResult.ok ? 'text-starlight-turquoise' : 'text-atomic-orange'}`}>
+                  {manualResult.msg}
+                </pre>
+              </div>
+            )}
+
+            {/* Submit button */}
+            <button
+              onClick={handleManualSubmit}
+              disabled={!user || manualSaving}
+              className="w-full font-bungee rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: '#FF4E00',
+                color: '#1A1B2E',
+                minHeight: 56,
+                fontSize: '1rem',
+                boxShadow: (!manualSaving && user) ? '0 0 24px rgba(255,78,0,0.5)' : 'none',
+              }}
+            >
+              {manualSaving ? 'SAVING…' : `✏️ ADD TO ${COLLECTIONS[manualForm.collectionKey]?.label.toUpperCase() || 'FIRESTORE'}`}
+            </button>
+          </div>
+        )}
+
         {/* Delete-first toggle */}
-        {user && phase === 'idle' && (
+        {user && phase === 'idle' && uploadMode !== 'manual' && (
           <div className="mb-5">
             <label className="flex items-start gap-3 cursor-pointer group">
               <div className="relative mt-0.5 flex-shrink-0">
@@ -995,7 +1224,7 @@ export default function AdminUpload() {
         )}
 
         {/* Firestore rules reminder */}
-        {user && phase === 'idle' && (
+        {user && phase === 'idle' && uploadMode !== 'manual' && (
           <div className="border border-starlight-turquoise/30 rounded-xl p-4 mb-6 bg-white/5">
             <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-2">FIRESTORE RULES</p>
             <p className="font-special-elite text-paper-white text-sm mb-2">
@@ -1007,7 +1236,7 @@ export default function AdminUpload() {
         )}
 
         {/* Stats */}
-        {phase !== 'idle' && (
+        {phase !== 'idle' && uploadMode !== 'manual' && (
           <div className="border border-starlight-turquoise/20 rounded-xl p-4 mb-6 bg-black/30 font-special-elite text-sm space-y-1">
 
             {/* Input counts */}
@@ -1101,7 +1330,7 @@ export default function AdminUpload() {
         )}
 
         {/* Progress */}
-        {current && (
+        {current && uploadMode !== 'manual' && (
           <div className="flex items-center gap-3 mb-6">
             <span className="w-4 h-4 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin flex-shrink-0" />
             <span className="font-special-elite text-starlight-turquoise text-sm">{current}</span>
@@ -1109,7 +1338,7 @@ export default function AdminUpload() {
         )}
 
         {/* Error */}
-        {phase === 'error' && errorMsg && (
+        {phase === 'error' && errorMsg && uploadMode !== 'manual' && (
           <div className="border-2 border-atomic-orange rounded-xl p-4 mb-6">
             <p className="font-bungee text-atomic-orange text-xs tracking-widest mb-2">ERROR</p>
             <pre className="font-special-elite text-paper-white text-xs whitespace-pre-wrap leading-relaxed">{errorMsg}</pre>
@@ -1117,7 +1346,7 @@ export default function AdminUpload() {
         )}
 
         {/* Done */}
-        {phase === 'done' && (
+        {phase === 'done' && uploadMode !== 'manual' && (
           <div className="border-2 border-starlight-turquoise rounded-xl p-5 mb-6 text-center">
             <p className="font-bungee text-starlight-turquoise text-xl drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">DONE!</p>
             <p className="font-special-elite text-paper-white text-sm mt-1">
@@ -1138,7 +1367,7 @@ export default function AdminUpload() {
         )}
 
         {/* Upload button */}
-        {phase !== 'done' && (
+        {phase !== 'done' && uploadMode !== 'manual' && (
           <button
             onClick={uploadMode === 'csv' ? handleCsvUpload : handleUpload}
             disabled={!canUpload}

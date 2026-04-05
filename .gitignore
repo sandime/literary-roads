@@ -6,6 +6,8 @@ dist/
 
 .DS_Store
 **/.DS_Store
+firebase-debug.log
+.firebase/
 .claude/
 
 # Local NRHP data files
