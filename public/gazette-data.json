@@ -2,48 +2,48 @@
   "fiction": [
     {
       "rank": 1,
+      "title": "THE NIGHT WE MET",
+      "author": "Abby Jimenez",
+      "weeksOnList": 1,
+      "isbn13": "9781538759226",
+      "description": "Larissa makes a choice after a concert to ride home with Chris’s best friend, which may cause life-changing results.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538759226.jpg"
+    },
+    {
+      "rank": 2,
       "title": "JUDGE STONE",
       "author": "Viola Davis and James Patterson",
-      "weeksOnList": 2,
+      "weeksOnList": 3,
       "isbn13": "9780316579834",
       "description": "Judge Mary Stone oversees an ethically complex case in her courtroom in Union Springs, Ala.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316579834.jpg"
     },
     {
-      "rank": 2,
+      "rank": 3,
       "title": "THE CORRESPONDENT",
       "author": "Virginia Evans",
-      "weeksOnList": 21,
+      "weeksOnList": 22,
       "isbn13": "9780593798430",
       "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
-      "rank": 3,
-      "title": "BLOODLUST",
-      "author": "Sandra Brown",
-      "weeksOnList": 1,
-      "isbn13": "9781538743027",
-      "description": "The mutual attraction between Detective Mitch Haskell and his therapist may hinder his attempt to avenge his murdered wife.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538743027.jpg"
-    },
-    {
       "rank": 4,
-      "title": "MY HUSBAND'S WIFE",
-      "author": "Alice Feeney",
-      "weeksOnList": 8,
-      "isbn13": "9781250337818",
-      "description": "In an old house in a seaside town, things may not be what they appear to be.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250337818.jpg"
+      "title": "CARL'S DOOMSDAY SCENARIO",
+      "author": "Matt Dinniman",
+      "weeksOnList": 11,
+      "isbn13": "9780593820261",
+      "description": "The second book in the \"Dungeon Crawler Carl\" series. Carl and Donut confront an ancient spell and heightened dangers.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593820261.jpg"
     },
     {
       "rank": 5,
-      "title": "INNAMORATA",
-      "author": "Ava Reid",
+      "title": "DAUGHTER OF EGYPT",
+      "author": "Marie Benedict",
       "weeksOnList": 1,
-      "isbn13": "9780593722596",
-      "description": "Passion and revenge fuel Agnes as she seeks to recapture her family’s honor.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593722596.jpg"
+      "isbn13": "9781250280732",
+      "description": "The daughter of a prominent Egyptologist faces dangers as she searches for Hatshepsut’s secret tomb.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250280732.jpg"
     }
   ],
   "nonfiction": [
@@ -51,49 +51,49 @@
       "rank": 1,
       "title": "STRIPPED DOWN",
       "author": "Bunnie Xo",
-      "weeksOnList": 5,
+      "weeksOnList": 6,
       "isbn13": "9780063445192",
       "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
     },
     {
       "rank": 2,
+      "title": "STAND",
+      "author": "Cory Booker",
+      "weeksOnList": 1,
+      "isbn13": "9781250436733",
+      "description": "The Democratic senator from New Jersey overviews our nation's struggles and divisions past and present, and shares his views on potential remedies.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250436733.jpg"
+    },
+    {
+      "rank": 3,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 9,
+      "weeksOnList": 10,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
-      "rank": 3,
-      "title": "YOU WITH THE SAD EYES",
-      "author": "Christina Applegate",
-      "weeksOnList": 3,
-      "isbn13": "9780316594929",
-      "description": "The Emmy Award-winning actress, who received a multiple sclerosis diagnosis in 2021, shares personal stories.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316594929.jpg"
-    },
-    {
       "rank": 4,
-      "title": "KIDS, WAIT TILL YOU HEAR THIS!",
-      "author": "Liza Minnelli, as told to Michael Feinstein, with Josh Getlin and Heidi Evans",
-      "weeksOnList": 2,
-      "isbn13": "9781538773666",
-      "description": "The EGOT icon shares some of the highs and lows of her life and career.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773666.jpg"
+      "title": "A WORLD APPEARS",
+      "author": "Michael Pollan",
+      "weeksOnList": 5,
+      "isbn13": "9781984881991",
+      "description": "The author of “This Is Your Mind on Plants” explores several perspectives on consciousness.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781984881991.jpg"
     },
     {
       "rank": 5,
-      "title": "CHAIN OF IDEAS",
-      "author": "Ibram X. Kendi",
-      "weeksOnList": 1,
-      "isbn13": "9780593978023",
-      "description": "The author of “How to Be an Antiracist” and “Stamped From the Beginning” examines the impact of great replacement theory.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593978023.jpg"
+      "title": "THE ANXIOUS GENERATION",
+      "author": "Jonathan Haidt",
+      "weeksOnList": 101,
+      "isbn13": "9780593655030",
+      "description": "A co-author of “The Coddling of the American Mind” looks at the mental health impacts that a phone-based life has on children.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593655030.jpg"
     }
   ],
-  "issueDate": "Sunday, March 29, 2026",
-  "issueNumber": 65,
-  "updatedAt": "2026-03-29T10:23:05.358Z"
+  "issueDate": "Sunday, April 5, 2026",
+  "issueNumber": 66,
+  "updatedAt": "2026-04-05T10:24:12.287Z"
 }
