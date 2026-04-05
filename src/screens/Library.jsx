@@ -50,8 +50,25 @@ const FOUND_AT_OPTIONS = [
   'recommendation', 'podcast', 'library', 'bookstore',
   "friend's shelf", 'book review', 'Instagram', 'BookTok', 'somewhere else',
 ];
-const FEEL_OPTIONS = ['joyful', 'changed', 'sad', 'emotional'];
-const EXTRAS_OPTIONS = ['memorable characters', 'unforgettable line', 'scenery', 'great idea'];
+const FEEL_OPTIONS    = ['joyful', 'changed', 'sad', 'emotional'];
+const EXTRAS_OPTIONS  = ['memorable characters', 'unforgettable line', 'scenery', 'great idea'];
+
+const NF_VIBE_TAGS = [
+  'eye-opening', 'well researched', 'accessible', 'dense', 'inspiring',
+  'practical', 'changed my mind', 'fascinating', 'timely', 'essential reading',
+  'beautifully written', 'quick read', 'deep dive', 'personal', 'controversial', 'life changing',
+];
+const NF_FEEL_OPTIONS   = ['inspired', 'informed', 'challenged', 'motivated', 'overwhelmed', 'enlightened', 'skeptical', 'moved'];
+const NF_EXTRAS_OPTIONS = ['changed my perspective', 'surprising facts', 'would read again', 'dense but worth it', 'accessible writing'];
+
+// Detect fiction vs nonfiction from Google Books categories array
+function detectBookType(categories) {
+  if (!categories?.length) return 'fiction';
+  const joined = categories.join(' ').toLowerCase();
+  if (joined.includes('nonfiction') || joined.includes('non-fiction') || joined.includes('non fiction')) return 'nonfiction';
+  if (joined.includes('fiction')) return 'fiction';
+  return 'fiction';
+}
 
 const CAT_FILTER_ACTIVE   = 'sepia(1) saturate(8) hue-rotate(-8deg) brightness(1.05) drop-shadow(0 0 6px rgba(245,166,35,0.9))';
 const CAT_FILTER_INACTIVE = 'grayscale(1) brightness(0.55) opacity(0.4)';
@@ -233,6 +250,8 @@ function EntryForm({
   initialReflection = '', initialVibeTags = [], initialFoundAt = [],
   initialFeel = [], initialExtras = [], initialRecommend = false,
   initialIsPrivate = false, initialPersonalNotes = '', initialPersonalNotesPrivate = true,
+  initialBookType = 'fiction',
+  initialWhatYouLearned = '', initialChangedThinking = '', initialWillApply = '',
 }) {
   const [rating, setRating] = useState(initialRating);
   const [finishedMonth, setFinishedMonth] = useState(initialMonth);
@@ -247,6 +266,17 @@ function EntryForm({
   const [isPrivate, setIsPrivate] = useState(initialIsPrivate);
   const [personalNotes, setPersonalNotes] = useState(initialPersonalNotes);
   const [personalNotesPrivate, setPersonalNotesPrivate] = useState(initialPersonalNotesPrivate);
+  const [bookType, setBookType] = useState(initialBookType);
+  const [whatYouLearned, setWhatYouLearned] = useState(initialWhatYouLearned);
+  const [changedThinking, setChangedThinking] = useState(initialChangedThinking);
+  const [willApply, setWillApply] = useState(initialWillApply);
+
+  // Auto-detect fiction vs nonfiction from Google Books categories (new books only)
+  useEffect(() => {
+    if (editMode) return;
+    const detected = detectBookType(book?.categories);
+    setBookType(detected);
+  }, [book?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const togglePill = (setter, val) =>
     () => setter(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
@@ -342,6 +372,22 @@ function EntryForm({
         </p>
       </div>
 
+      {/* Fiction / Non-Fiction toggle */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: `1.5px solid ${L.divider}` }}>
+          {[{ value: 'fiction', label: 'FICTION' }, { value: 'nonfiction', label: 'NON-FICTION' }].map(({ value, label }) => (
+            <button key={value} type="button" onClick={() => setBookType(value)}
+              style={{ flex: 1, padding: '9px 6px', border: 'none', cursor: 'pointer',
+                fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em',
+                transition: 'background 0.2s, color 0.2s',
+                background: bookType === value ? L.turquoise : 'transparent',
+                color: bookType === value ? L.white : L.muted }}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{ marginBottom: 14 }}>
         <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>RATING</label>
         <CatRating value={rating} onChange={setRating} />
@@ -391,17 +437,33 @@ function EntryForm({
         />
       </div>
 
-      {/* Vibe tags */}
-      <div style={{ marginBottom: 14 }}>
-        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>VIBE TAGS</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-          {LOG_VIBE_TAGS.map(tag => (
-            <button key={tag} type="button" onClick={togglePill(setLogVibeTags, tag)} style={pillBtn(logVibeTags.includes(tag))}>
-              {tag.toUpperCase()}
-            </button>
-          ))}
+      {/* Vibe tags — fiction */}
+      {bookType === 'fiction' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>VIBE TAGS</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {LOG_VIBE_TAGS.map(tag => (
+              <button key={tag} type="button" onClick={togglePill(setLogVibeTags, tag)} style={pillBtn(logVibeTags.includes(tag))}>
+                {tag.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Vibe tags — non-fiction */}
+      {bookType === 'nonfiction' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>VIBE TAGS</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {NF_VIBE_TAGS.map(tag => (
+              <button key={tag} type="button" onClick={togglePill(setLogVibeTags, tag)} style={pillBtn(logVibeTags.includes(tag))}>
+                {tag.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Where did you find this book? */}
       <div style={{ marginBottom: 14 }}>
@@ -415,29 +477,91 @@ function EntryForm({
         </div>
       </div>
 
-      {/* How did it make you feel? */}
-      <div style={{ marginBottom: 14 }}>
-        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>HOW DID THIS BOOK MAKE YOU FEEL?</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-          {FEEL_OPTIONS.map(opt => (
-            <button key={opt} type="button" onClick={togglePill(setFeel, opt)} style={pillBtn(feel.includes(opt))}>
-              {opt.toUpperCase()}
-            </button>
-          ))}
+      {/* How did this book make you feel — fiction */}
+      {bookType === 'fiction' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>HOW DID THIS BOOK MAKE YOU FEEL?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {FEEL_OPTIONS.map(opt => (
+              <button key={opt} type="button" onClick={togglePill(setFeel, opt)} style={pillBtn(feel.includes(opt))}>
+                {opt.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* What else? */}
-      <div style={{ marginBottom: 14 }}>
-        <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHAT ELSE DID YOU WANT TO SAY?</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-          {EXTRAS_OPTIONS.map(opt => (
-            <button key={opt} type="button" onClick={togglePill(setExtras, opt)} style={pillBtn(extras.includes(opt))}>
-              {opt.toUpperCase()}
-            </button>
-          ))}
+      {/* How did this book make you feel — non-fiction */}
+      {bookType === 'nonfiction' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>HOW DID THIS BOOK MAKE YOU FEEL?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {NF_FEEL_OPTIONS.map(opt => (
+              <button key={opt} type="button" onClick={togglePill(setFeel, opt)} style={pillBtn(feel.includes(opt))}>
+                {opt.toUpperCase()}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* What else — fiction */}
+      {bookType === 'fiction' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHAT ELSE DID YOU WANT TO SAY?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {EXTRAS_OPTIONS.map(opt => (
+              <button key={opt} type="button" onClick={togglePill(setExtras, opt)} style={pillBtn(extras.includes(opt))}>
+                {opt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* What else — non-fiction */}
+      {bookType === 'nonfiction' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHAT ELSE?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {NF_EXTRAS_OPTIONS.map(opt => (
+              <button key={opt} type="button" onClick={togglePill(setExtras, opt)} style={pillBtn(extras.includes(opt))}>
+                {opt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Non-fiction only: 3 reflection text fields */}
+      {bookType === 'nonfiction' && (
+        <>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 4 }}>WHAT DID YOU LEARN?</label>
+            <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted, margin: '0 0 8px', lineHeight: 1.5 }}>What surprised or stayed with you?</p>
+            <textarea value={whatYouLearned} onChange={e => setWhatYouLearned(e.target.value)}
+              placeholder="What surprised or stayed with you?"
+              rows={3}
+              style={{ ...inputStyle, padding: '8px 10px', resize: 'vertical' }} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 4 }}>DID IT CHANGE HOW YOU THINK?</label>
+            <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted, margin: '0 0 8px', lineHeight: 1.5 }}>About anything — big or small</p>
+            <textarea value={changedThinking} onChange={e => setChangedThinking(e.target.value)}
+              placeholder="About anything — big or small"
+              rows={3}
+              style={{ ...inputStyle, padding: '8px 10px', resize: 'vertical' }} />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 4 }}>WILL YOU APPLY ANYTHING?</label>
+            <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted, margin: '0 0 8px', lineHeight: 1.5 }}>An idea, habit, or perspective</p>
+            <textarea value={willApply} onChange={e => setWillApply(e.target.value)}
+              placeholder="An idea, habit, or perspective"
+              rows={3}
+              style={{ ...inputStyle, padding: '8px 10px', resize: 'vertical' }} />
+          </div>
+        </>
+      )}
 
       {/* Would you recommend? */}
       <div style={{ marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -488,7 +612,7 @@ function EntryForm({
       )}
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate })}
+        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply })}
           disabled={saving}
           style={{ ...primaryBtn, flex: 1, padding: 10, fontSize: 11, opacity: saving ? 0.5 : 1 }}>
           {saving ? 'SAVING...' : 'SAVE'}
@@ -734,7 +858,7 @@ export default function Library({ onBack }) {
     } catch (err) { console.error('[Library] delete postcard book:', err); }
   };
 
-  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate }) => {
+  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply }) => {
     if (!user || !selectedBook) return;
     setSaving(true); setSaveError('');
     try {
@@ -747,6 +871,10 @@ export default function Library({ onBack }) {
         isPrivate: isPrivate ?? false,
         personalNotes: personalNotes ?? '',
         personalNotesPrivate: personalNotesPrivate ?? true,
+        bookType: bookType ?? 'fiction',
+        whatYouLearned: whatYouLearned ?? '',
+        changedThinking: changedThinking ?? '',
+        willApply: willApply ?? '',
         timestamp: serverTimestamp(),
       });
       setSelectedBook(null); setShowAddSearch(false);
@@ -757,7 +885,7 @@ export default function Library({ onBack }) {
     } finally { setSaving(false); }
   };
 
-  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate }) => {
+  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply }) => {
     if (!user || !editingEntry) return;
     setEditSaving(true);
     try {
@@ -766,6 +894,10 @@ export default function Library({ onBack }) {
         isPrivate: isPrivate ?? false,
         personalNotes: personalNotes ?? '',
         personalNotesPrivate: personalNotesPrivate ?? true,
+        bookType: bookType ?? 'fiction',
+        whatYouLearned: whatYouLearned ?? '',
+        changedThinking: changedThinking ?? '',
+        willApply: willApply ?? '',
       });
       setEditingEntry(null); setActiveCard(null);
     } catch (err) { console.error('[Library] edit:', err); }
@@ -968,6 +1100,10 @@ export default function Library({ onBack }) {
                       initialIsPrivate={editingEntry.isPrivate ?? false}
                       initialPersonalNotes={editingEntry.personalNotes ?? ''}
                       initialPersonalNotesPrivate={editingEntry.personalNotesPrivate ?? true}
+                      initialBookType={editingEntry.bookType ?? 'fiction'}
+                      initialWhatYouLearned={editingEntry.whatYouLearned ?? ''}
+                      initialChangedThinking={editingEntry.changedThinking ?? ''}
+                      initialWillApply={editingEntry.willApply ?? ''}
                       onSave={handleEditSave} onCancel={() => setEditingEntry(null)} saving={editSaving} />
                   </div>
                 )}

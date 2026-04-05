@@ -178,6 +178,21 @@ function JournalCard({ item, expanded, onToggleExpand }) {
             </p>
           )}
 
+          {/* Non-fiction: what you learned (always shown, truncated unless expanded) */}
+          {item.bookType === 'nonfiction' && item.whatYouLearned && (
+            <p style={{
+              fontFamily: 'Special Elite, serif', fontSize: 11, color: L.mid,
+              lineHeight: 1.6, margin: '0 0 8px',
+              overflow: expanded ? 'visible' : 'hidden',
+              display: expanded ? 'block' : '-webkit-box',
+              WebkitLineClamp: expanded ? undefined : 2,
+              WebkitBoxOrient: 'vertical',
+              borderLeft: `3px solid ${L.gold}`, paddingLeft: 8,
+            }}>
+              {item.whatYouLearned}
+            </p>
+          )}
+
           {expanded && (
             <>
               {item.feel?.length > 0 && (
@@ -189,6 +204,23 @@ function JournalCard({ item, expanded, onToggleExpand }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 6 }}>
                   {item.vibeTags.map(t => <TagPill key={t} text={t} color={L.turquoise} />)}
                 </div>
+              )}
+              {/* Non-fiction extra reflections */}
+              {item.bookType === 'nonfiction' && (
+                <>
+                  {item.changedThinking && (
+                    <div style={{ marginBottom: 6 }}>
+                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.muted, letterSpacing: '0.06em' }}>CHANGED HOW I THINK</span>
+                      <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.dark, lineHeight: 1.6, margin: '3px 0 0' }}>{item.changedThinking}</p>
+                    </div>
+                  )}
+                  {item.willApply && (
+                    <div style={{ marginBottom: 6 }}>
+                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.muted, letterSpacing: '0.06em' }}>WILL APPLY</span>
+                      <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.dark, lineHeight: 1.6, margin: '3px 0 0' }}>{item.willApply}</p>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

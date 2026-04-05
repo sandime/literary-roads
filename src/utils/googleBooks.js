@@ -21,7 +21,7 @@ async function fetchGoogle(query) {
   if (cached) return cached;
 
   const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers)${key}`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers,volumeInfo/categories)${key}`;
   const res = await fetch(url);
   if (!res.ok) return []; // includes 429 — Open Library fills the gap
   const data = await res.json();
@@ -41,6 +41,7 @@ async function fetchGoogle(query) {
       author: item.volumeInfo?.authors?.[0] || 'Unknown Author',
       coverURL,
       isbn,
+      categories: item.volumeInfo?.categories || [],
       link: item.volumeInfo?.infoLink || `https://books.google.com/books?id=${item.id}`,
       source: 'google',
     };

@@ -79,12 +79,19 @@ function getStampPalette(stateCode) {
   return STAMP_PALETTES[(idx < 0 ? 0 : idx) % STAMP_PALETTES.length];
 }
 
-const VIBE_TAGS = [
+const FICTION_VIBE_TAGS = [
   'immersive', 'family drama', 'character-driven', 'beautiful prose',
   'haunting', 'life changing', 'plot-driven', 'entertaining',
   'mind-bending', 'redemptive', 'comforting', 'surprising',
   'great ending', 'notable setting', 'slow', 'thought provoking', 'read again',
 ];
+const NF_VIBE_TAGS = [
+  'eye-opening', 'well researched', 'accessible', 'dense', 'inspiring',
+  'practical', 'changed my mind', 'fascinating', 'timely', 'essential reading',
+  'beautifully written', 'quick read', 'deep dive', 'personal', 'controversial', 'life changing',
+];
+// Combined list: fiction tags + separator sentinel + nonfiction tags
+const VIBE_TAGS = [...FICTION_VIBE_TAGS, '__separator__', ...NF_VIBE_TAGS];
 
 const MSG_LIMIT = 280;
 
@@ -871,18 +878,29 @@ function Step2({ book, onNext, onBack, onClose }) {
         {/* Vibe tags */}
         <label className="font-bungee" style={labelStyle}>VIBE TAGS</label>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
-          {VIBE_TAGS.map(tag => (
-            <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
-              style={{
-                padding: '3px 9px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
-                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                background: vibeTags.includes(tag) ? PB.coral : 'rgba(56,197,197,0.08)',
-                color: vibeTags.includes(tag) ? PB.white : PB.mid,
-                boxShadow: vibeTags.includes(tag) ? '0 2px 8px rgba(255,107,122,0.3)' : 'none',
-              }}>
-              {tag.toUpperCase()}
-            </button>
-          ))}
+          {VIBE_TAGS.map((tag, idx) => {
+            if (tag === '__separator__') {
+              return (
+                <div key="sep" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0' }}>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(56,197,197,0.2)' }} />
+                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: 'rgba(56,197,197,0.5)', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>NON-FICTION</span>
+                  <div style={{ flex: 1, height: 1, background: 'rgba(56,197,197,0.2)' }} />
+                </div>
+              );
+            }
+            return (
+              <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
+                style={{
+                  padding: '3px 9px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
+                  border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                  background: vibeTags.includes(tag) ? PB.coral : 'rgba(56,197,197,0.08)',
+                  color: vibeTags.includes(tag) ? PB.white : PB.mid,
+                  boxShadow: vibeTags.includes(tag) ? '0 2px 8px rgba(255,107,122,0.3)' : 'none',
+                }}>
+                {tag.toUpperCase()}
+              </button>
+            );
+          })}
         </div>
 
         {/* Signature */}
