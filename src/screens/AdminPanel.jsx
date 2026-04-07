@@ -6,9 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   fetchAll, createItem, updateItem, deleteItem, ADMIN_UID,
   fetchCurrentIssue, saveCurrentIssue, publishIssue,
-  fetchFeatured, fetchArchivedIssues,
+  fetchFeatured, fetchArchivedIssues, fetchAllFeaturedSections,
 } from '../utils/newsletterAdmin';
 import { formatIssueDate } from '../components/GazetteContent';
+import { generateNewsletterHTML } from '../utils/newsletterGenerator';
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 // Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
@@ -41,71 +42,234 @@ const formatFestivalDate = (startDate, endDate) => {
 };
 
 // ── Section definitions ────────────────────────────────────────────────────────
+// NOTE: `key` = Firestore collection name. Renamed sections keep their original
+// collection names so existing data is preserved.
 const SECTIONS = [
+  // ── 1. FESTIVAL TRIPS (was: Festivals) ──────────────────────────────────────
   {
     key: 'festivals',
-    label: 'Festivals',
+    label: 'Festival Trips',
     defaultFeatured: true,
     featuredFixed: true,
     displayField: 'name',
     subField: 'location',
     getExtraDisplay: item => formatFestivalDate(item.date, item.endDate),
     fields: [
-      { key: 'name',    label: 'Festival Name', type: 'text', required: true },
-      { key: 'date',    label: 'Start Date',    type: 'date', required: true },
-      { key: 'endDate', label: 'End Date',      type: 'date', required: false, note: 'Optional — leave blank for single-day events' },
-      { key: 'location', label: 'Location',     type: 'text', required: true, placeholder: 'Nashville, TN' },
-      { key: 'link',    label: 'Website URL',   type: 'url',  required: true },
-      { key: 'context', label: 'Description',   type: 'textarea', required: true, maxLength: 400, rows: 4 },
+      { key: 'name',      label: 'Festival Name', type: 'text', required: true },
+      { key: 'date',      label: 'Start Date',    type: 'date', required: true },
+      { key: 'endDate',   label: 'End Date',      type: 'date', required: false, note: 'Optional — leave blank for single-day events' },
+      { key: 'location',  label: 'City, State',   type: 'text', required: true, placeholder: 'Nashville, TN' },
+      { key: 'context',   label: 'Description',   type: 'textarea', required: true, maxLength: 400, rows: 4 },
+      { key: 'link',      label: 'Website URL',   type: 'url',  required: true },
+      { key: 'imageUrl',  label: 'Image URL',     type: 'url',  required: false },
     ],
   },
+
+  // ── 2. HAND-SELECTED (was: Indie Picks) ─────────────────────────────────────
   {
     key: 'indiePicks',
-    label: 'Indie Picks',
+    label: 'Hand-Selected',
+    subtitle: 'Bookstore staff picks from indie shops across America',
     defaultFeatured: false,
     displayField: 'bookstoreName',
     subField: 'city',
     fields: [
-      { key: 'bookstoreName',  label: 'Bookstore Name',  type: 'text',     required: true },
-      { key: 'city',           label: 'City',            type: 'text',     required: true, placeholder: 'Portland, ME' },
-      { key: 'recommendation', label: 'Recommendation',  type: 'textarea', required: true, maxLength: 300, rows: 4 },
+      { key: 'bookstoreName', label: 'Store Name',         type: 'text', required: true },
+      { key: 'city',          label: 'City, State',        type: 'text', required: true, placeholder: 'Portland, ME' },
+      { key: 'ownerName',     label: 'Owner / Staff Name', type: 'text', required: false },
+      { key: 'description',   label: 'Store Description',  type: 'textarea', required: false, maxLength: 300, rows: 3 },
+      { key: 'imageUrl',      label: 'Store Image URL',    type: 'url',  required: false },
+      { key: 'appLink',       label: 'App Link',           type: 'url',  required: false, note: 'Auto-populated from database if available' },
+      {
+        key: 'bookPicks', label: 'Book Picks', type: 'repeater', maxItems: 5,
+        subFields: [
+          { key: 'title',    label: 'Title',           type: 'text',     required: true },
+          { key: 'author',   label: 'Author',          type: 'text',     required: true },
+          { key: 'coverUrl', label: 'Cover Image URL', type: 'url',      required: false },
+          { key: 'blurb',    label: 'Staff Blurb',     type: 'textarea', required: false, maxLength: 200, rows: 3 },
+        ],
+      },
     ],
   },
-  {
-    key: 'debutAuthors',
-    label: 'Debut Authors',
-    defaultFeatured: false,
-    displayField: 'authorName',
-    subField: 'bookTitle',
-    fields: [
-      { key: 'authorName', label: 'Author Name',  type: 'text',     required: true },
-      { key: 'bookTitle',  label: 'Book Title',   type: 'text',     required: true },
-      { key: 'excerpt',    label: 'Excerpt / Bio',type: 'textarea', required: true, maxLength: 300, rows: 4 },
-      { key: 'link',       label: 'Book Link',    type: 'url',      required: true, placeholder: 'https://goodreads.com/...' },
-    ],
-  },
-  {
-    key: 'bookTokPicks',
-    label: 'BookTok',
-    defaultFeatured: false,
-    displayField: 'bookTitle',
-    subField: null,
-    fields: [
-      { key: 'bookTitle',  label: 'Book Title',  type: 'text',     required: true },
-      { key: 'tiktokLink', label: 'TikTok Link', type: 'url',      required: true },
-      { key: 'commentary', label: 'Commentary',  type: 'textarea', required: true, maxLength: 300, rows: 4 },
-    ],
-  },
+
+  // ── 3. DISPATCHES (was: Trip Reports) ───────────────────────────────────────
   {
     key: 'tripReports',
-    label: 'Trip Reports',
+    label: 'Dispatches',
     defaultFeatured: false,
     displayField: 'title',
     subField: 'location',
     fields: [
-      { key: 'title',     label: 'Title',     type: 'text',     required: true, placeholder: "Following Flannery O'Connor Across Georgia" },
-      { key: 'location',  label: 'Location',  type: 'text',     required: true },
-      { key: 'narrative', label: 'Narrative', type: 'textarea', required: true, maxLength: 800, rows: 6 },
+      { key: 'title',        label: 'Dispatch Title',     type: 'text',     required: true, placeholder: "Following Flannery O'Connor Across Georgia" },
+      { key: 'startCity',    label: 'Start City',         type: 'text',     required: false },
+      { key: 'endCity',      label: 'End City',           type: 'text',     required: false },
+      { key: 'location',     label: 'States Covered',     type: 'text',     required: false, placeholder: 'Tennessee, Georgia, South Carolina' },
+      { key: 'narrative',    label: 'Description',        type: 'textarea', required: true, maxLength: 800, rows: 6 },
+      { key: 'landmarks',    label: 'Featured Landmarks', type: 'text',     required: false, placeholder: 'Comma-separated landmark names' },
+      { key: 'heroImageUrl', label: 'Hero Image URL',     type: 'url',      required: false },
+      { key: 'appRouteLink', label: 'App Route Link',     type: 'url',      required: false },
+    ],
+  },
+
+  // ── 4. READERS' CHOICE (was: BookTok) ───────────────────────────────────────
+  {
+    key: 'bookTokPicks',
+    label: "Readers' Choice",
+    defaultFeatured: false,
+    displayField: 'bookTitle',
+    subField: 'author',
+    fields: [
+      { key: 'bookTitle',  label: 'Book Title',        type: 'text',     required: true },
+      { key: 'author',     label: 'Author',            type: 'text',     required: true },
+      { key: 'coverUrl',   label: 'Cover Image URL',   type: 'url',      required: false },
+      { key: 'whyBuzzing', label: "Why It's Buzzing",  type: 'textarea', required: true, maxLength: 300, rows: 4 },
+      { key: 'buzzSource', label: 'Source of Buzz',    type: 'select',   required: false, options: ['BookTok', 'Instagram', 'Reddit', 'Word of mouth', 'Other'] },
+      { key: 'link',       label: 'Link',              type: 'url',      required: false },
+    ],
+  },
+
+  // ── 5. LITERARY LANDMARK (new) ───────────────────────────────────────────────
+  {
+    key: 'literaryLandmarks',
+    label: 'Literary Landmark',
+    defaultFeatured: false,
+    displayField: 'name',
+    subField: 'location',
+    fields: [
+      { key: 'name',               label: 'Landmark Name',           type: 'text',     required: true },
+      { key: 'location',           label: 'City, State',             type: 'text',     required: true },
+      { key: 'literaryConnection', label: 'Literary Connection',     type: 'text',     required: true, placeholder: 'Who/what is this place connected to?' },
+      { key: 'history',            label: 'History',                 type: 'textarea', required: true, maxLength: 800, rows: 6 },
+      { key: 'howToVisit',         label: 'How to Visit',            type: 'textarea', required: false, maxLength: 300, rows: 3, placeholder: 'Hours, admission, tips...' },
+      { key: 'readBeforeYouGo',    label: 'What to Read Before You Go', type: 'text', required: false, placeholder: 'Book Title by Author' },
+      { key: 'heroImageUrl',       label: 'Hero Image URL',          type: 'url',      required: false },
+      { key: 'appLink',            label: 'App Link',                type: 'url',      required: false, note: 'Auto-populated from database if available' },
+      { key: 'externalLink',       label: 'Wikipedia or External Link', type: 'url',  required: false },
+    ],
+  },
+
+  // ── 6. THE READING ROOM (new) ────────────────────────────────────────────────
+  {
+    key: 'readingRoom',
+    label: 'The Reading Room',
+    defaultFeatured: false,
+    displayField: 'communityNote',
+    subField: null,
+    fields: [
+      {
+        key: 'featuredBooks', label: 'Featured Books', type: 'repeater', maxItems: 3,
+        subFields: [
+          { key: 'title',       label: 'Title',        type: 'text',     required: true },
+          { key: 'author',      label: 'Author',       type: 'text',     required: true },
+          { key: 'coverUrl',    label: 'Cover URL',    type: 'url',      required: false },
+          { key: 'whyFeatured', label: 'Why Featured', type: 'textarea', required: false, maxLength: 200, rows: 3 },
+        ],
+      },
+      { key: 'communityNote',     label: 'Community Note',           type: 'textarea', required: false, maxLength: 300, rows: 4, placeholder: "Editorial comment on what readers are into..." },
+      { key: 'postcardImageUrl',  label: 'Featured Postcard Image URL', type: 'url',  required: false },
+      { key: 'postcardCaption',   label: 'Postcard Caption',         type: 'text',     required: false },
+      { key: 'postcardLocation',  label: 'Postcard Location',        type: 'text',     required: false },
+    ],
+  },
+
+  // ── 7. HEADLIGHTS (new) — each item = one headline ──────────────────────────
+  {
+    key: 'headlights',
+    label: 'Headlights',
+    defaultFeatured: false,
+    displayField: 'headline',
+    subField: 'type',
+    fields: [
+      { key: 'headline', label: 'Headline',  type: 'text',     required: true, placeholder: 'Short, punchy headline' },
+      { key: 'body',     label: 'Body',      type: 'textarea', required: true, maxLength: 300, rows: 3, placeholder: '2-3 sentences max' },
+      { key: 'type',     label: 'Type',      type: 'select',   required: true, options: ['New Shop', 'Anniversary', 'Find', 'Event', 'Other'] },
+      { key: 'link',     label: 'Link',      type: 'url',      required: false },
+      { key: 'imageUrl', label: 'Image URL', type: 'url',      required: false },
+    ],
+  },
+
+  // ── 8. ON THE ROAD (new) — each item = one author event ─────────────────────
+  {
+    key: 'onTheRoad',
+    label: 'On the Road',
+    defaultFeatured: false,
+    displayField: 'authorName',
+    subField: 'bookTitle',
+    fields: [
+      { key: 'authorName', label: 'Author Name',         type: 'text',     required: true },
+      { key: 'bookTitle',  label: 'Book Title',          type: 'text',     required: true },
+      { key: 'coverUrl',   label: 'Book Cover URL',      type: 'url',      required: false },
+      { key: 'venueName',  label: 'Venue Name',          type: 'text',     required: true },
+      { key: 'location',   label: 'City, State',         type: 'text',     required: true },
+      { key: 'dateTime',   label: 'Date and Time',       type: 'text',     required: true, placeholder: 'April 18, 2026 · 7:00 PM' },
+      { key: 'rsvpLink',   label: 'Ticket / RSVP Link',  type: 'url',      required: false },
+      { key: 'notes',      label: 'Notes',               type: 'text',     required: false, placeholder: 'Signing, reading, conversation...' },
+    ],
+  },
+
+  // ── 9. THE WAYSTATION (new) ──────────────────────────────────────────────────
+  {
+    key: 'waystation',
+    label: 'The Waystation',
+    defaultFeatured: false,
+    displayField: 'name',
+    subField: 'location',
+    fields: [
+      { key: 'name',            label: 'Place Name',                 type: 'text',     required: true },
+      { key: 'placeType',       label: 'Type',                       type: 'select',   required: true, options: ['Coffee Shop', 'Bookstore', 'Both'] },
+      { key: 'location',        label: 'City, State',                type: 'text',     required: true },
+      { key: 'whyWorthy',       label: 'Why Literary-Traveler Worthy', type: 'textarea', required: true, maxLength: 400, rows: 4 },
+      { key: 'bookToReadThere', label: 'A Book to Read There',       type: 'text',     required: false, placeholder: 'Title by Author' },
+      { key: 'hours',           label: 'Hours',                      type: 'text',     required: false },
+      { key: 'address',         label: 'Address',                    type: 'text',     required: false },
+      { key: 'website',         label: 'Website',                    type: 'url',      required: false },
+      { key: 'heroImageUrl',    label: 'Hero Image URL',             type: 'url',      required: false },
+      { key: 'appLink',         label: 'App Link',                   type: 'url',      required: false, note: 'Auto-populated from database if available' },
+      { key: 'travelersOffer',  label: 'Literary Travelers Offer',   type: 'text',     required: false, placeholder: '10% off with Literary Roads app (optional)' },
+    ],
+  },
+
+  // ── 10. BOOKSTORE OWNER Q&A (new) ───────────────────────────────────────────
+  {
+    key: 'bookstoreQA',
+    label: 'Bookstore Q&A',
+    defaultFeatured: false,
+    displayField: 'storeName',
+    subField: 'location',
+    fields: [
+      { key: 'storeName',     label: 'Store Name',                    type: 'text', required: true },
+      { key: 'location',      label: 'City, State',                   type: 'text', required: true },
+      { key: 'ownerName',     label: 'Owner / Manager Name & Title',  type: 'text', required: true },
+      { key: 'storeImageUrl', label: 'Store Image URL',               type: 'url',  required: false },
+      { key: 'ownerPhotoUrl', label: 'Owner Photo URL',               type: 'url',  required: false, note: 'Optional' },
+      { key: 'q1',  label: 'Q1: How do we encourage more people to read?',                              type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q2',  label: 'Q2: What\'s the last book you loved?',                                      type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q3',  label: 'Q3: Do you have a favorite coffee shop?',                                   type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q4',  label: 'Q4: What surprised you this week?',                                         type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q5',  label: 'Q5: Is there life on other planets?',                                       type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q6',  label: 'Q6: If you could read a book anywhere in the world, where would that be?',  type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q7',  label: 'Q7: Winter, spring, summer or fall?',                                       type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q8',  label: 'Q8: What is your favorite invention?',                                      type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q9',  label: 'Q9: When was your last road trip and where did you go?',                    type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q10', label: 'Q10: How do you like your coffee (or tea)?',                                type: 'textarea', required: false, maxLength: 400, rows: 3 },
+      { key: 'q11', label: 'Q11: What\'s one book every Literary Roads traveler should read?',          type: 'textarea', required: false, maxLength: 400, rows: 3 },
+    ],
+  },
+
+  // ── 11. THE LONG ROAD (new) ──────────────────────────────────────────────────
+  {
+    key: 'theLongRoad',
+    label: 'The Long Road',
+    defaultFeatured: false,
+    displayField: 'authorName',
+    subField: 'bookTitle',
+    fields: [
+      { key: 'youtubeId',      label: 'YouTube Video ID',   type: 'text',     required: true, placeholder: 'e.g. dQw4w9WgXcQ (just the ID)' },
+      { key: 'authorName',     label: 'Author Name',        type: 'text',     required: true },
+      { key: 'bookTitle',      label: 'Book Title',         type: 'text',     required: true },
+      { key: 'interviewTitle', label: 'Interview Title',    type: 'text',     required: true, placeholder: 'On writing place, memory and the American road' },
+      { key: 'description',    label: 'Description',        type: 'textarea', required: false, maxLength: 300, rows: 3 },
+      { key: 'authorPhotoUrl', label: 'Author Photo URL',   type: 'url',      required: false, note: 'Optional' },
     ],
   },
 ];
@@ -139,17 +303,96 @@ function Toast({ message, type }) {
   );
 }
 
+// ── Repeater Field ────────────────────────────────────────────────────────────
+function RepeaterField({ field, value, onChange }) {
+  const items = value || [];
+  const addItem = () => {
+    if (items.length >= (field.maxItems || 10)) return;
+    const blank = {};
+    field.subFields.forEach(sf => { blank[sf.key] = ''; });
+    onChange([...items, blank]);
+  };
+  const removeItem = i => onChange(items.filter((_, idx) => idx !== i));
+  const updateItem = (i, key, val) => {
+    const next = [...items];
+    next[i] = { ...next[i], [key]: val };
+    onChange(next);
+  };
+
+  return (
+    <div>
+      {items.map((item, i) => (
+        <div key={i} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, marginBottom: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.06em' }}>
+              {field.label.toUpperCase()} {i + 1}
+            </span>
+            <button onClick={() => removeItem(i)}
+              style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: 0 }}>×</button>
+          </div>
+          {field.subFields.map(sf => (
+            <div key={sf.key} style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.06em', marginBottom: 4 }}>
+                {sf.label}{sf.required && <span style={{ color: C.orange }}> *</span>}
+              </label>
+              {sf.type === 'textarea' ? (
+                <>
+                  <textarea
+                    value={item[sf.key] || ''}
+                    onChange={e => updateItem(i, sf.key, e.target.value)}
+                    rows={sf.rows || 2}
+                    maxLength={sf.maxLength}
+                    style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 5, padding: '6px 8px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 12, resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.5 }}
+                  />
+                  {sf.maxLength && (
+                    <div style={{ textAlign: 'right', fontSize: 9, color: C.muted, marginTop: 1 }}>
+                      {(item[sf.key] || '').length}/{sf.maxLength}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <input
+                  type={sf.type || 'text'}
+                  value={item[sf.key] || ''}
+                  onChange={e => updateItem(i, sf.key, e.target.value)}
+                  style={{ width: '100%', background: C.surface, border: `1px solid ${C.border}`, borderRadius: 5, padding: '6px 8px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 12, boxSizing: 'border-box' }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+      {items.length < (field.maxItems || 10) && (
+        <button type="button" onClick={addItem}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '6px 14px', borderRadius: 6, border: `1px dashed ${C.teal}`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.05em', width: '100%' }}>
+          + ADD {field.label.toUpperCase()} ({items.length}/{field.maxItems || 10})
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── Item Modal ────────────────────────────────────────────────────────────────
 function ItemModal({ section, item, onSave, onClose, saving }) {
   const isEdit = !!item?.id;
   const [form, setForm] = useState(() => {
     const d = {};
-    section.fields.forEach(f => { d[f.key] = item?.[f.key] ?? ''; });
+    section.fields.forEach(f => {
+      // Repeater fields initialize as arrays; everything else as strings
+      d[f.key] = f.type === 'repeater'
+        ? (item?.[f.key] ?? [])
+        : (item?.[f.key] ?? '');
+    });
     d.featured = item?.featured ?? section.defaultFeatured;
     return d;
   });
 
-  const canSave = section.fields.filter(f => f.required).every(f => String(form[f.key] ?? '').trim());
+  // Only check non-repeater required fields for save eligibility
+  const canSave = section.fields
+    .filter(f => f.required && f.type !== 'repeater')
+    .every(f => String(form[f.key] ?? '').trim());
+
+  const inputStyle = { width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 10px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 13, boxSizing: 'border-box' };
 
   return (
     <div
@@ -157,14 +400,19 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
       onClick={onClose}
     >
       <div
-        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
+        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Modal header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.teal, margin: 0, letterSpacing: '0.06em' }}>
-            {isEdit ? `EDIT ${section.label.toUpperCase()}` : `ADD ${section.label.toUpperCase()}`}
-          </h2>
+          <div>
+            <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.teal, margin: 0, letterSpacing: '0.06em' }}>
+              {isEdit ? `EDIT ${section.label.toUpperCase()}` : `ADD ${section.label.toUpperCase()}`}
+            </h2>
+            {section.subtitle && (
+              <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted, margin: '3px 0 0' }}>{section.subtitle}</p>
+            )}
+          </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: C.silver, cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
         </div>
 
@@ -174,7 +422,25 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
             <label style={{ display: 'block', fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.07em', marginBottom: 5 }}>
               {field.label}{field.required && <span style={{ color: C.orange }}> *</span>}
             </label>
-            {field.type === 'textarea' ? (
+
+            {field.type === 'repeater' ? (
+              <RepeaterField
+                field={field}
+                value={form[field.key]}
+                onChange={arr => setForm(f => ({ ...f, [field.key]: arr }))}
+              />
+            ) : field.type === 'select' ? (
+              <select
+                value={form[field.key]}
+                onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
+                style={{ ...inputStyle, cursor: 'pointer' }}
+              >
+                <option value="">Select...</option>
+                {(field.options || []).map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : field.type === 'textarea' ? (
               <>
                 <textarea
                   value={form[field.key]}
@@ -182,7 +448,7 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
                   rows={field.rows || 3}
                   maxLength={field.maxLength}
                   placeholder={field.placeholder || ''}
-                  style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 10px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 13, resize: 'vertical', boxSizing: 'border-box', lineHeight: 1.6 }}
+                  style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
                 />
                 {field.maxLength && (
                   <div style={{ textAlign: 'right', fontSize: 10, color: C.muted, marginTop: 2 }}>
@@ -196,9 +462,10 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
                 value={form[field.key]}
                 onChange={e => setForm(f => ({ ...f, [field.key]: e.target.value }))}
                 placeholder={field.placeholder || ''}
-                style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 10px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 13, boxSizing: 'border-box' }}
+                style={inputStyle}
               />
             )}
+
             {field.note && (
               <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, marginTop: 3 }}>
                 {field.note}
@@ -207,7 +474,7 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
           </div>
         ))}
 
-        {/* Festival date range preview */}
+        {/* Festival date range preview (key stays 'festivals') */}
         {section.key === 'festivals' && form.date && (
           <div style={{ margin: '-4px 0 18px', padding: '8px 12px', background: 'rgba(64,224,208,0.06)', border: `1px solid rgba(64,224,208,0.18)`, borderRadius: 6 }}>
             <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.teal }}>
@@ -217,7 +484,7 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
         )}
 
         {/* Featured toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22, marginTop: 8 }}>
           <button
             type="button"
             onClick={() => !section.featuredFixed && setForm(f => ({ ...f, featured: !f.featured }))}
@@ -280,8 +547,9 @@ function IssueTab({ showToast }) {
   const navigate = useNavigate();
   const [form, setForm]         = useState({ volume: '', issue: '', publishDate: '', pullQuote: '' });
   const [pastIssues, setPastIssues] = useState([]);
-  const [saving, setSaving]     = useState(false);
+  const [saving, setSaving]         = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [copyingHTML, setCopyingHTML] = useState(false);
   const [loadingArchive, setLoadingArchive] = useState(true);
 
   useEffect(() => {
@@ -436,7 +704,34 @@ function IssueTab({ showToast }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={async () => {
+              setCopyingHTML(true);
+              try {
+                const BASE = import.meta.env.BASE_URL;
+                const nytRaw = await fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null);
+                const sections = await fetchAllFeaturedSections(nytRaw);
+                const html = generateNewsletterHTML({
+                  ...sections,
+                  issue: { volume: Number(form.volume), issue: Number(form.issue), publishDate: form.publishDate, pullQuote: form.pullQuote },
+                });
+                await navigator.clipboard.writeText(html);
+                showToast('Newsletter HTML copied!');
+              } catch {
+                showToast('Copy failed', 'error');
+              } finally {
+                setTimeout(() => setCopyingHTML(false), 2000);
+              }
+            }}
+            disabled={copyingHTML}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(64,224,208,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            {copyingHTML ? '✓ COPIED!' : '✉ COPY NEWSLETTER HTML'}
+          </button>
+          <button onClick={() => navigate('/newspaper/current')}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(64,224,208,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            ◰ NEWSPAPER VIEW
+          </button>
           <button onClick={handleSave} disabled={saving}
             style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: `1px solid ${C.teal}`, background: 'transparent', color: C.teal, cursor: saving ? 'not-allowed' : 'pointer', letterSpacing: '0.05em' }}>
             {saving ? 'SAVING...' : 'SAVE SETTINGS'}

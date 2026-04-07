@@ -2,7 +2,7 @@
 // Read-only preview of the current issue + Download/Copy JSON export
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchFeatured, fetchCurrentIssue } from '../utils/newsletterAdmin';
+import { fetchCurrentIssue, fetchAllFeaturedSections } from '../utils/newsletterAdmin';
 import GazetteContent, { formatIssueLine } from '../components/GazetteContent';
 
 const BASE = import.meta.env.BASE_URL;
@@ -26,17 +26,12 @@ export default function NewsletterPreview() {
   useEffect(() => {
     async function load() {
       try {
-        const [festivals, indiePicks, debutAuthors, bookTokPicks, tripReports, nytRaw, issue] =
-          await Promise.all([
-            fetchFeatured('festivals'),
-            fetchFeatured('indiePicks'),
-            fetchFeatured('debutAuthors'),
-            fetchFeatured('bookTokPicks'),
-            fetchFeatured('tripReports'),
-            fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null),
-            fetchCurrentIssue(),
-          ]);
-        setData({ festivals, indiePicks, debutAuthors, bookTokPicks, tripReports, nyt: nytRaw, issue });
+        const [nytRaw, issue] = await Promise.all([
+          fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null),
+          fetchCurrentIssue(),
+        ]);
+        const sections = await fetchAllFeaturedSections(nytRaw);
+        setData({ ...sections, issue });
       } catch (err) {
         console.error('[NewsletterPreview]', err);
       } finally {

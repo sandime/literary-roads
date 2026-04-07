@@ -86,3 +86,31 @@ export async function fetchArchivedIssueBySlug(slug) {
   if (snap.empty) return null;
   return { id: snap.docs[0].id, ...snap.docs[0].data() };
 }
+
+// ── All-sections fetch (for renderers) ───────────────────────────────────────
+// Returns a single data object with all featured content for the current issue.
+export async function fetchAllFeaturedSections(nytRaw) {
+  const [
+    festivalTrips, handSelected, dispatches, readersChoice,
+    literaryLandmarks, readingRoom, headlights, onTheRoad,
+    waystation, bookstoreQA, theLongRoad,
+  ] = await Promise.all([
+    fetchFeatured('festivals'),
+    fetchFeatured('indiePicks'),
+    fetchFeatured('tripReports'),
+    fetchFeatured('bookTokPicks'),
+    fetchFeatured('literaryLandmarks'),
+    fetchFeatured('readingRoom'),
+    fetchFeatured('headlights'),
+    fetchFeatured('onTheRoad'),
+    fetchFeatured('waystation'),
+    fetchFeatured('bookstoreQA'),
+    fetchFeatured('theLongRoad'),
+  ]);
+  return {
+    festivalTrips, handSelected, dispatches, readersChoice,
+    literaryLandmarks, readingRoom, headlights, onTheRoad,
+    waystation, bookstoreQA, theLongRoad,
+    nyt: nytRaw || null,
+  };
+}
