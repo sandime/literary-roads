@@ -1,9 +1,44 @@
 // src/screens/AdminPanel.jsx
-// Newsletter admin panel — Festivals, Indie Picks, Debut Authors, BookTok, Trip Reports
+// Newsletter admin panel — Issue metadata + Festivals, Indie Picks, Debut Authors, BookTok, Trip Reports
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { fetchAll, createItem, updateItem, deleteItem, ADMIN_UID } from '../utils/newsletterAdmin';
+import {
+  fetchAll, createItem, updateItem, deleteItem, ADMIN_UID,
+  fetchCurrentIssue, saveCurrentIssue, publishIssue,
+  fetchFeatured, fetchArchivedIssues,
+} from '../utils/newsletterAdmin';
+import { formatIssueDate } from '../components/GazetteContent';
+
+// ── Date formatting ────────────────────────────────────────────────────────────
+// Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
+const formatFestivalDate = (startDate, endDate) => {
+  if (!startDate) return '';
+  // Append T00:00:00 to avoid UTC-midnight timezone shifts
+  const start = new Date(startDate + 'T00:00:00');
+  const end = endDate && endDate !== startDate ? new Date(endDate + 'T00:00:00') : null;
+
+  const fmt  = d => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+  if (!end || end <= start) return fmt(start);
+
+  const days = Math.round((end - start) / 864e5) + 1;
+  const dayLabel = `${days} day${days !== 1 ? 's' : ''}`;
+
+  // Same month + year → "April 18-24, 2026 · 7 days"
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    const month = start.toLocaleDateString('en-US', { month: 'long' });
+    return `${month} ${start.getDate()}-${end.getDate()}, ${start.getFullYear()} · ${dayLabel}`;
+  }
+  // Different months, same year → "April 30 - May 3, 2026 · 4 days"
+  if (start.getFullYear() === end.getFullYear()) {
+    const s = start.toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+    const e = end.toLocaleDateString('en-US',   { month: 'long', day: 'numeric' });
+    return `${s} - ${e}, ${start.getFullYear()} · ${dayLabel}`;
+  }
+  // Different years
+  return `${fmt(start)} - ${fmt(end)} · ${dayLabel}`;
+};
 
 // ── Section definitions ────────────────────────────────────────────────────────
 const SECTIONS = [
@@ -14,13 +49,14 @@ const SECTIONS = [
     featuredFixed: true,
     displayField: 'name',
     subField: 'location',
-    extraField: 'date',
+    getExtraDisplay: item => formatFestivalDate(item.date, item.endDate),
     fields: [
-      { key: 'name',     label: 'Festival Name', type: 'text',     required: true },
-      { key: 'date',     label: 'Date',           type: 'date',     required: true },
-      { key: 'location', label: 'Location',       type: 'text',     required: true, placeholder: 'Nashville, TN' },
-      { key: 'link',     label: 'Website URL',    type: 'url',      required: true },
-      { key: 'context',  label: 'Description',    type: 'textarea', required: true, maxLength: 400, rows: 4 },
+      { key: 'name',    label: 'Festival Name', type: 'text', required: true },
+      { key: 'date',    label: 'Start Date',    type: 'date', required: true },
+      { key: 'endDate', label: 'End Date',      type: 'date', required: false, note: 'Optional — leave blank for single-day events' },
+      { key: 'location', label: 'Location',     type: 'text', required: true, placeholder: 'Nashville, TN' },
+      { key: 'link',    label: 'Website URL',   type: 'url',  required: true },
+      { key: 'context', label: 'Description',   type: 'textarea', required: true, maxLength: 400, rows: 4 },
     ],
   },
   {
@@ -163,8 +199,22 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
                 style={{ width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 10px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 13, boxSizing: 'border-box' }}
               />
             )}
+            {field.note && (
+              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, marginTop: 3 }}>
+                {field.note}
+              </div>
+            )}
           </div>
         ))}
+
+        {/* Festival date range preview */}
+        {section.key === 'festivals' && form.date && (
+          <div style={{ margin: '-4px 0 18px', padding: '8px 12px', background: 'rgba(64,224,208,0.06)', border: `1px solid rgba(64,224,208,0.18)`, borderRadius: 6 }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.teal }}>
+              {formatFestivalDate(form.date, form.endDate)}
+            </span>
+          </div>
+        )}
 
         {/* Featured toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 }}>
@@ -221,6 +271,236 @@ function DeleteConfirm({ name, onConfirm, onCancel }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Issue Tab ─────────────────────────────────────────────────────────────────
+function IssueTab({ showToast }) {
+  const navigate = useNavigate();
+  const [form, setForm]         = useState({ volume: '', issue: '', publishDate: '', pullQuote: '' });
+  const [pastIssues, setPastIssues] = useState([]);
+  const [saving, setSaving]     = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [loadingArchive, setLoadingArchive] = useState(true);
+
+  useEffect(() => {
+    fetchCurrentIssue().then(data => {
+      setForm({
+        volume:      data.volume      ?? '',
+        issue:       data.issue       ?? '',
+        publishDate: data.publishDate ?? '',
+        pullQuote:   data.pullQuote   ?? '',
+      });
+    }).catch(() => {});
+
+    fetchArchivedIssues()
+      .then(setPastIssues)
+      .catch(() => {})
+      .finally(() => setLoadingArchive(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await saveCurrentIssue({
+        volume:      Number(form.volume) || 1,
+        issue:       Number(form.issue)  || 1,
+        publishDate: form.publishDate,
+        pullQuote:   form.pullQuote,
+      });
+      showToast('Issue settings saved');
+    } catch {
+      showToast('Save failed', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!form.volume || !form.issue || !form.publishDate) {
+      showToast('Fill in volume, issue, and date first', 'error');
+      return;
+    }
+    setPublishing(true);
+    try {
+      // Snapshot all currently featured content
+      const BASE = import.meta.env.BASE_URL;
+      const [festivals, indiePicks, debutAuthors, bookTokPicks, tripReports, nytRaw] =
+        await Promise.all([
+          fetchFeatured('festivals'),
+          fetchFeatured('indiePicks'),
+          fetchFeatured('debutAuthors'),
+          fetchFeatured('bookTokPicks'),
+          fetchFeatured('tripReports'),
+          fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null),
+        ]);
+
+      const meta = {
+        volume:      Number(form.volume),
+        issue:       Number(form.issue),
+        publishDate: form.publishDate,
+        pullQuote:   form.pullQuote,
+      };
+      const strip = arr => arr.map(({ id, createdAt, updatedAt, ...rest }) => rest);
+      await publishIssue(meta, {
+        festivals:    strip(festivals),
+        indiePicks:   strip(indiePicks),
+        debutAuthors: strip(debutAuthors),
+        bookTokPicks: strip(bookTokPicks),
+        tripReports:  strip(tripReports),
+        nyt:          nytRaw || null,
+      });
+
+      // Auto-increment issue number for next issue
+      const nextIssue = Number(form.issue) + 1;
+      const nextForm = { ...form, issue: String(nextIssue) };
+      setForm(nextForm);
+      await saveCurrentIssue({ ...meta, issue: nextIssue });
+
+      // Reload archive list
+      const updated = await fetchArchivedIssues();
+      setPastIssues(updated);
+      showToast(`Vol. ${meta.volume} Issue ${meta.issue} published!`);
+    } catch (err) {
+      console.error('[publish]', err);
+      showToast('Publish failed', 'error');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6,
+    padding: '8px 10px', color: C.white, fontFamily: 'Special Elite, serif',
+    fontSize: 13, boxSizing: 'border-box',
+  };
+  const labelStyle = {
+    display: 'block', fontFamily: 'Bungee, sans-serif', fontSize: 9,
+    color: C.teal, letterSpacing: '0.07em', marginBottom: 5,
+  };
+
+  return (
+    <div>
+      {/* Issue metadata form */}
+      <div style={{ background: C.surface, border: `1.5px solid rgba(64,224,208,0.3)`, borderRadius: 10, padding: 20, marginBottom: 28 }}>
+        <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.teal, margin: '0 0 18px', letterSpacing: '0.06em' }}>
+          CURRENT ISSUE SETTINGS
+        </h3>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 16 }}>
+          <div>
+            <label style={labelStyle}>VOLUME <span style={{ color: C.orange }}>*</span></label>
+            <input type="number" min="1" value={form.volume}
+              onChange={e => setForm(f => ({ ...f, volume: e.target.value }))}
+              style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>ISSUE # <span style={{ color: C.orange }}>*</span></label>
+            <input type="number" min="1" value={form.issue}
+              onChange={e => setForm(f => ({ ...f, issue: e.target.value }))}
+              style={inputStyle} />
+          </div>
+          <div>
+            <label style={labelStyle}>PUBLISH DATE <span style={{ color: C.orange }}>*</span></label>
+            <input type="date" value={form.publishDate}
+              onChange={e => setForm(f => ({ ...f, publishDate: e.target.value }))}
+              style={inputStyle} />
+          </div>
+        </div>
+
+        {/* Preview line */}
+        {form.volume && form.issue && (
+          <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(64,224,208,0.06)', border: `1px solid rgba(64,224,208,0.18)`, borderRadius: 6 }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.teal }}>
+              Vol. {form.volume} · Issue {form.issue}{form.publishDate ? ` · Week of ${formatIssueDate(form.publishDate)}` : ''}
+            </span>
+          </div>
+        )}
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>THIS WEEK'S PULL QUOTE</label>
+          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, marginBottom: 6 }}>
+            The opening summary that appears at the top of the newspaper — write it like a teaser that makes readers want to keep reading
+          </div>
+          <textarea
+            value={form.pullQuote}
+            onChange={e => setForm(f => ({ ...f, pullQuote: e.target.value }))}
+            rows={4}
+            maxLength={280}
+            placeholder="e.g. Spring festivals are blooming across the country, debut authors are making waves, and there's a road trip calling your name..."
+            style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.6 }}
+          />
+          <div style={{ textAlign: 'right', fontSize: 10, color: C.muted, marginTop: 2 }}>
+            {(form.pullQuote || '').length}/280
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', alignItems: 'center' }}>
+          <button onClick={handleSave} disabled={saving}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: `1px solid ${C.teal}`, background: 'transparent', color: C.teal, cursor: saving ? 'not-allowed' : 'pointer', letterSpacing: '0.05em' }}>
+            {saving ? 'SAVING...' : 'SAVE SETTINGS'}
+          </button>
+          <button onClick={handlePublish} disabled={publishing || !form.volume || !form.issue || !form.publishDate}
+            style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6,
+              border: 'none', letterSpacing: '0.05em', cursor: publishing ? 'not-allowed' : 'pointer',
+              background: (!form.volume || !form.issue || !form.publishDate) ? 'rgba(255,78,0,0.25)' : C.orange,
+              color: '#fff',
+            }}>
+            {publishing ? 'PUBLISHING...' : '★ PUBLISH ISSUE'}
+          </button>
+        </div>
+      </div>
+
+      {/* Past issues list */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.teal, margin: 0, letterSpacing: '0.06em' }}>
+          PUBLISHED ISSUES ({pastIssues.length})
+        </h3>
+        <button onClick={() => navigate('/newspaper/archive')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
+          PUBLIC ARCHIVE →
+        </button>
+      </div>
+
+      {loadingArchive ? (
+        <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 12, textAlign: 'center', padding: '24px 0' }}>Loading...</p>
+      ) : pastIssues.length === 0 ? (
+        <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 12, textAlign: 'center', padding: '24px 0' }}>
+          No published issues yet. Fill in the settings above and click PUBLISH ISSUE.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {pastIssues.map(iss => (
+            <div key={iss.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px' }}>
+              <div style={{ flexShrink: 0, textAlign: 'center', minWidth: 54 }}>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal }}>VOL. {iss.volume}</div>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 16, color: C.white }}>#{iss.issue}</div>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.white }}>
+                  Vol. {iss.volume} · Issue {iss.issue}
+                </div>
+                {iss.publishDate && (
+                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted }}>
+                    {formatIssueDate(iss.publishDate)}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.06em', padding: '2px 6px', border: `1px solid rgba(64,224,208,0.3)`, borderRadius: 4 }}>
+                  PUBLISHED
+                </span>
+                <button onClick={() => navigate(`/newspaper/${iss.slug}`)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid ${C.teal}`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  VIEW
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -326,11 +606,15 @@ function SectionTab({ section, showToast }) {
                 <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.white, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {item[section.displayField]}
                 </div>
-                {(section.subField || section.extraField) && (
+                {(section.subField || section.getExtraDisplay || section.extraField) && (
                   <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted, marginTop: 2 }}>
-                    {section.subField && item[section.subField]}
-                    {section.subField && section.extraField && item[section.extraField] && ' · '}
-                    {section.extraField && item[section.extraField]}
+                    {(() => {
+                      const sub   = section.subField ? item[section.subField] : null;
+                      const extra = section.getExtraDisplay
+                        ? section.getExtraDisplay(item)
+                        : section.extraField ? item[section.extraField] : null;
+                      return [sub, extra].filter(Boolean).join(' · ');
+                    })()}
                   </div>
                 )}
               </div>
@@ -376,7 +660,7 @@ function SectionTab({ section, showToast }) {
 export default function AdminPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('festivals');
+  const [activeTab, setActiveTab] = useState('issue');
   const [toast, setToast] = useState(null);
 
   // Auth guard — redirect non-admins immediately
@@ -431,6 +715,13 @@ export default function AdminPanel() {
 
       {/* ── Tabs ── */}
       <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, display: 'flex', overflowX: 'auto', padding: '0 16px' }}>
+        {/* Issue tab — always first */}
+        <button
+          onClick={() => setActiveTab('issue')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'issue' ? `2px solid ${C.orange}` : '2px solid transparent', color: activeTab === 'issue' ? C.orange : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+        >
+          ★ ISSUE
+        </button>
         {SECTIONS.map(s => (
           <button
             key={s.key}
@@ -444,6 +735,9 @@ export default function AdminPanel() {
 
       {/* ── Content ── */}
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 20px 80px' }}>
+        {activeTab === 'issue' && (
+          <IssueTab showToast={showToast} />
+        )}
         {SECTIONS.map(s => (
           activeTab === s.key && (
             <SectionTab key={s.key} section={s} showToast={showToast} />

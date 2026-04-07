@@ -23,6 +23,8 @@ import EthicsModal from './components/EthicsModal';
 import AdminUpload from './screens/AdminUpload';
 import AdminPanel from './screens/AdminPanel';
 import NewsletterPreview from './screens/NewsletterPreview';
+import GazetteArchive from './screens/GazetteArchive';
+import GazetteIssue from './screens/GazetteIssue';
 import './App.css';
 
 function AppInner() {
@@ -311,6 +313,8 @@ function App() {
         <Route path="/admin" element={<AdminUpload />} />
         <Route path="/gazette" element={<AdminPanel />} />
         <Route path="/newsletter" element={<NewsletterPreview />} />
+        <Route path="/newspaper/archive" element={<GazetteArchive />} />
+        <Route path="/newspaper/:slug" element={<GazetteIssue />} />
         <Route path="*" element={<AppInner />} />
       </Routes>
     </AuthProvider>
