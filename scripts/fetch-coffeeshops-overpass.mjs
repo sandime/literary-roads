@@ -38,8 +38,25 @@ const ALL_STATES = [
   'Virginia','Washington','West Virginia','Wisconsin','Wyoming','District of Columbia',
 ];
 
+const ABBR_TO_STATE = {
+  AL:'Alabama',AK:'Alaska',AZ:'Arizona',AR:'Arkansas',CA:'California',
+  CO:'Colorado',CT:'Connecticut',DE:'Delaware',FL:'Florida',GA:'Georgia',
+  HI:'Hawaii',ID:'Idaho',IL:'Illinois',IN:'Indiana',IA:'Iowa',
+  KS:'Kansas',KY:'Kentucky',LA:'Louisiana',ME:'Maine',MD:'Maryland',
+  MA:'Massachusetts',MI:'Michigan',MN:'Minnesota',MS:'Mississippi',MO:'Missouri',
+  MT:'Montana',NE:'Nebraska',NV:'Nevada',NH:'New Hampshire',NJ:'New Jersey',
+  NM:'New Mexico',NY:'New York',NC:'North Carolina',ND:'North Dakota',OH:'Ohio',
+  OK:'Oklahoma',OR:'Oregon',PA:'Pennsylvania',RI:'Rhode Island',SC:'South Carolina',
+  SD:'South Dakota',TN:'Tennessee',TX:'Texas',UT:'Utah',VT:'Vermont',
+  VA:'Virginia',WA:'Washington',WV:'West Virginia',WI:'Wisconsin',WY:'Wyoming',
+  DC:'District of Columbia',
+};
+
 const STATES_TO_RUN = statesArg
-  ? statesArg.split(',').map(s => s.trim())
+  ? statesArg.split(',').map(s => {
+      const trimmed = s.trim();
+      return ABBR_TO_STATE[trimmed.toUpperCase()] || trimmed;
+    })
   : ALL_STATES;
 
 const startIndex = resumeArg
@@ -168,6 +185,9 @@ const transformElement = (el) => {
   const city     = (p['addr:city']     || '').trim() || null;
   const state    = (p['addr:state']    || '').trim() || null;
   const zipcode  = (p['addr:postcode'] || '').trim() || null;
+
+  // Require at minimum a city and state — shops without location data aren't useful
+  if (!city || !state) return null;
   const phone    = (p['phone'] || p['contact:phone'] || p['addr:phone'] || '').trim() || null;
   const website  = (p['website'] || p['contact:website'] || p['url'] || '').trim() || null;
 

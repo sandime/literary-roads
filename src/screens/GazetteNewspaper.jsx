@@ -70,13 +70,10 @@ function NytSidebar({ nyt }) {
   );
 
   return (
-    <div style={{ position: 'sticky', top: 90, maxHeight: 'calc(100vh - 106px)', overflowY: 'auto', padding: '0 0 24px 20px', scrollbarWidth: 'thin' }}>
-      <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.1em', padding: '16px 0 12px', borderBottom: `2px solid ${C.teal}50`, marginBottom: 18 }}>
-        NYT BESTSELLERS THIS WEEK
-      </div>
+    <>
       {nyt.fiction?.length > 0   && <NytBox title="Fiction"    subtitle="Print & E-Book" books={nyt.fiction} />}
       {nyt.nonfiction?.length > 0 && <NytBox title="Nonfiction" subtitle="Print & E-Book" books={nyt.nonfiction} />}
-    </div>
+    </>
   );
 }
 
@@ -123,20 +120,40 @@ export default function GazetteNewspaper() {
 
   return (
     <div style={{ minHeight: '100vh', background: C.cream, color: C.ink, fontFamily: 'Special Elite, serif' }}>
+      <style>{`
+        .gaz-topbar-est  { }
+        .gaz-topbar-free { }
+        .gaz-masthead-left { }
+        .gaz-two-col { display: grid; grid-template-columns: 1fr 260px; gap: 36px; align-items: start; }
+        .gaz-sidebar-inner { position: sticky; top: 90px; max-height: calc(100vh - 106px); overflow-y: auto; padding: 0 0 24px 20px; scrollbar-width: thin; }
+        .gaz-sidebar { border-left: 2px solid rgba(28,43,45,0.1); }
+        .gaz-footer-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 32px; }
+        .gaz-title { margin: 0 100px 0 100px; }
+        @media (max-width: 700px) {
+          .gaz-title { margin: 0 56px 0 0 !important; }
+          .gaz-topbar-est  { display: none !important; }
+          .gaz-topbar-free { display: none !important; }
+          .gaz-masthead-left { display: none !important; }
+          .gaz-two-col { grid-template-columns: 1fr !important; gap: 0 !important; }
+          .gaz-sidebar { border-left: none !important; border-top: 2px solid rgba(28,43,45,0.15) !important; margin-top: 28px; }
+          .gaz-sidebar-inner { position: static !important; max-height: none !important; padding: 20px 0 0 !important; }
+          .gaz-footer-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+        }
+      `}</style>
 
       {/* ── Masthead ─────────────────────────────────────────────────────────── */}
       <div style={{ background: C.ink, color: C.cream }}>
 
         {/* Top bar */}
-        <div style={{ background: C.tealDark, padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em' }}>
+        <div className="gaz-topbar" style={{ background: C.tealDark, padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+          <span className="gaz-topbar-est" style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em' }}>
             Est. on a long stretch of highway
           </span>
           <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em', textAlign: 'center' }}>
             {issueLine || 'The Literary Roads Gazette'}
           </span>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em', marginRight: 8 }}>
+            <span className="gaz-topbar-free" style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em', marginRight: 8 }}>
               Free · Delivered Sundays
             </span>
             {isAdmin && <>
@@ -155,8 +172,8 @@ export default function GazetteNewspaper() {
 
         {/* Main masthead */}
         <div style={{ padding: '24px 24px 18px', textAlign: 'center', borderBottom: `3px solid ${C.coral}`, position: 'relative' }}>
-          {/* Left SVG accent */}
-          <div style={{ position: 'absolute', top: '50%', left: 24, transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Left SVG accent + issue badge — hidden on mobile */}
+          <div className="gaz-masthead-left" style={{ position: 'absolute', top: '50%', left: 24, transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: 10 }}>
             <svg width="60" height="80" viewBox="0 0 60 80" aria-hidden="true">
               <path d="M4,72 Q16,20 30,36 Q44,52 56,8" stroke={C.coral} strokeWidth="5" fill="none" strokeLinecap="round" opacity="0.7"/>
               <polygon points="12,16 14,22 20,20 17,26 24,26 18,30 21,37 15,33 12,40 9,33 3,37 6,30 0,26 7,26 4,20 10,22"
@@ -175,13 +192,13 @@ export default function GazetteNewspaper() {
           {/* Cat — right side */}
           <div style={{ position: 'absolute', top: '50%', right: 24, transform: 'translateY(-50%)' }}>
             <img src={`${BASE}images/newspaper-cat.png`} alt=""
-              style={{ width: 'clamp(56px,8vw,92px)', height: 'auto', maxHeight: 90, objectFit: 'contain', borderRadius: 8, boxShadow: '0 4px 18px rgba(0,0,0,0.25)', display: 'block' }} />
+              style={{ width: 'clamp(44px,8vw,92px)', height: 'auto', maxHeight: 90, objectFit: 'contain', borderRadius: 8, boxShadow: '0 4px 18px rgba(0,0,0,0.25)', display: 'block' }} />
           </div>
 
-          <h1 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(22px,5vw,56px)', color: C.cream, letterSpacing: '0.03em', lineHeight: 1, margin: 0, textShadow: `3px 3px 0 ${C.tealDark}` }}>
+          <h1 className="gaz-title" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(20px,5vw,56px)', color: C.cream, letterSpacing: '0.03em', lineHeight: 1, margin: '0 100px 0 100px', textShadow: `3px 3px 0 ${C.tealDark}` }}>
             The Literary Roads Gazette
           </h1>
-          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 'clamp(12px,2vw,16px)', color: C.coral, letterSpacing: '0.12em', marginTop: 8, marginBottom: 0, fontStyle: 'italic' }}>
+          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 'clamp(11px,2vw,16px)', color: C.coral, letterSpacing: '0.12em', marginTop: 8, marginBottom: 0, fontStyle: 'italic' }}>
             Books for the road. Roads for the books.
           </p>
           <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(245,241,235,0.6)', marginTop: 6, letterSpacing: '0.06em' }}>
@@ -227,8 +244,8 @@ export default function GazetteNewspaper() {
         </div>
       )}
 
-      {/* ── Two-column layout ─────────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 20px 0', display: 'grid', gridTemplateColumns: '1fr 260px', gap: 36, alignItems: 'start' }}>
+      {/* ── Two-column layout (single column on mobile) ───────────────────────── */}
+      <div className="gaz-two-col" style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 20px 0' }}>
         <div style={{ minWidth: 0 }}>
           <GazetteContent
             data={{ ...data, issue: { ...data?.issue, pullQuote: '' } }}
@@ -236,15 +253,20 @@ export default function GazetteNewspaper() {
             hideNyt
           />
         </div>
-        <aside style={{ borderLeft: `2px solid rgba(28,43,45,0.1)` }}>
-          <NytSidebar nyt={data?.nyt} />
+        <aside className="gaz-sidebar">
+          <div className="gaz-sidebar-inner">
+            <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.1em', padding: '16px 0 12px', borderBottom: `2px solid ${C.teal}50`, marginBottom: 18 }}>
+              NYT BESTSELLERS THIS WEEK
+            </div>
+            <NytSidebar nyt={data?.nyt} />
+          </div>
         </aside>
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────────────────── */}
       <footer id="subscribe" style={{ background: C.ink, color: C.cream, marginTop: 60, padding: '40px 24px 0' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
+          <div className="gaz-footer-grid">
             <div>
               <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.teal, letterSpacing: '0.06em', marginBottom: 12 }}>The Literary Roads Gazette</div>
               <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, lineHeight: 1.7, color: 'rgba(245,241,235,0.75)', margin: '0 0 10px' }}>
