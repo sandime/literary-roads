@@ -1,11 +1,12 @@
 // src/components/GazetteContent.jsx
 // Shared newsletter content renderer — single-column layout.
-// Used by: NewsletterPreview, GazetteIssue (archived).
+// Used by: NewsletterPreview, GazetteIssue (archived), GazetteNewspaper (light theme).
 // Data shape: { issue, festivalTrips, handSelected, dispatches, readersChoice,
 //               literaryLandmarks, readingRoom, headlights, onTheRoad,
 //               waystation, bookstoreQA, theLongRoad, nyt }
+import { createContext, useContext } from 'react';
 
-const C = {
+const DARK = {
   bg:     '#0D0E1A',
   panel:  '#1A1B2E',
   border: 'rgba(64,224,208,0.18)',
@@ -13,11 +14,29 @@ const C = {
   orange: '#FF4E00',
   coral:  '#FF6B7A',
   cream:  '#F5F5DC',
+  body:   'rgba(245,245,220,0.85)',
   silver: '#C0C0C0',
   muted:  'rgba(192,192,192,0.45)',
   purple: '#9B59B6',
   gold:   '#FFD700',
 };
+
+const LIGHT = {
+  bg:     '#ede7dc',
+  panel:  '#ffffff',
+  border: 'rgba(28,43,45,0.12)',
+  teal:   '#4a9fa5',
+  orange: '#e67e22',
+  coral:  '#e8956b',
+  cream:  '#1c2b2d',
+  body:   'rgba(28,43,45,0.75)',
+  silver: '#3a4f52',
+  muted:  'rgba(28,43,45,0.5)',
+  purple: '#7d3c98',
+  gold:   '#b8860b',
+};
+
+const ColorsCtx = createContext(DARK);
 
 // ── Shared formatters ──────────────────────────────────────────────────────────
 export const formatFestivalDate = (startDate, endDate) => {
@@ -57,6 +76,7 @@ export const formatIssueLine = (issue) => {
 
 // ── Section / Card primitives ──────────────────────────────────────────────────
 function Section({ title, icon, color, children, subtitle }) {
+  const C = useContext(ColorsCtx);
   return (
     <div style={{ marginBottom: 40 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: subtitle ? 4 : 14, paddingBottom: subtitle ? 0 : 10, borderBottom: subtitle ? 'none' : `1px solid ${color}50` }}>
@@ -73,18 +93,23 @@ function Section({ title, icon, color, children, subtitle }) {
   );
 }
 function Card({ children, style = {} }) {
+  const C = useContext(ColorsCtx);
   return <div style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 8, padding: '14px 16px', ...style }}>{children}</div>;
 }
 function CardTitle({ children }) {
+  const C = useContext(ColorsCtx);
   return <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.cream, marginBottom: 3, letterSpacing: '0.03em' }}>{children}</div>;
 }
 function CardSub({ children }) {
+  const C = useContext(ColorsCtx);
   return <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted, marginBottom: 5 }}>{children}</div>;
 }
 function CardBody({ children }) {
-  return <p style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: 'rgba(245,245,220,0.85)', lineHeight: 1.65, margin: '5px 0' }}>{children}</p>;
+  const C = useContext(ColorsCtx);
+  return <p style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: C.body, lineHeight: 1.65, margin: '5px 0' }}>{children}</p>;
 }
 function CardLink({ href, children }) {
+  const C = useContext(ColorsCtx);
   return (
     <a href={href} target="_blank" rel="noopener noreferrer"
       style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: C.teal, textDecoration: 'none', letterSpacing: '0.05em' }}>
@@ -98,7 +123,10 @@ function HeroImg({ src, alt }) {
 }
 
 // ── GazetteContent ─────────────────────────────────────────────────────────────
-export default function GazetteContent({ data }) {
+export default function GazetteContent({ data, theme }) {
+  const colors = theme === 'light' ? LIGHT : DARK;
+  const C = colors;
+
   const {
     issue, festivalTrips, handSelected, dispatches, readersChoice,
     literaryLandmarks, readingRoom, headlights, onTheRoad,
@@ -115,10 +143,10 @@ export default function GazetteContent({ data }) {
     .some(arr => arr?.length > 0);
 
   return (
-    <>
+    <ColorsCtx.Provider value={colors}>
       {/* Pull quote */}
       {issue?.pullQuote && (
-        <div style={{ marginBottom: 36, padding: '18px 22px', background: `linear-gradient(135deg, rgba(64,224,208,0.08), rgba(255,78,0,0.05))`, border: `1px solid rgba(64,224,208,0.22)`, borderLeft: `3px solid ${C.teal}`, borderRadius: 8 }}>
+        <div style={{ marginBottom: 36, padding: '18px 22px', background: `linear-gradient(135deg, rgba(64,224,208,0.08), rgba(255,78,0,0.05))`, border: `1px solid ${C.border}`, borderLeft: `3px solid ${C.teal}`, borderRadius: 8 }}>
           <p style={{ fontFamily: 'Special Elite, serif', fontSize: 15, color: C.cream, lineHeight: 1.7, margin: 0, fontStyle: 'italic' }}>
             "{issue.pullQuote}"
           </p>
@@ -155,10 +183,9 @@ export default function GazetteContent({ data }) {
           {indie.map((item, i) => (
             <Card key={item.id || i}>
               {item.imageUrl && <HeroImg src={item.imageUrl} alt={item.bookstoreName} />}
-              <CardTitle>{item.bookstoreName || item.bookstoreName}</CardTitle>
+              <CardTitle>{item.bookstoreName}</CardTitle>
               <CardSub>{[item.city, item.ownerName].filter(Boolean).join(' · ')}</CardSub>
               {(item.description || item.recommendation) && <CardBody>{item.description || item.recommendation}</CardBody>}
-              {/* Book picks */}
               {item.bookPicks?.length > 0 && (
                 <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {item.bookPicks.map((book, bi) => (
@@ -167,7 +194,7 @@ export default function GazetteContent({ data }) {
                       <div>
                         <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: C.cream }}>{book.title}</div>
                         <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted }}>{book.author}</div>
-                        {book.blurb && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(245,245,220,0.8)', margin: '4px 0 0', lineHeight: 1.5 }}>{book.blurb}</p>}
+                        {book.blurb && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.body, margin: '4px 0 0', lineHeight: 1.5 }}>{book.blurb}</p>}
                       </div>
                     </div>
                   ))}
@@ -275,14 +302,14 @@ export default function GazetteContent({ data }) {
               {item.heroImageUrl && <HeroImg src={item.heroImageUrl} alt={item.name} />}
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
                 <CardTitle>{item.name}</CardTitle>
-                {item.placeType && <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.08em', padding: '2px 6px', border: `1px solid rgba(64,224,208,0.3)`, borderRadius: 4 }}>{item.placeType.toUpperCase()}</span>}
+                {item.placeType && <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.08em', padding: '2px 6px', border: `1px solid ${C.teal}50`, borderRadius: 4 }}>{item.placeType.toUpperCase()}</span>}
               </div>
               <CardSub>{item.location}{item.hours ? ` · ${item.hours}` : ''}</CardSub>
               {item.whyWorthy && <CardBody>{item.whyWorthy}</CardBody>}
               {item.bookToReadThere && <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted, fontStyle: 'italic', marginTop: 6 }}>Read here: {item.bookToReadThere}</div>}
               {item.address && <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted, marginTop: 4 }}>{item.address}</div>}
               {item.travelersOffer && (
-                <div style={{ marginTop: 10, padding: '6px 10px', background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.2)', borderRadius: 5 }}>
+                <div style={{ marginTop: 10, padding: '6px 10px', background: `${C.gold}15`, border: `1px solid ${C.gold}40`, borderRadius: 5 }}>
                   <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.gold }}>Literary Travelers: {item.travelersOffer}</span>
                 </div>
               )}
@@ -295,7 +322,7 @@ export default function GazetteContent({ data }) {
         </Section>
       )}
 
-      {/* 8. Headlights — compact 3-up grid */}
+      {/* 8. Headlights — compact grid */}
       {headlights?.length > 0 && (
         <Section title="Headlights" icon="◆" color={C.coral}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
@@ -303,7 +330,7 @@ export default function GazetteContent({ data }) {
               <div key={item.id || i} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 8, padding: '12px 14px' }}>
                 {item.type && <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.coral, letterSpacing: '0.08em', marginBottom: 5 }}>{item.type.toUpperCase()}</div>}
                 <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.cream, marginBottom: 6, lineHeight: 1.3 }}>{item.headline}</div>
-                {item.body && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(245,245,220,0.8)', margin: '0 0 6px', lineHeight: 1.5 }}>{item.body}</p>}
+                {item.body && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.body, margin: '0 0 6px', lineHeight: 1.5 }}>{item.body}</p>}
                 {item.link && <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, textDecoration: 'none' }}>Read →</a>}
               </div>
             ))}
@@ -316,7 +343,6 @@ export default function GazetteContent({ data }) {
         <Section title="The Reading Room" icon="✦" color={C.teal}>
           {readingRoom.map((item, i) => (
             <Card key={item.id || i}>
-              {/* Featured books */}
               {item.featuredBooks?.length > 0 && (
                 <div style={{ display: 'flex', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
                   {item.featuredBooks.map((book, bi) => (
@@ -325,14 +351,13 @@ export default function GazetteContent({ data }) {
                       <div>
                         <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.cream, marginBottom: 2 }}>{book.title}</div>
                         <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, marginBottom: 4 }}>{book.author}</div>
-                        {book.whyFeatured && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(245,245,220,0.8)', margin: 0, lineHeight: 1.5 }}>{book.whyFeatured}</p>}
+                        {book.whyFeatured && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.body, margin: 0, lineHeight: 1.5 }}>{book.whyFeatured}</p>}
                       </div>
                     </div>
                   ))}
                 </div>
               )}
               {item.communityNote && <CardBody>{item.communityNote}</CardBody>}
-              {/* Featured postcard */}
               {item.postcardImageUrl && (
                 <div style={{ marginTop: 14 }}>
                   <img src={item.postcardImageUrl} alt={item.postcardCaption || 'Postcard'} style={{ width: '100%', borderRadius: 6, maxHeight: 200, objectFit: 'cover' }} />
@@ -464,6 +489,6 @@ export default function GazetteContent({ data }) {
           </div>
         </Section>
       )}
-    </>
+    </ColorsCtx.Provider>
   );
 }

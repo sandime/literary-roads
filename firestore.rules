@@ -2,25 +2,218 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Gazette: publicly readable, only Cloud Functions can write ────────────
-    // newspaper.html reads gazette/currentIssue on every page load.
-    // Writes happen only from the refreshGazette Cloud Function (admin SDK).
-    match /gazette/{doc} {
-      allow read: if true;
-      allow write: if false; // admin SDK bypasses these rules
+    // ── Admin helper ──────────────────────────────────────────────────────────
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == 'LmsIBzI7KjMqERTsmXxjHULHJ3M2';
     }
 
-    // ── Guestbook: public read, authenticated write ───────────────────────────
-    // guestbooks/{locationId}/entries/{bookId}
-    // addBookEntry uses setDoc; addRecommendationToEntry uses updateDoc (arrayUnion + increment)
+    // ── Gazette metadata: publicly readable, admin-only write ─────────────────
+    // gazette/currentIssue — read by newspaper renderer on every page load
+    match /gazette/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Gazette archive: publicly readable, admin-only write ──────────────────
+    // gazetteIssues/{slug} — read by /newspaper/archive and /newspaper/:slug
+    match /gazetteIssues/{slug} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── Gazette section collections: publicly readable, admin-only write ──────
+    // Read by /newspaper/current, /newsletter, and archived issues.
+    // Written only from AdminPanel.
+    match /festivals/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /indiePicks/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /tripReports/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /bookTokPicks/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /literaryLandmarks/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /readingRoom/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /headlights/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /onTheRoad/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /waystation/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /bookstoreQA/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /theLongRoad/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ── User data (private per user) ──────────────────────────────────────────
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /booksRead/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /savedRoutes/{routeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /postcards/{postcardId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /libraryPostcards/{bookId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /libraryRecs/{recId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /libraryReadNext/{bookId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /savedStops/{stopId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /checkInHistory/{checkInId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /badges/{badgeId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /wantToRead/{bookId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /readingGoal/{doc} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /readingGoals/{doc} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      match /readingQuestHistory/{year} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ── Public read collections (map data) ────────────────────────────────────
+    match /literary_landmarks/{landmark} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /literary_podcasts/{podcast} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /museums/{doc} {
+      allow read: if true;
+    }
+    match /driveIns/{doc} {
+      allow read: if true;
+    }
+    match /observatories/{doc} {
+      allow read: if true;
+    }
+    match /parks/{doc} {
+      allow read: if true;
+    }
+    match /artGalleries/{doc} {
+      allow read: if true;
+    }
+    match /aquariums/{doc} {
+      allow read: if true;
+    }
+    match /theaters/{doc} {
+      allow read: if true;
+    }
+
+    // ── Auth required to read (location data) ─────────────────────────────────
+    match /bookstores/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /coffeeShops/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /restaurants/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /historicSites/{doc} {
+      allow read, write: if request.auth != null;
+    }
+    match /libraries/{doc} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── Guestbook entries ─────────────────────────────────────────────────────
     match /guestbooks/{locationId}/entries/{entryId} {
       allow read: if true;
       allow write: if request.auth != null;
     }
 
-    // ── All other existing collections: auth required ─────────────────────────
-    match /{document=**} {
+    // ── Hitchhiker's Tale stories ─────────────────────────────────────────────
+    match /hitchhikerStories/{storyId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+                    request.resource.data.sentences.size() <= 100;
+    }
+
+    // ── Location ratings ──────────────────────────────────────────────────────
+    match /locationRatings/{locationId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+    }
+
+    // ── Active car check-ins ──────────────────────────────────────────────────
+    match /activeCheckIns/{locationId}/cars/{checkInId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow delete: if request.auth != null &&
+                    request.auth.uid == resource.data.userId;
+    }
+
+    // ── Honk notifications ────────────────────────────────────────────────────
+    match /honkNotifications/{userId} {
       allow read, write: if request.auth != null;
+    }
+
+    // ── Shared routes ─────────────────────────────────────────────────────────
+    match /sharedRoutes/{routeId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null &&
+                    request.auth.uid == resource.data.createdBy.userId;
+      allow delete: if request.auth != null &&
+                    request.auth.uid == resource.data.createdBy.userId;
+    }
+
+    // ── Email / waitlist ──────────────────────────────────────────────────────
+    match /emails/{email} {
+      allow read: if false;
+      allow write: if true;
+    }
+    match /internationalWaitlist/{emailId} {
+      allow create: if true;
+      allow read: if request.auth != null;
     }
   }
 }

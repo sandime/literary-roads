@@ -592,17 +592,10 @@ function IssueTab({ showToast }) {
     }
     setPublishing(true);
     try {
-      // Snapshot all currently featured content
+      // Snapshot all currently featured content across all 11 sections
       const BASE = import.meta.env.BASE_URL;
-      const [festivals, indiePicks, debutAuthors, bookTokPicks, tripReports, nytRaw] =
-        await Promise.all([
-          fetchFeatured('festivals'),
-          fetchFeatured('indiePicks'),
-          fetchFeatured('debutAuthors'),
-          fetchFeatured('bookTokPicks'),
-          fetchFeatured('tripReports'),
-          fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null),
-        ]);
+      const nytRaw = await fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null);
+      const sections = await fetchAllFeaturedSections(nytRaw);
 
       const meta = {
         volume:      Number(form.volume),
@@ -610,14 +603,20 @@ function IssueTab({ showToast }) {
         publishDate: form.publishDate,
         pullQuote:   form.pullQuote,
       };
-      const strip = arr => arr.map(({ id, createdAt, updatedAt, ...rest }) => rest);
+      const strip = arr => (arr || []).map(({ id, createdAt, updatedAt, ...rest }) => rest);
       await publishIssue(meta, {
-        festivals:    strip(festivals),
-        indiePicks:   strip(indiePicks),
-        debutAuthors: strip(debutAuthors),
-        bookTokPicks: strip(bookTokPicks),
-        tripReports:  strip(tripReports),
-        nyt:          nytRaw || null,
+        festivalTrips:     strip(sections.festivalTrips),
+        handSelected:      strip(sections.handSelected),
+        dispatches:        strip(sections.dispatches),
+        readersChoice:     strip(sections.readersChoice),
+        literaryLandmarks: strip(sections.literaryLandmarks),
+        readingRoom:       strip(sections.readingRoom),
+        headlights:        strip(sections.headlights),
+        onTheRoad:         strip(sections.onTheRoad),
+        waystation:        strip(sections.waystation),
+        bookstoreQA:       strip(sections.bookstoreQA),
+        theLongRoad:       strip(sections.theLongRoad),
+        nyt:               sections.nyt || null,
       });
 
       // Auto-increment issue number for next issue
