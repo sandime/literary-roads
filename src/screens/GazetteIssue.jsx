@@ -25,6 +25,19 @@ export default function GazetteIssue() {
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
+    const root = document.getElementById('root');
+    const prevBody = document.body.style.overflow;
+    const prevRoot = root?.style.overflow;
+    const prevRootH = root?.style.height;
+    document.body.style.overflow = 'auto';
+    if (root) { root.style.overflow = 'auto'; root.style.height = 'auto'; }
+    return () => {
+      document.body.style.overflow = prevBody;
+      if (root) { root.style.overflow = prevRoot; root.style.height = prevRootH; }
+    };
+  }, []);
+
+  useEffect(() => {
     if (!slug) return;
     fetchArchivedIssueBySlug(slug)
       .then(issue => {

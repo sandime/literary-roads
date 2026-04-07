@@ -75,10 +75,10 @@ export const formatIssueLine = (issue) => {
 };
 
 // ── Section / Card primitives ──────────────────────────────────────────────────
-function Section({ title, icon, color, children, subtitle }) {
+function Section({ id, title, icon, color, children, subtitle }) {
   const C = useContext(ColorsCtx);
   return (
-    <div style={{ marginBottom: 40 }}>
+    <div id={id} style={{ marginBottom: 40, scrollMarginTop: 90 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: subtitle ? 4 : 14, paddingBottom: subtitle ? 0 : 10, borderBottom: subtitle ? 'none' : `1px solid ${color}50` }}>
         <span style={{ fontSize: 14, color }}>{icon}</span>
         <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 14, color, margin: 0, letterSpacing: '0.04em' }}>{title}</h2>
@@ -123,7 +123,7 @@ function HeroImg({ src, alt }) {
 }
 
 // ── GazetteContent ─────────────────────────────────────────────────────────────
-export default function GazetteContent({ data, theme }) {
+export default function GazetteContent({ data, theme, hideNyt }) {
   const colors = theme === 'light' ? LIGHT : DARK;
   const C = colors;
 
@@ -164,7 +164,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 1. Festival Trips */}
       {festivals?.length > 0 && (
-        <Section title="Festival Trips" icon="★" color={C.teal}>
+        <Section id="festivals" title="Festival Trips" icon="★" color={C.teal}>
           {festivals.map((item, i) => (
             <Card key={item.id || i}>
               <HeroImg src={item.imageUrl} alt={item.name} />
@@ -179,7 +179,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 2. Hand-Selected */}
       {indie?.length > 0 && (
-        <Section title="Hand-Selected" icon="◆" color={C.orange} subtitle="Bookstore staff picks from indie shops across America">
+        <Section id="handselected" title="Hand-Selected" icon="◆" color={C.orange} subtitle="Bookstore staff picks from indie shops across America">
           {indie.map((item, i) => (
             <Card key={item.id || i}>
               {item.imageUrl && <HeroImg src={item.imageUrl} alt={item.bookstoreName} />}
@@ -208,7 +208,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 3. Dispatches */}
       {trips?.length > 0 && (
-        <Section title="Dispatches" icon="⛽" color={C.teal}>
+        <Section id="dispatches" title="Dispatches" icon="⛽" color={C.teal}>
           {trips.map((item, i) => (
             <Card key={item.id || i}>
               {item.heroImageUrl && <HeroImg src={item.heroImageUrl} alt={item.title} />}
@@ -227,7 +227,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 4. Literary Landmark */}
       {literaryLandmarks?.length > 0 && (
-        <Section title="Literary Landmark" icon="◉" color={C.gold}>
+        <Section id="landmark" title="Literary Landmark" icon="◉" color={C.gold}>
           {literaryLandmarks.map((item, i) => (
             <Card key={item.id || i}>
               {item.heroImageUrl && <HeroImg src={item.heroImageUrl} alt={item.name} />}
@@ -256,7 +256,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 5. Readers' Choice */}
       {readers?.length > 0 && (
-        <Section title="Readers' Choice" icon="▶" color={C.purple}>
+        <Section id="readerschoice" title="Readers' Choice" icon="▶" color={C.purple}>
           {readers.map((item, i) => (
             <Card key={item.id || i}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -275,7 +275,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 6. On the Road */}
       {onTheRoad?.length > 0 && (
-        <Section title="On the Road" icon="◈" color={C.orange}>
+        <Section id="ontheroad" title="On the Road" icon="◈" color={C.orange}>
           {onTheRoad.map((item, i) => (
             <Card key={item.id || i}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
@@ -296,7 +296,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 7. The Waystation */}
       {waystation?.length > 0 && (
-        <Section title="The Waystation" icon="☕" color={C.teal}>
+        <Section id="waystation" title="The Waystation" icon="☕" color={C.teal}>
           {waystation.map((item, i) => (
             <Card key={item.id || i}>
               {item.heroImageUrl && <HeroImg src={item.heroImageUrl} alt={item.name} />}
@@ -324,7 +324,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 8. Headlights — compact grid */}
       {headlights?.length > 0 && (
-        <Section title="Headlights" icon="◆" color={C.coral}>
+        <Section id="headlights" title="Headlights" icon="◆" color={C.coral}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 10 }}>
             {headlights.map((item, i) => (
               <div key={item.id || i} style={{ background: C.panel, border: `1px solid ${C.border}`, borderRadius: 8, padding: '12px 14px' }}>
@@ -340,7 +340,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 9. The Reading Room */}
       {readingRoom?.length > 0 && (
-        <Section title="The Reading Room" icon="✦" color={C.teal}>
+        <Section id="readingroom" title="The Reading Room" icon="✦" color={C.teal}>
           {readingRoom.map((item, i) => (
             <Card key={item.id || i}>
               {item.featuredBooks?.length > 0 && (
@@ -375,7 +375,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 10. Bookstore Q&A */}
       {bookstoreQA?.length > 0 && (
-        <Section title="Bookstore Q&A" icon="◎" color={C.orange}>
+        <Section id="qa" title="Bookstore Q&A" icon="◎" color={C.orange}>
           {bookstoreQA.map((item, i) => {
             const QA_LABELS = [
               'How do we encourage more people to read?',
@@ -421,7 +421,7 @@ export default function GazetteContent({ data, theme }) {
 
       {/* 11. The Long Road — YouTube interview */}
       {theLongRoad?.length > 0 && (
-        <Section title="The Long Road" icon="▷" color={C.coral}>
+        <Section id="longroad" title="The Long Road" icon="▷" color={C.coral}>
           {theLongRoad.map((item, i) => (
             <Card key={item.id || i}>
               {item.youtubeId && (
@@ -449,8 +449,8 @@ export default function GazetteContent({ data, theme }) {
       )}
 
       {/* NYT What's Trending — Fiction */}
-      {nyt?.fiction?.length > 0 && (
-        <Section title="What's Trending This Week" icon="◉" color={C.coral}>
+      {!hideNyt && nyt?.fiction?.length > 0 && (
+        <Section id="trending" title="What's Trending This Week" icon="◉" color={C.coral}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {nyt.fiction.slice(0, 5).map(b => (
               <Card key={b.rank}>
@@ -470,8 +470,8 @@ export default function GazetteContent({ data, theme }) {
       )}
 
       {/* NYT Bestsellers — Non-Fiction only */}
-      {nyt?.nonfiction?.length > 0 && (
-        <Section title="NYT Bestsellers — Non-Fiction" icon="◎" color={C.coral}>
+      {!hideNyt && nyt?.nonfiction?.length > 0 && (
+        <Section id="nonfiction" title="NYT Bestsellers — Non-Fiction" icon="◎" color={C.coral}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {nyt.nonfiction.slice(0, 5).map(b => (
               <Card key={b.rank}>

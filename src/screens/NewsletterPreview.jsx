@@ -23,6 +23,20 @@ export default function NewsletterPreview() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Override App.css overflow:hidden so this page scrolls
+  useEffect(() => {
+    const root = document.getElementById('root');
+    const prevBody = document.body.style.overflow;
+    const prevRoot = root?.style.overflow;
+    const prevRootH = root?.style.height;
+    document.body.style.overflow = 'auto';
+    if (root) { root.style.overflow = 'auto'; root.style.height = 'auto'; }
+    return () => {
+      document.body.style.overflow = prevBody;
+      if (root) { root.style.overflow = prevRoot; root.style.height = prevRootH; }
+    };
+  }, []);
+
   useEffect(() => {
     async function load() {
       try {
