@@ -76,6 +76,10 @@ export async function publishIssue(issueMetadata, sections) {
   });
 }
 
+export async function deleteArchivedIssue(id) {
+  return firestoreDelete(doc(db, 'gazetteIssues', id));
+}
+
 export async function fetchArchivedIssues() {
   const snap = await getDocs(query(collection(db, 'gazetteIssues'), orderBy('publishedAt', 'desc')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));

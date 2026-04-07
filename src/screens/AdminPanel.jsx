@@ -5,11 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   fetchAll, createItem, updateItem, deleteItem, ADMIN_UID,
-  fetchCurrentIssue, saveCurrentIssue, publishIssue,
+  fetchCurrentIssue, saveCurrentIssue, publishIssue, deleteArchivedIssue,
   fetchFeatured, fetchArchivedIssues, fetchAllFeaturedSections,
 } from '../utils/newsletterAdmin';
 import { formatIssueDate } from '../components/GazetteContent';
-import { generateNewsletterHTML } from '../utils/newsletterGenerator';
+import { generateNewsletterHTML, generateSubstackText } from '../utils/newsletterGenerator';
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 // Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
@@ -550,6 +550,7 @@ function IssueTab({ showToast }) {
   const [saving, setSaving]         = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [copyingHTML, setCopyingHTML] = useState(false);
+  const [copyingSubstack, setCopyingSubstack] = useState(false);
   const [loadingArchive, setLoadingArchive] = useState(true);
 
   useEffect(() => {
@@ -727,6 +728,29 @@ function IssueTab({ showToast }) {
             style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(64,224,208,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
             {copyingHTML ? '✓ COPIED!' : '✉ COPY NEWSLETTER HTML'}
           </button>
+          <button
+            onClick={async () => {
+              setCopyingSubstack(true);
+              try {
+                const BASE = import.meta.env.BASE_URL;
+                const nytRaw = await fetch(`${BASE}gazette-data.json`).then(r => r.json()).catch(() => null);
+                const sections = await fetchAllFeaturedSections(nytRaw);
+                const text = generateSubstackText({
+                  ...sections,
+                  issue: { volume: Number(form.volume), issue: Number(form.issue), publishDate: form.publishDate, pullQuote: form.pullQuote },
+                });
+                await navigator.clipboard.writeText(text);
+                showToast('Substack text copied!');
+              } catch {
+                showToast('Copy failed', 'error');
+              } finally {
+                setTimeout(() => setCopyingSubstack(false), 2000);
+              }
+            }}
+            disabled={copyingSubstack}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            {copyingSubstack ? '✓ COPIED!' : '◆ COPY FOR SUBSTACK'}
+          </button>
           <button onClick={() => navigate('/newspaper/current')}
             style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(64,224,208,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
             ◰ NEWSPAPER VIEW
@@ -789,6 +813,20 @@ function IssueTab({ showToast }) {
                 <button onClick={() => navigate(`/newspaper/${iss.slug}`)}
                   style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid ${C.teal}`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
                   VIEW
+                </button>
+                <button onClick={async () => {
+                  if (!window.confirm(`Delete Vol. ${iss.volume} Issue ${iss.issue}? This cannot be undone.`)) return;
+                  try {
+                    await deleteArchivedIssue(iss.id);
+                    setPastIssues(prev => prev.filter(p => p.id !== iss.id));
+                    showToast('Issue deleted');
+                  } catch (err) {
+                    console.error('[delete issue]', err);
+                    showToast('Delete failed', 'error');
+                  }
+                }}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  DELETE
                 </button>
               </div>
             </div>
@@ -962,6 +1000,17 @@ export default function AdminPanel() {
     if (user === undefined) return; // still loading auth
     if (!user || user.uid !== ADMIN_UID) navigate('/');
   }, [user, navigate]);
+
+  // Override App.css overflow:hidden so admin panel can scroll
+  useEffect(() => {
+    const root = document.getElementById('root');
+    document.body.style.overflow = 'auto';
+    if (root) { root.style.overflow = 'auto'; root.style.height = 'auto'; }
+    return () => {
+      document.body.style.overflow = '';
+      if (root) { root.style.overflow = ''; root.style.height = ''; }
+    };
+  }, []);
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });

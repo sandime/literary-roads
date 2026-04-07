@@ -3,8 +3,9 @@
 // Route: /newspaper/current
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchCurrentIssue, fetchAllFeaturedSections } from '../utils/newsletterAdmin';
+import { fetchCurrentIssue, fetchAllFeaturedSections, ADMIN_UID } from '../utils/newsletterAdmin';
 import GazetteContent, { formatIssueLine, formatIssueDate } from '../components/GazetteContent';
+import { useAuth } from '../contexts/AuthContext';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -35,36 +36,46 @@ function useScrollFix() {
   }, []);
 }
 
+const RANK_COLORS = [C.coral, C.teal, C.gold, C.inkLight, C.inkLight];
+
 // ── NYT Sidebar ───────────────────────────────────────────────────────────────
 function NytSidebar({ nyt }) {
   if (!nyt) return null;
-  const SideSection = ({ title, icon, color, books = [] }) => (
-    <div style={{ marginBottom: 28 }}>
-      <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color, letterSpacing: '0.1em', marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid ${color}50` }}>
-        {icon} {title}
+
+  const NytBox = ({ title, subtitle, books = [] }) => (
+    <div style={{ border: `2px solid ${C.ink}`, borderRadius: 6, overflow: 'hidden', marginBottom: 20 }}>
+      <div style={{ background: C.ink, padding: '8px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.cream, letterSpacing: '0.08em' }}>{title}</span>
+        {subtitle && <span style={{ fontSize: 9, color: 'rgba(245,241,235,0.45)', fontStyle: 'italic' }}>{subtitle}</span>}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {books.slice(0, 5).map(b => (
-          <div key={b.rank} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            {b.coverUrl && <img src={b.coverUrl} alt={b.title} style={{ width: 36, height: 52, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }} />}
-            <div>
-              <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.coral }}>#{b.rank}</div>
-              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.ink, lineHeight: 1.3 }}>{b.title}</div>
-              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.inkLight, fontStyle: 'italic' }}>{b.author}</div>
-              {b.weeksOnList > 1 && <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 7, color: C.orange, marginTop: 2 }}>{b.weeksOnList}W</div>}
-            </div>
+      {books.slice(0, 5).map((b, i) => (
+        <div key={b.rank} style={{
+          display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
+          borderBottom: i < 4 ? `1px solid ${C.creamDk}` : 'none',
+          background: i % 2 === 0 ? '#fff' : 'transparent',
+        }}>
+          <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 18, color: RANK_COLORS[i], minWidth: 24, lineHeight: 1 }}>{b.rank}</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.ink, lineHeight: 1.2, marginBottom: 1 }}>{b.title}</div>
+            <div style={{ fontFamily: 'Special Elite, serif', fontSize: 9, color: C.inkLight, fontStyle: 'italic' }}>{b.author}</div>
           </div>
-        ))}
-      </div>
+          {b.weeksOnList > 0 && (
+            <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.tealDark, whiteSpace: 'nowrap', flexShrink: 0 }}>
+              {b.weeksOnList}wk
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
+
   return (
     <div style={{ position: 'sticky', top: 90, maxHeight: 'calc(100vh - 106px)', overflowY: 'auto', padding: '0 0 24px 20px', scrollbarWidth: 'thin' }}>
       <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.1em', padding: '16px 0 12px', borderBottom: `2px solid ${C.teal}50`, marginBottom: 18 }}>
         NYT BESTSELLERS THIS WEEK
       </div>
-      <SideSection title="What's Trending" icon="◉" color={C.coral} books={nyt.fiction} />
-      <SideSection title="Non-Fiction"     icon="◎" color={C.tealDark} books={nyt.nonfiction} />
+      {nyt.fiction?.length > 0   && <NytBox title="Fiction"    subtitle="Print & E-Book" books={nyt.fiction} />}
+      {nyt.nonfiction?.length > 0 && <NytBox title="Nonfiction" subtitle="Print & E-Book" books={nyt.nonfiction} />}
     </div>
   );
 }
@@ -73,6 +84,8 @@ function NytSidebar({ nyt }) {
 export default function GazetteNewspaper() {
   useScrollFix();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.uid === ADMIN_UID;
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -115,20 +128,28 @@ export default function GazetteNewspaper() {
       <div style={{ background: C.ink, color: C.cream }}>
 
         {/* Top bar */}
-        <div style={{ background: C.tealDark, padding: '7px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ background: C.tealDark, padding: '8px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em' }}>
-            theliteraryroads.com
+            Est. on a long stretch of highway
           </span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={() => navigate('/gazette')} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
-              ← ADMIN
-            </button>
-            <button onClick={() => navigate('/newsletter')} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
-              SIMPLE VIEW
-            </button>
-            <button onClick={() => navigate('/newspaper/archive')} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
-              ARCHIVE
-            </button>
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em', textAlign: 'center' }}>
+            {issueLine || 'The Literary Roads Gazette'}
+          </span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: 'rgba(255,255,255,0.8)', letterSpacing: '0.04em', marginRight: 8 }}>
+              Free · Delivered Sundays
+            </span>
+            {isAdmin && <>
+              <button onClick={() => navigate('/gazette')} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
+                ← ADMIN
+              </button>
+              <button onClick={() => navigate('/newsletter')} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
+                SIMPLE VIEW
+              </button>
+              <button onClick={() => navigate('/newspaper/archive')} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 10px', borderRadius: 4, border: '1px solid rgba(255,255,255,0.25)', background: 'transparent', color: 'rgba(255,255,255,0.7)', cursor: 'pointer' }}>
+                ARCHIVE
+              </button>
+            </>}
           </div>
         </div>
 

@@ -264,7 +264,7 @@ function CatLink({ size = 180 }) {
   const [hov, setHov] = useState(false);
   return (
     <a
-      href={`${import.meta.env.BASE_URL}newspaper.html`}
+      href="https://sandime.github.io/literary-roads/newspaper/current"
       target="_blank"
       rel="noopener noreferrer"
       onMouseEnter={() => setHov(true)}

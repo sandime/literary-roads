@@ -72,6 +72,237 @@ const formatFestDate = (s, e) => {
   return `${f(start)} - ${f(end)} · ${label}`;
 };
 
+export function generateSubstackText(data) {
+  const {
+    issue, festivalTrips, handSelected, dispatches, readersChoice,
+    literaryLandmarks, readingRoom, headlights, onTheRoad,
+    waystation, bookstoreQA, theLongRoad, nyt,
+  } = data || {};
+
+  const festivals = festivalTrips || data?.festivals || [];
+  const indie     = handSelected  || data?.indiePicks || [];
+  const trips     = dispatches    || data?.tripReports || [];
+  const readers   = readersChoice || data?.bookTokPicks || [];
+
+  const siteUrl = 'https://theliteraryroads.com';
+  const slug = issue ? `vol-${issue.volume}-issue-${issue.issue}` : '';
+  const issueUrl = slug ? `${siteUrl}/newspaper/${slug}` : siteUrl;
+  const line = issueLine(issue);
+
+  const sep = '\n\n---\n\n';
+  const sectionHead = (title) => `${title.toUpperCase()}\n${'─'.repeat(title.length)}`;
+  const txt = s => String(s || '').trim();
+
+  let out = '';
+
+  // Header
+  out += 'THE LITERARY ROADS GAZETTE\n';
+  if (line) out += `${line}\n`;
+  out += 'Books for the road. Roads for the books.\n';
+
+  if (issue?.pullQuote) {
+    out += sep;
+    out += `"${txt(issue.pullQuote)}"`;
+  }
+
+  // Festival Trips
+  if (festivals.length > 0) {
+    out += sep;
+    out += sectionHead('Festival Trips') + '\n\n';
+    festivals.slice(0, 3).forEach((item, i) => {
+      if (i > 0) out += '\n\n';
+      out += txt(item.name);
+      const sub = [item.location, formatFestDate(item.date, item.endDate)].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      if (item.context) out += `\n${txt(item.context).slice(0, 300)}`;
+      if (item.link) out += `\n${item.link}`;
+    });
+  }
+
+  // Hand-Selected
+  if (indie.length > 0) {
+    out += sep;
+    out += sectionHead('Hand-Selected') + '\n';
+    out += 'Bookstore staff picks from indie shops across America\n\n';
+    indie.slice(0, 3).forEach((item, i) => {
+      if (i > 0) out += '\n\n';
+      out += txt(item.bookstoreName);
+      const sub = [item.city, item.ownerName].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      if (item.description || item.recommendation) out += `\n${txt(item.description || item.recommendation).slice(0, 200)}`;
+      const picks = (item.bookPicks || []).slice(0, 3);
+      if (picks.length > 0) {
+        out += '\nPicks:';
+        picks.forEach(b => {
+          out += `\n  • ${txt(b.title)} by ${txt(b.author)}`;
+          if (b.blurb) out += ` — ${txt(b.blurb)}`;
+        });
+      }
+      if (item.appLink) out += `\n${item.appLink}`;
+    });
+  }
+
+  // Dispatches
+  if (trips.length > 0) {
+    out += sep;
+    out += sectionHead('Dispatches') + '\n\n';
+    trips.slice(0, 2).forEach((item, i) => {
+      if (i > 0) out += '\n\n';
+      out += txt(item.title);
+      const route = [item.startCity, item.endCity].filter(Boolean).join(' → ');
+      const sub = [route, item.location].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      const body = item.narrative || item.description;
+      if (body) out += `\n${txt(body).slice(0, 300)}`;
+      if (item.appRouteLink) out += `\n${item.appRouteLink}`;
+    });
+  }
+
+  // Literary Landmark
+  if (literaryLandmarks?.length > 0) {
+    out += sep;
+    out += sectionHead('Literary Landmark') + '\n\n';
+    literaryLandmarks.slice(0, 1).forEach(item => {
+      out += txt(item.name);
+      const sub = [item.location, item.literaryConnection].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      if (item.history) out += `\n${txt(item.history).slice(0, 300)}`;
+      if (item.readBeforeYouGo) out += `\nRead before you go: ${txt(item.readBeforeYouGo)}`;
+      if (item.appLink) out += `\n${item.appLink}`;
+      if (item.externalLink) out += `\n${item.externalLink}`;
+    });
+  }
+
+  // Readers' Choice
+  if (readers.length > 0) {
+    out += sep;
+    out += sectionHead("Readers' Choice") + '\n\n';
+    readers.slice(0, 3).forEach((item, i) => {
+      if (i > 0) out += '\n\n';
+      out += txt(item.bookTitle);
+      const sub = [item.author, item.buzzSource].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      const body = item.whyBuzzing || item.commentary;
+      if (body) out += `\n${txt(body).slice(0, 200)}`;
+      if (item.link) out += `\n${item.link}`;
+    });
+  }
+
+  // On the Road
+  if (onTheRoad?.length > 0) {
+    out += sep;
+    out += sectionHead('On the Road') + '\n';
+    out += 'Author events & readings\n\n';
+    onTheRoad.slice(0, 4).forEach((item, i) => {
+      if (i > 0) out += '\n';
+      out += `• ${txt(item.authorName)} — ${txt(item.bookTitle)}`;
+      if (item.dateTime) out += `\n  ${txt(item.dateTime)}`;
+      if (item.venueName) out += `\n  ${txt(item.venueName)}${item.location ? `, ${txt(item.location)}` : ''}`;
+      if (item.rsvpLink) out += `\n  ${item.rsvpLink}`;
+    });
+  }
+
+  // The Waystation
+  if (waystation?.length > 0) {
+    out += sep;
+    out += sectionHead('The Waystation') + '\n\n';
+    waystation.slice(0, 1).forEach(item => {
+      out += txt(item.name);
+      const sub = [item.location, item.placeType, item.hours].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      if (item.whyWorthy) out += `\n${txt(item.whyWorthy).slice(0, 250)}`;
+      if (item.bookToReadThere) out += `\nRead here: ${txt(item.bookToReadThere)}`;
+      if (item.travelersOffer) out += `\nLiterary Travelers offer: ${txt(item.travelersOffer)}`;
+      if (item.website) out += `\n${item.website}`;
+    });
+  }
+
+  // Headlights
+  if (headlights?.length > 0) {
+    out += sep;
+    out += sectionHead('Headlights') + '\n\n';
+    headlights.slice(0, 6).forEach((item, i) => {
+      if (i > 0) out += '\n\n';
+      if (item.type) out += `[${txt(item.type).toUpperCase()}] `;
+      out += txt(item.headline);
+      if (item.body) out += `\n${txt(item.body)}`;
+      if (item.link) out += `\n${item.link}`;
+    });
+  }
+
+  // Bookstore Q&A
+  if (bookstoreQA?.length > 0) {
+    out += sep;
+    out += sectionHead('Bookstore Q&A') + '\n\n';
+    bookstoreQA.slice(0, 1).forEach(item => {
+      out += txt(item.bookstoreName);
+      if (item.city) out += `\n${txt(item.city)}`;
+      if (item.question && item.answer) {
+        out += `\nQ: ${txt(item.question)}`;
+        out += `\nA: ${txt(item.answer).slice(0, 300)}`;
+      }
+      if (item.website) out += `\n${item.website}`;
+    });
+  }
+
+  // The Reading Room
+  if (readingRoom?.length > 0) {
+    out += sep;
+    out += sectionHead('The Reading Room') + '\n\n';
+    readingRoom.slice(0, 1).forEach(item => {
+      const books = (item.featuredBooks || []);
+      books.forEach(b => {
+        out += `• ${txt(b.title)} by ${txt(b.author)}`;
+        if (b.whyFeatured) out += `\n  ${txt(b.whyFeatured)}`;
+        out += '\n';
+      });
+      if (item.communityNote) out += `\n${txt(item.communityNote)}`;
+    });
+  }
+
+  // The Long Road
+  if (theLongRoad?.length > 0) {
+    out += sep;
+    out += sectionHead('The Long Road') + '\n\n';
+    theLongRoad.slice(0, 1).forEach(item => {
+      out += txt(item.interviewTitle);
+      const sub = [item.authorName, item.bookTitle].filter(Boolean).join(' · ');
+      if (sub) out += `\n${sub}`;
+      if (item.description) out += `\n${txt(item.description)}`;
+      if (item.youtubeId) out += `\nhttps://www.youtube.com/watch?v=${item.youtubeId}`;
+    });
+  }
+
+  // NYT Bestsellers
+  if (nyt?.fiction?.length > 0) {
+    out += sep;
+    out += sectionHead('NYT Bestsellers — Fiction') + '\n\n';
+    nyt.fiction.slice(0, 10).forEach(b => {
+      out += `${b.rank}. ${txt(b.title)} — ${txt(b.author)}`;
+      if (b.weeks_on_list > 1) out += ` (${b.weeks_on_list} weeks)`;
+      out += '\n';
+    });
+  }
+
+  if (nyt?.nonfiction?.length > 0) {
+    out += sep;
+    out += sectionHead('NYT Bestsellers — Nonfiction') + '\n\n';
+    nyt.nonfiction.slice(0, 10).forEach(b => {
+      out += `${b.rank}. ${txt(b.title)} — ${txt(b.author)}`;
+      if (b.weeks_on_list > 1) out += ` (${b.weeks_on_list} weeks)`;
+      out += '\n';
+    });
+  }
+
+  // Footer
+  out += sep;
+  out += `Read the full issue online: ${issueUrl}\n`;
+  out += `Explore the map: ${siteUrl}\n`;
+  out += `\nThe Literary Roads Gazette — Books for the road. Roads for the books.`;
+
+  return out;
+}
+
 export function generateNewsletterHTML(data) {
   const {
     issue, festivalTrips, handSelected, dispatches, readersChoice,
