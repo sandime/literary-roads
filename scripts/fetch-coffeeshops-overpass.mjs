@@ -297,34 +297,23 @@ if (DRY_RUN) {
   process.exit(0);
 }
 
-// ── Firestore upload (additive only) ─────────────────────────────────────────
-const keyArg   = process.argv.find((a, i) => process.argv[i - 1] === '--key');
-const keyPaths = [
-  keyArg,
-  join(__dirname, '..', 'service-account.json'),
-  join(__dirname, '..', 'serviceAccount.json'),
-  join(__dirname, 'service-account.json'),
-].filter(Boolean);
+// ── Firestore upload (additive only) — Firebase client SDK ───────────────────
+const { initializeApp }    = await import('firebase/app');
+const { getFirestore, collection: col, doc: fdoc, getDoc, writeBatch, serverTimestamp } =
+  await import('firebase/firestore');
 
-const keyFile = keyPaths.find(p => existsSync(p));
-if (!keyFile) {
-  console.error(`
-  ✗ No service account key found.
-  Save it as: ${join(__dirname, '..', 'service-account.json')}
-  Then re-run: node scripts/fetch-coffeeshops-overpass.mjs --upload
-`);
-  process.exit(1);
-}
+const firebaseConfig = {
+  apiKey:            'AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE',
+  authDomain:        'the-literary-roads.firebaseapp.com',
+  projectId:         'the-literary-roads',
+  storageBucket:     'the-literary-roads.firebasestorage.app',
+  messagingSenderId: '305145573086',
+  appId:             '1:305145573086:web:206ec464384fe149c45c4f',
+};
 
-const admin = (await import('firebase-admin')).default;
-const serviceAccount = JSON.parse(readFileSync(keyFile, 'utf8'));
-
-if (!admin.apps.length) {
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-}
-
-const db     = admin.firestore();
-const colRef = db.collection('coffeeShops');
+const app    = initializeApp(firebaseConfig);
+const db     = getFirestore(app);
+const colRef = col(db, 'coffeeShops');
 
 let added = 0, skipped = 0, failed = 0;
 const BATCH_SIZE = 400;
@@ -335,20 +324,20 @@ for (let bStart = 0; bStart < uniqueAll.length; bStart += BATCH_SIZE) {
   const chunk = uniqueAll.slice(bStart, bStart + BATCH_SIZE);
 
   // Check existence in parallel — don't overwrite anything already in Firestore
-  const snapshots = await Promise.all(chunk.map(e => colRef.doc(e.docId).get()));
+  const snapshots = await Promise.all(chunk.map(e => getDoc(fdoc(db, 'coffeeShops', e.docId))));
 
-  const batch = db.batch();
+  const batch = writeBatch(db);
   let batchCount = 0;
 
   for (let i = 0; i < chunk.length; i++) {
     const { docId, ...data } = chunk[i];
-    if (snapshots[i].exists) {
+    if (snapshots[i].exists()) {
       skipped++;
       continue;
     }
-    batch.set(colRef.doc(docId), {
+    batch.set(fdoc(db, 'coffeeShops', docId), {
       ...data,
-      addedAt: admin.firestore.FieldValue.serverTimestamp(),
+      addedAt: serverTimestamp(),
     });
     added++;
     batchCount++;
