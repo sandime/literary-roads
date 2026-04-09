@@ -16,6 +16,9 @@ const SaveRouteModal = ({ startCity, endCity, onSave, onClose, saving, error }) 
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-route-title"
       className="fixed inset-0 z-[1004] flex items-center justify-center p-4"
       style={{ background: 'rgba(13,14,26,0.92)' }}
       onKeyDown={handleKeyDown}
@@ -24,7 +27,7 @@ const SaveRouteModal = ({ startCity, endCity, onSave, onClose, saving, error }) 
         {/* Neon top accent */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-atomic-orange via-starlight-turquoise to-atomic-orange opacity-80" />
 
-        <h2 className="text-starlight-turquoise font-bungee text-xl mb-0.5 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
+        <h2 id="save-route-title" className="text-starlight-turquoise font-bungee text-xl mb-0.5 drop-shadow-[0_0_10px_rgba(64,224,208,0.8)]">
           SAVE ROUTE
         </h2>
         <p className="text-chrome-silver font-special-elite text-xs mb-5">

@@ -483,7 +483,9 @@ export default function Guestbook({ locationId, user, onShowLogin, placeName = '
 
       {/* Search input */}
       <div className="relative mb-3">
+        <label htmlFor="guestbook-search" className="sr-only">Search by title or author</label>
         <input
+          id="guestbook-search"
           ref={searchInputRef}
           type="text"
           value={searchQuery}

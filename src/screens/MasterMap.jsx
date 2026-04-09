@@ -33,6 +33,7 @@ import PitStopRating from '../components/PitStopRating';
 import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon, LibraryIcon } from '../components/Icons';
 import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
+import AudioNarrative from '../components/AudioNarrative';
 import NavigateModal from '../components/NavigateModal';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
@@ -300,9 +301,11 @@ const createLandmarkClusterIcon = (cluster) => {
 
 
 // Custom Googie-style neon outline icons
-const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
+const createCustomIcon = (type, hasStarburst = false, inTrip = false, label = '') => {
   const uid = ++_iconUid;
   const glowBoost = hasStarburst ? 'filter:drop-shadow(0 0 10px rgba(255,210,0,0.9));' : '';
+  const safeLabel = label.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const a11y = safeLabel ? ` title="${safeLabel}" aria-label="${safeLabel}" role="img" tabindex="0"` : '';
   const starburstOverlay = hasStarburst
     ? `<img src="/literary-roads/images/starburst-rating.png" alt="" style="position:absolute;top:-14px;right:-14px;width:40px;height:40px;z-index:10;" />`
     : '';
@@ -620,7 +623,7 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false) => {
 
   const isSearch = type === 'search';
   const icon = L.divIcon({
-    html: `<div style="position:relative;display:inline-block;${glowBoost}">${icons[type] || icons.cafe}${starburstOverlay}${inTripOverlay}</div>`,
+    html: `<div style="position:relative;display:inline-block;${glowBoost}"${a11y}>${icons[type] || icons.cafe}${starburstOverlay}${inTripOverlay}</div>`,
     className: 'custom-googie-marker',
     iconSize: isSearch ? [32, 40] : [40, 40],
     iconAnchor: isSearch ? [16, 40] : [20, 40],
@@ -1003,6 +1006,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Reset shelf tab and transient state whenever a new location is opened
   useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); }, [selectedLocation?.id]);
+
+  // Focus the shelf when a location opens (screen reader accessibility)
+  useEffect(() => {
+    if (selectedLocation) {
+      setTimeout(() => shelfRef.current?.focus(), 50);
+    }
+  }, [selectedLocation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Stop any running narration when location changes or shelf closes
+  useEffect(() => {
+    window.speechSynthesis?.cancel();
+  }, [selectedLocation?.id]);
 
   // Pre-fetch ratings for all bookstore/cafe pins so starbursts show immediately on the map
   useEffect(() => {
@@ -1958,6 +1973,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   return (
     <div className="relative h-screen w-full">
+      {/* Skip navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-midnight-navy focus:text-starlight-turquoise focus:border focus:border-starlight-turquoise focus:rounded focus:font-bungee focus:text-sm"
+      >
+        Skip to main content
+      </a>
+      {/* Loading announcement for screen readers */}
+      <div aria-live="polite" aria-atomic="true">
+        {loading && <span className="sr-only">Loading map results...</span>}
+      </div>
+
       {/* ══════════════════════════════════════════════
            HEADER
       ══════════════════════════════════════════════ */}
@@ -2075,18 +2102,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           {/* Left group: Home + route actions */}
           <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
             {onBackToPlanner && (
-              <button onClick={onBackToPlanner} title="Back to planner"
+              <button onClick={onBackToPlanner} title="Back to planner" aria-label="Back to planner"
                 className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
             )}
-            <button onClick={handleGoHome} title="Home"
+            <button onClick={handleGoHome} title="Home" aria-label="Go to home screen"
               className="text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
@@ -2181,16 +2208,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             </div>
 
             {/* Search */}
-            <button onClick={() => setShowSearch((v) => !v)} title="Search places"
+            <button onClick={() => setShowSearch((v) => !v)} title="Search places" aria-label={showSearch ? 'Close search' : 'Search places'}
+              aria-expanded={showSearch}
               className={`flex flex-col items-center transition-colors p-1 ${showSearch ? 'text-atomic-orange' : 'text-starlight-turquoise hover:text-atomic-orange'}`}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
 
             {/* My Trips */}
-            <button onClick={() => setShowRoadTrip(true)} title="My Trips"
+            <button onClick={() => setShowRoadTrip(true)} title="My Trips" aria-label="Open my trips"
               className="relative flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2231,6 +2259,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 className="flex flex-col items-center transition-colors p-1"
                 style={{ color: showInfoMenu ? '#FF4E00' : '#40E0D0' }}
                 title="Afterword"
+                aria-label="Afterword menu"
+                aria-expanded={showInfoMenu}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -2271,6 +2301,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <button
                 onClick={user ? () => setShowUserMenu((v) => !v) : onShowLogin}
                 title={user ? "Traveler's Log" : 'Log In'}
+                aria-label={user ? `Open traveler's log for ${user.displayName || 'Literary Traveler'}` : 'Log in'}
+                aria-expanded={user ? showUserMenu : undefined}
                 className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
               >
                 {user?.photoURL ? (
@@ -2386,7 +2418,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       )}
 
             {/* Map */}
-      <div className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
+      <div id="main-content" className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
         <MapContainer
           center={mapCenter}
           zoom={mapZoom}
@@ -2445,7 +2477,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <Marker
                   key={location.id}
                   position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                  icon={createCustomIcon('landmark', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                  icon={createCustomIcon('landmark', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Literary Landmark`)}
                   eventHandlers={{ click: () => setSelectedLocation(location) }}
                 />
               ))
@@ -2481,7 +2513,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <Marker
                 key={location.id}
                 position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                icon={createCustomIcon('bookstore', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                icon={createCustomIcon('bookstore', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Bookstore`)}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
             ))
@@ -2497,7 +2529,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <Marker
                 key={location.id}
                 position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                icon={createCustomIcon('cafe', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                icon={createCustomIcon('cafe', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Coffee Shop`)}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
             ))
@@ -2510,7 +2542,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <Marker
                 key={location.id}
                 position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                icon={createCustomIcon('festival', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                icon={createCustomIcon('festival', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Book Festival`)}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
             ))
@@ -2523,7 +2555,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <Marker
                 key={location.id}
                 position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                icon={createCustomIcon('drivein', starburstIds.has(location.id), currentRouteStopIds.has(location.id))}
+                icon={createCustomIcon('drivein', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Drive-in Theater`)}
                 eventHandlers={{ click: () => setSelectedLocation(location) }}
               />
             ))
@@ -3070,6 +3102,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         return (
         <div
           ref={shelfRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedLocation.name} details`}
+          tabIndex={-1}
           className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
           style={{
             position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1001,
@@ -3113,16 +3149,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 className="hidden md:flex items-center justify-center w-7 h-7 rounded-full text-chrome-silver/60 hover:text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors"
                 onClick={() => setShelfDeskMinimized(true)}
                 title="Minimize"
+                aria-label="Minimize location panel"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <rect x="4" y="11" width="16" height="2" rx="1"/>
                 </svg>
               </button>
               <button
                 onClick={() => setSelectedLocation(null)}
+                aria-label={`Close ${selectedLocation.name} details`}
                 className="text-starlight-turquoise hover:text-atomic-orange transition-colors"
               >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
               </button>
@@ -3154,6 +3192,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {selectedLocation.name}
               </h2>
             </div>
+
+            {/* Audio narration — landmarks only */}
+            {selectedLocation.type === 'landmark' && (
+              <div className="mb-2">
+                <AudioNarrative location={selectedLocation} />
+              </div>
+            )}
 
             {/* Pit stop rating — not shown for festivals (they're events, not permanent venues) */}
             {selectedLocation.type !== 'festival' && (

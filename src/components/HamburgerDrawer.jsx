@@ -62,7 +62,12 @@ const HamburgerDrawer = ({
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-[2000] bg-black/60" onClick={onClose} />
+      <button
+        className="fixed inset-0 z-[2000] bg-black/60 cursor-default"
+        onClick={onClose}
+        aria-label="Close menu"
+        tabIndex={-1}
+      />
 
       {/* Drawer */}
       <div
@@ -74,8 +79,8 @@ const HamburgerDrawer = ({
           <span className="font-bungee text-starlight-turquoise text-sm tracking-widest drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">
             MENU
           </span>
-          <button onClick={onClose} className="text-chrome-silver hover:text-atomic-orange transition-colors p-1">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button onClick={onClose} className="text-chrome-silver hover:text-atomic-orange transition-colors p-1" aria-label="Close menu">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

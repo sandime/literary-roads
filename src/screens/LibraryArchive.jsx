@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
+import AudioNarrative from '../components/AudioNarrative';
 
 const BASE_URL = import.meta.env.BASE_URL;
 const CAT_SRC  = `${BASE_URL}images/library-cat.png`;
@@ -237,6 +238,12 @@ function JournalCard({ item, expanded, onToggleExpand }) {
               }}>
                 {item.personalNotes}
               </p>
+            </div>
+          )}
+
+          {expanded && item.reflection && (
+            <div style={{ marginTop: 10 }} onClick={e => e.stopPropagation()}>
+              <AudioNarrative text={[item.reflection, item.whatYouLearned, item.changedThinking, item.willApply].filter(Boolean).join(' ')} />
             </div>
           )}
 

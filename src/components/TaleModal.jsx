@@ -79,6 +79,9 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tale-dialog-title"
       className="fixed inset-0 flex flex-col"
       style={{ zIndex: 1003, background: '#0f1024' }}
     >
@@ -90,15 +93,16 @@ export default function TaleModal({ locationId, locationName, user, onShowLogin,
         <button
           onClick={onClose}
           className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
-          aria-label="Close"
+          aria-label={`Close ${displayTitle}`}
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
 
         <div className="flex-1 min-w-0">
           <h2
+            id="tale-dialog-title"
             className="font-bungee text-starlight-turquoise text-base md:text-lg leading-tight truncate"
             style={{ textShadow: '0 0 10px rgba(64,224,208,0.7)' }}
           >
