@@ -1906,7 +1906,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         getCuratedLandmarks([[lat, lng]], 15),
       ]);
 
-      const seenIds = new Set([normalizedPlace.id]);
+      const seenIds = new Set();
       const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
