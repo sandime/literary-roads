@@ -348,50 +348,6 @@
     "genre": null
   },
   {
-    "id": "key-west-literary-seminar",
-    "name": "Key West Literary Seminar",
-    "city": "Key West",
-    "state": "FL",
-    "lat": 24.5551,
-    "lng": -81.78,
-    "description": "Intimate four-day seminar exploring a single literary theme each year, drawing writers and readers to the Key West Amphitheater.",
-    "website": "https://www.kwls.org/",
-    "typicalMonth": "January",
-    "recurringPattern": "Annual – second week of January",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "literary-fiction",
-      "intensive",
-      "island",
-      "intimate"
-    ],
-    "genre": null
-  },
-  {
-    "id": "sun-valley-writers-conference",
-    "name": "Sun Valley Writers' Conference",
-    "city": "Sun Valley",
-    "state": "ID",
-    "lat": 43.6969,
-    "lng": -114.351,
-    "description": "Prestigious three-day gathering of leading authors and thinkers at the Sun Valley Resort Pavilion in the Idaho mountains.",
-    "website": "https://svwc.com/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – third weekend of July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "literary-fiction",
-      "nonfiction",
-      "mountain",
-      "idaho"
-    ],
-    "genre": null
-  },
-  {
     "id": "nantucket-book-festival",
     "name": "Nantucket Book Festival",
     "city": "Nantucket",
@@ -567,28 +523,6 @@
     "genre": null
   },
   {
-    "id": "bronx-book-fair",
-    "name": "Bronx Book Fair",
-    "city": "Bronx",
-    "state": "NY",
-    "lat": 40.817,
-    "lng": -73.9249,
-    "description": "Annual one-day celebration of books and literacy at Hostos Community College in the South Bronx, with local and national authors, free admission.",
-    "website": "https://bronxbookfair.com/",
-    "typicalMonth": "May",
-    "recurringPattern": "Annual – May",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "community",
-      "new-york",
-      "bronx"
-    ],
-    "genre": null
-  },
-  {
     "id": "nyc-poetry-festival",
     "name": "NYC Poetry Festival",
     "city": "New York (Governors Island)",
@@ -623,13 +557,13 @@
     "typicalMonth": "July",
     "recurringPattern": "Annual – summer season (June–August)",
     "size": "specialty",
-    "primaryType": "writers-conference",
+    "primaryType": "general",
     "tags": [
       "books",
-      "workshop",
       "summer",
       "community",
-      "historic"
+      "historic",
+      "book-festival"
     ],
     "genre": null
   },
@@ -655,37 +589,14 @@
     "genre": null
   },
   {
-    "id": "bread-loaf-writers-conference",
-    "name": "Bread Loaf Writers' Conference",
-    "city": "Ripton",
-    "state": "VT",
-    "lat": 44.0154,
-    "lng": -73.027,
-    "description": "America's oldest and most prestigious writers' conference, held each August in the Green Mountains; founded by Robert Frost in 1926 at Middlebury College.",
-    "website": "https://www.middlebury.edu/bread-loaf-conferences/bl_writers/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – third week of August",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "fiction",
-      "poetry",
-      "nonfiction",
-      "prestigious",
-      "founded-1926"
-    ],
-    "genre": null
-  },
-  {
-    "id": "new-hampshire-literary-festival",
-    "name": "New Hampshire Literary Festival",
+    "id": "new-hampshire-book-festival",
+    "name": "New Hampshire Book Festival",
     "city": "Concord",
     "state": "NH",
     "lat": 43.2081,
     "lng": -71.5376,
     "description": "Annual two-day celebration of New Hampshire authors and literature, with panel discussions, readings, and a book fair at Concord venues.",
-    "website": "https://nhwriters.org/",
+    "website": "https://www.nhbookfestival.org",
     "typicalMonth": "October",
     "recurringPattern": "Annual – October",
     "size": "regional",
@@ -699,15 +610,15 @@
     "genre": null
   },
   {
-    "id": "delaware-book-festival",
-    "name": "Delaware Book Festival",
-    "city": "Dover",
+    "id": "history-book-festival-lewes",
+    "name": "History Book Festival",
+    "city": "Lewes",
     "state": "DE",
     "lat": 39.1582,
     "lng": -75.5244,
     "description": "Free annual festival at Legislative Mall in Dover with Delaware authors and national guests, presented by the Delaware Division of Libraries.",
-    "website": "https://delawarebookfestival.com/",
-    "typicalMonth": "November",
+    "website": "https://www.historybookfestival.org/",
+    "typicalMonth": "September",
     "recurringPattern": "Annual – November",
     "size": "regional",
     "primaryType": "general",
@@ -782,28 +693,6 @@
       "social-justice",
       "activism",
       "biennial",
-      "dc"
-    ],
-    "genre": null
-  },
-  {
-    "id": "hurston-wright-writers-week",
-    "name": "Hurston/Wright Writers Week",
-    "city": "Washington",
-    "state": "DC",
-    "lat": 38.9101,
-    "lng": -77.0147,
-    "description": "Intensive summer writing workshop and awards celebration for Black writers of African descent, honoring the legacy of Zora Neale Hurston and Richard Wright.",
-    "website": "https://www.hurstonwright.org/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – summer",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "black-writers",
-      "african-american",
-      "awards",
       "dc"
     ],
     "genre": null
@@ -897,28 +786,6 @@
     "genre": null
   },
   {
-    "id": "alabama-book-festival",
-    "name": "Alabama Book Festival",
-    "city": "Montgomery",
-    "state": "AL",
-    "lat": 32.3668,
-    "lng": -86.3,
-    "description": "Free one-day outdoor festival on the grounds of the Old Alabama Town complex featuring 70+ authors, booksellers, and a children's programming area.",
-    "website": "https://www.alabamabookfestival.org/",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – third Saturday of April",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "outdoor",
-      "southern-lit",
-      "historic-venue"
-    ],
-    "genre": null
-  },
-  {
     "id": "north-carolina-literary-festival",
     "name": "North Carolina Literary Festival",
     "city": "Chapel Hill",
@@ -937,27 +804,6 @@
       "statewide",
       "biennial",
       "unc"
-    ],
-    "genre": null
-  },
-  {
-    "id": "south-carolina-book-festival",
-    "name": "South Carolina Book Festival",
-    "city": "Columbia",
-    "state": "SC",
-    "lat": 34.0007,
-    "lng": -81.0348,
-    "description": "Free two-day festival at the Columbia Metropolitan Convention Center with 100+ authors, celebrity chefs, and the SC Fiction Project readings.",
-    "website": "https://www.scbookfestival.org/",
-    "typicalMonth": "February",
-    "recurringPattern": "Annual – third weekend of February",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "southeast",
-      "columbia"
     ],
     "genre": null
   },
@@ -1048,29 +894,6 @@
     "genre": null
   },
   {
-    "id": "sewanee-writers-conference",
-    "name": "Sewanee Writers' Conference",
-    "city": "Sewanee",
-    "state": "TN",
-    "lat": 35.2034,
-    "lng": -85.9144,
-    "description": "Highly selective 12-day conference at the University of the South in Sewanee, TN, offering workshops in fiction, poetry, and playwriting with celebrated faculty.",
-    "website": "https://sewaneewriters.org/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "fiction",
-      "poetry",
-      "playwriting",
-      "prestigious",
-      "selective"
-    ],
-    "genre": null
-  },
-  {
     "id": "thomas-wolfe-festival",
     "name": "Thomas Wolfe Festival",
     "city": "Asheville",
@@ -1089,28 +912,6 @@
       "historic",
       "appalachian",
       "north-carolina"
-    ],
-    "genre": null
-  },
-  {
-    "id": "flannery-oconnor-festival",
-    "name": "Flannery O'Connor Festival",
-    "city": "Milledgeville",
-    "state": "GA",
-    "lat": 33.0801,
-    "lng": -83.2321,
-    "description": "Annual symposium at Georgia College celebrating Flannery O'Connor's work and legacy, with scholarly panels, readings, and tours of her Andalusia Farm.",
-    "website": "https://www.gcsu.edu/flanneryfestival",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "southern-gothic",
-      "literary-fiction",
-      "academic",
-      "georgia"
     ],
     "genre": null
   },
@@ -1137,28 +938,6 @@
     "genre": null
   },
   {
-    "id": "hindman-appalachian-writers",
-    "name": "Appalachian Writers' Workshop",
-    "city": "Hindman",
-    "state": "KY",
-    "lat": 37.3384,
-    "lng": -83.021,
-    "description": "Week-long writing workshop and literary celebration at Hindman Settlement School in the Kentucky mountains, one of the oldest regional Appalachian literary gatherings.",
-    "website": "https://www.hindmansettlement.org/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – late July/early August",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "appalachian",
-      "regional",
-      "kentucky",
-      "community"
-    ],
-    "genre": null
-  },
-  {
     "id": "wisconsin-book-festival",
     "name": "Wisconsin Book Festival",
     "city": "Madison",
@@ -1177,28 +956,6 @@
       "library",
       "midwest",
       "madison"
-    ],
-    "genre": null
-  },
-  {
-    "id": "ohioana-book-festival",
-    "name": "Ohioana Book Festival",
-    "city": "Columbus",
-    "state": "OH",
-    "lat": 39.9612,
-    "lng": -82.9988,
-    "description": "Free one-day celebration of Ohio authors and books at the Ohioana Library in Columbus, presenting the Ohioana Book Awards and featuring 100+ Ohio writers.",
-    "website": "https://www.ohioana.org/programs/ohioana-book-festival/",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "ohio-authors",
-      "awards",
-      "ohio"
     ],
     "genre": null
   },
@@ -1225,28 +982,6 @@
     "genre": null
   },
   {
-    "id": "ann-arbor-book-festival",
-    "name": "Ann Arbor Book Festival",
-    "city": "Ann Arbor",
-    "state": "MI",
-    "lat": 42.2808,
-    "lng": -83.743,
-    "description": "Annual literary celebration in Ann Arbor featuring author readings and a streetfair of independent publishers and booksellers in the heart of this literary college town.",
-    "website": "https://www.aabookfestival.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "college-town",
-      "midwest",
-      "publishers",
-      "michigan"
-    ],
-    "genre": null
-  },
-  {
     "id": "festival-of-faith-and-writing",
     "name": "Festival of Faith & Writing",
     "city": "Grand Rapids",
@@ -1266,29 +1001,6 @@
       "literary-fiction",
       "biennial",
       "calvin"
-    ],
-    "genre": null
-  },
-  {
-    "id": "kenyon-review-writers-workshop",
-    "name": "Kenyon Review Writers Workshop",
-    "city": "Gambier",
-    "state": "OH",
-    "lat": 40.3737,
-    "lng": -82.3949,
-    "description": "Intensive summer workshop at Kenyon College for adult writers of poetry, fiction, and nonfiction, with faculty drawn from the Kenyon Review editorial community.",
-    "website": "https://www.kenyonreview.org/workshops/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "fiction",
-      "poetry",
-      "nonfiction",
-      "literary-magazine",
-      "ohio"
     ],
     "genre": null
   },
@@ -1359,28 +1071,6 @@
     "genre": null
   },
   {
-    "id": "montana-festival-of-the-book",
-    "name": "Montana Festival of the Book",
-    "city": "Missoula",
-    "state": "MT",
-    "lat": 46.8721,
-    "lng": -113.994,
-    "description": "Annual four-day fall festival celebrating Montana's rich literary tradition in the college-town atmosphere of Missoula, with readings, panels, and bookstore events.",
-    "website": "https://www.montanabookfestival.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "mountain-west",
-      "regional",
-      "missoula",
-      "university-of-montana"
-    ],
-    "genre": null
-  },
-  {
     "id": "san-antonio-book-festival",
     "name": "San Antonio Book Festival",
     "city": "San Antonio",
@@ -1447,27 +1137,6 @@
     "genre": null
   },
   {
-    "id": "phoenix-book-festival",
-    "name": "Arizona Book Festival",
-    "city": "Phoenix",
-    "state": "AZ",
-    "lat": 33.4484,
-    "lng": -112.074,
-    "description": "Annual free festival at Burton Barr Central Library celebrating Arizona authors and readers with author talks, panels, and a children's literacy fair.",
-    "website": "https://www.azbookfestival.org/",
-    "typicalMonth": "March",
-    "recurringPattern": "Annual – March",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "arizona",
-      "library"
-    ],
-    "genre": null
-  },
-  {
     "id": "albuquerque-book-festival",
     "name": "Albuquerque Book Festival",
     "city": "Albuquerque",
@@ -1485,29 +1154,6 @@
       "free",
       "new-mexico",
       "southwest"
-    ],
-    "genre": null
-  },
-  {
-    "id": "taos-summer-writers-conference",
-    "name": "Taos Summer Writers' Conference",
-    "city": "Taos",
-    "state": "NM",
-    "lat": 36.4072,
-    "lng": -105.5731,
-    "description": "Week-long intensive writing conference in the mountains of northern New Mexico at the University of New Mexico Taos campus; fiction, poetry, and creative nonfiction.",
-    "website": "https://taoswrites.unm.edu/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "fiction",
-      "poetry",
-      "nonfiction",
-      "southwest",
-      "unm"
     ],
     "genre": null
   },
@@ -1530,50 +1176,6 @@
       "utah",
       "humanities",
       "statewide"
-    ],
-    "genre": null
-  },
-  {
-    "id": "aspen-summer-words",
-    "name": "Aspen Summer Words Literary Festival",
-    "city": "Aspen",
-    "state": "CO",
-    "lat": 39.1911,
-    "lng": -106.8175,
-    "description": "Annual five-day writing retreat and literary festival presented by Aspen Words in the Rocky Mountains, with readings, craft seminars, and the Aspen Words Literary Prize.",
-    "website": "https://www.aspenwords.org/programs/summer-words/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "literary-fiction",
-      "awards",
-      "mountain",
-      "aspen-words"
-    ],
-    "genre": null
-  },
-  {
-    "id": "pikes-peak-writers-conference",
-    "name": "Pikes Peak Writers Conference",
-    "city": "Colorado Springs",
-    "state": "CO",
-    "lat": 38.8339,
-    "lng": -104.8214,
-    "description": "Annual three-day conference for genre fiction writers in Colorado Springs featuring agents, editors, and bestselling authors in a workshop-intensive setting.",
-    "website": "https://www.pikespeakwriters.com/ppwc/",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "genre-fiction",
-      "agents",
-      "editors",
-      "colorado"
     ],
     "genre": null
   },
@@ -1667,73 +1269,6 @@
     "genre": null
   },
   {
-    "id": "santa-barbara-book-festival",
-    "name": "Santa Barbara Book Festival",
-    "city": "Santa Barbara",
-    "state": "CA",
-    "lat": 34.4208,
-    "lng": -119.6982,
-    "description": "Annual celebration of books and ideas at Santa Barbara's independent bookshops, the Santa Barbara Public Library, and the historic Lobero Theatre.",
-    "website": "https://sbthp.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "california",
-      "coastal",
-      "santa-barbara"
-    ],
-    "genre": null
-  },
-  {
-    "id": "willamette-writers-conference",
-    "name": "Willamette Writers Conference",
-    "city": "Portland",
-    "state": "OR",
-    "lat": 45.5152,
-    "lng": -122.69,
-    "description": "One of the largest writer's conferences on the West Coast, held each August in Portland with 100+ sessions, an agent/editor pitch room, and keynote authors.",
-    "website": "https://willamettewriters.org/wwcon/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "genre-fiction",
-      "agents",
-      "editors",
-      "oregon",
-      "large"
-    ],
-    "genre": null
-  },
-  {
-    "id": "tin-house-summer-workshop",
-    "name": "Tin House Summer Workshop",
-    "city": "Portland",
-    "state": "OR",
-    "lat": 45.5091,
-    "lng": -122.6832,
-    "description": "Prestigious week-long workshop at Reed College with fiction, poetry, and nonfiction tracks; one of the most competitive summer literary programs in the country.",
-    "website": "https://tinhouse.com/workshop/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "literary-fiction",
-      "poetry",
-      "prestigious",
-      "intensive",
-      "reed"
-    ],
-    "genre": null
-  },
-  {
     "id": "seattle-book-festival",
     "name": "Seattle Book Festival",
     "city": "Seattle",
@@ -1754,52 +1289,6 @@
       "literary-arts"
     ],
     "genre": null
-  },
-  {
-    "id": "port-townsend-writers-conference",
-    "name": "Centrum Writers' Conference",
-    "city": "Port Townsend",
-    "state": "WA",
-    "lat": 48.1174,
-    "lng": -122.7597,
-    "description": "Week-long summer conference at Centrum's Fort Worden State Park on the Olympic Peninsula; intimate workshops in fiction, poetry, and creative nonfiction since 1974.",
-    "website": "https://centrum.org/programs/writers-conference/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "fiction",
-      "poetry",
-      "intimate",
-      "historic",
-      "centrum"
-    ],
-    "genre": null
-  },
-  {
-    "id": "clarion-west-writers-workshop",
-    "name": "Clarion West Writers Workshop",
-    "city": "Seattle",
-    "state": "WA",
-    "lat": 47.6583,
-    "lng": -122.3134,
-    "description": "Intensive six-week speculative fiction workshop in Seattle's Capitol Hill, one of the most competitive SF/fantasy writing programs in the world.",
-    "website": "https://www.clarionwest.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June/July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "sci-fi",
-      "fantasy",
-      "speculative",
-      "intensive",
-      "seattle"
-    ],
-    "genre": "sci-fi"
   },
   {
     "id": "locus-awards-weekend",
@@ -1824,28 +1313,6 @@
     "genre": "sci-fi"
   },
   {
-    "id": "alaska-book-festival",
-    "name": "Alaska Book Festival",
-    "city": "Anchorage",
-    "state": "AK",
-    "lat": 61.2181,
-    "lng": -149.9003,
-    "description": "Annual celebration of Alaskan literature and literary culture at the Anchorage Museum, featuring Alaska Native storytellers, adventure writers, and nature authors.",
-    "website": "https://www.alaskabookfestival.org/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "alaska",
-      "native-voices",
-      "nature-writing",
-      "anchorage"
-    ],
-    "genre": null
-  },
-  {
     "id": "hawaii-book-and-music-festival",
     "name": "Hawaii Book & Music Festival",
     "city": "Honolulu",
@@ -1865,95 +1332,6 @@
       "pacific-island",
       "multicultural",
       "honolulu"
-    ],
-    "genre": null
-  },
-  {
-    "id": "lambda-literary-awards",
-    "name": "Lambda Literary Awards",
-    "city": "New York",
-    "state": "NY",
-    "lat": 40.7614,
-    "lng": -73.9776,
-    "description": "Annual awards gala and literary celebration honoring the best LGBTQ+ books of the year, presented by Lambda Literary in New York City.",
-    "website": "https://www.lambdaliterary.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty",
-    "primaryType": "genre",
-    "tags": [
-      "lgbtq",
-      "queer-lit",
-      "awards",
-      "diversity",
-      "new-york"
-    ],
-    "genre": "lgbtq"
-  },
-  {
-    "id": "edgar-awards-weekend",
-    "name": "Edgar Awards Weekend",
-    "city": "New York",
-    "state": "NY",
-    "lat": 40.7549,
-    "lng": -73.984,
-    "description": "Annual Mystery Writers of America awards banquet presenting the Edgar Allan Poe Awards for best mystery fiction, nonfiction, and children's mystery writing.",
-    "website": "https://mysterywriters.org/mwa-awards/edgar-awards/",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – late April",
-    "size": "specialty",
-    "primaryType": "genre",
-    "tags": [
-      "mystery",
-      "crime",
-      "awards",
-      "mwa",
-      "edgar-allan-poe"
-    ],
-    "genre": "mystery"
-  },
-  {
-    "id": "scbwi-summer-conference",
-    "name": "SCBWI Summer Conference",
-    "city": "Los Angeles",
-    "state": "CA",
-    "lat": 34.0522,
-    "lng": -118.2437,
-    "description": "The Society of Children's Book Writers and Illustrators' flagship annual conference in LA with agents, editors, and 1,000+ children's book creators.",
-    "website": "https://www.scbwi.org/events/annual-summer-conference/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "specialty",
-    "primaryType": "genre",
-    "tags": [
-      "children",
-      "ya",
-      "illustrators",
-      "publishing",
-      "los-angeles"
-    ],
-    "genre": "children"
-  },
-  {
-    "id": "awp-conference",
-    "name": "AWP Conference & Bookfair",
-    "city": "Various (rotating)",
-    "state": "DC",
-    "lat": 38.9072,
-    "lng": -77.0369,
-    "description": "The largest literary conference in North America with 12,000+ attendees, 2,000+ events, and a massive bookfair of literary presses; rotates to major US cities annually.",
-    "website": "https://www.awpwriter.org/awp_conference/",
-    "typicalMonth": "February",
-    "recurringPattern": "Annual – February/March, rotating US cities",
-    "size": "major",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "academic",
-      "literary-magazines",
-      "major",
-      "publishing",
-      "rotating"
     ],
     "genre": null
   },
@@ -2048,28 +1426,6 @@
     "genre": "romance"
   },
   {
-    "id": "words-and-music-new-orleans",
-    "name": "Words & Music: A Literary Feast in New Orleans",
-    "city": "New Orleans",
-    "state": "LA",
-    "lat": 29.9574,
-    "lng": -90.0626,
-    "description": "Faulkner Society's annual November festival in the French Quarter pairing literature with New Orleans food and music; features emerging and established fiction writers.",
-    "website": "https://www.wordsandmusic.org/",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "new-orleans",
-      "music",
-      "french-quarter",
-      "literary-fiction"
-    ],
-    "genre": null
-  },
-  {
     "id": "houston-poetry-fest",
     "name": "Houston Poetry Fest",
     "city": "Houston",
@@ -2157,117 +1513,6 @@
     "genre": null
   },
   {
-    "id": "vona-voices-workshop",
-    "name": "VONA/Voices Writing Workshop",
-    "city": "Miami",
-    "state": "FL",
-    "lat": 25.7617,
-    "lng": -80.1918,
-    "description": "Summer writing workshop for writers of color at the University of Miami, offering intensive fiction, poetry, creative nonfiction, and screenwriting tracks.",
-    "website": "https://vonavoices.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "writers-of-color",
-      "diverse",
-      "intensive",
-      "miami"
-    ],
-    "genre": null
-  },
-  {
-    "id": "suncoast-literary-festival",
-    "name": "Suncoast Literary Festival",
-    "city": "Sarasota",
-    "state": "FL",
-    "lat": 27.3364,
-    "lng": -82.5307,
-    "description": "Annual multi-day literary celebration on Florida's Gulf Coast featuring national bestselling authors, local Florida writers, and programming at Sarasota venues.",
-    "website": "https://www.suncoastliteraryfestival.com/",
-    "typicalMonth": "January",
-    "recurringPattern": "Annual – January",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "florida",
-      "gulf-coast",
-      "celebrity-authors",
-      "sarasota"
-    ],
-    "genre": null
-  },
-  {
-    "id": "wordplay-minneapolis",
-    "name": "Wordplay – A Festival of Minnesota Lit",
-    "city": "Minneapolis",
-    "state": "MN",
-    "lat": 44.9778,
-    "lng": -93.265,
-    "description": "Annual one-day free literary festival at Open Book in Minneapolis celebrating Minnesota authors, the Minnesota Book Awards, and the state's vibrant literary scene.",
-    "website": "https://www.mnbookfestival.org/",
-    "typicalMonth": "May",
-    "recurringPattern": "Annual – May",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "minnesota",
-      "awards",
-      "indie-publishers"
-    ],
-    "genre": null
-  },
-  {
-    "id": "vermont-college-of-fine-arts-symposium",
-    "name": "VCFA Symposium",
-    "city": "Montpelier",
-    "state": "VT",
-    "lat": 44.2601,
-    "lng": -72.5754,
-    "description": "Annual public literary symposium hosted by Vermont College of Fine Arts MFA programs, featuring VCFA faculty and alumni who are leading writers in their fields.",
-    "website": "https://vcfa.edu/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – summer residency, January and July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "mfa",
-      "literary-fiction",
-      "poetry",
-      "vermont"
-    ],
-    "genre": null
-  },
-  {
-    "id": "rocky-mountain-fiction-writers",
-    "name": "Rocky Mountain Fiction Writers Colorado Gold",
-    "city": "Denver",
-    "state": "CO",
-    "lat": 39.7392,
-    "lng": -104.9903,
-    "description": "Annual fall conference for fiction writers in Denver featuring agents, editors, and bestselling authors; one of the top regional writing conferences in the Mountain West.",
-    "website": "https://rmfw.org/conference/",
-    "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "genre-fiction",
-      "agents",
-      "editors",
-      "colorado",
-      "denver"
-    ],
-    "genre": null
-  },
-  {
     "id": "richmond-book-arts-festival",
     "name": "Richmond Book Arts Festival",
     "city": "Richmond",
@@ -2312,28 +1557,6 @@
     "genre": null
   },
   {
-    "id": "memphis-book-fair",
-    "name": "Memphis Book Fair",
-    "city": "Memphis",
-    "state": "TN",
-    "lat": 35.1495,
-    "lng": -90.049,
-    "description": "Annual literary celebration in Memphis featuring local and national authors, small presses, and literary organizations celebrating the Mississippi Delta's storytelling heritage.",
-    "website": "https://www.memphisbookfair.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "memphis",
-      "delta",
-      "tennessee",
-      "regional"
-    ],
-    "genre": null
-  },
-  {
     "id": "atlanta-book-fair",
     "name": "Atlanta Book Fair at MOCA GA",
     "city": "Atlanta",
@@ -2353,28 +1576,6 @@
       "georgia",
       "atlanta",
       "moca"
-    ],
-    "genre": null
-  },
-  {
-    "id": "detroit-lit-fest",
-    "name": "Detroit Literary Festival",
-    "city": "Detroit",
-    "state": "MI",
-    "lat": 42.3314,
-    "lng": -83.0458,
-    "description": "Annual celebration of Detroit's literary history and contemporary authors, featuring readings at the Detroit Public Library and venues across Midtown.",
-    "website": "https://www.detroitliteraryfestival.com/",
-    "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "detroit",
-      "michigan",
-      "community",
-      "midwest"
     ],
     "genre": null
   },
@@ -2493,28 +1694,6 @@
     "genre": null
   },
   {
-    "id": "words-alive-san-diego",
-    "name": "San Diego Writers Festival",
-    "city": "San Diego",
-    "state": "CA",
-    "lat": 32.7157,
-    "lng": -117.1611,
-    "description": "Annual literary celebration bringing together San Diego's diverse writing community with readings, workshops, and author talks across the city's cultural venues.",
-    "website": "https://www.wordsalive.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "san-diego",
-      "community",
-      "diverse",
-      "literacy"
-    ],
-    "genre": null
-  },
-  {
     "id": "new-mexico-book-fiesta",
     "name": "New Mexico Book Fiesta",
     "city": "Santa Fe",
@@ -2534,28 +1713,6 @@
       "outdoor",
       "bilingual",
       "santa-fe"
-    ],
-    "genre": null
-  },
-  {
-    "id": "shreveport-book-festival",
-    "name": "Shreveport Book Festival",
-    "city": "Shreveport",
-    "state": "LA",
-    "lat": 32.5252,
-    "lng": -93.7502,
-    "description": "Annual literary festival in northwest Louisiana at the Barnwell Garden and Art Center celebrating regional Southern authors and Louisiana's storytelling traditions.",
-    "website": "https://www.shreveportbookfestival.org/",
-    "typicalMonth": "March",
-    "recurringPattern": "Annual – spring",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "louisiana",
-      "southern-lit",
-      "outdoor",
-      "shreveport"
     ],
     "genre": null
   },
@@ -2600,28 +1757,6 @@
       "free",
       "boulder",
       "front-range"
-    ],
-    "genre": null
-  },
-  {
-    "id": "lit-fest-dc",
-    "name": "Lit Fest DC",
-    "city": "Washington",
-    "state": "DC",
-    "lat": 38.9089,
-    "lng": -77.04,
-    "description": "Annual free literary festival in Washington, DC celebrating the capital's diverse literary community with author readings at libraries and cultural venues across the city.",
-    "website": "https://www.dclit.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "washington-dc",
-      "community",
-      "libraries"
     ],
     "genre": null
   },
@@ -2759,28 +1894,6 @@
     "genre": null
   },
   {
-    "id": "prairie-lights-literary-series",
-    "name": "Prairie Lights Literary Series",
-    "city": "Iowa City",
-    "state": "IA",
-    "lat": 41.66,
-    "lng": -91.5352,
-    "description": "Year-round live readings series at Prairie Lights Books, one of America's great independent bookstores; a landmark literary institution in the Iowa Writers' Workshop community.",
-    "website": "https://www.prairielights.com/live",
-    "typicalMonth": "Various",
-    "recurringPattern": "Year-round – weekly readings",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "readings",
-      "year-round",
-      "iowa-city",
-      "indie-bookstore"
-    ],
-    "genre": null
-  },
-  {
     "id": "word-festival-cooperstown",
     "name": "Word Festival",
     "city": "Cooperstown",
@@ -2847,28 +1960,6 @@
     "genre": null
   },
   {
-    "id": "pasadena-lit-fest",
-    "name": "Pasadena Literary Festival",
-    "city": "Pasadena",
-    "state": "CA",
-    "lat": 34.1478,
-    "lng": -118.1445,
-    "description": "Annual literary celebration at Vroman's Bookstore and Pasadena Central Library, the longest-running independent bookstore event in Southern California.",
-    "website": "https://www.vromansbookstore.com/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "california",
-      "bookstore",
-      "southern-california",
-      "vromans"
-    ],
-    "genre": null
-  },
-  {
     "id": "seattle-poetry-festival",
     "name": "Seattle Poetry Festival",
     "city": "Seattle",
@@ -2891,28 +1982,6 @@
     "genre": null
   },
   {
-    "id": "idaho-book-fest",
-    "name": "Idaho Book Festival",
-    "city": "Boise",
-    "state": "ID",
-    "lat": 43.615,
-    "lng": -116.2023,
-    "description": "Annual free literary celebration at the Boise Centre and Boise Public Library featuring Idaho authors and national writers celebrating the Gem State's literary heritage.",
-    "website": "https://www.idahohumanities.org/programs/idaho-book-festival/",
-    "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "idaho",
-      "humanities",
-      "boise"
-    ],
-    "genre": null
-  },
-  {
     "id": "roanoke-book-festival",
     "name": "Roanoke Regional Book Festival",
     "city": "Roanoke",
@@ -2931,28 +2000,6 @@
       "blue-ridge",
       "virginia",
       "museum"
-    ],
-    "genre": null
-  },
-  {
-    "id": "st-pete-book-festival",
-    "name": "St. Pete Book Festival",
-    "city": "St. Petersburg",
-    "state": "FL",
-    "lat": 27.7731,
-    "lng": -82.64,
-    "description": "Annual free two-day festival in downtown St. Petersburg celebrating Florida and national authors with readings at Williams Park and literary venues across the city.",
-    "website": "https://stpetebookfest.com/",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "florida",
-      "downtown",
-      "st-petersburg"
     ],
     "genre": null
   },
@@ -3001,28 +2048,6 @@
     "genre": null
   },
   {
-    "id": "cape-cod-literary-festival",
-    "name": "Cape Cod Literary Festival",
-    "city": "Chatham",
-    "state": "MA",
-    "lat": 41.6773,
-    "lng": -69.9595,
-    "description": "Annual summer literary gathering on Cape Cod featuring award-winning authors in the historic town of Chatham, celebrating New England storytelling and the sea.",
-    "website": "https://www.capecodliteraryfestival.org/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – summer",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "new-england",
-      "coastal",
-      "summer",
-      "massachusetts"
-    ],
-    "genre": null
-  },
-  {
     "id": "los-angeles-literary-festival",
     "name": "Los Angeles Literary Festival",
     "city": "Los Angeles",
@@ -3041,28 +2066,6 @@
       "hammer-museum",
       "fall",
       "university"
-    ],
-    "genre": null
-  },
-  {
-    "id": "chicago-translation-festival",
-    "name": "Chicago International Literature Festival",
-    "city": "Chicago",
-    "state": "IL",
-    "lat": 41.8827,
-    "lng": -87.6233,
-    "description": "Annual festival celebrating literature in translation and the diverse immigrant and international voices that make Chicago one of America's most literary cities.",
-    "website": "https://www.chicagoliteraryhall.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "translation",
-      "international",
-      "diverse",
-      "chicago"
     ],
     "genre": null
   },
@@ -3090,36 +2093,14 @@
     "genre": null
   },
   {
-    "id": "connecticut-book-awards",
-    "name": "Connecticut Book Awards & Festival",
-    "city": "Hartford",
-    "state": "CT",
-    "lat": 41.7658,
-    "lng": -72.6851,
-    "description": "Annual celebration of Connecticut authors presenting the Connecticut Book Awards with readings, panels, and a book fair at the Connecticut State Library in Hartford.",
-    "website": "https://www.ctbookawards.com/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "awards",
-      "connecticut",
-      "authors",
-      "state-library"
-    ],
-    "genre": null
-  },
-  {
-    "id": "maine-festival-of-the-book",
-    "name": "Maine Festival of the Book",
+    "id": "maine-book-festival",
+    "name": "Maine Book Festival",
     "city": "Portland",
     "state": "ME",
     "lat": 43.6591,
     "lng": -70.2568,
     "description": "Annual literary celebration on the Maine coast featuring Maine authors, small presses, and national voices at the Portland Public Library and Congress Street venues.",
-    "website": "https://www.mainehumanities.org/programs/maine-festival-of-the-book/",
+    "website": "https://mainebookfestival.com/",
     "typicalMonth": "October",
     "recurringPattern": "Annual – fall",
     "size": "regional",
@@ -3130,50 +2111,6 @@
       "new-england",
       "regional",
       "portland"
-    ],
-    "genre": null
-  },
-  {
-    "id": "rhode-island-book-festival",
-    "name": "Rhode Island Book Festival",
-    "city": "Providence",
-    "state": "RI",
-    "lat": 41.824,
-    "lng": -71.4128,
-    "description": "Annual free literary festival at the Providence Public Library and RISD Museum celebrating Rhode Island authors and New England literary culture.",
-    "website": "https://www.provlib.org/book-festival/",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "library",
-      "new-england",
-      "providence"
-    ],
-    "genre": null
-  },
-  {
-    "id": "indiana-humanities-book-festival",
-    "name": "Indiana Humanities Bookfest",
-    "city": "Indianapolis",
-    "state": "IN",
-    "lat": 39.7684,
-    "lng": -86.1581,
-    "description": "Annual free literary event at the Indiana State Library celebrating Indiana authors and the humanities with readings, author talks, and a community book discussion.",
-    "website": "https://www.indianahumanities.org/bookfest",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "indiana",
-      "humanities",
-      "indianapolis"
     ],
     "genre": null
   },
@@ -3343,29 +2280,6 @@
     "genre": null
   },
   {
-    "id": "santa-clarita-cowboy-poetry-roundup",
-    "name": "Santa Clarita Cowboy Poetry Roundup",
-    "city": "Santa Clarita",
-    "state": "CA",
-    "lat": 34.3917,
-    "lng": -118.5426,
-    "description": "Annual February gathering in the Santa Clarita Valley celebrating Western heritage, cowboy poetry, and the ranching history of Southern California.",
-    "website": "https://www.cowboypoetry.com/santaclari.htm",
-    "typicalMonth": "February",
-    "recurringPattern": "Annual – February",
-    "size": "regional",
-    "primaryType": "poetry",
-    "tags": [
-      "cowboy-poetry",
-      "western",
-      "california",
-      "southern-california",
-      "folk",
-      "ranch-culture"
-    ],
-    "genre": null
-  },
-  {
     "id": "pendleton-cowboy-poetry-gathering",
     "name": "Pendleton Cowboy Poetry Gathering",
     "city": "Pendleton",
@@ -3410,30 +2324,6 @@
       "folk",
       "ranch-culture",
       "treasure-valley"
-    ],
-    "genre": null
-  },
-  {
-    "id": "national-poetry-slam",
-    "name": "National Poetry Slam",
-    "city": "Various (rotating)",
-    "state": "IL",
-    "lat": 41.8827,
-    "lng": -87.6233,
-    "description": "Annual championship of performance poetry featuring teams from 80+ cities competing over five days; the world's largest spoken word competition. Rotates among major US cities.",
-    "website": "https://poetryslam.com/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – August, rotating US cities",
-    "size": "major",
-    "primaryType": "poetry",
-    "tags": [
-      "slam",
-      "spoken-word",
-      "performance",
-      "competition",
-      "rotating",
-      "teams",
-      "major"
     ],
     "genre": null
   },
@@ -3538,29 +2428,6 @@
     "genre": null
   },
   {
-    "id": "individual-world-poetry-slam",
-    "name": "Individual World Poetry Slam",
-    "city": "Various (rotating)",
-    "state": "TX",
-    "lat": 30.2672,
-    "lng": -97.7431,
-    "description": "Annual solo slam poetry championship — 'the iWPS' — featuring the top individual slam poets in North America competing over four days. Rotates among US cities.",
-    "website": "https://www.individualworldpoetryslam.com/",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November, rotating US cities",
-    "size": "specialty",
-    "primaryType": "poetry",
-    "tags": [
-      "slam",
-      "spoken-word",
-      "competition",
-      "individual",
-      "rotating",
-      "championship"
-    ],
-    "genre": null
-  },
-  {
     "id": "nuyorican-poetry-series",
     "name": "Nuyorican Poets Cafe Friday Night Slam",
     "city": "New York",
@@ -3656,53 +2523,6 @@
     "genre": null
   },
   {
-    "id": "ashland-poetry-festival",
-    "name": "Ashland University Poetry Festival",
-    "city": "Ashland",
-    "state": "OH",
-    "lat": 40.8681,
-    "lng": -82.3182,
-    "description": "Annual poetry festival hosted by Ashland University, publisher of Ashland Poetry Press, celebrating the art of poetry with national poets in a small-town Ohio setting.",
-    "website": "https://www.ashland.edu/academics/arts-and-humanities/english/ashland-poetry-press",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – April",
-    "size": "specialty",
-    "primaryType": "poetry",
-    "tags": [
-      "poetry",
-      "ohio",
-      "university",
-      "ashland-poetry-press",
-      "academic",
-      "readings"
-    ],
-    "genre": null
-  },
-  {
-    "id": "desert-nights-rising-stars",
-    "name": "Desert Nights, Rising Stars Writers Conference",
-    "city": "Tempe",
-    "state": "AZ",
-    "lat": 33.4255,
-    "lng": -111.94,
-    "description": "Annual writers' conference at Arizona State University's Tempe campus celebrating poetry and fiction, with workshops, agent meetings, and national faculty.",
-    "website": "https://english.asu.edu/content/desert-nights-rising-stars",
-    "typicalMonth": "February",
-    "recurringPattern": "Annual – February",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "poetry",
-      "fiction",
-      "arizona",
-      "asu",
-      "university",
-      "agents"
-    ],
-    "genre": null
-  },
-  {
     "id": "worldcon",
     "name": "World Science Fiction Convention (Worldcon)",
     "city": "Various (rotating)",
@@ -3726,30 +2546,6 @@
       "speculative-fiction"
     ],
     "genre": "sci-fi"
-  },
-  {
-    "id": "killer-nashville",
-    "name": "Killer Nashville",
-    "city": "Nashville",
-    "state": "TN",
-    "lat": 36.1627,
-    "lng": -86.7816,
-    "description": "Annual mystery and thriller writers' conference in Nashville presenting the Silver Falchion Awards and offering workshops, agent pitches, and panels for crime writers.",
-    "website": "https://www.killernashville.com/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "specialty",
-    "primaryType": "genre",
-    "tags": [
-      "mystery",
-      "thriller",
-      "crime",
-      "awards",
-      "writers-conference",
-      "nashville",
-      "agents"
-    ],
-    "genre": "mystery"
   },
   {
     "id": "stokercon",
@@ -3897,54 +2693,6 @@
     "genre": "sci-fi"
   },
   {
-    "id": "clarion-ucsd",
-    "name": "Clarion Science Fiction Workshop (UCSD)",
-    "city": "San Diego",
-    "state": "CA",
-    "lat": 32.8801,
-    "lng": -117.234,
-    "description": "Intensive six-week speculative fiction writing workshop at UC San Diego, one of the two premier Clarion programs in the world for aspiring science fiction and fantasy writers.",
-    "website": "https://clarion.ucsd.edu/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June/July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "sci-fi",
-      "fantasy",
-      "speculative-fiction",
-      "intensive",
-      "ucsd",
-      "prestigious",
-      "selective"
-    ],
-    "genre": "sci-fi"
-  },
-  {
-    "id": "romantic-times-booklovers",
-    "name": "RT BookLovers Convention",
-    "city": "Various (rotating)",
-    "state": "TX",
-    "lat": 29.7604,
-    "lng": -95.3698,
-    "description": "Annual romance readers and writers convention (now BookBonanza) hosting 200+ romance authors for signings, panels, and publisher spotlights. Rotates US cities.",
-    "website": "https://rtbooklovers.com/",
-    "typicalMonth": "May",
-    "recurringPattern": "Annual – May, rotating US cities",
-    "size": "specialty",
-    "primaryType": "genre",
-    "tags": [
-      "romance",
-      "readers",
-      "signing",
-      "rotating",
-      "publishers",
-      "fans"
-    ],
-    "genre": "romance"
-  },
-  {
     "id": "thrilling-mystery-convention",
     "name": "New England Crime Bake",
     "city": "Dedham",
@@ -3962,352 +2710,11 @@
       "thriller",
       "crime",
       "boston",
-      "writers-conference",
       "new-england",
       "agents",
       "agatha-award"
     ],
     "genre": "mystery"
-  },
-  {
-    "id": "left-bank-books-festival",
-    "name": "St. Louis Literary Award Ceremony",
-    "city": "St. Louis",
-    "state": "MO",
-    "lat": 38.627,
-    "lng": -90.1994,
-    "description": "Annual literary award and reading series presented by Saint Louis University honoring a major American author with one of the richest literary prizes in the country.",
-    "website": "https://www.slu.edu/arts-and-sciences/english/st-louis-literary-award/index.php",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "awards",
-      "literary-fiction",
-      "st-louis",
-      "missouri",
-      "university",
-      "prestigious"
-    ],
-    "genre": null
-  },
-  {
-    "id": "nebraskawriters-guild-festival",
-    "name": "Great Plains Writers' Conference",
-    "city": "Omaha",
-    "state": "NE",
-    "lat": 41.2565,
-    "lng": -95.9345,
-    "description": "Annual writers' conference and literary celebration in Omaha honoring Great Plains literature and regional authors across fiction, poetry, and nonfiction.",
-    "website": "https://www.plainswritersconference.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "great-plains",
-      "fiction",
-      "poetry",
-      "nonfiction",
-      "omaha",
-      "regional"
-    ],
-    "genre": null
-  },
-  {
-    "id": "iowa-writers-workshop-summer",
-    "name": "Iowa Summer Writing Festival",
-    "city": "Iowa City",
-    "state": "IA",
-    "lat": 41.6611,
-    "lng": -91.5302,
-    "description": "Month-long summer festival at the University of Iowa offering week-long and weekend workshops across all genres, open to adult writers at any stage of their career.",
-    "website": "https://iowasummerwritingfestival.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – June and July",
-    "size": "specialty",
-    "primaryType": "writers-conference",
-    "tags": [
-      "workshop",
-      "fiction",
-      "poetry",
-      "nonfiction",
-      "iowa",
-      "university",
-      "open-enrollment",
-      "month-long"
-    ],
-    "genre": null
-  },
-  {
-    "id": "chicago-humanities-book-awards",
-    "name": "Carl Sandburg Literary Awards",
-    "city": "Chicago",
-    "state": "IL",
-    "lat": 41.8827,
-    "lng": -87.6233,
-    "description": "Annual awards gala honoring Chicago authors and celebrating the city's contributions to American literature, presented by the Chicago Public Library Foundation.",
-    "website": "https://www.cplfoundation.org/carl-sandburg-literary-awards/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "specialty",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "awards",
-      "chicago",
-      "library",
-      "carl-sandburg",
-      "illinois",
-      "literary-fiction"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-annual-summer-conference",
-    "name": "SCBWI Annual Summer Conference",
-    "city": "Los Angeles",
-    "state": "CA",
-    "lat": 34.0522,
-    "lng": -118.2437,
-    "description": "The flagship annual gathering of the Society of Children's Book Writers and Illustrators, drawing thousands of authors, illustrators, editors, and agents worldwide. The premier professional development and networking event for children's literature creators.",
-    "website": "https://www.scbwi.org/events/annual-international-conference/",
-    "typicalMonth": "August",
-    "recurringPattern": "Annual – August",
-    "size": "major",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "middle-grade",
-      "illustrators",
-      "writers-conference",
-      "agents",
-      "california"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-winter-conference",
-    "name": "SCBWI Winter Conference",
-    "city": "New York",
-    "state": "NY",
-    "lat": 40.758,
-    "lng": -73.9855,
-    "description": "SCBWI's major East Coast conference brings together children's book creators, editors, and agents in New York City. Known for its intensives, critiques, and direct access to publishing professionals.",
-    "website": "https://www.scbwi.org/events/annual-winter-conference/",
-    "typicalMonth": "February",
-    "recurringPattern": "Annual – February",
-    "size": "major",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "middle-grade",
-      "illustrators",
-      "writers-conference",
-      "agents",
-      "new-york"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-new-england",
-    "name": "SCBWI New England Annual Conference",
-    "city": "Dedham",
-    "state": "MA",
-    "lat": 42.2417,
-    "lng": -71.1671,
-    "description": "One of SCBWI's largest regional conferences, gathering New England children's book writers and illustrators with editors, agents, and art directors for workshops, critiques, and craft discussions.",
-    "website": "https://newengland.scbwi.org/",
-    "typicalMonth": "May",
-    "recurringPattern": "Annual – spring",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "middle-grade",
-      "new-england",
-      "massachusetts",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-carolinas",
-    "name": "SCBWI Carolinas Annual Conference",
-    "city": "Charlotte",
-    "state": "NC",
-    "lat": 35.2271,
-    "lng": -80.8431,
-    "description": "Regional SCBWI conference serving writers and illustrators across North and South Carolina. Features workshops, manuscript critiques, portfolio reviews, and talks from publishing industry professionals.",
-    "website": "https://carolinas.scbwi.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Annual – summer",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "carolinas",
-      "north-carolina",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-pacific-northwest",
-    "name": "SCBWI Pacific Northwest Conference",
-    "city": "Seattle",
-    "state": "WA",
-    "lat": 47.6062,
-    "lng": -122.3321,
-    "description": "SCBWI's Pacific Northwest region hosts one of the most beloved regional children's book conferences, featuring keynotes, breakout sessions, critique opportunities, and a thriving community of creators.",
-    "website": "https://pnw.scbwi.org/",
-    "typicalMonth": "September",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "pacific-northwest",
-      "washington",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-rocky-mountain",
-    "name": "SCBWI Rocky Mountain Conference",
-    "city": "Denver",
-    "state": "CO",
-    "lat": 39.7392,
-    "lng": -104.9903,
-    "description": "Annual regional SCBWI conference for children's book creators in Colorado and the Mountain West, offering intensives, agent/editor sessions, and a supportive community for writers and illustrators at all career stages.",
-    "website": "https://rmcscbwi.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "rocky-mountain",
-      "colorado",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-florida",
-    "name": "SCBWI Florida Regional Conference",
-    "city": "Orlando",
-    "state": "FL",
-    "lat": 28.5383,
-    "lng": -81.3792,
-    "description": "Florida's SCBWI regional conference brings together children's book creators from across the Sunshine State for craft workshops, industry panels, and networking with editors and agents.",
-    "website": "https://florida.scbwi.org/",
-    "typicalMonth": "January",
-    "recurringPattern": "Annual – January",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "florida",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-ohio",
-    "name": "SCBWI Ohio Conference",
-    "city": "Columbus",
-    "state": "OH",
-    "lat": 39.9612,
-    "lng": -82.9988,
-    "description": "Ohio's SCBWI regional gathering for children's book writers and illustrators. Offers manuscript critiques, art portfolio reviews, and industry access for creators at every stage of their career.",
-    "website": "https://ohio.scbwi.org/",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – spring",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "ohio",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-illinois",
-    "name": "SCBWI Illinois Annual Conference",
-    "city": "Chicago",
-    "state": "IL",
-    "lat": 41.8781,
-    "lng": -87.6298,
-    "description": "SCBWI Illinois gathers Midwest children's book creators in Chicago for workshops, faculty talks, critique sessions, and portfolio reviews led by editors, agents, and published authors.",
-    "website": "https://illinois.scbwi.org/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – summer",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "illinois",
-      "chicago",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "scbwi-southern-breeze",
-    "name": "SCBWI Southern Breeze Conference",
-    "city": "Atlanta",
-    "state": "GA",
-    "lat": 33.749,
-    "lng": -84.388,
-    "description": "SCBWI Southern Breeze serves Alabama, Georgia, and Mississippi children's book creators with an annual conference known for its warm community, strong faculty, and intensive critique opportunities.",
-    "website": "https://southernbreeze.scbwi.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "regional",
-    "primaryType": "children",
-    "tags": [
-      "scbwi",
-      "children",
-      "ya",
-      "picture-books",
-      "georgia",
-      "southern-breeze",
-      "writers-conference"
-    ],
-    "genre": null
   },
   {
     "id": "books-by-the-banks",
@@ -4353,150 +2760,6 @@
       "california",
       "bay-area",
       "storytelling"
-    ],
-    "genre": null
-  },
-  {
-    "id": "vermont-childrens-book-festival",
-    "name": "Vermont Children's Book Festival",
-    "city": "Montpelier",
-    "state": "VT",
-    "lat": 44.2601,
-    "lng": -72.5754,
-    "description": "Beloved New England celebration of children's books and literacy, bringing together picture book creators, middle-grade authors, and young readers in Vermont's charming capital city.",
-    "website": "https://www.vermontchildrensbookfestival.com/",
-    "typicalMonth": "March",
-    "recurringPattern": "Annual – spring",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "children",
-      "picture-books",
-      "family",
-      "vermont",
-      "new-england"
-    ],
-    "genre": null
-  },
-  {
-    "id": "we-need-diverse-books-summit",
-    "name": "We Need Diverse Books Summit",
-    "city": "Washington",
-    "state": "DC",
-    "lat": 38.9072,
-    "lng": -77.0369,
-    "description": "Annual gathering celebrating diverse children's and YA literature, connecting creators of color with readers, educators, librarians, and publishing professionals to advance diversity and inclusion in children's books.",
-    "website": "https://diversebooks.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – fall",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "children",
-      "ya",
-      "diverse-books",
-      "diversity",
-      "inclusion",
-      "washington-dc",
-      "writers-conference"
-    ],
-    "genre": null
-  },
-  {
-    "id": "alan-workshop",
-    "name": "ALAN Workshop (Young Adult Literature)",
-    "city": "Washington",
-    "state": "DC",
-    "lat": 38.9072,
-    "lng": -77.0369,
-    "description": "The Assembly on Literature for Adolescents of NCTE hosts this prestigious annual workshop celebrating young adult literature, featuring YA authors, educators, and librarians discussing books that matter to teen readers.",
-    "website": "https://www.alan-ya.org/alan-workshop/",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November (held at NCTE convention)",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "ya",
-      "young-adult",
-      "ncte",
-      "educators",
-      "librarians",
-      "writers-conference",
-      "teen-lit"
-    ],
-    "genre": null
-  },
-  {
-    "id": "highlights-foundation-workshops",
-    "name": "Highlights Foundation Workshops",
-    "city": "Honesdale",
-    "state": "PA",
-    "lat": 41.5762,
-    "lng": -75.2577,
-    "description": "Nestled on a 150-acre retreat campus in the Pocono Mountains, the Highlights Foundation offers intensive workshops and retreats for children's book writers and illustrators year-round, guided by top authors, illustrators, and editors.",
-    "website": "https://highlightsfoundation.org/",
-    "typicalMonth": "June",
-    "recurringPattern": "Year-round workshops and retreats",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "children",
-      "ya",
-      "picture-books",
-      "workshops",
-      "retreat",
-      "pennsylvania",
-      "writers-conference",
-      "year-round"
-    ],
-    "genre": null
-  },
-  {
-    "id": "mazza-museum-festival",
-    "name": "Mazza Museum International Art Festival",
-    "city": "Findlay",
-    "state": "OH",
-    "lat": 41.0442,
-    "lng": -83.6499,
-    "description": "Hosted by the Mazza Museum — home to the world's largest collection of original picture book art — this annual festival celebrates children's book illustration with author-illustrator talks, signings, gallery tours, and art activities.",
-    "website": "https://www.mazzamuseum.org/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "children",
-      "picture-books",
-      "illustration",
-      "art",
-      "museum",
-      "ohio",
-      "family"
-    ],
-    "genre": null
-  },
-  {
-    "id": "pacific-northwest-childrens-book-conference",
-    "name": "Pacific Northwest Children's Book Conference",
-    "city": "Portland",
-    "state": "OR",
-    "lat": 45.5051,
-    "lng": -122.675,
-    "description": "Annual professional development conference for teachers, librarians, and children's book lovers, featuring award-winning authors, illustrators, and editors discussing how great children's books are made and why they matter.",
-    "website": "https://www.pnwchild.com/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – July",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "children",
-      "ya",
-      "picture-books",
-      "educators",
-      "librarians",
-      "oregon",
-      "portland",
-      "writers-conference"
     ],
     "genre": null
   },
@@ -4548,52 +2811,6 @@
       "florida",
       "miami",
       "picture-books"
-    ],
-    "genre": null
-  },
-  {
-    "id": "chicago-childrens-book-fair",
-    "name": "Chicago Children's Book Fair",
-    "city": "Chicago",
-    "state": "IL",
-    "lat": 41.8781,
-    "lng": -87.6298,
-    "description": "Annual celebration of children's literature in Chicago, bringing together independent children's booksellers, publishers, and beloved authors and illustrators for a day of readings, signings, and family activities.",
-    "website": "https://chicagochildrensbookfair.com/",
-    "typicalMonth": "October",
-    "recurringPattern": "Annual – October",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "children",
-      "picture-books",
-      "family",
-      "illinois",
-      "chicago",
-      "independent-bookstores"
-    ],
-    "genre": null
-  },
-  {
-    "id": "young-adult-literary-festival-savannah",
-    "name": "Savannah Young Adult Literary Festival",
-    "city": "Savannah",
-    "state": "GA",
-    "lat": 32.0809,
-    "lng": -81.0912,
-    "description": "Annual festival celebrating young adult literature in historic Savannah, featuring bestselling YA authors for panels, signings, and discussions on the books that shape teenage readers and the writers who create them.",
-    "website": "https://www.savannahyalit.com/",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – spring",
-    "size": "specialty",
-    "primaryType": "children",
-    "tags": [
-      "ya",
-      "young-adult",
-      "georgia",
-      "savannah",
-      "teen-lit",
-      "book-signing"
     ],
     "genre": null
   },
@@ -4693,6 +2910,1307 @@
       "international",
       "spoken-word",
       "san-juan"
+    ],
+    "genre": null
+  },
+  {
+    "id": "rancho-mirage-writers-fest",
+    "name": "Rancho Mirage Writers' Fest",
+    "city": "Rancho Mirage",
+    "state": "CA",
+    "lat": 33.7436,
+    "lng": -116.4168,
+    "description": "World-class gathering of authors and readers at the Rancho Mirage Library and Observatory. Founded in 2014 and described as 'Coachella for the brain.' Features 60 authors and 1000 readers.",
+    "website": "https://www.ranchomiragefest.org",
+    "typicalMonth": "January",
+    "recurringPattern": "Annual – late January",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "authors",
+      "intimate",
+      "desert"
+    ],
+    "genre": null
+  },
+  {
+    "id": "sunshine-state-book-festival",
+    "name": "Sunshine State Book Festival",
+    "city": "Gainesville",
+    "state": "FL",
+    "lat": 29.6516,
+    "lng": -82.3248,
+    "description": "Authors from around Florida and the nation gather to talk about their writing, sell, and sign books. Includes panel discussions and story time for kids.",
+    "website": "https://sunshinestatebookfestival.com",
+    "typicalMonth": "January",
+    "recurringPattern": "Annual – late January",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "florida",
+      "family",
+      "authors"
+    ],
+    "genre": null
+  },
+  {
+    "id": "booksville-festival",
+    "name": "Booksville Festival",
+    "city": "Brooksville",
+    "state": "FL",
+    "lat": 28.5553,
+    "lng": -82.3882,
+    "description": "Celebrates all the ways literature touches our lives. Features author readings, book sales, games, activities based on beloved books, character contests, and spelling bees.",
+    "website": "",
+    "typicalMonth": "January",
+    "recurringPattern": "Annual – late January",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "family",
+      "community",
+      "florida"
+    ],
+    "genre": null
+  },
+  {
+    "id": "jax-urban-book-festival",
+    "name": "JAX Urban Book Festival",
+    "city": "Jacksonville",
+    "state": "FL",
+    "lat": 30.3322,
+    "lng": -81.6557,
+    "description": "Features author interviews, book signings, networking, kids activities with free books, and a silent auction. A celebration of literature and culture.",
+    "website": "",
+    "typicalMonth": "January",
+    "recurringPattern": "Annual – late January",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "family",
+      "community",
+      "jacksonville"
+    ],
+    "genre": null
+  },
+  {
+    "id": "bookworm-book-festival-houston",
+    "name": "Bookworm Book Festival for Young Readers",
+    "city": "Houston",
+    "state": "TX",
+    "lat": 29.7604,
+    "lng": -95.3698,
+    "description": "A free bilingual book festival that celebrates emerging readers and those who create books for them.",
+    "website": "",
+    "typicalMonth": "January",
+    "recurringPattern": "Annual – late January",
+    "size": "small",
+    "primaryType": "childrens",
+    "tags": [
+      "books",
+      "children",
+      "bilingual",
+      "free",
+      "young-readers"
+    ],
+    "genre": null
+  },
+  {
+    "id": "monroeville-literary-festival",
+    "name": "Monroeville Literary Festival",
+    "city": "Monroeville",
+    "state": "AL",
+    "lat": 31.5271,
+    "lng": -87.325,
+    "description": "Discover new authors, celebrate favorite writers and share great times with others who love Southern literature in the courtroom made famous by To Kill a Mockingbird.",
+    "website": "",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual – late February",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-lit",
+      "harper-lee",
+      "historic",
+      "to-kill-a-mockingbird"
+    ],
+    "genre": null
+  },
+  {
+    "id": "oahu-indie-book-festival",
+    "name": "Oahu Indie Book Festival",
+    "city": "Honolulu",
+    "state": "HI",
+    "lat": 21.3069,
+    "lng": -157.8583,
+    "description": "Meet authors and illustrators, buy signed books, and win giveaways. Learn about writing or publishing with small group sessions. Free, family friendly.",
+    "website": "",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual – late February",
+    "size": "small",
+    "primaryType": "indie",
+    "tags": [
+      "books",
+      "indie",
+      "hawaii",
+      "free",
+      "family"
+    ],
+    "genre": null
+  },
+  {
+    "id": "african-american-childrens-book-fair-philadelphia",
+    "name": "African American Children's Book Fair",
+    "city": "Philadelphia",
+    "state": "PA",
+    "lat": 39.9526,
+    "lng": -75.1652,
+    "description": "One of the oldest and largest single-day events for children's books in the country. Features nationally known bestselling authors and illustrators.",
+    "website": "",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual – early February",
+    "size": "medium",
+    "primaryType": "childrens",
+    "tags": [
+      "books",
+      "children",
+      "african-american",
+      "diversity",
+      "free"
+    ],
+    "genre": null
+  },
+  {
+    "id": "amelia-island-book-festival",
+    "name": "Amelia Island Book Festival",
+    "city": "Fernandina Beach",
+    "state": "FL",
+    "lat": 30.6693,
+    "lng": -81.4626,
+    "description": "Public events featuring New York Times-bestselling authors, independent publishers, awards programs and workshops. Engages young people and adults in the joy of reading.",
+    "website": "https://ameliaislandbookfestival.org",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual – late February",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "island",
+      "florida",
+      "bestsellers"
+    ],
+    "genre": null
+  },
+  {
+    "id": "appalachian-wordfest",
+    "name": "Appalachian WordFest",
+    "city": "Sevierville",
+    "state": "TN",
+    "lat": 35.8679,
+    "lng": -83.5624,
+    "description": "Brings together authors, young poets, publishers, and book lovers to celebrate the words and creativity emerging from the Appalachian Mountains. Features Poetry Slam competition.",
+    "website": "https://appalachianwordfest.com",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual – late February",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "appalachian",
+      "poetry",
+      "tennessee",
+      "mountain"
+    ],
+    "genre": null
+  },
+  {
+    "id": "san-antonio-african-american-book-festival",
+    "name": "San Antonio African American Book Festival",
+    "city": "San Antonio",
+    "state": "TX",
+    "lat": 29.4241,
+    "lng": -98.4936,
+    "description": "A festival committed to celebrating the power of Black literature, reinforcing that representation matters, and encouraging Black economics.",
+    "website": "",
+    "typicalMonth": "February",
+    "recurringPattern": "Annual – late February",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "african-american",
+      "diversity",
+      "representation",
+      "texas"
+    ],
+    "genre": null
+  },
+  {
+    "id": "southwest-florida-reading-festival",
+    "name": "Southwest Florida Reading Festival",
+    "city": "Fort Myers",
+    "state": "FL",
+    "lat": 26.6406,
+    "lng": -81.8723,
+    "description": "A free event presented by the Lee County Library System to promote reading, literacy, and library services. Features author presentations, book signings, and family fun.",
+    "website": "",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – early March",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "library",
+      "free",
+      "florida",
+      "family"
+    ],
+    "genre": null
+  },
+  {
+    "id": "dahlonega-literary-festival",
+    "name": "Dahlonega Literary Festival",
+    "city": "Dahlonega",
+    "state": "GA",
+    "lat": 34.5329,
+    "lng": -83.9849,
+    "description": "An intimate annual celebration of books and authors held in historic downtown Dahlonega, featuring authors from a variety of fiction and nonfiction genres.",
+    "website": "",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – early March",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "intimate",
+      "historic",
+      "georgia",
+      "downtown"
+    ],
+    "genre": null
+  },
+  {
+    "id": "revival-lost-southern-voices",
+    "name": "Revival: Lost Southern Voices",
+    "city": "Atlanta",
+    "state": "GA",
+    "lat": 33.749,
+    "lng": -84.388,
+    "description": "Celebrates historically excluded, erased, or marginalized Southern voices. Presenters discuss Southern authors whose works are out-of-print or underappreciated. 10th anniversary in 2026.",
+    "website": "https://georgiacenterforthebook.org",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – mid March",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "southern-lit",
+      "diversity",
+      "marginalized-voices",
+      "georgia"
+    ],
+    "genre": null
+  },
+  {
+    "id": "new-orleans-book-festival-tulane",
+    "name": "New Orleans Book Festival at Tulane University",
+    "city": "New Orleans",
+    "state": "LA",
+    "lat": 29.9511,
+    "lng": -90.1184,
+    "description": "Supports and nurtures a literary community by connecting readers of all ages with local and national authors through experiences that celebrate the power of literacy.",
+    "website": "https://neworleansbookfestival.tulane.edu",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – mid March",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "new-orleans",
+      "tulane",
+      "louisiana"
+    ],
+    "genre": null
+  },
+  {
+    "id": "tennessee-williams-new-orleans-literary-festival",
+    "name": "Tennessee Williams & New Orleans Literary Festival",
+    "city": "New Orleans",
+    "state": "LA",
+    "lat": 29.9584,
+    "lng": -90.0644,
+    "description": "More than just a book festival — includes writing workshops, culinary and cocktail events, theatre events, music events, and a special focus on the history and culture of New Orleans.",
+    "website": "https://tennesseewilliams.net",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – late March",
+    "size": "major",
+    "primaryType": "literary",
+    "tags": [
+      "books",
+      "tennessee-williams",
+      "new-orleans",
+      "theatre",
+      "culinary"
+    ],
+    "genre": null
+  },
+  {
+    "id": "saints-sinners-lgbtq-literary-festival",
+    "name": "Saints & Sinners LGBTQ+ Literary Festival",
+    "city": "New Orleans",
+    "state": "LA",
+    "lat": 29.9511,
+    "lng": -90.0715,
+    "description": "Founded in 2003 to bring the LGBTQ+ literary community together to celebrate the literary arts. Features writers, thinkers, and spokespeople of the LGBTQ+ community.",
+    "website": "https://sasfest.org",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – late March",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "lgbtq",
+      "new-orleans",
+      "diversity",
+      "community"
+    ],
+    "genre": null
+  },
+  {
+    "id": "book-lovers-con-las-vegas",
+    "name": "Book Lovers Con",
+    "city": "Las Vegas",
+    "state": "NV",
+    "lat": 36.1699,
+    "lng": -115.1398,
+    "description": "Immersive reader experiences, mingling with beloved storytellers, morning mixers, three-hour book fests, and unforgettable evening events.",
+    "website": "https://bookloverscon.com",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – late March",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "readers",
+      "immersive",
+      "nevada",
+      "las-vegas"
+    ],
+    "genre": null
+  },
+  {
+    "id": "woodstock-book-fest",
+    "name": "Woodstock Book Fest",
+    "city": "Woodstock",
+    "state": "NY",
+    "lat": 42.0398,
+    "lng": -74.1168,
+    "description": "Annual literary festival celebrating books and storytelling with author talks, panel discussions, and the popular Bookfest Story Slam.",
+    "website": "https://woodstockbookfest.com",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – late March",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "storytelling",
+      "story-slam",
+      "woodstock",
+      "new-york"
+    ],
+    "genre": null
+  },
+  {
+    "id": "lexington-book-festival-nc",
+    "name": "Lexington Book Festival",
+    "city": "Lexington",
+    "state": "NC",
+    "lat": 35.8243,
+    "lng": -80.2534,
+    "description": "Connects readers and writers, developing a passion for literature in readers of all ages. A nonprofit celebrating books and introducing writers to the local community.",
+    "website": "https://lexingtonbookfestival.org",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – mid March",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "community",
+      "nonprofit",
+      "north-carolina",
+      "readers"
+    ],
+    "genre": null
+  },
+  {
+    "id": "lehigh-valley-book-festival",
+    "name": "Lehigh Valley Book Festival",
+    "city": "Bethlehem",
+    "state": "PA",
+    "lat": 40.6259,
+    "lng": -75.3705,
+    "description": "A celebration of books and the connections they forge — bringing published authors, illustrators, and readers through thoughtful and inclusive programming.",
+    "website": "",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – late March",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "authors",
+      "illustrators",
+      "inclusive",
+      "pennsylvania"
+    ],
+    "genre": null
+  },
+  {
+    "id": "williamsburg-book-festival",
+    "name": "Williamsburg Book Festival",
+    "city": "Williamsburg",
+    "state": "VA",
+    "lat": 37.2707,
+    "lng": -76.7075,
+    "description": "Family-friendly annual event bringing together authors, poets, speakers, illustrators, and publishers from Virginia and beyond.",
+    "website": "",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – early March",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "family",
+      "virginia",
+      "colonial",
+      "community"
+    ],
+    "genre": null
+  },
+  {
+    "id": "pasadena-festival-of-women-authors",
+    "name": "Pasadena Festival of Women Authors",
+    "city": "Pasadena",
+    "state": "CA",
+    "lat": 34.1478,
+    "lng": -118.1445,
+    "description": "Annual literary event celebrating and showcasing the work of women writers. Features panel discussions, author talks, and book signings.",
+    "website": "https://pasadenaliteraryalliance.org",
+    "typicalMonth": "March",
+    "recurringPattern": "Annual – late March",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "women-authors",
+      "panels",
+      "california",
+      "diversity"
+    ],
+    "genre": null
+  },
+  {
+    "id": "la-times-festival-of-books-2026",
+    "name": "Los Angeles Times Festival of Books",
+    "city": "Los Angeles",
+    "state": "CA",
+    "lat": 34.0224,
+    "lng": -118.2851,
+    "description": "One of the largest book festivals in the nation attracting 160000 people annually. Brings together the people who create books with the people who love to read them.",
+    "website": "https://events.latimes.com/festivalofbooks",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – late April",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "major",
+      "los-angeles",
+      "usc",
+      "celebrity-authors"
+    ],
+    "genre": null
+  },
+  {
+    "id": "sacramento-book-festival",
+    "name": "Sacramento Book Festival",
+    "city": "Sacramento",
+    "state": "CA",
+    "lat": 38.5816,
+    "lng": -121.4944,
+    "description": "Major literary event hosting more than 200 authors at the Scottish Rite Masonic Center. Features big name authors, prizes, food trucks, and outdoor seating.",
+    "website": "https://sacramentobookfestival.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "authors",
+      "california",
+      "sacramento",
+      "major"
+    ],
+    "genre": null
+  },
+  {
+    "id": "bam-festival-west-palm-beach",
+    "name": "BAM! Festival",
+    "city": "West Palm Beach",
+    "state": "FL",
+    "lat": 26.7153,
+    "lng": -80.0534,
+    "description": "A book, art, and music festival held annually in downtown West Palm Beach. Brings together authors, teachers, students, families, and the community to share their love of books.",
+    "website": "https://booksartmusic.org",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "art",
+      "music",
+      "community",
+      "florida"
+    ],
+    "genre": null
+  },
+  {
+    "id": "word-of-south-festival",
+    "name": "Word of South: A Festival of Literature and Music",
+    "city": "Tallahassee",
+    "state": "FL",
+    "lat": 30.4518,
+    "lng": -84.2807,
+    "description": "A unique blend of writers and musicians exploring the relationship between literature and music. Showcases authors who write about music and musicians who are also authors.",
+    "website": "https://wordofsouthfestival.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – late April",
+    "size": "medium",
+    "primaryType": "literary",
+    "tags": [
+      "books",
+      "music",
+      "literature",
+      "florida",
+      "unique"
+    ],
+    "genre": null
+  },
+  {
+    "id": "books-along-the-teche",
+    "name": "Books Along the Teche Literary Festival",
+    "city": "New Iberia",
+    "state": "LA",
+    "lat": 30.0035,
+    "lng": -91.8187,
+    "description": "A celebration of Southern writing and culture featuring authors, social events, panel discussions. Draws bibliophiles and lovers of Louisiana cuisine and music.",
+    "website": "https://booksalongthetecheliteraryfestival.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – early April",
+    "size": "medium",
+    "primaryType": "literary",
+    "tags": [
+      "books",
+      "southern-lit",
+      "louisiana",
+      "cajun",
+      "culture"
+    ],
+    "genre": null
+  },
+  {
+    "id": "newburyport-literary-festival",
+    "name": "Newburyport Literary Festival",
+    "city": "Newburyport",
+    "state": "MA",
+    "lat": 42.8126,
+    "lng": -70.8773,
+    "description": "Annual festival bringing together readers and writers for a weekend of readings, panel discussions, and other book-related events.",
+    "website": "https://newburyportliteraryfestival.org",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – late April",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "reading",
+      "massachusetts",
+      "new-england",
+      "coastal"
+    ],
+    "genre": null
+  },
+  {
+    "id": "midwest-literary-walk",
+    "name": "Midwest Literary Walk",
+    "city": "Chelsea",
+    "state": "MI",
+    "lat": 42.3181,
+    "lng": -84.0216,
+    "description": "Author interviews and presentations hosted on the same day at different venues within walking distance. Celebration of literature, reading, and the Chelsea community.",
+    "website": "https://chelseadistrictlibrary.org",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "walking",
+      "community",
+      "michigan",
+      "historic-downtown"
+    ],
+    "genre": null
+  },
+  {
+    "id": "unbound-book-festival",
+    "name": "Unbound Book Festival",
+    "city": "Columbia",
+    "state": "MO",
+    "lat": 38.9517,
+    "lng": -92.3341,
+    "description": "Brings nationally and internationally recognized authors of world-class renown to Columbia to talk about their books, their work, and their lives.",
+    "website": "https://unboundbookfestival.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "authors",
+      "missouri",
+      "international",
+      "literary"
+    ],
+    "genre": null
+  },
+  {
+    "id": "hamptons-whodunit",
+    "name": "Hamptons Whodunit",
+    "city": "East Hampton",
+    "state": "NY",
+    "lat": 40.9635,
+    "lng": -72.1848,
+    "description": "Long Island's premiere mystery and true crime festival where fact and fiction collide. Features bestselling authors, legal experts, graveyard tours, escape rooms, and more.",
+    "website": "https://hamptonswhodunit.org",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "mystery",
+      "true-crime",
+      "hamptons",
+      "new-york"
+    ],
+    "genre": "mystery"
+  },
+  {
+    "id": "bookcon-new-york",
+    "name": "BookCon",
+    "city": "New York City",
+    "state": "NY",
+    "lat": 40.7527,
+    "lng": -74.0027,
+    "description": "A two-day event where storytelling and pop culture collide. Features intimate author chats, immersive experiences, book swaps, and activities for lovers of storytelling.",
+    "website": "https://bookcon.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "pop-culture",
+      "new-york",
+      "storytelling",
+      "immersive"
+    ],
+    "genre": null
+  },
+  {
+    "id": "teen-bookfest-by-the-bay",
+    "name": "Teen Bookfest by the Bay",
+    "city": "Corpus Christi",
+    "state": "TX",
+    "lat": 27.8006,
+    "lng": -97.3964,
+    "description": "A free festival featuring middle grade and young adult authors that supports, promotes, and celebrates the joy of reading.",
+    "website": "https://teensread.org",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "medium",
+    "primaryType": "childrens",
+    "tags": [
+      "books",
+      "ya",
+      "middle-grade",
+      "free",
+      "teens"
+    ],
+    "genre": null
+  },
+  {
+    "id": "get-lit-at-the-beach",
+    "name": "Get Lit at the Beach",
+    "city": "Cannon Beach",
+    "state": "OR",
+    "lat": 45.8918,
+    "lng": -123.9615,
+    "description": "One of only a handful of festivals existing solely for the pleasure of listening to writers talk about their work and sharing conversations about the importance of reading.",
+    "website": "https://getlitatthebeach.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "small",
+    "primaryType": "literary",
+    "tags": [
+      "books",
+      "readers-only",
+      "oregon",
+      "coastal",
+      "intimate"
+    ],
+    "genre": null
+  },
+  {
+    "id": "get-lit-spokane",
+    "name": "Get Lit! Literary Art Festival",
+    "city": "Spokane",
+    "state": "WA",
+    "lat": 47.6588,
+    "lng": -117.426,
+    "description": "Annual festival that has grown to attract 10000 people from Spokane and the surrounding region. Celebrates literature, reading, and the literary arts.",
+    "website": "https://inside.ewu.edu/getlit",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "literary-arts",
+      "washington",
+      "spokane",
+      "community"
+    ],
+    "genre": null
+  },
+  {
+    "id": "greensboro-bound-literary-festival",
+    "name": "Greensboro Bound Literary Festival",
+    "city": "Greensboro",
+    "state": "NC",
+    "lat": 36.0726,
+    "lng": -79.792,
+    "description": "Annual literary festival connecting readers and writers in Greensboro, North Carolina.",
+    "website": "https://greensborobound.com",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "north-carolina",
+      "community",
+      "readers",
+      "writers"
+    ],
+    "genre": null
+  },
+  {
+    "id": "conyers-book-festival",
+    "name": "Conyers Book Festival",
+    "city": "Conyers",
+    "state": "GA",
+    "lat": 33.664,
+    "lng": -84.0177,
+    "description": "Annual book festival connecting readers and writers in Conyers, Georgia.",
+    "website": "https://conyersbookfestival.org",
+    "typicalMonth": "April",
+    "recurringPattern": "Annual – mid April",
+    "size": "small",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "georgia",
+      "community",
+      "readers",
+      "writers"
+    ],
+    "genre": null
+  },
+  {
+    "id": "annapolis-book-festival",
+    "name": "Annapolis Book Festival",
+    "city": "Annapolis",
+    "state": "MD",
+    "lat": 38.9784,
+    "lng": -76.4922,
+    "description": "Free community festival celebrating the written word for 23 years. Features nationally renowned authors, children's activities, live music, food, and a literary marketplace.",
+    "website": "https://keyschool.org/annapolis-book-festival",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – early May",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "maryland",
+      "community",
+      "family"
+    ],
+    "genre": null
+  },
+  {
+    "id": "gaithersburg-book-festival",
+    "name": "Gaithersburg Book Festival",
+    "city": "Gaithersburg",
+    "state": "MD",
+    "lat": 39.1434,
+    "lng": -77.2014,
+    "description": "One of the nation's top literary events. Attracts hundreds of award-winning and bestselling authors, poets, and songwriters from across the country.",
+    "website": "https://gaithersburgbookfestival.org",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – mid May",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "major",
+      "maryland",
+      "authors",
+      "poets"
+    ],
+    "genre": null
+  },
+  {
+    "id": "montclair-literary-festival",
+    "name": "Montclair Literary Festival",
+    "city": "Montclair",
+    "state": "NJ",
+    "lat": 40.8259,
+    "lng": -74.209,
+    "description": "Community-wide event aiming to exchange ideas, inspire future literary works, and engage with different points of view. Partners with local library and bookstore.",
+    "website": "https://succeed2gether.org/montclair-literary-festival",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – early May",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "community",
+      "new-jersey",
+      "library",
+      "ideas"
+    ],
+    "genre": null
+  },
+  {
+    "id": "santa-fe-literary-festival",
+    "name": "Santa Fe Literary Festival",
+    "city": "Santa Fe",
+    "state": "NM",
+    "lat": 35.687,
+    "lng": -105.9378,
+    "description": "Connects writers, readers, and thinkers in the celebration of words and story. Fosters a love of storytelling among young readers and writers in a city with deep literary history.",
+    "website": "https://sfinternationallitfest.org",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – mid May",
+    "size": "medium",
+    "primaryType": "literary",
+    "tags": [
+      "books",
+      "santa-fe",
+      "new-mexico",
+      "international",
+      "storytelling"
+    ],
+    "genre": null
+  },
+  {
+    "id": "hudson-childrens-book-festival",
+    "name": "Hudson Children's Book Festival",
+    "city": "Hudson",
+    "state": "NY",
+    "lat": 42.2526,
+    "lng": -73.7921,
+    "description": "Free public festival in historic Hudson striving to create a culture of literacy. Families meet world-class creators of books for children of all ages.",
+    "website": "https://hudsonchildrensbookfestival.org",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – early May",
+    "size": "medium",
+    "primaryType": "childrens",
+    "tags": [
+      "books",
+      "children",
+      "free",
+      "hudson",
+      "historic"
+    ],
+    "genre": null
+  },
+  {
+    "id": "greater-pittsburgh-festival-of-books",
+    "name": "Greater Pittsburgh Festival of Books",
+    "city": "Pittsburgh",
+    "state": "PA",
+    "lat": 40.4406,
+    "lng": -79.9959,
+    "description": "Free event celebrating Pittsburgh's rich literary community. Features local and nationally-recognized authors, poets, children's activities, bookstores, and entertainment.",
+    "website": "https://pittsburghbookfestival.org",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – late May",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "free",
+      "pittsburgh",
+      "community",
+      "poets"
+    ],
+    "genre": null
+  },
+  {
+    "id": "mountain-words-literary-festival",
+    "name": "Mountain Words Literary Festival",
+    "city": "Crested Butte",
+    "state": "CO",
+    "lat": 38.8697,
+    "lng": -106.9878,
+    "description": "Multi-day literary celebration at 9000 feet featuring readings, workshops, kids events, parties, and panel discussions. Immersive mountain literary experience.",
+    "website": "https://mtnwords.org",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – late May",
+    "size": "medium",
+    "primaryType": "literary",
+    "tags": [
+      "books",
+      "mountain",
+      "colorado",
+      "workshops",
+      "intimate"
+    ],
+    "genre": null
+  },
+  {
+    "id": "sonoma-valley-authors-festival",
+    "name": "Sonoma Valley Authors Festival",
+    "city": "Sonoma",
+    "state": "CA",
+    "lat": 38.2919,
+    "lng": -122.458,
+    "description": "Three-day weekend lecture series bringing people together to hear authors from a variety of literary genres and speakers discussing advances in science and medicine.",
+    "website": "https://svauthorsfest.org",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – early May",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "sonoma",
+      "wine-country",
+      "california",
+      "authors"
+    ],
+    "genre": null
+  },
+  {
+    "id": "imaginarium-book-festival-dc",
+    "name": "Imaginarium Book Festival",
+    "city": "Washington",
+    "state": "DC",
+    "lat": 38.9072,
+    "lng": -77.0369,
+    "description": "Features 80+ author and vendor exhibitors, book signings, and special events. Celebrates fantasy, young adult, and genre fiction.",
+    "website": "https://imaginariumbookfestival.com",
+    "typicalMonth": "June",
+    "recurringPattern": "Annual – early June",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "fantasy",
+      "ya",
+      "washington-dc",
+      "genre"
+    ],
+    "genre": "fantasy"
+  },
+  {
+    "id": "sunbelt-book-art-expo",
+    "name": "Sunbelt Book & Art Expo",
+    "city": "Arlington",
+    "state": "TX",
+    "lat": 32.7357,
+    "lng": -97.1081,
+    "description": "Where stories, art, and creativity unite. Features book signings, conversations, panels, presentations, visual artists, and live art demonstrations.",
+    "website": "https://sunbelt-expo.com",
+    "typicalMonth": "June",
+    "recurringPattern": "Annual – mid June",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "art",
+      "texas",
+      "expo",
+      "signings"
+    ],
+    "genre": null
+  },
+  {
+    "id": "national-book-club-conference",
+    "name": "National Book Club Conference",
+    "city": "Atlanta",
+    "state": "GA",
+    "lat": 33.749,
+    "lng": -84.388,
+    "description": "The premier annual literary event featuring Black authors and readers, called 'Literary Bliss.' A reader's paradise with unprecedented access to acclaimed literary talent.",
+    "website": "https://nationalbookclubconference.com",
+    "typicalMonth": "July",
+    "recurringPattern": "Annual – late July/early August",
+    "size": "major",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "african-american",
+      "book-clubs",
+      "atlanta",
+      "literary-bliss"
+    ],
+    "genre": null
+  },
+  {
+    "id": "black-authors-festival-sag-harbor",
+    "name": "Black Authors Festival",
+    "city": "Sag Harbor",
+    "state": "NY",
+    "lat": 40.9976,
+    "lng": -72.2926,
+    "description": "USA Today Top Festival celebrating Black literary excellence. Set in the heart of Sag Harbor with aspiring and established Black authors. Theme: The Right to Write.",
+    "website": "https://blackauthorsfestival.com",
+    "typicalMonth": "August",
+    "recurringPattern": "Annual – early August",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "african-american",
+      "black-authors",
+      "sag-harbor",
+      "excellence"
+    ],
+    "genre": null
+  },
+  {
+    "id": "louisiana-book-festival",
+    "name": "Louisiana Book Festival",
+    "city": "Baton Rouge",
+    "state": "LA",
+    "lat": 30.4515,
+    "lng": -91.1871,
+    "description": "Annual celebration of Louisiana literature and reading culture held in Baton Rouge.",
+    "website": "https://labookfestival.org",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual – late October",
+    "size": "medium",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "louisiana",
+      "community",
+      "southern-lit",
+      "readers"
+    ],
+    "genre": null
+  },
+  {
+    "id": "cape-cod-book-festival",
+    "name": "Cape Cod Book Festival",
+    "city": "Barnstable",
+    "state": "MA",
+    "lat": 41.7048,
+    "lng": -70.3078,
+    "description": "A new cultural footprint on Cape Cod where charitably minded readers can meet great writers and thinkers — community-rooted and locally beloved.",
+    "website": "https://capecodbookfestival.com/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual – October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "community",
+      "charity",
+      "cape-cod",
+      "new-england"
+    ],
+    "genre": null
+  },
+  {
+    "id": "ann-arbor-antiquarian-book-fair",
+    "name": "Ann Arbor Antiquarian Book Fair",
+    "city": "Ann Arbor",
+    "state": "MI",
+    "lat": 42.278,
+    "lng": -83.7382,
+    "description": "Nearly five decades of rare and antiquarian books, Americana, children's books, manuscripts, maps, prints, ephemera, photography, and fine press material from dealers across America.",
+    "website": "https://annarborbookfair.com/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual – October",
+    "size": "regional",
+    "primaryType": "antiquarian",
+    "tags": [
+      "rare-books",
+      "antiquarian",
+      "manuscripts",
+      "maps",
+      "ephemera",
+      "university-of-michigan"
+    ],
+    "genre": null
+  },
+  {
+    "id": "maine-lit-fest",
+    "name": "Maine Lit Fest",
+    "city": "Portland",
+    "state": "ME",
+    "lat": 43.6591,
+    "lng": -70.2568,
+    "description": "A week-long, statewide celebration of books and stories produced by Maine Writers & Publishers Alliance with community partners and volunteers across Maine.",
+    "website": "https://www.mainewriters.org/",
+    "typicalMonth": "October",
+    "recurringPattern": "Annual – October",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "community",
+      "statewide",
+      "maine",
+      "writers-alliance"
+    ],
+    "genre": null
+  },
+  {
+    "id": "santa-barbara-literary-festival",
+    "name": "Santa Barbara Literary Festival",
+    "city": "Santa Barbara",
+    "state": "CA",
+    "lat": 34.4208,
+    "lng": -119.6982,
+    "description": "Two-day downtown festival bringing readers and writers of every genre together through panels, workshops, pop-up events, and social gatherings in an intimate setting.",
+    "website": "https://www.santabarbaraliteraryfestival.org/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "panels",
+      "workshops",
+      "community",
+      "all-genres"
+    ],
+    "genre": null
+  },
+  {
+    "id": "shreve-memorial-children-book-festival",
+    "name": "Shreve Memorial Library Children's Book Festival",
+    "city": "Shreveport",
+    "state": "LA",
+    "lat": 32.5252,
+    "lng": -93.7502,
+    "description": "Family-friendly daylong literary celebration featuring children's book authors and illustrators, costumed characters, and interactive games and activities.",
+    "website": "https://www.shreve-lib.org/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – May",
+    "size": "local",
+    "primaryType": "children",
+    "tags": [
+      "children",
+      "family",
+      "illustrators",
+      "library",
+      "free"
+    ],
+    "genre": "children"
+  },
+  {
+    "id": "litfest-in-the-dena",
+    "name": "LitFest in the Dena",
+    "city": "Pasadena",
+    "state": "CA",
+    "lat": 34.1455,
+    "lng": -118.13,
+    "description": "Free community literary festival founded in 2012 connecting Pasadena, Altadena, and greater Los Angeles with local authors through panels, readings, workshops, and literary performances.",
+    "website": "https://www.litfestinthedena.org/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "community",
+      "free",
+      "local-authors",
+      "los-angeles",
+      "pasadena"
+    ],
+    "genre": null
+  },
+  {
+    "id": "arizona-author-book-festival",
+    "name": "Arizona Author Book Festival",
+    "city": "Phoenix",
+    "state": "AZ",
+    "lat": 33.4636,
+    "lng": -112.0647,
+    "description": "Showcases 40+ Arizona authors across all genres, with a dedicated neurodivergent/autistic authors section, author talks, and book signings.",
+    "website": "https://azauthorbookfestival.com/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "local-authors",
+      "arizona",
+      "neurodivergent",
+      "all-genres"
+    ],
+    "genre": null
+  },
+  {
+    "id": "bookstock-vt",
+    "name": "Bookstock",
+    "city": "Woodstock",
+    "state": "VT",
+    "lat": 43.6237,
+    "lng": -72.5168,
+    "description": "Award-winning authors, distinguished poets, a famous used book sale, children's programming, master classes, and the Bookstock Market in the heart of Vermont.",
+    "website": "https://bookstockvt.org/",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – May",
+    "size": "regional",
+    "primaryType": "general",
+    "tags": [
+      "books",
+      "poetry",
+      "children",
+      "used-books",
+      "vermont",
+      "workshops"
     ],
     "genre": null
   }

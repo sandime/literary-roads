@@ -919,6 +919,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const infoMenuRef = useRef(null);
   const journeysMenuRef = useRef(null);
   const [dcPillPos, setDcPillPos] = useState(null); // null = default CSS position
+  const [listeningMode, setListeningMode] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
 
   useEffect(() => {
     if (!showUserMenu) return;
@@ -1018,6 +1020,59 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => {
     window.speechSynthesis?.cancel();
   }, [selectedLocation?.id]);
+
+  // Stop speech when listening mode is turned off
+  useEffect(() => {
+    if (!listeningMode) window.speechSynthesis?.cancel();
+  }, [listeningMode]);
+
+  // Auto-read landmark description when shelf opens in listening mode
+  useEffect(() => {
+    if (!listeningMode || !selectedLocation || selectedLocation.type !== 'landmark') return;
+    const parts = [
+      selectedLocation.name ? `${selectedLocation.name}.` : '',
+      selectedLocation.city && selectedLocation.state
+        ? `Located in ${selectedLocation.city}, ${selectedLocation.state}.`
+        : (selectedLocation.city || selectedLocation.state || ''),
+      selectedLocation.description || selectedLocation.reflection || '',
+    ].filter(Boolean);
+    const text = parts.join(' ');
+    if (!text.trim()) return;
+    const timer = setTimeout(() => {
+      window.speechSynthesis?.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      const setVoiceAndSpeak = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const preferred = voices.find(v =>
+          v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('Karen')
+        ) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+        if (preferred) utterance.voice = preferred;
+        window.speechSynthesis.speak(utterance);
+      };
+      if (window.speechSynthesis.getVoices().length) setVoiceAndSpeak();
+      else {
+        window.speechSynthesis.onvoiceschanged = () => {
+          window.speechSynthesis.onvoiceschanged = null;
+          setVoiceAndSpeak();
+        };
+      }
+    }, 400);
+    return () => { clearTimeout(timer); window.speechSynthesis?.cancel(); };
+  }, [selectedLocation?.id, listeningMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Announce route when plotted in listening mode
+  useEffect(() => {
+    if (!listeningMode || route.length === 0) return;
+    setAnnouncement(`Route plotted with ${visibleLocations.length} literary stop${visibleLocations.length !== 1 ? 's' : ''}.`);
+  }, [route.length, listeningMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear announcement after screen reader has had time to read it
+  useEffect(() => {
+    if (!announcement) return;
+    const t = setTimeout(() => setAnnouncement(''), 5000);
+    return () => clearTimeout(t);
+  }, [announcement]);
 
   // Pre-fetch ratings for all bookstore/cafe pins so starbursts show immediately on the map
   useEffect(() => {
@@ -1763,6 +1818,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         setCurrentRouteStops([]);
         setUiMode('explore');
         setLoading(false);
+        if (listeningMode) {
+          setAnnouncement(`Found ${combined.length} nearby literary stop${combined.length !== 1 ? 's' : ''}.`);
+        }
       },
       () => {
         setError('Could not get your location. Please enable location services.');
@@ -1980,9 +2038,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       >
         Skip to main content
       </a>
-      {/* Loading announcement for screen readers */}
-      <div aria-live="polite" aria-atomic="true">
-        {loading && <span className="sr-only">Loading map results...</span>}
+      {/* Loading + listening mode announcements for screen readers */}
+      <div aria-live="polite" aria-atomic="true" className="sr-only">
+        {loading && <span>Loading map results...</span>}
+        {announcement && <span>{announcement}</span>}
       </div>
 
       {/* ══════════════════════════════════════════════
@@ -2009,6 +2068,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <h1 className="flex-1 text-center text-starlight-turquoise font-bungee text-[15px] drop-shadow-[0_0_10px_rgba(64,224,208,0.8)] leading-tight px-2">
             THE LITERARY ROADS
           </h1>
+
+          {/* Listening mode toggle */}
+          <button
+            aria-label="Toggle listening mode for screen reader users"
+            aria-pressed={listeningMode}
+            onClick={() => setListeningMode(v => !v)}
+            className="flex-shrink-0 flex flex-col items-center transition-colors p-1"
+            style={{ color: listeningMode ? '#FF4E00' : '#40E0D0', minWidth: 40, minHeight: 44, justifyContent: 'center' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+              <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+            </svg>
+          </button>
 
           {/* My Trips bookmark */}
           <button onClick={() => setShowRoadTrip(true)} title="My Trips"
@@ -2215,6 +2288,21 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
+            </button>
+
+            {/* Listening mode toggle */}
+            <button
+              aria-label="Toggle listening mode for screen reader users"
+              aria-pressed={listeningMode}
+              onClick={() => setListeningMode(v => !v)}
+              className="flex flex-col items-center transition-colors p-1"
+              style={{ color: listeningMode ? '#FF4E00' : '#40E0D0' }}
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
+              </svg>
+              <span className="font-bungee text-[10px] leading-tight tracking-wide">LISTEN</span>
             </button>
 
             {/* My Trips */}

@@ -22,11 +22,10 @@ import {
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const ALL_STATES = ['AK','AL','AR','AZ','CA','CO','CT','DC','DE','FL','GA','HI','IA','ID','IL','IN','KS','KY','LA','MA','MD','ME','MI','MN','MO','MS','MT','NC','ND','NE','NH','NJ','NM','NV','NY','OH','OK','OR','PA','PR','RI','SC','SD','TN','TX','UT','VA','VT','WA','WI','WV','WY'];
 const TYPE_LABELS = {
-  general:            { label: 'Book Festivals',        color: '#40E0D0' },
-  poetry:             { label: 'Poetry & Spoken Word',  color: '#B044FB' },
-  genre:              { label: 'Genre Specific',        color: '#FF4E00' },
-  'writers-conference':{ label: 'Writers\' Conferences', color: '#F5F5DC' },
-  children:           { label: 'Children\'s & YA',      color: '#FFB347' },
+  general:  { label: 'Book Festivals',       color: '#40E0D0' },
+  poetry:   { label: 'Poetry & Spoken Word', color: '#B044FB' },
+  genre:    { label: 'Genre Specific',       color: '#FF4E00' },
+  children: { label: 'Children\'s & YA',     color: '#FFB347' },
 };
 const SIZE_BADGES = {
   major:    { label: 'MAJOR',    bg: 'bg-atomic-orange/20 border-atomic-orange/60',     text: 'text-atomic-orange' },
@@ -612,7 +611,7 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
   // Filter state
   const [filterMonth, setFilterMonth] = useState('Any');
   const [filterState, setFilterState] = useState('Any');
-  const [filterTypes, setFilterTypes] = useState(new Set(['general','poetry','genre','writers-conference','children']));
+  const [filterTypes, setFilterTypes] = useState(new Set(['general','poetry','genre','children']));
   const [filteredFests, setFilteredFests] = useState([]);
 
   // Selection state
