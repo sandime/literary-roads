@@ -756,3 +756,38 @@ export const StarIcon = ({ size = 24, className = '' }) => (
     <circle className="fc" cx="85" cy="35" r="2" />
   </svg>
 );
+
+export const HeadphonesIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Arching headband */}
+    <path className="t" d="M 20 85 C 20 10, 108 10, 108 85" />
+    {/* Retro kidney-shaped earcups */}
+    <ellipse className="p" cx="25" cy="85" rx="15" ry="22" transform="rotate(-10 25 85)" />
+    <ellipse className="p" cx="103" cy="85" rx="15" ry="22" transform="rotate(10 103 85)" />
+    {/* Inner details */}
+    <ellipse className="bg" cx="25" cy="85" rx="8" ry="12" transform="rotate(-10 25 85)" />
+    <ellipse className="bg" cx="103" cy="85" rx="8" ry="12" transform="rotate(10 103 85)" />
+    {/* Orbital ring sparkle */}
+    <ellipse className="o" cx="64" cy="45" rx="40" ry="10" transform="rotate(-15 64 45)" strokeDasharray="4 8" />
+    <circle className="fc" cx="95" cy="30" r="4" />
+  </svg>
+);
+
+export const MicrophoneIcon = ({ size = 24, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <style>{STYLES}</style>
+    {/* Googie style tripod stand */}
+    <line className="c" x1="64" y1="80" x2="64" y2="120" />
+    <path className="c" d="M 64 120 L 40 120 M 64 120 L 88 120 M 64 120 L 64 120" />
+    {/* Retro pill mic body */}
+    <rect className="t" x="48" y="20" width="32" height="60" rx="16" />
+    {/* Horizontal grille lines */}
+    <line className="o" x1="52" y1="35" x2="76" y2="35" />
+    <line className="o" x1="52" y1="45" x2="76" y2="45" />
+    <line className="o" x1="52" y1="55" x2="76" y2="55" />
+    {/* Sparkle accents */}
+    <path className="fp" d="M 100 20 L 103 28 L 111 31 L 103 34 L 100 42 L 97 34 L 89 31 L 97 28 Z" />
+    <circle className="fc" cx="25" cy="40" r="3" />
+  </svg>
+);
