@@ -291,7 +291,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   });
 
   const none = Promise.resolve([]);
-  const [literary, museums, aquariums, nature, restaurants, observatory, historicSites, artGalleries, theaters] = await Promise.all([
+  const [literary, museums, aquariums, nature, restaurants, observatory, historicSites, artGalleries, theaters, driveInsRaw] = await Promise.all([
     fetchLiterary(startCoords, radius),
     has('museum')      ? fetchNearby(getNearbyMuseums)       : none,
     has('aquarium')    ? fetchNearby(getNearbyAquariums)     : none,
@@ -301,6 +301,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
     has('historicSite')? fetchNearby(getNearbyHistoricSites) : none,
     has('artGallery')  ? fetchNearby(getNearbyArtGalleries)  : none,
     has('theater')     ? fetchNearby(getNearbyTheaters)      : none,
+    has('drivein')     ? fetchNearby(getNearbyDriveIns)      : none,
   ]);
 
   // Split literary pool by subtype — respect category filter
@@ -308,7 +309,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   const bookstores = has('bookstore') ? literary.filter(p => p.type === 'bookstore') : [];
   const libraries  = has('library')   ? literary.filter(p => p.type === 'library')   : [];
   const landmarks  = has('landmark')  ? literary.filter(p => p.type === 'landmark')  : [];
-  const driveins   = has('drivein')   ? literary.filter(p => p.type === 'drivein')   : [];
+  const driveins   = driveInsRaw;
 
   // Sort by distance, rotate for variant so regenerate yields different picks
   const rotate = (pool) => rotatePool(tagDistance(pool, startCoords), variant);
