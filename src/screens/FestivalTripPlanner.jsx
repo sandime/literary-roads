@@ -372,10 +372,12 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
   }
 
   // Split into book-style stops (literary/attractions) and cafe-style stops (food/drink)
+  // Drive-ins are reserved for week-long trips only (7 days) — they're evening venues
+  // that don't fit the tighter schedule of 2–4 day festival trips
   const FOOD_TYPES = new Set(['cafe', 'restaurant']);
-  const books1 = places1.filter(p => !FOOD_TYPES.has(p.type));
+  const books1 = places1.filter(p => !FOOD_TYPES.has(p.type) && (p.type !== 'drivein' || tripDays >= 7));
   const cafes1 = places1.filter(p => FOOD_TYPES.has(p.type));
-  const books2 = places2.filter(p => !FOOD_TYPES.has(p.type));
+  const books2 = places2.filter(p => !FOOD_TYPES.has(p.type) && (p.type !== 'drivein' || tripDays >= 7));
   const cafes2 = places2.filter(p => FOOD_TYPES.has(p.type));
 
   const slotsPerDay = packed ? 5 : 3;

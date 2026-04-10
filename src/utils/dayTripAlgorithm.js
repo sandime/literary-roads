@@ -393,16 +393,18 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   console.log(`[DayTrip] selected ${stops.length} stops:`,
     stops.map(s => `${s.type}:${s.name}`).join(' | '));
 
-  if (!stops.length) return null;
-
   // STEP 3: Nearest-neighbor ordering (drive-ins always last)
   const ordered = [...nearestNeighbor(startCoords, stops)];
 
-  // STEP 4: For full-day trips, optionally append a drive-in as the final stop
-  if (duration === 'fullDay' && has('drivein')) {
+  // STEP 4: halfDay and fullDay trips get a drive-in appended as the final stop (not quick)
+  // Drive-ins are intentionally excluded from STEP 1/2 — they're evening venues, always last
+  if (duration !== 'quick' && has('drivein')) {
     const driveIn = drivePool.find(p => !usedIds.has(p.id));
     if (driveIn) ordered.push(driveIn);
   }
+
+  // null check is AFTER STEP 4 so drive-in-only selections still produce a trip
+  if (!ordered.length) return null;
 
   const waypoints = [startCoords, ...ordered.map(s => s.coords), startCoords];
   const segments  = await Promise.all(
