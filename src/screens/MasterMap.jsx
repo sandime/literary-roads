@@ -3334,13 +3334,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   {selectedLocation.description}
                 </p>
 
-                <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
-                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>{selectedLocation.address}</span>
-                </div>
+                {(selectedLocation.address || selectedLocation.city) && (
+                  <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
+                    <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>
+                      {selectedLocation.address && <span>{selectedLocation.address}<br /></span>}
+                      {selectedLocation.city && selectedLocation.state
+                        ? `${selectedLocation.city}, ${selectedLocation.state}`
+                        : selectedLocation.city || selectedLocation.state || ''}
+                    </span>
+                  </div>
+                )}
 
                 {selectedLocation.phone && (
                   <div className="flex items-center gap-2 text-chrome-silver font-special-elite text-sm mb-2">
@@ -3366,9 +3373,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </div>
                 )}
 
-                {selectedLocation.url && (
+                {(selectedLocation.url || selectedLocation.website) && (
                   <a
-                    href={selectedLocation.url}
+                    href={selectedLocation.url || selectedLocation.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 text-atomic-orange font-special-elite text-sm hover:text-starlight-turquoise transition-colors"
@@ -3376,7 +3383,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     <span>
                       {selectedLocation.type === 'festival' ? 'Visit Festival Website' :
                        selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' :
-                       selectedLocation.type === 'drivein' ? 'Visit website' : 'Read more on Wikipedia'}
+                       selectedLocation.type === 'drivein' ? 'Visit Website' :
+                       selectedLocation.website ? 'Visit Website' : 'Read more on Wikipedia'}
                     </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
