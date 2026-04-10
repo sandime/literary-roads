@@ -404,8 +404,22 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
     name, type: 'travel', coords, address: '', suggestedTime: time, note, durationMins: 0,
   });
 
-  const asStop = (p, time, note, durationMins) =>
-    p ? { ...p, suggestedTime: time, note, durationMins } : null;
+  const DRIVEIN_NOTES_FEST = [
+    'Spend the evening under the stars at this classic drive-in theater.',
+    'End the day with a movie at a vintage drive-in — a true American road trip tradition.',
+    'Relax for the evening and catch a film at this beloved drive-in theater.',
+    'A perfect evening stop — pull in, tune your radio, and enjoy a movie under the open sky.',
+    'Wind down the day at a classic drive-in, one of the few remaining in the country.',
+  ];
+  const getDriveInNoteFest = (p) => DRIVEIN_NOTES_FEST[p.id.charCodeAt(0) % DRIVEIN_NOTES_FEST.length];
+
+  const asStop = (p, time, note, durationMins) => {
+    if (!p) return null;
+    if (p.type === 'drivein') {
+      return { ...p, suggestedTime: '8:00 PM', note: getDriveInNoteFest(p), durationMins: 120 };
+    }
+    return { ...p, suggestedTime: time, note, durationMins };
+  };
 
   const days = [];
 

@@ -956,6 +956,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                           <span className="text-chrome-silver/50">{schItem.driveMins} min drive</span>
                         </div>
                       )}
+                      {stop.note && (
+                        <p className="text-chrome-silver/50 font-special-elite text-xs mt-1 italic">{stop.note}</p>
+                      )}
                     </div>
                   </button>
                 );

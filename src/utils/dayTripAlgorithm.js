@@ -9,6 +9,15 @@ import { CATEGORY_RADII } from './nearbySearch';
 
 export const RADIUS_MILES = { quick: 20, halfDay: 60, fullDay: 120 };
 
+const DRIVEIN_NOTES = [
+  'Spend the evening under the stars at this classic drive-in theater.',
+  'End the day with a movie at a vintage drive-in — a true American road trip tradition.',
+  'Relax for the evening and catch a film at this beloved drive-in theater.',
+  'A perfect evening stop — pull in, tune your radio, and enjoy a movie under the open sky.',
+  'Wind down the day at a classic drive-in, one of the few remaining in the country.',
+];
+const getDriveInNote = (stop) => DRIVEIN_NOTES[stop.id.charCodeAt(0) % DRIVEIN_NOTES.length];
+
 // Generate MORE stops than strictly needed — user picks which to visit via checkboxes
 // quick: 3 candidates | halfDay: 6 candidates | fullDay: 9 candidates (+optional drivein)
 const STOP_TARGETS = { quick: 3, halfDay: 6, fullDay: 9 };
@@ -146,6 +155,9 @@ const buildSchedule = (stops, segments) => {
     const driveMins = Math.max(1, Math.round(miles / AVG_SPEED_MPH * 60));
     totalMiles     += miles;
     mins           += driveMins;
+    if (stop.type === 'drivein') {
+      mins = Math.max(mins, 20 * 60); // snap to 8:00 PM minimum
+    }
     const arrivalTime = fmt(mins);
     const visitMins   = VISIT_MINUTES[stop.type] || 45;
     mins             += visitMins;
@@ -400,7 +412,7 @@ export const generateDayTrip = async (startCoords, duration, variant = 0, exclud
   // Drive-ins are intentionally excluded from STEP 1/2 — they're evening venues, always last
   if (duration !== 'quick' && has('drivein')) {
     const driveIn = drivePool.find(p => !usedIds.has(p.id));
-    if (driveIn) ordered.push(driveIn);
+    if (driveIn) ordered.push({ ...driveIn, note: getDriveInNote(driveIn) });
   }
 
   // null check is AFTER STEP 4 so drive-in-only selections still produce a trip
