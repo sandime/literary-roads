@@ -26,6 +26,7 @@ import NewsletterPreview from './screens/NewsletterPreview';
 import GazetteArchive from './screens/GazetteArchive';
 import GazetteIssue from './screens/GazetteIssue';
 import GazetteNewspaper from './screens/GazetteNewspaper';
+import Store from './screens/Store';
 import './App.css';
 
 function AppInner() {
@@ -317,6 +318,7 @@ function App() {
         <Route path="/newspaper/current" element={<GazetteNewspaper />} />
         <Route path="/newspaper/archive" element={<GazetteArchive />} />
         <Route path="/newspaper/:slug" element={<GazetteIssue />} />
+        <Route path="/store" element={<Store onBack={() => window.history.back()} />} />
         <Route path="*" element={<AppInner />} />
       </Routes>
     </AuthProvider>

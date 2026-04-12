@@ -1,12 +1,20 @@
 "use strict";
 
-// Gen1 scheduled function — simpler deployment, no Cloud Build service account issues.
-// Secrets are injected as environment variables via runWith({ secrets: [...] }).
-const functions = require("firebase-functions/v1");
-const admin     = require("firebase-admin");
+// Gen1 functions — using defineSecret (firebase-functions/params) for all secrets.
+// Secrets live in Google Secret Manager; access via .value() inside the function handler.
+// Set secrets with: firebase functions:secrets:set SECRET_NAME
+const functions          = require("firebase-functions/v1");
+const { defineSecret }   = require("firebase-functions/params");
+const admin              = require("firebase-admin");
+const Stripe             = require("stripe");
 
 admin.initializeApp();
 const db = admin.firestore();
+
+// ── Secrets ───────────────────────────────────────────────────────────────────
+const NYT_API_KEY      = defineSecret("NYT_API_KEY");
+const PRINTFUL_API_KEY = defineSecret("PRINTFUL_API_KEY");
+const STRIPE_SECRET    = defineSecret("STRIPE_SECRET_KEY");
 
 // ── First issue epoch — used to calculate issue number ────────────────────────
 const EPOCH = new Date("2025-01-05");
@@ -55,17 +63,13 @@ function formatIssueDate(date) {
   });
 }
 
-// ── Scheduled refresh — every Sunday at 6 AM Eastern ─────────────────────────
-//
-// Cron: "0 10 * * 0"  →  10:00 UTC  =  06:00 ET
-// Secrets are exposed as process.env.NYT_API_KEY inside the function.
-//
+// ── Gazette: scheduled refresh — every Sunday at 6 AM Eastern ────────────────
 exports.gazetteRefresh = functions
-  .runWith({ secrets: ["NYT_API_KEY"], memory: "256MB", timeoutSeconds: 60 })
+  .runWith({ secrets: [NYT_API_KEY], memory: "256MB", timeoutSeconds: 60 })
   .pubsub.schedule("0 10 * * 0")
   .timeZone("America/New_York")
   .onRun(async () => {
-    const apiKey = process.env.NYT_API_KEY;
+    const apiKey = NYT_API_KEY.value();
     if (!apiKey) throw new Error("NYT_API_KEY secret is not set");
 
     const now = new Date();
@@ -89,4 +93,94 @@ exports.gazetteRefresh = functions
     console.log(`[Gazette] Issue #${issueNumber} written — ${issueDate}`);
     console.log(`[Gazette] Fiction #1: ${fiction[0]?.title} by ${fiction[0]?.author}`);
     console.log(`[Gazette] Nonfiction #1: ${nonfiction[0]?.title} by ${nonfiction[0]?.author}`);
+  });
+
+// ── Store: fetch product from Printful ───────────────────────────────────────
+// Called by the store UI to get product name, image, variants, and pricing.
+// data: { syncProductId: string }
+exports.getProduct = functions
+  .runWith({ secrets: [PRINTFUL_API_KEY] })
+  .https.onCall(async (data) => {
+    const { syncProductId } = data;
+    if (!syncProductId) {
+      throw new functions.https.HttpsError("invalid-argument", "syncProductId is required");
+    }
+
+    const res = await fetch(
+      `https://api.printful.com/store/products/${syncProductId}`,
+      { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
+    );
+
+    if (!res.ok) {
+      throw new functions.https.HttpsError("internal", `Printful error: ${res.status}`);
+    }
+
+    const { result } = await res.json();
+
+    return {
+      id:        result.sync_product.id,
+      name:      result.sync_product.name,
+      thumbnail: result.sync_product.thumbnail_url,
+      variants:  result.sync_variants.map((v) => ({
+        id:       v.id,
+        name:     v.name,
+        price:    v.retail_price,
+        currency: v.currency,
+      })),
+    };
+  });
+
+// ── Store: create Stripe checkout session ─────────────────────────────────────
+// Fetches authoritative price from Printful, then creates a Stripe Checkout session.
+// data: { variantId: string, quantity: number, successUrl: string, cancelUrl: string }
+// Returns: { sessionId: string, url: string }
+exports.createCheckoutSession = functions
+  .runWith({ secrets: [PRINTFUL_API_KEY, STRIPE_SECRET] })
+  .https.onCall(async (data) => {
+    const { variantId, quantity = 1, successUrl, cancelUrl } = data;
+    if (!variantId || !successUrl || !cancelUrl) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "variantId, successUrl, and cancelUrl are required"
+      );
+    }
+
+    // Fetch variant from Printful to get the authoritative retail price
+    const varRes = await fetch(
+      `https://api.printful.com/store/variants/${variantId}`,
+      { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
+    );
+
+    if (!varRes.ok) {
+      throw new functions.https.HttpsError("internal", `Printful variant error: ${varRes.status}`);
+    }
+
+    const { result: variant } = await varRes.json();
+    const priceInCents = Math.round(parseFloat(variant.retail_price) * 100);
+    const currency     = (variant.currency || "USD").toLowerCase();
+
+    // Create Stripe Checkout session
+    const stripe  = new Stripe(STRIPE_SECRET.value());
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [{
+        price_data: {
+          currency,
+          product_data: {
+            name:   variant.name,
+            images: variant.product?.image ? [variant.product.image] : [],
+          },
+          unit_amount: priceInCents,
+        },
+        quantity,
+      }],
+      mode:         "payment",
+      success_url:  successUrl,
+      cancel_url:   cancelUrl,
+      shipping_address_collection: {
+        allowed_countries: ["US", "CA", "GB", "AU"],
+      },
+    });
+
+    return { sessionId: session.id, url: session.url };
   });
