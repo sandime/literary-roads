@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
+      "title": "STARSIDE",
+      "author": "Alex Aster",
+      "weeksOnList": 1,
+      "isbn13": "9780063462434",
+      "description": "Aris traverses a realm of magic and immortals, where she faces dangers as she seeks to avenge her family’s death.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063462434.jpg"
+    },
+    {
+      "rank": 2,
       "title": "THE NIGHT WE MET",
       "author": "Abby Jimenez",
-      "weeksOnList": 1,
+      "weeksOnList": 2,
       "isbn13": "9781538759226",
       "description": "Larissa makes a choice after a concert to ride home with Chris’s best friend, which may cause life-changing results.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538759226.jpg"
     },
     {
-      "rank": 2,
-      "title": "JUDGE STONE",
-      "author": "Viola Davis and James Patterson",
-      "weeksOnList": 3,
-      "isbn13": "9780316579834",
-      "description": "Judge Mary Stone oversees an ethically complex case in her courtroom in Union Springs, Ala.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316579834.jpg"
-    },
-    {
       "rank": 3,
       "title": "THE CORRESPONDENT",
       "author": "Virginia Evans",
-      "weeksOnList": 22,
+      "weeksOnList": 23,
       "isbn13": "9780593798430",
       "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
       "rank": 4,
-      "title": "CARL'S DOOMSDAY SCENARIO",
-      "author": "Matt Dinniman",
-      "weeksOnList": 11,
-      "isbn13": "9780593820261",
-      "description": "The second book in the \"Dungeon Crawler Carl\" series. Carl and Donut confront an ancient spell and heightened dangers.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593820261.jpg"
+      "title": "THE KEEPER",
+      "author": "Tana French",
+      "weeksOnList": 1,
+      "isbn13": "9780593493465",
+      "description": "The third book in the Cal Hooper series. Old feuds are reignited when a girl who was to be betrothed is found dead in a remote Irish village.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593493465.jpg"
     },
     {
       "rank": 5,
-      "title": "DAUGHTER OF EGYPT",
-      "author": "Marie Benedict",
-      "weeksOnList": 1,
-      "isbn13": "9781250280732",
-      "description": "The daughter of a prominent Egyptologist faces dangers as she searches for Hatshepsut’s secret tomb.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250280732.jpg"
+      "title": "JUDGE STONE",
+      "author": "Viola Davis and James Patterson",
+      "weeksOnList": 4,
+      "isbn13": "9780316579834",
+      "description": "Judge Mary Stone oversees an ethically complex case in her courtroom in Union Springs, Ala.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316579834.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "STRIPPED DOWN",
-      "author": "Bunnie Xo",
-      "weeksOnList": 6,
-      "isbn13": "9780063445192",
-      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
+      "title": "PHASES",
+      "author": "Brandy with Gerrick Kennedy",
+      "weeksOnList": 1,
+      "isbn13": "9781335013279",
+      "description": "The actress and Grammy Award-winning musician shares some of her early struggles and her rise to fame.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781335013279.jpg"
     },
     {
       "rank": 2,
-      "title": "STAND",
-      "author": "Cory Booker",
-      "weeksOnList": 1,
-      "isbn13": "9781250436733",
-      "description": "The Democratic senator from New Jersey overviews our nation's struggles and divisions past and present, and shares his views on potential remedies.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250436733.jpg"
-    },
-    {
-      "rank": 3,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 10,
+      "weeksOnList": 11,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
+      "rank": 3,
+      "title": "STRIPPED DOWN",
+      "author": "Bunnie Xo",
+      "weeksOnList": 7,
+      "isbn13": "9780063445192",
+      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
+    },
+    {
       "rank": 4,
       "title": "A WORLD APPEARS",
       "author": "Michael Pollan",
-      "weeksOnList": 5,
+      "weeksOnList": 6,
       "isbn13": "9781984881991",
       "description": "The author of “This Is Your Mind on Plants” explores several perspectives on consciousness.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781984881991.jpg"
     },
     {
       "rank": 5,
-      "title": "THE ANXIOUS GENERATION",
-      "author": "Jonathan Haidt",
-      "weeksOnList": 101,
-      "isbn13": "9780593655030",
-      "description": "A co-author of “The Coddling of the American Mind” looks at the mental health impacts that a phone-based life has on children.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593655030.jpg"
+      "title": "THE INFINITY MACHINE",
+      "author": "Sebastian Mallaby",
+      "weeksOnList": 1,
+      "isbn13": "9780593831847",
+      "description": "A biography of the British artificial intelligence researcher and entrepreneur Demis Hassabis.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593831847.jpg"
     }
   ],
-  "issueDate": "Sunday, April 5, 2026",
-  "issueNumber": 66,
-  "updatedAt": "2026-04-05T10:24:12.287Z"
+  "issueDate": "Sunday, April 12, 2026",
+  "issueNumber": 67,
+  "updatedAt": "2026-04-12T10:29:56.950Z"
 }
