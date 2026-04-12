@@ -275,19 +275,6 @@
     "_listenNotesUrl": "https://www.listennotes.com/c/105aaa8f57db4c1ebc164c08047a5054/"
   },
   {
-    "id": "concavity-show",
-    "title": "Concavity Show",
-    "host": "Matt Bucher & Dave Laird",
-    "description": "A podcast about literary fiction and the world of books, with hosts Matt Bucher and Dave Laird. [Logo by Chris Ayers]",
-    "url": "https://greatconcavity.podbean.com?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "📖",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1048764063",
-    "_listenNotesUrl": "https://www.listennotes.com/c/8b2ea530707948179f908d2846c309aa/"
-  },
-  {
     "id": "covidtime-book-recommendations",
     "title": "Covidtime Book Recommendations",
     "host": "Mae",
@@ -815,6 +802,21 @@
     "active": false,
     "_apple": "https://podcasts.apple.com/podcast/id1621128813",
     "_listenNotesUrl": "https://www.listennotes.com/c/7252423ebd494ba2ab4a5af404b7ec82/"
+  },
+  {
+    "id": "the-dramione-effect",
+    "title": "The Dramione Effect",
+    "host": "The Dramione Effect",
+    "description": "Welcome to The Dramione Effect! We're obsessed with Dramione Fan Fiction in all forms and love to share and discuss our favorites. This is all for fun and is not meant to be a literary review, so you won't find bashing or negative talk here, unless it's about Ron Weasley. **The Dramione Effect is a fan fiction podcast that discusses and recommends works centering the ultimate FF ship between Draco Malfoy and Hermione Granger. We claim no ownership of these characters or any others related to the Harry Potter series, which was created and solely owned by \"She Who Shall Not Be Named.\"**",
+    "url": "https://podcasters.spotify.com/pod/show/thedramioneeffect?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Society & Culture"
+    ],
+    "emoji": "📖",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1729064765",
+    "_listenNotesUrl": "https://www.listennotes.com/c/620b877a1e5549f08aaa481c07becf72/"
   },
   {
     "id": "the-h-p-lovecraft-literary-podcast",

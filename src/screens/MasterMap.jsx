@@ -108,6 +108,145 @@ const SS_DEFAULT_STYLE   = { fillColor: '#1A1B2E', fillOpacity: 0.65, color: '#4
 const SS_SELECTED_STYLE  = { fillColor: '#40E0D0', fillOpacity: 0.22, color: '#40E0D0', weight: 3 };
 const SS_HOVER_STYLE     = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#FF4E00', weight: 2 };
 const SS_HOVER_SEL_STYLE = { fillColor: '#FF4E00', fillOpacity: 0.40, color: '#40E0D0', weight: 3 };
+
+// ── State geographic centers [lat, lng, zoom] ─────────────────────────────────
+const STATE_CENTERS = {
+  'Alabama':              [32.806671,  -86.791130, 7],
+  'Alaska':               [61.370716, -152.404419, 4],
+  'Arizona':              [33.729759, -111.431221, 7],
+  'Arkansas':             [34.969704,  -92.373123, 7],
+  'California':           [36.116203, -119.681564, 6],
+  'Colorado':             [39.059811, -105.311104, 7],
+  'Connecticut':          [41.597782,  -72.755371, 8],
+  'Delaware':             [39.318523,  -75.507141, 8],
+  'Florida':              [27.766279,  -81.686783, 7],
+  'Georgia':              [33.040619,  -83.643074, 7],
+  'Hawaii':               [21.094318, -157.498337, 7],
+  'Idaho':                [44.240459, -114.478828, 6],
+  'Illinois':             [40.349457,  -88.986137, 7],
+  'Indiana':              [39.849426,  -86.258278, 7],
+  'Iowa':                 [42.011539,  -93.210526, 7],
+  'Kansas':               [38.526600,  -96.726486, 7],
+  'Kentucky':             [37.668140,  -84.670067, 7],
+  'Louisiana':            [31.169546,  -91.867805, 7],
+  'Maine':                [44.693947,  -69.381927, 7],
+  'Maryland':             [39.063946,  -76.802101, 8],
+  'Massachusetts':        [42.230171,  -71.530106, 8],
+  'Michigan':             [43.326618,  -84.536095, 7],
+  'Minnesota':            [45.694454,  -93.900192, 6],
+  'Mississippi':          [32.741646,  -89.678696, 7],
+  'Missouri':             [38.456085,  -92.288368, 7],
+  'Montana':              [46.921925, -110.454353, 6],
+  'Nebraska':             [41.125370,  -98.268082, 7],
+  'Nevada':               [38.313515, -117.055374, 6],
+  'New Hampshire':        [43.452492,  -71.563896, 8],
+  'New Jersey':           [40.298904,  -74.521011, 8],
+  'New Mexico':           [34.840515, -106.248482, 7],
+  'New York':             [42.165726,  -74.948051, 7],
+  'North Carolina':       [35.630066,  -79.806419, 7],
+  'North Dakota':         [47.528912,  -99.784012, 7],
+  'Ohio':                 [40.388783,  -82.764915, 7],
+  'Oklahoma':             [35.565342,  -96.928917, 7],
+  'Oregon':               [44.572021, -122.070938, 7],
+  'Pennsylvania':         [40.590752,  -77.209755, 7],
+  'Rhode Island':         [41.680893,  -71.511780, 9],
+  'South Carolina':       [33.856892,  -80.945007, 7],
+  'South Dakota':         [44.299782,  -99.438828, 7],
+  'Tennessee':            [35.747845,  -86.692345, 7],
+  'Texas':                [31.054487,  -97.563461, 6],
+  'Utah':                 [40.150032, -111.862434, 7],
+  'Vermont':              [44.045876,  -72.710686, 8],
+  'Virginia':             [37.769337,  -78.169968, 7],
+  'Washington':           [47.400902, -121.490494, 7],
+  'West Virginia':        [38.491226,  -80.954453, 7],
+  'Wisconsin':            [44.268543,  -89.616508, 7],
+  'Wyoming':              [42.755966, -107.302490, 7],
+  'District of Columbia': [38.9072,    -77.0369,  13],
+};
+
+// ── Author tidbits — one notable literary figure per state ────────────────────
+const AUTHOR_TIDBITS = {
+  'Alabama':              { name: 'Harper Lee',           url: 'https://en.wikipedia.org/wiki/Harper_Lee',           tidbit: 'Born in Monroeville, AL — the model for Maycomb in To Kill a Mockingbird.' },
+  'Alaska':               { name: 'Jack London',          url: 'https://en.wikipedia.org/wiki/Jack_London',          tidbit: 'Prospected in Alaska during the Klondike Gold Rush — it shaped The Call of the Wild.' },
+  'Arizona':              { name: 'Barbara Kingsolver',   url: 'https://en.wikipedia.org/wiki/Barbara_Kingsolver',   tidbit: 'Set The Bean Trees and Prodigal Summer in the Arizona desert landscape she loved.' },
+  'Arkansas':             { name: 'Maya Angelou',         url: 'https://en.wikipedia.org/wiki/Maya_Angelou',         tidbit: 'Spent formative years in Stamps, AR — vividly portrayed in I Know Why the Caged Bird Sings.' },
+  'California':           { name: 'Joan Didion',          url: 'https://en.wikipedia.org/wiki/Joan_Didion',          tidbit: 'Grew up in Sacramento and made California\'s disillusionment her literary subject.' },
+  'Colorado':             { name: 'James Michener',       url: 'https://en.wikipedia.org/wiki/James_A._Michener',    tidbit: 'Centennial was his sweeping fictional history of Colorado, researched on location.' },
+  'Connecticut':          { name: 'Mark Twain',           url: 'https://en.wikipedia.org/wiki/Mark_Twain',           tidbit: 'Lived in Hartford for 17 years — the house is now a National Historic Landmark.' },
+  'Delaware':             { name: 'John Marquand',        url: 'https://en.wikipedia.org/wiki/John_P._Marquand',     tidbit: 'Pulitzer Prize winner who chronicled old-money New England society with a Delaware sensibility.' },
+  'Florida':              { name: 'Zora Neale Hurston',   url: 'https://en.wikipedia.org/wiki/Zora_Neale_Hurston',   tidbit: 'Raised in Eatonville, FL — the first incorporated all-Black township in the United States.' },
+  'Georgia':              { name: 'Flannery O\'Connor',   url: 'https://en.wikipedia.org/wiki/Flannery_O%27Connor',  tidbit: 'Spent her final years on Andalusia Farm in Milledgeville — peacocks and all.' },
+  'Hawaii':               { name: 'James Michener',       url: 'https://en.wikipedia.org/wiki/Hawaii_(novel)',        tidbit: 'His novel Hawaii (1959) brought the islands\' deep history to millions before statehood.' },
+  'Idaho':                { name: 'Vardis Fisher',        url: 'https://en.wikipedia.org/wiki/Vardis_Fisher',        tidbit: 'Idaho\'s most prolific novelist — his 12-volume Testament of Man began in Annis, ID.' },
+  'Illinois':             { name: 'Saul Bellow',          url: 'https://en.wikipedia.org/wiki/Saul_Bellow',          tidbit: 'Raised in Chicago and set Herzog, Humboldt\'s Gift, and Augie March in its streets.' },
+  'Indiana':              { name: 'Kurt Vonnegut',        url: 'https://en.wikipedia.org/wiki/Kurt_Vonnegut',        tidbit: 'Born in Indianapolis — the city he called "my town" even after decades in New York.' },
+  'Iowa':                 { name: 'Marilynne Robinson',   url: 'https://en.wikipedia.org/wiki/Marilynne_Robinson',   tidbit: 'Gilead is set in fictional small-town Iowa — written while she taught at the Iowa Writers\' Workshop.' },
+  'Kansas':               { name: 'Truman Capote',        url: 'https://en.wikipedia.org/wiki/Truman_Capote',        tidbit: 'Spent years in Holcomb researching In Cold Blood — the town is still marked by his presence.' },
+  'Kentucky':             { name: 'Wendell Berry',        url: 'https://en.wikipedia.org/wiki/Wendell_Berry',        tidbit: 'Has farmed the same land in Henry County since 1965 — his writing and life are inseparable.' },
+  'Louisiana':            { name: 'Kate Chopin',          url: 'https://en.wikipedia.org/wiki/Kate_Chopin',          tidbit: 'The Awakening scandalized New Orleans readers in 1899. Dismissed — then rediscovered 60 years later.' },
+  'Maine':                { name: 'Stephen King',         url: 'https://en.wikipedia.org/wiki/Stephen_King',         tidbit: 'Set most of his novels in fictional Maine towns — Castle Rock and Derry are real places at heart.' },
+  'Maryland':             { name: 'Frederick Douglass',   url: 'https://en.wikipedia.org/wiki/Frederick_Douglass',   tidbit: 'Born enslaved in Talbot County, MD — his Narrative changed the course of American history.' },
+  'Massachusetts':        { name: 'Nathaniel Hawthorne',  url: 'https://en.wikipedia.org/wiki/Nathaniel_Hawthorne',  tidbit: 'Born in Salem, descended from a witch-trial judge — a guilt he carried into his fiction.' },
+  'Michigan':             { name: 'Jim Harrison',         url: 'https://en.wikipedia.org/wiki/Jim_Harrison',         tidbit: 'Grew up in northern Michigan and never left it behind — Legends of the Fall was born there.' },
+  'Minnesota':            { name: 'Sinclair Lewis',       url: 'https://en.wikipedia.org/wiki/Sinclair_Lewis',       tidbit: 'Born in Sauk Centre, MN — model for Gopher Prairie in Main Street. First American Nobel laureate in Literature.' },
+  'Mississippi':          { name: 'William Faulkner',     url: 'https://en.wikipedia.org/wiki/William_Faulkner',     tidbit: 'Never strayed far from Oxford, MS — Yoknapatawpha County is Lafayette County in everything but name.' },
+  'Missouri':             { name: 'T.S. Eliot',           url: 'https://en.wikipedia.org/wiki/T._S._Eliot',          tidbit: 'Born in St. Louis — The Love Song of J. Alfred Prufrock was written by a man who grew up on the Mississippi.' },
+  'Montana':              { name: 'Norman Maclean',       url: 'https://en.wikipedia.org/wiki/Norman_Maclean',       tidbit: 'A River Runs Through It drew on his boyhood on the Blackfoot River — published when he was 73.' },
+  'Nebraska':             { name: 'Willa Cather',         url: 'https://en.wikipedia.org/wiki/Willa_Cather',         tidbit: 'Grew up on the Nebraska prairie — O Pioneers! and My Ántonia are her love letters to the plains.' },
+  'Nevada':               { name: 'Walter Van Tilburg Clark', url: 'https://en.wikipedia.org/wiki/Walter_Van_Tilburg_Clark', tidbit: 'The Ox-Bow Incident was set in Nevada\'s high desert — a landmark of American Western literature.' },
+  'New Hampshire':        { name: 'J.D. Salinger',        url: 'https://en.wikipedia.org/wiki/J._D._Salinger',       tidbit: 'Lived as a recluse in Cornish, NH for 55 years after The Catcher in the Rye made him famous.' },
+  'New Jersey':           { name: 'Philip Roth',          url: 'https://en.wikipedia.org/wiki/Philip_Roth',          tidbit: 'Born and raised in Newark — he returned to it again and again: American Pastoral, Goodbye Columbus, The Plot Against America.' },
+  'New Mexico':           { name: 'Rudolfo Anaya',        url: 'https://en.wikipedia.org/wiki/Rudolfo_Anaya',        tidbit: 'Bless Me, Ultima drew on his childhood in Pastura, NM — the novel that launched Chicano literature.' },
+  'New York':             { name: 'Edith Wharton',        url: 'https://en.wikipedia.org/wiki/Edith_Wharton',        tidbit: 'Born on 23rd St in Manhattan — The Age of Innocence dissected the society that raised her.' },
+  'North Carolina':       { name: 'Thomas Wolfe',         url: 'https://en.wikipedia.org/wiki/Thomas_Wolfe',         tidbit: 'You Can\'t Go Home Again was about Asheville, NC — and then he literally couldn\'t go home because of it.' },
+  'North Dakota':         { name: 'Louise Erdrich',       url: 'https://en.wikipedia.org/wiki/Louise_Erdrich',       tidbit: 'Her family roots are Turtle Mountain Chippewa in North Dakota — the setting of most of her fiction.' },
+  'Ohio':                 { name: 'Toni Morrison',        url: 'https://en.wikipedia.org/wiki/Toni_Morrison',        tidbit: 'Born in Lorain, OH — Beloved, Song of Solomon, and The Bluest Eye carry the landscape of Ohio.' },
+  'Oklahoma':             { name: 'Ralph Ellison',        url: 'https://en.wikipedia.org/wiki/Ralph_Ellison',        tidbit: 'Born in Oklahoma City — Invisible Man was shaped by his Black Oklahoman experience as much as by Harlem.' },
+  'Oregon':               { name: 'Ursula K. Le Guin',   url: 'https://en.wikipedia.org/wiki/Ursula_K._Le_Guin',    tidbit: 'Spent her life in Portland — the Pacific Northwest infuses every sense of place in her work.' },
+  'Pennsylvania':         { name: 'John Updike',          url: 'https://en.wikipedia.org/wiki/John_Updike',          tidbit: 'Born in Reading, PA — the Rabbit novels are a portrait of middle-class Pennsylvania over four decades.' },
+  'Rhode Island':         { name: 'H.P. Lovecraft',       url: 'https://en.wikipedia.org/wiki/H._P._Lovecraft',      tidbit: 'Never really left Providence, RI — the city\'s architecture haunts every story he ever wrote.' },
+  'South Carolina':       { name: 'Pat Conroy',           url: 'https://en.wikipedia.org/wiki/Pat_Conroy',           tidbit: 'Grew up as a military kid in Beaufort, SC — The Great Santini and The Prince of Tides are autobiographical to their bones.' },
+  'South Dakota':         { name: 'Laura Ingalls Wilder', url: 'https://en.wikipedia.org/wiki/Laura_Ingalls_Wilder', tidbit: 'The Little House books drew on her childhood in De Smet, SD — still a literary pilgrimage site.' },
+  'Tennessee':            { name: 'Cormac McCarthy',      url: 'https://en.wikipedia.org/wiki/Cormac_McCarthy',      tidbit: 'Suttree is a portrait of Knoxville\'s riverbanks — written in a rented room while he lived in near-poverty.' },
+  'Texas':                { name: 'Larry McMurtry',       url: 'https://en.wikipedia.org/wiki/Larry_McMurtry',       tidbit: 'Born in Archer City, TX — Lonesome Dove came from a lifetime living and reading on the Texas plains.' },
+  'Utah':                 { name: 'Terry Tempest Williams', url: 'https://en.wikipedia.org/wiki/Terry_Tempest_Williams', tidbit: 'Refuge was written about her mother\'s cancer and the flooding of a Utah bird sanctuary simultaneously.' },
+  'Vermont':              { name: 'Robert Frost',         url: 'https://en.wikipedia.org/wiki/Robert_Frost',         tidbit: 'Though born in San Francisco, Vermont is where Frost farmed, wrote, and is buried.' },
+  'Virginia':             { name: 'Tom Wolfe',            url: 'https://en.wikipedia.org/wiki/Tom_Wolfe',            tidbit: 'Born in Richmond, VA — The Bonfire of the Vanities and A Man in Full share his Virginian eye for class.' },
+  'Washington':           { name: 'Sherman Alexie',       url: 'https://en.wikipedia.org/wiki/Sherman_Alexie',       tidbit: 'Grew up on the Spokane Indian Reservation — The Absolutely True Diary of a Part-Time Indian is drawn from life.' },
+  'West Virginia':        { name: 'Breece D\'J Pancake',  url: 'https://en.wikipedia.org/wiki/Breece_D%27J_Pancake', tidbit: 'Wrote only 12 stories before his death at 26 — considered a masterpiece of Appalachian literature.' },
+  'Wisconsin':            { name: 'Thornton Wilder',      url: 'https://en.wikipedia.org/wiki/Thornton_Wilder',      tidbit: 'Our Town is set in fictional New Hampshire — but Wilder grew up in Madison, WI.' },
+  'Wyoming':              { name: 'Annie Proulx',         url: 'https://en.wikipedia.org/wiki/Annie_Proulx',         tidbit: 'Wyoming Stories (including Brokeback Mountain) was written after she moved to a ranch outside Centennial, WY.' },
+  'District of Columbia': { name: 'Edward P. Jones',      url: 'https://en.wikipedia.org/wiki/Edward_P._Jones',      tidbit: 'The Known World and Lost in the City are intimate portraits of Washington D.C.\'s Black communities.' },
+};
+
+// ── Author tidbit keyframes — injected once into document.head ────────────────
+let _tidbitStyleInjected = false;
+const ensureFlickerStyle = () => {
+  if (_tidbitStyleInjected || typeof document === 'undefined') return;
+  _tidbitStyleInjected = true;
+  const el = document.createElement('style');
+  el.textContent = `
+    @keyframes neon-flicker {
+      0%   { opacity: 1;    }
+      15%  { opacity: 0.85; }
+      17%  { opacity: 1;    }
+      50%  { opacity: 1;    }
+      51%  { opacity: 0.7;  }
+      53%  { opacity: 1;    }
+      100% { opacity: 1;    }
+    }
+    @keyframes tidbit-slide-in {
+      from { transform: translateX(-120%); }
+      to   { transform: translateX(0); }
+    }
+    @keyframes tidbit-slide-out {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-120%); }
+    }
+  `;
+  document.head.appendChild(el);
+};
+
 const SS_FALLBACK_STATES = [
   'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
   'Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
@@ -729,6 +868,129 @@ const UiModeController = ({ uiMode }) => {
   return null;
 };
 
+// Floating author tidbit trapezoid — fixed to the top-left corner of the map.
+// Triggered by hovering a state for 600ms (debounce handled in onEachStateFeature).
+// Slides in from the left on mount, slides out before unmounting.
+// Auto-dismisses after 4.5s; hovering the card pauses the timer.
+const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
+  const map                     = useMap();
+  const author                  = AUTHOR_TIDBITS[stateName];
+  const [dismissed, setDismiss] = useState(false);
+  const [hovered,   setHovered] = useState(false);
+  const [color]                 = useState(() => Math.random() < 0.5 ? '#FF4E00' : '#40E0D0');
+  const timerRef                = useRef(null);
+
+  useEffect(() => { ensureFlickerStyle(); }, []);
+
+  const triggerDismiss = () => {
+    setDismiss(true);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(onDismiss, 320); // wait for slide-out to finish
+  };
+
+  const startTimer = () => {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(triggerDismiss, 3500);
+  };
+
+  useEffect(() => {
+    startTimer();
+    return () => clearTimeout(timerRef.current);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!author) return null;
+
+  const W    = 168, H = 78;
+  const CLIP = 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)';
+
+  return createPortal(
+    // Slide animation wrapper — transform lives here so it doesn't conflict with hover scale
+    <div style={{
+      position:  'absolute',
+      top:       '80px',
+      left:      '16px',
+      zIndex:    1000,
+      animation: dismissed
+        ? 'tidbit-slide-out 0.3s ease forwards'
+        : 'tidbit-slide-in 0.35s ease forwards',
+    }}>
+      {/* Hover-scale + pointer wrapper */}
+      <div
+        style={{
+          cursor:          'pointer',
+          transform:       `scale(${hovered ? 1.04 : 1})`,
+          transformOrigin: 'left center',
+          transition:      'transform 0.2s ease',
+        }}
+        onMouseEnter={() => { setHovered(true);  clearTimeout(timerRef.current); }}
+        onMouseLeave={() => { setHovered(false); startTimer(); }}
+        onClick={() => window.open(author.url, '_blank', 'noopener noreferrer')}
+      >
+        {/* Outer trapezoid: neon border + 3-D extrusion via stacked offset drop-shadows */}
+        <div style={{
+          width:      W,
+          height:     H,
+          clipPath:   CLIP,
+          // Gradient on border surface: lighter top-edge → base color → darker bottom — simulates top lighting
+          background: color === '#FF4E00'
+            ? 'linear-gradient(175deg, #FF7040 0%, #FF4E00 50%, #CC3C00 100%)'
+            : 'linear-gradient(175deg, #65EEE0 0%, #40E0D0 50%, #28B0A8 100%)',
+          padding:    '2px',
+          boxSizing:  'border-box',
+          // Stacked offset shadows simulate physical thickness; neon glow follows the clip-path
+          filter: `
+            drop-shadow(1px 2px 0px #000)
+            drop-shadow(2px 4px 0px rgba(0,0,0,0.65))
+            drop-shadow(3px 6px 0px rgba(0,0,0,0.35))
+            drop-shadow(0 0 8px ${color})
+            drop-shadow(0 0 3px ${color})
+          `,
+          animation:  'neon-flicker 4s ease-in-out infinite',
+        }}>
+          {/* Inner trapezoid: top-left highlight gradient gives a lit concave surface feel */}
+          <div style={{
+            width:          '100%',
+            height:         '100%',
+            clipPath:       CLIP,
+            background:     'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, #1A1B2E 35%)',
+            display:        'flex',
+            flexDirection:  'column',
+            justifyContent: 'center',
+            padding:        '8px 20px 8px 14px',
+            boxSizing:      'border-box',
+          }}>
+            <p style={{
+              fontFamily:    'Bungee, sans-serif',
+              fontSize:      '10px',
+              color:         color,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              margin:        0,
+              lineHeight:    1.2,
+            }}>
+              {author.name}
+            </p>
+            <p style={{
+              fontFamily:      'Special Elite, serif',
+              fontSize:        '9px',
+              color:           'rgba(245,245,220,0.8)',
+              margin:          '4px 0 0',
+              lineHeight:      1.4,
+              overflow:        'hidden',
+              display:         '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}>
+              {author.tidbit}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>,
+    map.getContainer()
+  );
+};
+
 // Inline search bar rendered inside the header when showSearch is true
 const PlaceSearch = ({ onSelect }) => {
   const [query, setQuery] = useState('');
@@ -852,6 +1114,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [ssSelected, setSsSelected] = useState(new Set());
   const ssSelectedRef = useRef(new Set());
   const ssLayersRef = useRef({});
+  const [tidbitState, setTidbitState] = useState(null); // state name whose author tidbit is visible
+  const tidbitTimerRef = useRef(null);                   // 600ms debounce for hover trigger
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
   const [startPickedCoords, setStartPickedCoords] = useState(null);
@@ -1586,61 +1850,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     updateRouteName(user.uid, routeId, routeName).catch(err => console.error('[MasterMap] rename route:', err));
   };
 
-  // State centers for initial zoom
-  const STATE_CENTERS = {
-    'Alabama': [32.806671, -86.791130, 7],
-    'Alaska': [61.370716, -152.404419, 4],
-    'Arizona': [33.729759, -111.431221, 7],
-    'Arkansas': [34.969704, -92.373123, 7],
-    'California': [36.116203, -119.681564, 6],
-    'Colorado': [39.059811, -105.311104, 7],
-    'Connecticut': [41.597782, -72.755371, 8],
-    'Delaware': [39.318523, -75.507141, 8],
-    'Florida': [27.766279, -81.686783, 7],
-    'Georgia': [33.040619, -83.643074, 7],
-    'Hawaii': [21.094318, -157.498337, 7],
-    'Idaho': [44.240459, -114.478828, 6],
-    'Illinois': [40.349457, -88.986137, 7],
-    'Indiana': [39.849426, -86.258278, 7],
-    'Iowa': [42.011539, -93.210526, 7],
-    'Kansas': [38.526600, -96.726486, 7],
-    'Kentucky': [37.668140, -84.670067, 7],
-    'Louisiana': [31.169546, -91.867805, 7],
-    'Maine': [44.693947, -69.381927, 7],
-    'Maryland': [39.063946, -76.802101, 8],
-    'Massachusetts': [42.230171, -71.530106, 8],
-    'Michigan': [43.326618, -84.536095, 7],
-    'Minnesota': [45.694454, -93.900192, 6],
-    'Mississippi': [32.741646, -89.678696, 7],
-    'Missouri': [38.456085, -92.288368, 7],
-    'Montana': [46.921925, -110.454353, 6],
-    'Nebraska': [41.125370, -98.268082, 7],
-    'Nevada': [38.313515, -117.055374, 6],
-    'New Hampshire': [43.452492, -71.563896, 8],
-    'New Jersey': [40.298904, -74.521011, 8],
-    'New Mexico': [34.840515, -106.248482, 7],
-    'New York': [42.165726, -74.948051, 7],
-    'North Carolina': [35.630066, -79.806419, 7],
-    'North Dakota': [47.528912, -99.784012, 7],
-    'Ohio': [40.388783, -82.764915, 7],
-    'Oklahoma': [35.565342, -96.928917, 7],
-    'Oregon': [44.572021, -122.070938, 7],
-    'Pennsylvania': [40.590752, -77.209755, 7],
-    'Rhode Island': [41.680893, -71.511780, 9],
-    'South Carolina': [33.856892, -80.945007, 7],
-    'South Dakota': [44.299782, -99.438828, 7],
-    'Tennessee': [35.747845, -86.692345, 7],
-    'Texas': [31.054487, -97.563461, 6],
-    'Utah': [40.150032, -111.862434, 7],
-    'Vermont': [44.045876, -72.710686, 8],
-    'Virginia': [37.769337, -78.169968, 7],
-    'Washington': [47.400902, -121.490494, 7],
-    'West Virginia': [38.491226, -80.954453, 7],
-    'Wisconsin': [44.268543, -89.616508, 7],
-    'Wyoming': [42.755966, -107.302490, 7],
-    'District of Columbia': [38.9072, -77.0369, 13],
-  };
-
   // ── State-selection overlay functions ────────────────────────────────────────
   const toggleStateSelect = (name) => {
     setSsSelected(prev => {
@@ -1661,10 +1870,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       mouseover: () => {
         layer.setStyle(ssSelectedRef.current.has(name) ? SS_HOVER_SEL_STYLE : SS_HOVER_STYLE);
         setSsHovered(name);
+        // 600ms debounce — show tidbit only if user lingers on the state
+        clearTimeout(tidbitTimerRef.current);
+        if (AUTHOR_TIDBITS[name]) {
+          tidbitTimerRef.current = setTimeout(() => setTidbitState(name), 600);
+        }
       },
       mouseout: () => {
         layer.setStyle(ssSelectedRef.current.has(name) ? SS_SELECTED_STYLE : SS_DEFAULT_STYLE);
         setSsHovered('');
+        // Cancel pending debounce if user left before 600ms
+        clearTimeout(tidbitTimerRef.current);
       },
       click: () => toggleStateSelect(name),
     });
@@ -1742,6 +1958,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSelectedLocation(null);
     setItineraryRoute(null);
     setLoadedRouteType('literary');
+    // Reset any highlighted state layers before clearing refs
+    Object.values(ssLayersRef.current).forEach(l => l.setStyle(SS_DEFAULT_STYLE));
     // Clear stale layer refs so GeoJSON re-registers handlers on next render
     ssLayersRef.current = {};
     setSsSelected(new Set());
@@ -2527,6 +2745,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <FitBoundsController target={fitTarget} />
           <MapPositionTracker routeStateRef={routeStateRef} onMove={setMapCenter} />
           <UiModeController uiMode={uiMode} />
+
+          {/* Author tidbit trapezoid — shown after 600ms hover on a state, auto-dismisses */}
+          {uiMode === 'stateSelect' && tidbitState && (
+            <AuthorTidbitOverlay
+              key={tidbitState}
+              stateName={tidbitState}
+              onDismiss={() => setTidbitState(null)}
+            />
+          )}
 
           {/* State-selection GeoJSON — shown only in stateSelect mode */}
           {uiMode === 'stateSelect' && ssGeoJson && (

@@ -25,7 +25,7 @@
     "active": true
   },
   {
-    "id": "nyt-book-review",
+    "id": "nyt-book-review", 
     "title": "The Book Review",
     "host": "New York Times",
     "description": "The New York Times Book Review podcast features author interviews, discussions of the week's notable new books, and conversations about literature and the publishing world.",
@@ -97,17 +97,7 @@
     "emoji": "🎙️",
     "active": true
   },
-  {
-    "id": "shakespeare-unlimited",
-    "title": "Shakespeare Unlimited",
-    "host": "Folger Shakespeare Library",
-    "description": "Interviews with scholars, actors, and artists about Shakespeare's life, work, and legacy.",
-    "url": "https://www.folger.edu/shakespeare-unlimited",
-    "rssUrl": "https://feeds.soundcloud.com/users/soundcloud:users:172014056/sounds.rss",
-    "tags": ["Literary History", "Theater", "Scholars"],
-    "emoji": "🎭",
-    "active": true
-  },
+
   {
     "id": "ask-penguin",
     "title": "Ask Penguin",
@@ -130,8 +120,166 @@
     "rssUrl": "",
     "tags": [],
     "emoji": "📜",
-    "active": true,
-    "_apple": "https://podcasts.apple.com/podcast/id1691138219",
-    "_listenNotesUrl": "https://www.listennotes.com/c/e5ad71158cb94d4186434bae6cf440eb/"
+    "active": true
+   
+  },
+{
+
+    "id": "book-news",
+    "title": "Book News",
+    "host": "Book News",
+    "description": "We review all kinds of books and talk about them.",
+    "url": "https://podcasters.spotify.com/pod/show/book-news?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "📚",
+    "active": false
+   
+  },
+
+
+{
+    "id": "brianna-wiest",
+    "title": "Brianna Wiest",
+    "host": "Brianna Wiest",
+    "description": "Brianna is the bestselling author of the books 101 Essays The Will Change The Way You Think, The Mountain Is You, Salt Water, Ceremony, When You're Ready, This Is How You Heal, and more.",
+    "url": "https://thoughtcatalog.com/brianna-wiest/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Social Sciences"
+    ],
+    "emoji": "🎙️",
+    "active": false
+    
+  },
+
+{
+    "id": "fully-booked-by-kirkus-reviews",
+    "title": "Fully Booked by Kirkus Reviews",
+    "host": "PodcastOne",
+    "description": "Get the ultimate insider's scoop on the best new books. The editors at Kirkus Reviews interview your favorite authors, tell you whether or not the books on the bestseller list are worth the read, give you behind-the-scenes insights, and introduce you to great books you may otherwise never find.",
+    "url": "https://art19.com/shows/fully-booked-by-kirkus-reviews?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Social Sciences",
+      "Music"
+    ],
+    "emoji": "🎙️",
+    "active": false
+  
+  },
+
+ {
+    "id": "read-this",
+    "title": "Read This",
+    "host": "Schwartz",
+    "description": "Read This is a show about the books we love and the stories behind them, hosted by Michael Williams. Every Thursday, you’ll hear insightful conversations with the smartest, funniest readers and writers we know and in-depth interviews with the best Australian and international authors.",
+    "url": "https://www.spreaker.com/podcast/read-this--6671847?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Music"
+    ],
+    "emoji": "🎙️",
+    "active": false
+    
+  },
+
+
+ {
+    "id": "reading-and-writing-podcast",
+    "title": "Reading And Writing Podcast",
+    "host": "Jeff Rutherford",
+    "description": "Interviews with authors and writers about their books, their writing habits, their favorite novels, and how they got started writing.",
+    "url": "https://redcircle.com/shows/reading-and-writing-podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Music"
+    ],
+    "emoji": "🎙️",
+    "active": false
+    
+  },
+
+
+{
+    "id": "the-book-case",
+    "title": "The Book Case",
+    "host": "ABC News | Charlie Gibson, Kate Gibson",
+    "description": "Are you stuck in a reading rut? The Book Case makes the case for books outside of your usual genre. Wander the aisles of your local bookstore with Kate and Charlie Gibson and meet fascinating characters who will open your appetite to new categories while deepening your hunger for books.",
+    "url": "https://abcaudio.com/podcasts/the-book-case/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Society & Culture",
+      "Music"
+    ],
+    "emoji": "🎙️",
+    "active": false
+   
+  },
+
+
+ {
+    "id": "the-h-p-lovecraft-literary-podcast",
+    "title": "The H.P. Lovecraft Literary Podcast",
+    "host": "Strange Studies of Strange Stories",
+    "description": "The H.P. Lovecraft Literary Podcast hatched in 2009 and is still going strong as Strange Studies of Strange Stories!Each week, hosts Chad Fifer and Chris Lackey discuss a piece of genre fiction. Talented voice actors bring the text to life. Music and sound effects create atmosphere while occasional guest experts show up to make things classy.",
+    "url": "https://www.hppodcraft.com/episodes/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Visual Arts",
+      "Design",
+      "Education",
+      "TV & Film"
+    ],
+    "emoji": "📖",
+    "active": false
+   
+  },
+
+
+{
+    "id": "the-lost-sci-fi-podcast-vintage-sci-fi-short-stories",
+    "title": "The Lost Sci-Fi Podcast - Vintage Sci-Fi Short Stories",
+    "host": "Scott Miller",
+    "description": "The Lost Sci-Fi Podcast restores and narrates forgotten and underrated vintage science fiction short stories spanning from the 1700s through the mid-1960s. Each episode features a professionally narrated classic drawn from early speculative fiction, pioneering 19th-century tales, and the pulp magazine era that shaped modern science fiction.",
+    "url": "https://lostscifi.com/the-lost-sci-fi-podcast/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [
+      "Society & Culture"
+    ],
+    "emoji": "📜",
+    "active": false
+   
+  },
+
+{
+    "id": "the-paris-review",
+    "title": "The Paris Review",
+    "host": "The Paris Review",
+    "description": "The Paris Review Podcast returns with a new season, featuring the best interviews, fiction, essays, and poetry from America’s most legendary literary quarterly, brought to life in sound. Join us for intimate conversations with Sharon Olds and Olga Tokarczuk; fiction by Rivers Solomon, Jun'ichirō Tanizaki, and Zach Williams; poems by Terrance Hayes and Maggie Millner; nonfiction by Robert Glück, Jean Garnett, and Sean Thor Conroe; and performances by George Takei, Lena Waithe, and many others.",
+    "url": "https://www.theparisreview.org/podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "✍️",
+    "active": false
+   
+  },
+
+
+
+ {
+    "id": "youre-booked",
+    "title": "You're Booked",
+    "host": "Daisy Buchanan",
+    "description": "Welcome to You’re Booked, the podcast for literary nosy parkers who would like the chance to snoop around their favourite authors’ bookshelves.",
+    "url": "https://play.acast.com/s/booked?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "rssUrl": "",
+    "tags": [],
+    "emoji": "🎙️",
+    "active": false,
+    "_apple": "https://podcasts.apple.com/podcast/id1439173261",
+    "_listenNotesUrl": "https://www.listennotes.com/c/518b144182cd4b379a164cae8328b61b/"
   }
+
+
 ]
