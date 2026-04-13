@@ -112,6 +112,9 @@ service cloud.firestore {
       match /readingQuestHistory/{year} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+      match /discoveredAuthors/{authorId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // ── Public read collections (map data) ────────────────────────────────────

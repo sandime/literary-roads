@@ -35,6 +35,8 @@ import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
 import AudioNarrative from '../components/AudioNarrative';
 import NavigateModal from '../components/NavigateModal';
+import AuthorCardModal from '../components/AuthorCardModal';
+import DiscoveredAuthorsStrip from '../components/DiscoveredAuthorsStrip';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -872,7 +874,7 @@ const UiModeController = ({ uiMode }) => {
 // Triggered by hovering a state for 600ms (debounce handled in onEachStateFeature).
 // Slides in from the left on mount, slides out before unmounting.
 // Auto-dismisses after 4.5s; hovering the card pauses the timer.
-const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
+const AuthorTidbitOverlay = ({ stateName, onDismiss, onOpenCard }) => {
   const map                     = useMap();
   const author                  = AUTHOR_TIDBITS[stateName];
   const [dismissed, setDismiss] = useState(false);
@@ -924,7 +926,7 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
         }}
         onMouseEnter={() => { setHovered(true);  clearTimeout(timerRef.current); }}
         onMouseLeave={() => { setHovered(false); startTimer(); }}
-        onClick={() => window.open(author.url, '_blank', 'noopener noreferrer')}
+        onClick={() => { triggerDismiss(); onOpenCard?.(); }}
       >
         {/* Outer trapezoid: neon border + 3-D extrusion via stacked offset drop-shadows */}
         <div style={{
@@ -1114,8 +1116,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [ssSelected, setSsSelected] = useState(new Set());
   const ssSelectedRef = useRef(new Set());
   const ssLayersRef = useRef({});
-  const [tidbitState, setTidbitState] = useState(null); // state name whose author tidbit is visible
-  const tidbitTimerRef = useRef(null);                   // 600ms debounce for hover trigger
+  const [tidbitState, setTidbitState]     = useState(null); // state name whose author tidbit is visible
+  const tidbitTimerRef = useRef(null);                      // 600ms debounce for hover trigger
+  const [authorCardState, setAuthorCardState] = useState(null); // state name for open author card modal
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
   const [startPickedCoords, setStartPickedCoords] = useState(null);
@@ -2752,6 +2755,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               key={tidbitState}
               stateName={tidbitState}
               onDismiss={() => setTidbitState(null)}
+              onOpenCard={() => { setAuthorCardState(tidbitState); setTidbitState(null); }}
+            />
+          )}
+
+          {/* Discovered authors strip — horizontal pill row at bottom in state-select mode */}
+          {uiMode === 'stateSelect' && (
+            <DiscoveredAuthorsStrip
+              user={user}
+              onAuthorClick={a => setAuthorCardState(a.state)}
             />
           )}
 
@@ -3937,6 +3949,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           badges={newBadges}
           onClose={() => setNewBadges([])}
           onViewAll={onShowBadges}
+        />
+      )}
+
+      {/* ── Author card modal ── */}
+      {authorCardState && AUTHOR_TIDBITS[authorCardState] && (
+        <AuthorCardModal
+          author={AUTHOR_TIDBITS[authorCardState]}
+          stateName={authorCardState}
+          user={user}
+          onClose={() => setAuthorCardState(null)}
         />
       )}
     </div>
