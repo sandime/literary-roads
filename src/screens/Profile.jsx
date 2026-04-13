@@ -540,7 +540,7 @@ function QuestHistoryModal({ history, onClose }) {
 }
 
 // ── Main Profile component ──────────────────────────────────────────────────
-export default function Profile({ onBack, onShowBookLog, onShowLibrary, onShowBadges, selectedStates = [] }) {
+export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedStates = [] }) {
   const { user } = useAuth();
 
   const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
@@ -865,7 +865,7 @@ export default function Profile({ onBack, onShowBookLog, onShowLibrary, onShowBa
             ))}
           </div>
           <button
-            onClick={onShowLibrary || onShowBookLog}
+            onClick={onShowLibrary}
             className="w-full font-bungee text-[10px] py-2 rounded-lg transition-all"
             style={{ border: '1px solid rgba(64,224,208,0.5)', color: '#40E0D0', background: 'transparent', letterSpacing: '0.06em' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(64,224,208,0.12)'; e.currentTarget.style.borderColor = '#40E0D0'; }}
@@ -987,7 +987,7 @@ export default function Profile({ onBack, onShowBookLog, onShowLibrary, onShowBa
                     CHANGE GOAL
                   </button>
                   <button
-                    onClick={onShowLibrary || onShowBookLog}
+                    onClick={onShowLibrary}
                     className="font-bungee text-[10px] flex-1 py-2 rounded-lg transition-all"
                     style={{ border: '1px solid rgba(255,78,0,0.5)', color: '#FF4E00', background: 'transparent', letterSpacing: '0.06em', cursor: 'pointer' }}
                     onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.12)'; e.currentTarget.style.borderColor = '#FF4E00'; }}

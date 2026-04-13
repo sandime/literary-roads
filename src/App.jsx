@@ -12,7 +12,6 @@ import FestivalTripPlanner from './screens/FestivalTripPlanner';
 import Login from './screens/Login';
 import Profile from './screens/Profile';
 import Resources from './screens/Resources';
-import BookLog from './screens/BookLog';
 import Library from './screens/Library';
 import About from './screens/About';
 import Ethics from './screens/Ethics';
@@ -31,7 +30,7 @@ import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
-  const [screen, setScreen] = useState('loading'); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'bookLog' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy'
+  const [screen, setScreen] = useState('loading'); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
   // Tracks where Profile was opened from — never clobbered by sub-navigation
@@ -127,11 +126,6 @@ function AppInner() {
     setScreen('credits');
   };
 
-  const handleShowBookLog = () => {
-    setPreviousScreen(screen);
-    setScreen('bookLog');
-  };
-
   const handleShowLibrary = () => {
     setPreviousScreen(screen);
     setScreen('library');
@@ -182,7 +176,7 @@ function AppInner() {
     setScreen('map');
   };
 
-  // Profile back uses profileOrigin, which is never clobbered by BookLog navigation.
+  // Profile back uses profileOrigin, which is never clobbered by sub-screen navigation.
   const handleProfileBack = () => setScreen(profileOrigin);
 
   const handleAuthBack = () => {
@@ -224,7 +218,6 @@ function AppInner() {
           onShowProfile={handleShowProfile}
           onShowLogin={handleShowLogin}
           onShowResources={handleShowResources}
-          onShowBookLog={handleShowBookLog}
           onShowLibrary={handleShowLibrary}
           onShowAbout={handleShowAbout}
           onShowEthics={handleShowEthics}
@@ -268,7 +261,6 @@ function AppInner() {
       {screen === 'profile' && (
         <Profile
           onBack={handleProfileBack}
-          onShowBookLog={handleShowBookLog}
           onShowLibrary={handleShowLibrary}
           onShowBadges={handleShowBadges}
           selectedStates={selectedStates}
@@ -276,9 +268,6 @@ function AppInner() {
       )}
       {screen === 'badges' && (
         <Badges onBack={handleAuthBack} />
-      )}
-      {screen === 'bookLog' && (
-        <BookLog onBack={handleAuthBack} />
       )}
       {screen === 'library' && (
         <Library onBack={handleAuthBack} />

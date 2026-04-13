@@ -1099,7 +1099,7 @@ const PlaceSearch = ({ onSelect }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowBookLog, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   // Initialize from saved ref so route survives navigating away and back
@@ -2702,7 +2702,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             onMyTrips={() => setShowRoadTrip(true)}
             onLibrary={onShowLibrary}
             onResources={onShowResources}
-            onBookLog={onShowBookLog}
+            onBookLog={onShowLibrary}
             onBadges={onShowBadges}
             tripItems={tripItems}
             earnedBadgeCount={earnedBadgeData.length}
