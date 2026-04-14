@@ -137,7 +137,7 @@ export default function AuthorPage() {
   };
 
   const appBase = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-  const openMap = () => { window.location.href = appBase; };
+  const openMap = () => { window.location.href = appBase + '/'; };
   const landmarkHref = (id) => `${appBase}/?landmark=${encodeURIComponent(id)}`;
 
   if (!author) {
