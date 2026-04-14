@@ -137,7 +137,7 @@ export default function AuthorPage() {
   };
 
   const appBase = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-  const openMap = () => { window.location.href = appBase + '/'; };
+  const openMap = () => { window.location.href = appBase + '/?back=1'; };
   const landmarkHref = (id) => `${appBase}/?landmark=${encodeURIComponent(id)}`;
 
   if (!author) {
@@ -160,7 +160,7 @@ export default function AuthorPage() {
         </button>
         <span style={styles.navTitle}>Literary Roads / Library</span>
         <div style={styles.navLinks}>
-          <a href={appBase} style={styles.navLink}>Library</a>
+          <a href={`${appBase}/?back=1`} style={styles.navLink}>Library</a>
           <a href={`${appBase}/newspaper/current`} style={styles.navLink}>Gazette</a>
         </div>
       </nav>
