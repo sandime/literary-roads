@@ -1,13 +1,21 @@
 import { useState, useEffect } from 'react';
-import { httpsCallable } from 'firebase/functions';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, functions } from '../config/firebase';
+import { db } from '../config/firebase';
 
 const SYNC_PRODUCT_ID = '427886181';
 const BASE_URL        = import.meta.env.BASE_URL || '/';
+const FN_BASE         = 'https://us-central1-the-literary-roads.cloudfunctions.net';
 
-const getProductFn          = httpsCallable(functions, 'getProduct');
-const createCheckoutSession = httpsCallable(functions, 'createCheckoutSession');
+async function callFn(name, body) {
+  const res = await fetch(`${FN_BASE}/${name}`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(body),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
+  return json;
+}
 
 const C = {
   bg:      '#2C1A0E',
@@ -142,13 +150,13 @@ export default function Store({ onBack }) {
   useEffect(() => {
     if (!storeEnabled) return;
     setLoading(true);
-    getProductFn({ syncProductId: SYNC_PRODUCT_ID })
-      .then(res => {
-        setProduct(res.data);
-        setSelectedVariant(res.data.variants?.[0] ?? null);
+    callFn('storeGetProduct', { syncProductId: SYNC_PRODUCT_ID })
+      .then(data => {
+        setProduct(data);
+        setSelectedVariant(data.variants?.[0] ?? null);
       })
       .catch(err => {
-        console.error('[Store] getProduct error:', err, 'code:', err?.code, 'details:', err?.details);
+        console.error('[Store] getProduct error:', err);
         setError(err.message || 'Failed to load product.');
       })
       .finally(() => setLoading(false));
@@ -159,15 +167,14 @@ export default function Store({ onBack }) {
     setCheckingOut(true);
     setError(null);
     try {
-      const origin = window.location.origin;
-      const base   = `${origin}/literary-roads/store`;
-      const res    = await createCheckoutSession({
+      const base = `${window.location.origin}/literary-roads/store`;
+      const data = await callFn('storeCreateCheckout', {
         variantId:  String(selectedVariant.id),
         quantity,
         successUrl: `${base}?success=true`,
         cancelUrl:  `${base}?canceled=true`,
       });
-      window.location.href = res.data.url;
+      window.location.href = data.url;
     } catch (err) {
       setError(err.message || 'Checkout failed. Please try again.');
       setCheckingOut(false);

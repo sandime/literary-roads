@@ -95,101 +95,115 @@ exports.gazetteRefresh = functions
     console.log(`[Gazette] Nonfiction #1: ${nonfiction[0]?.title} by ${nonfiction[0]?.author}`);
   });
 
-// ── Store: fetch product from Printful ───────────────────────────────────────
-// Called by the store UI to get product name, image, variants, and pricing.
-// data: { syncProductId: string }
-exports.getProduct = functions
-  .runWith({ secrets: [PRINTFUL_API_KEY] })
-  .https.onCall(async (data) => {
-    const { syncProductId } = data;
-    if (!syncProductId) {
-      throw new functions.https.HttpsError("invalid-argument", "syncProductId is required");
-    }
+// ── CORS helper — sets headers and handles preflight for all store endpoints ──
+function applyCORS(req, res) {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") {
+    res.status(204).send("");
+    return true; // caller should return immediately
+  }
+  return false;
+}
 
-    let res;
+// ── Store: fetch product from Printful ───────────────────────────────────────
+exports.storeGetProduct = functions
+  .runWith({ secrets: [PRINTFUL_API_KEY] })
+  .https.onRequest(async (req, res) => {
+    if (applyCORS(req, res)) return;
+
     try {
-      res = await fetch(
+      const { syncProductId } = req.body;
+      if (!syncProductId) {
+        res.status(400).json({ error: "syncProductId is required" });
+        return;
+      }
+
+      const pfRes = await fetch(
         `https://api.printful.com/store/products/${syncProductId}`,
         { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
       );
+
+      if (!pfRes.ok) {
+        const body = await pfRes.text().catch(() => "");
+        console.error(`[getProduct] Printful ${pfRes.status}:`, body);
+        res.status(502).json({ error: `Printful error: ${pfRes.status}` });
+        return;
+      }
+
+      const { result } = await pfRes.json();
+      res.json({
+        id:        result.sync_product.id,
+        name:      result.sync_product.name,
+        thumbnail: result.sync_product.thumbnail_url,
+        variants:  result.sync_variants.map((v) => ({
+          id:       v.id,
+          name:     v.name,
+          price:    v.retail_price,
+          currency: v.currency,
+        })),
+      });
     } catch (e) {
-      console.error("[getProduct] fetch failed:", e);
-      throw new functions.https.HttpsError("internal", `Printful fetch error: ${e.message}`);
+      console.error("[getProduct] error:", e);
+      res.status(500).json({ error: e.message });
     }
-
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      console.error(`[getProduct] Printful returned ${res.status}:`, body);
-      throw new functions.https.HttpsError("internal", `Printful error: ${res.status}`);
-    }
-
-    const json = await res.json();
-    const { result } = json;
-
-    return {
-      id:        result.sync_product.id,
-      name:      result.sync_product.name,
-      thumbnail: result.sync_product.thumbnail_url,
-      variants:  result.sync_variants.map((v) => ({
-        id:       v.id,
-        name:     v.name,
-        price:    v.retail_price,
-        currency: v.currency,
-      })),
-    };
   });
 
 // ── Store: create Stripe checkout session ─────────────────────────────────────
-// Fetches authoritative price from Printful, then creates a Stripe Checkout session.
-// data: { variantId: string, quantity: number, successUrl: string, cancelUrl: string }
-// Returns: { sessionId: string, url: string }
-exports.createCheckoutSession = functions
+exports.storeCreateCheckout = functions
   .runWith({ secrets: [PRINTFUL_API_KEY, STRIPE_SECRET] })
-  .https.onCall(async (data) => {
-    const { variantId, quantity = 1, successUrl, cancelUrl } = data;
-    if (!variantId || !successUrl || !cancelUrl) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "variantId, successUrl, and cancelUrl are required"
+  .https.onRequest(async (req, res) => {
+    if (applyCORS(req, res)) return;
+
+    try {
+      const { variantId, quantity = 1, successUrl, cancelUrl } = req.body;
+      if (!variantId || !successUrl || !cancelUrl) {
+        res.status(400).json({ error: "variantId, successUrl, and cancelUrl are required" });
+        return;
+      }
+
+      // Fetch variant from Printful to get the authoritative retail price
+      const varRes = await fetch(
+        `https://api.printful.com/store/variants/${variantId}`,
+        { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
       );
-    }
 
-    // Fetch variant from Printful to get the authoritative retail price
-    const varRes = await fetch(
-      `https://api.printful.com/store/variants/${variantId}`,
-      { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
-    );
+      if (!varRes.ok) {
+        res.status(502).json({ error: `Printful variant error: ${varRes.status}` });
+        return;
+      }
 
-    if (!varRes.ok) {
-      throw new functions.https.HttpsError("internal", `Printful variant error: ${varRes.status}`);
-    }
+      const { result: variant } = await varRes.json();
+      const priceInCents = Math.round(parseFloat(variant.retail_price) * 100);
+      const currency     = (variant.currency || "USD").toLowerCase();
 
-    const { result: variant } = await varRes.json();
-    const priceInCents = Math.round(parseFloat(variant.retail_price) * 100);
-    const currency     = (variant.currency || "USD").toLowerCase();
-
-    // Create Stripe Checkout session
-    const stripe  = new Stripe(STRIPE_SECRET.value());
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [{
-        price_data: {
-          currency,
-          product_data: {
-            name:   variant.name,
-            images: variant.product?.image ? [variant.product.image] : [],
+      // Create Stripe Checkout session
+      const stripe  = new Stripe(STRIPE_SECRET.value());
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ["card"],
+        line_items: [{
+          price_data: {
+            currency,
+            product_data: {
+              name:   variant.name,
+              images: variant.product?.image ? [variant.product.image] : [],
+            },
+            unit_amount: priceInCents,
           },
-          unit_amount: priceInCents,
+          quantity,
+        }],
+        mode:        "payment",
+        success_url: successUrl,
+        cancel_url:  cancelUrl,
+        shipping_address_collection: {
+          allowed_countries: ["US", "CA", "GB", "AU"],
         },
-        quantity,
-      }],
-      mode:         "payment",
-      success_url:  successUrl,
-      cancel_url:   cancelUrl,
-      shipping_address_collection: {
-        allowed_countries: ["US", "CA", "GB", "AU"],
-      },
-    });
+      });
 
-    return { sessionId: session.id, url: session.url };
+      res.json({ sessionId: session.id, url: session.url });
+    } catch (e) {
+      console.error("[createCheckoutSession] error:", e);
+      res.status(500).json({ error: e.message });
+    }
   });
