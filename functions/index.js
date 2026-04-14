@@ -106,16 +106,25 @@ exports.getProduct = functions
       throw new functions.https.HttpsError("invalid-argument", "syncProductId is required");
     }
 
-    const res = await fetch(
-      `https://api.printful.com/store/products/${syncProductId}`,
-      { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
-    );
+    let res;
+    try {
+      res = await fetch(
+        `https://api.printful.com/store/products/${syncProductId}`,
+        { headers: { Authorization: `Bearer ${PRINTFUL_API_KEY.value()}` } }
+      );
+    } catch (e) {
+      console.error("[getProduct] fetch failed:", e);
+      throw new functions.https.HttpsError("internal", `Printful fetch error: ${e.message}`);
+    }
 
     if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`[getProduct] Printful returned ${res.status}:`, body);
       throw new functions.https.HttpsError("internal", `Printful error: ${res.status}`);
     }
 
-    const { result } = await res.json();
+    const json = await res.json();
+    const { result } = json;
 
     return {
       id:        result.sync_product.id,

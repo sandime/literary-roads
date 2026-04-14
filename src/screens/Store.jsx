@@ -147,7 +147,10 @@ export default function Store({ onBack }) {
         setProduct(res.data);
         setSelectedVariant(res.data.variants?.[0] ?? null);
       })
-      .catch(err => setError(err.message || 'Failed to load product.'))
+      .catch(err => {
+        console.error('[Store] getProduct error:', err, 'code:', err?.code, 'details:', err?.details);
+        setError(err.message || 'Failed to load product.');
+      })
       .finally(() => setLoading(false));
   }, [storeEnabled]);
 
