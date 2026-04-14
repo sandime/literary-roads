@@ -249,10 +249,9 @@ export default function Store({ onBack }) {
         {/* Cat + proprietor */}
         <div style={S.catBlock}>
           <img
-            src={`${BASE_URL}images/store-cat.png`}
+            src="/literary-roads/images/store-cat.png"
             alt="Store proprietor"
             style={S.catImg}
-            onError={e => { e.currentTarget.style.display = 'none'; }}
           />
           <p style={S.proprietorLabel}>Proprietor</p>
         </div>
@@ -378,7 +377,9 @@ function NavBar({ onBack }) {
 
 const S = {
   page: {
-    minHeight: '100vh',
+    position: 'fixed',
+    inset: 0,
+    overflowY: 'auto',
     background: C.bg,
     color: C.cream,
     fontFamily: 'Special Elite, serif',
