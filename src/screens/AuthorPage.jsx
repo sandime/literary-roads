@@ -136,10 +136,9 @@ export default function AuthorPage() {
     }
   };
 
-  const openMap = () => {
-    const base = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-    window.location.href = base;
-  };
+  const appBase = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+  const openMap = () => { window.location.href = appBase; };
+  const landmarkHref = (id) => `${appBase}/?landmark=${encodeURIComponent(id)}`;
 
   if (!author) {
     return (
@@ -156,21 +155,14 @@ export default function AuthorPage() {
 
       {/* ── Nav bar ─────────────────────────────────────────────────────────── */}
       <nav style={styles.nav}>
-        <button onClick={() => window.close()} style={styles.navBack}>
-          ← Back
+        <button onClick={openMap} style={styles.navBack}>
+          ← Map
         </button>
         <span style={styles.navTitle}>Literary Roads / Library</span>
-        <button
-          onClick={handleSaveAuthor}
-          disabled={saved || saving || !user}
-          style={{
-            ...styles.navSaveBtn,
-            opacity:    saved || !user ? 0.55 : 1,
-            cursor:     saved || !user ? 'default' : 'pointer',
-          }}
-        >
-          {saving ? 'Saving...' : saved ? 'Saved' : 'Save author'}
-        </button>
+        <div style={styles.navLinks}>
+          <a href={appBase} style={styles.navLink}>Library</a>
+          <a href={`${appBase}/newspaper/current`} style={styles.navLink}>Gazette</a>
+        </div>
       </nav>
 
       {/* ── Body ────────────────────────────────────────────────────────────── */}
@@ -250,11 +242,10 @@ export default function AuthorPage() {
             <h2 style={styles.sectionHeading}>Literary Roads Landmarks Nearby</h2>
             <div style={styles.landmarksList}>
               {landmarks.map(l => (
-                <button
+                <a
                   key={l.id}
-                  style={styles.landmarkCard}
-                  onClick={openMap}
-                  title="Open on the map"
+                  href={landmarkHref(l.id)}
+                  style={{ ...styles.landmarkCard, textDecoration: 'none' }}
                 >
                   <p style={styles.landmarkName}>{l.name || l.title}</p>
                   {l.city && <p style={styles.landmarkCity}>{l.city}{l.state ? `, ${l.state}` : ''}</p>}
@@ -264,7 +255,7 @@ export default function AuthorPage() {
                     </p>
                   )}
                   <span style={styles.landmarkCta}>Open on map →</span>
-                </button>
+                </a>
               ))}
             </div>
           </section>
@@ -368,16 +359,18 @@ const styles = {
     flex:          1,
     margin:        '0 12px',
   },
-  navSaveBtn: {
-    fontFamily:    'Bungee, sans-serif',
-    fontSize:      10,
-    letterSpacing: '0.06em',
-    color:         C.coral,
-    background:    'transparent',
-    border:        `1px solid ${C.coral}`,
-    borderRadius:  6,
-    padding:       '6px 12px',
-    cursor:        'pointer',
+  navLinks: {
+    display:    'flex',
+    gap:        '14px',
+    alignItems: 'center',
+    flexShrink: 0,
+  },
+  navLink: {
+    fontFamily:    'Special Elite, serif',
+    fontSize:      12,
+    color:         C.mutedBrown,
+    textDecoration: 'none',
+    letterSpacing: '0.04em',
     whiteSpace:    'nowrap',
   },
 

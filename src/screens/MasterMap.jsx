@@ -183,6 +183,24 @@ const ensureFlickerStyle = () => {
       53%  { opacity: 1;    }
       100% { opacity: 1;    }
     }
+    @keyframes neon-glow-flicker-orange {
+      0%   { filter: drop-shadow(0 0 7px #FF4E00) drop-shadow(0 0 2px #FF7040); }
+      15%  { filter: drop-shadow(0 0 1px #FF4E00); }
+      17%  { filter: drop-shadow(0 0 7px #FF4E00) drop-shadow(0 0 2px #FF7040); }
+      50%  { filter: drop-shadow(0 0 6px #FF4E00); }
+      51%  { filter: drop-shadow(0 0 1px #FF4E00); }
+      53%  { filter: drop-shadow(0 0 7px #FF4E00) drop-shadow(0 0 2px #FF7040); }
+      100% { filter: drop-shadow(0 0 7px #FF4E00) drop-shadow(0 0 2px #FF7040); }
+    }
+    @keyframes neon-glow-flicker-teal {
+      0%   { filter: drop-shadow(0 0 7px #40E0D0) drop-shadow(0 0 2px #70F0E0); }
+      15%  { filter: drop-shadow(0 0 1px #40E0D0); }
+      17%  { filter: drop-shadow(0 0 7px #40E0D0) drop-shadow(0 0 2px #70F0E0); }
+      50%  { filter: drop-shadow(0 0 6px #40E0D0); }
+      51%  { filter: drop-shadow(0 0 1px #40E0D0); }
+      53%  { filter: drop-shadow(0 0 7px #40E0D0) drop-shadow(0 0 2px #70F0E0); }
+      100% { filter: drop-shadow(0 0 7px #40E0D0) drop-shadow(0 0 2px #70F0E0); }
+    }
     @keyframes tidbit-slide-in {
       from { transform: translateX(-120%); }
       to   { transform: translateX(0); }
@@ -795,12 +813,17 @@ const distMiles = ([lat1, lng1], [lat2, lng2]) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-// Fits the map to a lat/lng bounding box — used when loading routes/stops
+// Fits the map to a lat/lng bounding box or flies to a center point
+// target.bounds → fitBounds; target.center → flyTo
 const FitBoundsController = ({ target }) => {
   const map = useMap();
   useEffect(() => {
     if (!target) return;
-    map.fitBounds(target.bounds, target.options ?? { padding: [60, 60] });
+    if (target.bounds) {
+      map.fitBounds(target.bounds, target.options ?? { padding: [60, 60] });
+    } else if (target.center) {
+      map.flyTo(target.center, target.zoom ?? 14, { duration: 1 });
+    }
   }, [target]);
   return null;
 };
@@ -848,11 +871,15 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
 
   if (!author) return null;
 
-  const W    = 168, H = 78;
-  const CLIP = 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)';
+  const W          = 168, H = 78;
+  const CLIP       = 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)';
+  const isOrange   = color === '#FF4E00';
+  const borderColor = isOrange ? '#FF7040' : '#70F0E0';
+  const depthColor  = isOrange ? '#CC3E00' : '#22A898';
+  const glowAnim    = isOrange ? 'neon-glow-flicker-orange' : 'neon-glow-flicker-teal';
 
   return createPortal(
-    // Slide animation wrapper — transform lives here so it doesn't conflict with hover scale
+    // Slide animation wrapper
     <div style={{
       position:  'absolute',
       top:       '80px',
@@ -877,63 +904,72 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
           window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(stateName)}`, '_blank', 'noopener noreferrer');
         }}
       >
-        {/* Outer trapezoid: neon border + 3-D extrusion via stacked offset drop-shadows */}
-        <div style={{
-          width:      W,
-          height:     H,
-          clipPath:   CLIP,
-          // Gradient on border surface: lighter top-edge → base color → darker bottom — simulates top lighting
-          background: color === '#FF4E00'
-            ? 'linear-gradient(175deg, #FF7040 0%, #FF4E00 50%, #CC3C00 100%)'
-            : 'linear-gradient(175deg, #65EEE0 0%, #40E0D0 50%, #28B0A8 100%)',
-          padding:    '2px',
-          boxSizing:  'border-box',
-          // Stacked offset shadows simulate physical thickness; neon glow follows the clip-path
-          filter: `
-            drop-shadow(1px 2px 0px #000)
-            drop-shadow(2px 4px 0px rgba(0,0,0,0.65))
-            drop-shadow(3px 6px 0px rgba(0,0,0,0.35))
-            drop-shadow(0 0 8px ${color})
-            drop-shadow(0 0 3px ${color})
-          `,
-          animation:  'neon-flicker 4s ease-in-out infinite',
-        }}>
-          {/* Inner trapezoid: top-left highlight gradient gives a lit concave surface feel */}
+        {/* Container — extra height for depth shadow offset */}
+        <div style={{ position: 'relative', width: W, height: H + 7 }}>
+
+          {/* Depth / extrusion layer — 5px down and right, no animation */}
           <div style={{
-            width:          '100%',
-            height:         '100%',
-            clipPath:       CLIP,
-            background:     'linear-gradient(145deg, rgba(255,255,255,0.07) 0%, #1A1B2E 35%)',
-            display:        'flex',
-            flexDirection:  'column',
-            justifyContent: 'center',
-            padding:        '8px 20px 8px 14px',
-            boxSizing:      'border-box',
+            position:  'absolute',
+            top:       5,
+            left:      5,
+            width:     W,
+            height:    H,
+            clipPath:  CLIP,
+            background: depthColor,
+            zIndex:    0,
+          }} />
+
+          {/* Main face: thin lighter border (2px padding showing through) + flickering glow via filter */}
+          <div style={{
+            position:   'absolute',
+            top:        0,
+            left:       0,
+            width:      W,
+            height:     H,
+            clipPath:   CLIP,
+            background: borderColor,
+            padding:    '2px',
+            boxSizing:  'border-box',
+            zIndex:     1,
+            animation:  `${glowAnim} 4s ease-in-out infinite`,
           }}>
-            <p style={{
-              fontFamily:    'Bungee, sans-serif',
-              fontSize:      '10px',
-              color:         color,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              margin:        0,
-              lineHeight:    1.2,
+            {/* Solid fill inner */}
+            <div style={{
+              width:          '100%',
+              height:         '100%',
+              clipPath:       CLIP,
+              background:     color,
+              display:        'flex',
+              flexDirection:  'column',
+              justifyContent: 'center',
+              padding:        '8px 20px 8px 14px',
+              boxSizing:      'border-box',
             }}>
-              {author.name}
-            </p>
-            <p style={{
-              fontFamily:      'Special Elite, serif',
-              fontSize:        '9px',
-              color:           'rgba(245,245,220,0.8)',
-              margin:          '4px 0 0',
-              lineHeight:      1.4,
-              overflow:        'hidden',
-              display:         '-webkit-box',
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: 'vertical',
-            }}>
-              {author.tidbit}
-            </p>
+              <p style={{
+                fontFamily:    'Bungee, sans-serif',
+                fontSize:      '10px',
+                color:         '#1A1B2E',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                margin:        0,
+                lineHeight:    1.2,
+              }}>
+                {author.name}
+              </p>
+              <p style={{
+                fontFamily:      'Special Elite, serif',
+                fontSize:        '9px',
+                color:           '#1A1B2E',
+                margin:          '4px 0 0',
+                lineHeight:      1.4,
+                overflow:        'hidden',
+                display:         '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+              }}>
+                {author.tidbit}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1218,6 +1254,24 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           options: { padding: [70, 70], maxZoom: 13 },
         });
       }
+    }
+    // Open a specific landmark when navigated here via ?landmark=id (e.g. from author page)
+    if (routeStateRef?.current?.pendingLandmark) {
+      const landmarkId = routeStateRef.current.pendingLandmark;
+      routeStateRef.current.pendingLandmark = null;
+      (async () => {
+        try {
+          const snap = await getDoc(doc(db, 'literary_landmarks', landmarkId));
+          if (snap.exists()) {
+            const landmark = { id: snap.id, ...snap.data(), type: 'landmark' };
+            setSelectedLocation(landmark);
+            setFitTarget({ center: [landmark.lat, landmark.lng], zoom: 14 });
+            setUiMode('explore');
+          }
+        } catch (e) {
+          console.error('[MasterMap] pendingLandmark fetch failed', e);
+        }
+      })();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useSearchParams } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import SharedRoutePage from './screens/SharedRoutePage';
@@ -31,6 +31,7 @@ import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [screen, setScreen] = useState('loading'); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
@@ -54,6 +55,12 @@ function AppInner() {
     visibleLocations: [],
     showPlanner: true,
   });
+
+  // Capture ?landmark=id on initial load so MasterMap can open it on mount
+  useEffect(() => {
+    const landmarkId = searchParams.get('landmark');
+    if (landmarkId) routeStateRef.current.pendingLandmark = landmarkId;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLoadingComplete = () => setScreen('map');
 
