@@ -1,6 +1,6 @@
+import { useState, useEffect } from 'react';
 import {
   collection,
-  doc,
   addDoc,
   query,
   where,
@@ -45,4 +45,13 @@ export async function addDiscoveredAuthor(uid, { name, state, hookLine, expanded
     addedToLibrary: false,
   });
   return docRef.id;
+}
+
+export function useDiscoveredAuthors(uid) {
+  const [authors, setAuthors] = useState([]);
+  useEffect(() => {
+    if (!uid) return;
+    return subscribeToDiscoveredAuthors(uid, setAuthors);
+  }, [uid]);
+  return authors;
 }

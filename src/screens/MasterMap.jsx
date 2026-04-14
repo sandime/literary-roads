@@ -35,8 +35,8 @@ import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
 import AudioNarrative from '../components/AudioNarrative';
 import NavigateModal from '../components/NavigateModal';
-import AuthorCardModal from '../components/AuthorCardModal';
 import DiscoveredAuthorsStrip from '../components/DiscoveredAuthorsStrip';
+import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -166,60 +166,6 @@ const STATE_CENTERS = {
   'District of Columbia': [38.9072,    -77.0369,  13],
 };
 
-// ── Author tidbits — one notable literary figure per state ────────────────────
-const AUTHOR_TIDBITS = {
-  'Alabama':              { name: 'Harper Lee',           url: 'https://en.wikipedia.org/wiki/Harper_Lee',           tidbit: 'Born in Monroeville, AL — the model for Maycomb in To Kill a Mockingbird.' },
-  'Alaska':               { name: 'Jack London',          url: 'https://en.wikipedia.org/wiki/Jack_London',          tidbit: 'Prospected in Alaska during the Klondike Gold Rush — it shaped The Call of the Wild.' },
-  'Arizona':              { name: 'Barbara Kingsolver',   url: 'https://en.wikipedia.org/wiki/Barbara_Kingsolver',   tidbit: 'Set The Bean Trees and Prodigal Summer in the Arizona desert landscape she loved.' },
-  'Arkansas':             { name: 'Maya Angelou',         url: 'https://en.wikipedia.org/wiki/Maya_Angelou',         tidbit: 'Spent formative years in Stamps, AR — vividly portrayed in I Know Why the Caged Bird Sings.' },
-  'California':           { name: 'Joan Didion',          url: 'https://en.wikipedia.org/wiki/Joan_Didion',          tidbit: 'Grew up in Sacramento and made California\'s disillusionment her literary subject.' },
-  'Colorado':             { name: 'James Michener',       url: 'https://en.wikipedia.org/wiki/James_A._Michener',    tidbit: 'Centennial was his sweeping fictional history of Colorado, researched on location.' },
-  'Connecticut':          { name: 'Mark Twain',           url: 'https://en.wikipedia.org/wiki/Mark_Twain',           tidbit: 'Lived in Hartford for 17 years — the house is now a National Historic Landmark.' },
-  'Delaware':             { name: 'John Marquand',        url: 'https://en.wikipedia.org/wiki/John_P._Marquand',     tidbit: 'Pulitzer Prize winner who chronicled old-money New England society with a Delaware sensibility.' },
-  'Florida':              { name: 'Zora Neale Hurston',   url: 'https://en.wikipedia.org/wiki/Zora_Neale_Hurston',   tidbit: 'Raised in Eatonville, FL — the first incorporated all-Black township in the United States.' },
-  'Georgia':              { name: 'Flannery O\'Connor',   url: 'https://en.wikipedia.org/wiki/Flannery_O%27Connor',  tidbit: 'Spent her final years on Andalusia Farm in Milledgeville — peacocks and all.' },
-  'Hawaii':               { name: 'James Michener',       url: 'https://en.wikipedia.org/wiki/Hawaii_(novel)',        tidbit: 'His novel Hawaii (1959) brought the islands\' deep history to millions before statehood.' },
-  'Idaho':                { name: 'Vardis Fisher',        url: 'https://en.wikipedia.org/wiki/Vardis_Fisher',        tidbit: 'Idaho\'s most prolific novelist — his 12-volume Testament of Man began in Annis, ID.' },
-  'Illinois':             { name: 'Saul Bellow',          url: 'https://en.wikipedia.org/wiki/Saul_Bellow',          tidbit: 'Raised in Chicago and set Herzog, Humboldt\'s Gift, and Augie March in its streets.' },
-  'Indiana':              { name: 'Kurt Vonnegut',        url: 'https://en.wikipedia.org/wiki/Kurt_Vonnegut',        tidbit: 'Born in Indianapolis — the city he called "my town" even after decades in New York.' },
-  'Iowa':                 { name: 'Marilynne Robinson',   url: 'https://en.wikipedia.org/wiki/Marilynne_Robinson',   tidbit: 'Gilead is set in fictional small-town Iowa — written while she taught at the Iowa Writers\' Workshop.' },
-  'Kansas':               { name: 'Truman Capote',        url: 'https://en.wikipedia.org/wiki/Truman_Capote',        tidbit: 'Spent years in Holcomb researching In Cold Blood — the town is still marked by his presence.' },
-  'Kentucky':             { name: 'Wendell Berry',        url: 'https://en.wikipedia.org/wiki/Wendell_Berry',        tidbit: 'Has farmed the same land in Henry County since 1965 — his writing and life are inseparable.' },
-  'Louisiana':            { name: 'Kate Chopin',          url: 'https://en.wikipedia.org/wiki/Kate_Chopin',          tidbit: 'The Awakening scandalized New Orleans readers in 1899. Dismissed — then rediscovered 60 years later.' },
-  'Maine':                { name: 'Stephen King',         url: 'https://en.wikipedia.org/wiki/Stephen_King',         tidbit: 'Set most of his novels in fictional Maine towns — Castle Rock and Derry are real places at heart.' },
-  'Maryland':             { name: 'Frederick Douglass',   url: 'https://en.wikipedia.org/wiki/Frederick_Douglass',   tidbit: 'Born enslaved in Talbot County, MD — his Narrative changed the course of American history.' },
-  'Massachusetts':        { name: 'Nathaniel Hawthorne',  url: 'https://en.wikipedia.org/wiki/Nathaniel_Hawthorne',  tidbit: 'Born in Salem, descended from a witch-trial judge — a guilt he carried into his fiction.' },
-  'Michigan':             { name: 'Jim Harrison',         url: 'https://en.wikipedia.org/wiki/Jim_Harrison',         tidbit: 'Grew up in northern Michigan and never left it behind — Legends of the Fall was born there.' },
-  'Minnesota':            { name: 'Sinclair Lewis',       url: 'https://en.wikipedia.org/wiki/Sinclair_Lewis',       tidbit: 'Born in Sauk Centre, MN — model for Gopher Prairie in Main Street. First American Nobel laureate in Literature.' },
-  'Mississippi':          { name: 'William Faulkner',     url: 'https://en.wikipedia.org/wiki/William_Faulkner',     tidbit: 'Never strayed far from Oxford, MS — Yoknapatawpha County is Lafayette County in everything but name.' },
-  'Missouri':             { name: 'T.S. Eliot',           url: 'https://en.wikipedia.org/wiki/T._S._Eliot',          tidbit: 'Born in St. Louis — The Love Song of J. Alfred Prufrock was written by a man who grew up on the Mississippi.' },
-  'Montana':              { name: 'Norman Maclean',       url: 'https://en.wikipedia.org/wiki/Norman_Maclean',       tidbit: 'A River Runs Through It drew on his boyhood on the Blackfoot River — published when he was 73.' },
-  'Nebraska':             { name: 'Willa Cather',         url: 'https://en.wikipedia.org/wiki/Willa_Cather',         tidbit: 'Grew up on the Nebraska prairie — O Pioneers! and My Ántonia are her love letters to the plains.' },
-  'Nevada':               { name: 'Walter Van Tilburg Clark', url: 'https://en.wikipedia.org/wiki/Walter_Van_Tilburg_Clark', tidbit: 'The Ox-Bow Incident was set in Nevada\'s high desert — a landmark of American Western literature.' },
-  'New Hampshire':        { name: 'J.D. Salinger',        url: 'https://en.wikipedia.org/wiki/J._D._Salinger',       tidbit: 'Lived as a recluse in Cornish, NH for 55 years after The Catcher in the Rye made him famous.' },
-  'New Jersey':           { name: 'Philip Roth',          url: 'https://en.wikipedia.org/wiki/Philip_Roth',          tidbit: 'Born and raised in Newark — he returned to it again and again: American Pastoral, Goodbye Columbus, The Plot Against America.' },
-  'New Mexico':           { name: 'Rudolfo Anaya',        url: 'https://en.wikipedia.org/wiki/Rudolfo_Anaya',        tidbit: 'Bless Me, Ultima drew on his childhood in Pastura, NM — the novel that launched Chicano literature.' },
-  'New York':             { name: 'Edith Wharton',        url: 'https://en.wikipedia.org/wiki/Edith_Wharton',        tidbit: 'Born on 23rd St in Manhattan — The Age of Innocence dissected the society that raised her.' },
-  'North Carolina':       { name: 'Thomas Wolfe',         url: 'https://en.wikipedia.org/wiki/Thomas_Wolfe',         tidbit: 'You Can\'t Go Home Again was about Asheville, NC — and then he literally couldn\'t go home because of it.' },
-  'North Dakota':         { name: 'Louise Erdrich',       url: 'https://en.wikipedia.org/wiki/Louise_Erdrich',       tidbit: 'Her family roots are Turtle Mountain Chippewa in North Dakota — the setting of most of her fiction.' },
-  'Ohio':                 { name: 'Toni Morrison',        url: 'https://en.wikipedia.org/wiki/Toni_Morrison',        tidbit: 'Born in Lorain, OH — Beloved, Song of Solomon, and The Bluest Eye carry the landscape of Ohio.' },
-  'Oklahoma':             { name: 'Ralph Ellison',        url: 'https://en.wikipedia.org/wiki/Ralph_Ellison',        tidbit: 'Born in Oklahoma City — Invisible Man was shaped by his Black Oklahoman experience as much as by Harlem.' },
-  'Oregon':               { name: 'Ursula K. Le Guin',   url: 'https://en.wikipedia.org/wiki/Ursula_K._Le_Guin',    tidbit: 'Spent her life in Portland — the Pacific Northwest infuses every sense of place in her work.' },
-  'Pennsylvania':         { name: 'John Updike',          url: 'https://en.wikipedia.org/wiki/John_Updike',          tidbit: 'Born in Reading, PA — the Rabbit novels are a portrait of middle-class Pennsylvania over four decades.' },
-  'Rhode Island':         { name: 'H.P. Lovecraft',       url: 'https://en.wikipedia.org/wiki/H._P._Lovecraft',      tidbit: 'Never really left Providence, RI — the city\'s architecture haunts every story he ever wrote.' },
-  'South Carolina':       { name: 'Pat Conroy',           url: 'https://en.wikipedia.org/wiki/Pat_Conroy',           tidbit: 'Grew up as a military kid in Beaufort, SC — The Great Santini and The Prince of Tides are autobiographical to their bones.' },
-  'South Dakota':         { name: 'Laura Ingalls Wilder', url: 'https://en.wikipedia.org/wiki/Laura_Ingalls_Wilder', tidbit: 'The Little House books drew on her childhood in De Smet, SD — still a literary pilgrimage site.' },
-  'Tennessee':            { name: 'Cormac McCarthy',      url: 'https://en.wikipedia.org/wiki/Cormac_McCarthy',      tidbit: 'Suttree is a portrait of Knoxville\'s riverbanks — written in a rented room while he lived in near-poverty.' },
-  'Texas':                { name: 'Larry McMurtry',       url: 'https://en.wikipedia.org/wiki/Larry_McMurtry',       tidbit: 'Born in Archer City, TX — Lonesome Dove came from a lifetime living and reading on the Texas plains.' },
-  'Utah':                 { name: 'Terry Tempest Williams', url: 'https://en.wikipedia.org/wiki/Terry_Tempest_Williams', tidbit: 'Refuge was written about her mother\'s cancer and the flooding of a Utah bird sanctuary simultaneously.' },
-  'Vermont':              { name: 'Robert Frost',         url: 'https://en.wikipedia.org/wiki/Robert_Frost',         tidbit: 'Though born in San Francisco, Vermont is where Frost farmed, wrote, and is buried.' },
-  'Virginia':             { name: 'Tom Wolfe',            url: 'https://en.wikipedia.org/wiki/Tom_Wolfe',            tidbit: 'Born in Richmond, VA — The Bonfire of the Vanities and A Man in Full share his Virginian eye for class.' },
-  'Washington':           { name: 'Sherman Alexie',       url: 'https://en.wikipedia.org/wiki/Sherman_Alexie',       tidbit: 'Grew up on the Spokane Indian Reservation — The Absolutely True Diary of a Part-Time Indian is drawn from life.' },
-  'West Virginia':        { name: 'Breece D\'J Pancake',  url: 'https://en.wikipedia.org/wiki/Breece_D%27J_Pancake', tidbit: 'Wrote only 12 stories before his death at 26 — considered a masterpiece of Appalachian literature.' },
-  'Wisconsin':            { name: 'Thornton Wilder',      url: 'https://en.wikipedia.org/wiki/Thornton_Wilder',      tidbit: 'Our Town is set in fictional New Hampshire — but Wilder grew up in Madison, WI.' },
-  'Wyoming':              { name: 'Annie Proulx',         url: 'https://en.wikipedia.org/wiki/Annie_Proulx',         tidbit: 'Wyoming Stories (including Brokeback Mountain) was written after she moved to a ranch outside Centennial, WY.' },
-  'District of Columbia': { name: 'Edward P. Jones',      url: 'https://en.wikipedia.org/wiki/Edward_P._Jones',      tidbit: 'The Known World and Lost in the City are intimate portraits of Washington D.C.\'s Black communities.' },
-};
 
 // ── Author tidbit keyframes — injected once into document.head ────────────────
 let _tidbitStyleInjected = false;
@@ -874,7 +820,7 @@ const UiModeController = ({ uiMode }) => {
 // Triggered by hovering a state for 600ms (debounce handled in onEachStateFeature).
 // Slides in from the left on mount, slides out before unmounting.
 // Auto-dismisses after 4.5s; hovering the card pauses the timer.
-const AuthorTidbitOverlay = ({ stateName, onDismiss, onOpenCard }) => {
+const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
   const map                     = useMap();
   const author                  = AUTHOR_TIDBITS[stateName];
   const [dismissed, setDismiss] = useState(false);
@@ -926,7 +872,10 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss, onOpenCard }) => {
         }}
         onMouseEnter={() => { setHovered(true);  clearTimeout(timerRef.current); }}
         onMouseLeave={() => { setHovered(false); startTimer(); }}
-        onClick={() => { triggerDismiss(); onOpenCard?.(); }}
+        onClick={() => {
+          triggerDismiss();
+          window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(stateName)}`, '_blank', 'noopener noreferrer');
+        }}
       >
         {/* Outer trapezoid: neon border + 3-D extrusion via stacked offset drop-shadows */}
         <div style={{
@@ -1116,9 +1065,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [ssSelected, setSsSelected] = useState(new Set());
   const ssSelectedRef = useRef(new Set());
   const ssLayersRef = useRef({});
-  const [tidbitState, setTidbitState]     = useState(null); // state name whose author tidbit is visible
-  const tidbitTimerRef = useRef(null);                      // 600ms debounce for hover trigger
-  const [authorCardState, setAuthorCardState] = useState(null); // state name for open author card modal
+  const [tidbitState, setTidbitState] = useState(null); // state name whose author tidbit is visible
+  const tidbitTimerRef = useRef(null);                  // 600ms debounce for hover trigger
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
   const [startPickedCoords, setStartPickedCoords] = useState(null);
@@ -2755,7 +2703,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               key={tidbitState}
               stateName={tidbitState}
               onDismiss={() => setTidbitState(null)}
-              onOpenCard={() => { setAuthorCardState(tidbitState); setTidbitState(null); }}
             />
           )}
 
@@ -2763,7 +2710,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           {uiMode === 'stateSelect' && (
             <DiscoveredAuthorsStrip
               user={user}
-              onAuthorClick={a => setAuthorCardState(a.state)}
+              onAuthorClick={a => window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(a.state)}`, '_blank', 'noopener noreferrer')}
             />
           )}
 
@@ -3952,15 +3899,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         />
       )}
 
-      {/* ── Author card modal ── */}
-      {authorCardState && AUTHOR_TIDBITS[authorCardState] && (
-        <AuthorCardModal
-          author={AUTHOR_TIDBITS[authorCardState]}
-          stateName={authorCardState}
-          user={user}
-          onClose={() => setAuthorCardState(null)}
-        />
-      )}
     </div>
   );
 };
