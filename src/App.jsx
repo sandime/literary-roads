@@ -32,9 +32,11 @@ import './App.css';
 function AppInner() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  // Skip odometer when returning from an internal page (?back=1) or deep-linking to a landmark (?landmark=)
+  // Skip odometer when returning from an internal page (?back=1/?screen=X) or deep-linking to a landmark (?landmark=)
   const [screen, setScreen] = useState(() => {
     const p = new URLSearchParams(window.location.search);
+    const s = p.get('screen');
+    if (s === 'library') return 'library';
     return (p.get('back') || p.get('landmark')) ? 'map' : 'loading';
   }); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy'
   const [selectedStates, setSelectedStates] = useState([]);

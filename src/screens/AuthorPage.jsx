@@ -160,7 +160,7 @@ export default function AuthorPage() {
         </button>
         <span style={styles.navTitle}>Literary Roads / Library</span>
         <div style={styles.navLinks}>
-          <a href={`${appBase}/?back=1`} style={styles.navLink}>Library</a>
+          <a href={`${appBase}/?screen=library`} style={styles.navLink}>Library</a>
           <a href={`${appBase}/newspaper/current`} style={styles.navLink}>Gazette</a>
         </div>
       </nav>
