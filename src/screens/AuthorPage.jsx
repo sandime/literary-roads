@@ -42,6 +42,9 @@ export default function AuthorPage() {
   const { user }          = useAuth();
   const stateName         = searchParams.get('state') || '';
   const author            = AUTHOR_TIDBITS[stateName] || null;
+  console.log('[AuthorPage] raw state param:', JSON.stringify(searchParams.get('state')));
+  console.log('[AuthorPage] full URL:', window.location.href);
+  console.log('[AuthorPage] author lookup result:', author ? author.name : 'NOT FOUND');
   const discoveredAuthors = useDiscoveredAuthors(user?.uid);
 
   const [works,      setWorks]      = useState([]);
