@@ -12,7 +12,7 @@
     l.replace(
       l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
       base + '/?/' + route.replace(/&/g, '~and~') +
-      (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
       l.hash
     );
   </script>
