@@ -35,7 +35,6 @@ import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
 import AudioNarrative from '../components/AudioNarrative';
 import NavigateModal from '../components/NavigateModal';
-import DiscoveredAuthorsStrip from '../components/DiscoveredAuthorsStrip';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
@@ -2757,14 +2756,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               key={tidbitState}
               stateName={tidbitState}
               onDismiss={() => setTidbitState(null)}
-            />
-          )}
-
-          {/* Discovered authors strip — horizontal pill row at bottom in state-select mode */}
-          {uiMode === 'stateSelect' && (
-            <DiscoveredAuthorsStrip
-              user={user}
-              onAuthorClick={a => window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(a.state)}`, '_blank', 'noopener noreferrer')}
             />
           )}
 

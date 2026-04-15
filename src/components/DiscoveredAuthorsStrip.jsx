@@ -35,12 +35,13 @@ export default function DiscoveredAuthorsStrip({ user, onAuthorClick }) {
 
 const styles = {
   wrapper: {
-    position:   'absolute',
-    bottom:     '16px',
-    left:       '16px',
-    right:      '16px',
-    zIndex:     1000,
+    position:     'fixed',
+    bottom:       '16px',
+    left:         '16px',
+    right:        '16px',
+    zIndex:       1000,
     pointerEvents: 'none',
+    overflow:     'hidden',
   },
   label: {
     fontFamily:    'Bungee, sans-serif',
@@ -52,6 +53,7 @@ const styles = {
   strip: {
     display:         'flex',
     gap:             '8px',
+    width:           '100%',
     overflowX:       'auto',
     scrollbarWidth:  'none',
     pointerEvents:   'auto',
