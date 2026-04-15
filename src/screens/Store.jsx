@@ -2,20 +2,13 @@ import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
-const SYNC_PRODUCT_ID = '427886181';
-const BASE_URL        = import.meta.env.BASE_URL || '/';
-const FN_BASE         = 'https://us-central1-the-literary-roads.cloudfunctions.net';
+// ── Replace with your Stripe Payment Link URL once created ───────────────────
+// Stripe Dashboard → Payment Links → Create → after payment redirect to:
+// https://sandime.github.io/literary-roads/store?success=true
+const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/test_cNifZg5Rl0qD0nc7Oj5os00';
 
-async function callFn(name, body) {
-  const res = await fetch(`${FN_BASE}/${name}`, {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(body),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
-  return json;
-}
+// Cloud Functions (storeGetProduct, storeCreateCheckout) kept for future use
+// when the GCP org-policy domain restriction is resolved.
 
 const C = {
   bg:      '#2C1A0E',
@@ -129,13 +122,7 @@ function ComingSoonCard({ name, icon }) {
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Store({ onBack }) {
-  const [storeEnabled,    setStoreEnabled]    = useState(null);
-  const [product,         setProduct]         = useState(null);
-  const [selectedVariant, setSelectedVariant] = useState(null);
-  const [quantity,        setQuantity]        = useState(1);
-  const [loading,         setLoading]         = useState(true);
-  const [checkingOut,     setCheckingOut]     = useState(false);
-  const [error,           setError]           = useState(null);
+  const [storeEnabled, setStoreEnabled] = useState(null);
 
   const params   = new URLSearchParams(window.location.search);
   const success  = params.get('success');
@@ -147,38 +134,8 @@ export default function Store({ onBack }) {
       .catch(() => setStoreEnabled(false));
   }, []);
 
-  useEffect(() => {
-    if (!storeEnabled) return;
-    setLoading(true);
-    callFn('storeGetProduct', { syncProductId: SYNC_PRODUCT_ID })
-      .then(data => {
-        setProduct(data);
-        setSelectedVariant(data.variants?.[0] ?? null);
-      })
-      .catch(err => {
-        console.error('[Store] getProduct error:', err);
-        setError(err.message || 'Failed to load product.');
-      })
-      .finally(() => setLoading(false));
-  }, [storeEnabled]);
-
-  const handleCheckout = async () => {
-    if (!selectedVariant) return;
-    setCheckingOut(true);
-    setError(null);
-    try {
-      const base = `${window.location.origin}/literary-roads/store`;
-      const data = await callFn('storeCreateCheckout', {
-        variantId:  String(selectedVariant.id),
-        quantity,
-        successUrl: `${base}?success=true`,
-        cancelUrl:  `${base}?canceled=true`,
-      });
-      window.location.href = data.url;
-    } catch (err) {
-      setError(err.message || 'Checkout failed. Please try again.');
-      setCheckingOut(false);
-    }
+  const handleBuyNow = () => {
+    window.location.href = STRIPE_PAYMENT_LINK;
   };
 
   // ── Loading flag ─────────────────────────────────────────────────────────────
@@ -291,55 +248,24 @@ export default function Store({ onBack }) {
       {/* ── Product grid ── */}
       <div style={S.grid}>
 
-        {/* Real product */}
+        {/* Sticker product */}
         <div style={S.productCard}>
-          {loading && <p style={{ color: C.muted, fontFamily: 'Special Elite, serif', textAlign: 'center', padding: 40 }}>Loading...</p>}
-          {error   && <p style={{ color: C.orange, fontFamily: 'Special Elite, serif', fontSize: 13, textAlign: 'center', padding: 20 }}>{error}</p>}
-
-          {product && !loading && (
-            <>
-              {product.thumbnail && (
-                <img src={product.thumbnail} alt={product.name} style={S.productImg} />
-              )}
-              <h2 style={S.productName}>{product.name}</h2>
-
-              {product.variants?.length > 1 && (
-                <div style={{ marginBottom: 14 }}>
-                  <label style={S.fieldLabel}>Style</label>
-                  <select
-                    value={selectedVariant?.id ?? ''}
-                    onChange={e => setSelectedVariant(product.variants.find(v => String(v.id) === e.target.value))}
-                    style={S.select}
-                  >
-                    {product.variants.map(v => (
-                      <option key={v.id} value={v.id}>{v.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {selectedVariant && (
-                <p style={S.price}>${parseFloat(selectedVariant.price).toFixed(2)}</p>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                <label style={S.fieldLabel}>Qty</label>
-                <button onClick={() => setQuantity(q => Math.max(1, q - 1))} style={S.qtyBtn}>−</button>
-                <span style={{ color: C.cream, fontFamily: 'Georgia, serif', fontSize: 16, minWidth: 20, textAlign: 'center' }}>{quantity}</span>
-                <button onClick={() => setQuantity(q => Math.min(10, q + 1))} style={S.qtyBtn}>+</button>
-              </div>
-
-              <button
-                onClick={handleCheckout}
-                disabled={checkingOut || !selectedVariant}
-                style={{ ...S.primaryBtn, width: '100%', opacity: checkingOut ? 0.6 : 1 }}
-              >
-                {checkingOut ? 'Redirecting...' : 'Buy Now'}
-              </button>
-
-              {error && <p style={{ color: C.orange, fontSize: 12, marginTop: 10, textAlign: 'center' }}>{error}</p>}
-            </>
-          )}
+          <img
+            src="/literary-roads/images/store-cat.png"
+            alt="Literary Roads Sticker"
+            style={S.productImg}
+          />
+          <h2 style={S.productName}>Literary Roads Sticker</h2>
+          <p style={{ ...S.price }}>$8.00</p>
+          <p style={{ color: C.muted, fontFamily: 'Special Elite, serif', fontSize: 13, textAlign: 'center', margin: '0 0 20px', lineHeight: 1.5 }}>
+            Weatherproof vinyl · 3&quot; die-cut
+          </p>
+          <button
+            onClick={handleBuyNow}
+            style={{ ...S.primaryBtn, width: '100%' }}
+          >
+            Buy Now
+          </button>
         </div>
 
         {/* Coming soon cards */}
