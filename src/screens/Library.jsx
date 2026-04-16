@@ -9,6 +9,8 @@ import { BackArrowIcon, LibraryIcon } from '../components/Icons';
 import PostcardBuilder from '../components/PostcardBuilder';
 import LibraryHome from './LibraryHome';
 import LibraryArchive from './LibraryArchive';
+import { useDiscoveredAuthors } from '../utils/discoveredAuthors';
+import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 
 // ── Cover image helpers ───────────────────────────────────────────────────────
 const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
@@ -771,7 +773,7 @@ function ShelfCard({ accentColor, children }) {
 // ── Main Library ──────────────────────────────────────────────────────────────
 export default function Library({ onBack }) {
   const { user } = useAuth();
-  const [view, setView] = useState('home'); // 'home'|'bookLog'|'postcards'|'myRecs'|'readNext'
+  const [view, setView] = useState('home'); // 'home'|'bookLog'|'postcards'|'myRecs'|'readNext'|'authorRoom'
 
   // Book log state
   const [loggedBooks, setLoggedBooks] = useState([]);
@@ -838,6 +840,9 @@ export default function Library({ onBack }) {
     );
     return unsub;
   }, [user]);
+
+  const discoveredAuthors = useDiscoveredAuthors(user?.uid);
+  const authorBooksCount  = readNext.filter(r => r.recommendedBy?.startsWith('Author Page:')).length;
 
   const sortedBooks = [...loggedBooks].sort((a, b) =>
     (b.timestamp?.toMillis?.() ?? 0) - (a.timestamp?.toMillis?.() ?? 0));
@@ -953,6 +958,8 @@ export default function Library({ onBack }) {
             myRecs:    myRecs.length,
             readNext:  readNext.length,
           }}
+          discoveredAuthors={discoveredAuthors}
+          authorBooksCount={authorBooksCount}
         />
         {/* Overlays still rendered above LibraryHome */}
         {newBadges.length > 0 && (
@@ -1410,6 +1417,106 @@ export default function Library({ onBack }) {
               </div>
             )}
           </ShelfCard>
+        )}
+      </SectionShell>
+    );
+  }
+
+  // ── AUTHOR ROOM ───────────────────────────────────────────────────────────────
+  if (view === 'authorRoom') {
+    const appBase    = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+    const totalCount = Object.keys(AUTHOR_TIDBITS).length;
+
+    return (
+      <SectionShell title="THE AUTHOR ROOM" accentColor={L.coral} onBack={() => setView('home')}>
+
+        {/* Stats bar */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 20,
+          borderRadius: 10, overflow: 'hidden',
+          border: '1px solid rgba(255,107,122,0.2)', background: '#FFFAF5' }}>
+          {[
+            { label: 'DISCOVERED', value: discoveredAuthors.length, color: L.coral },
+            { label: 'REMAINING',  value: totalCount - discoveredAuthors.length, color: L.muted },
+            { label: 'BOOKS ADDED', value: authorBooksCount, color: '#C07A10' },
+          ].map((s, i) => (
+            <div key={s.label} style={{
+              flex: 1, textAlign: 'center', padding: '12px 8px',
+              borderLeft: i > 0 ? '1px solid rgba(255,107,122,0.15)' : 'none',
+            }}>
+              <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 22, color: s.color, margin: 0, lineHeight: 1 }}>
+                {s.value}
+              </p>
+              <p style={{ fontFamily: 'Special Elite, serif', fontSize: 9, color: L.muted, margin: '4px 0 0', letterSpacing: '0.08em' }}>
+                {s.label}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {!user && (
+          <ShelfCard accentColor={L.coral}>
+            <p style={{ fontFamily: 'Bungee, sans-serif', color: L.coral, fontSize: 12, marginBottom: 4 }}>
+              SIGN IN TO SEE YOUR AUTHORS
+            </p>
+            <p style={{ fontFamily: 'Special Elite, serif', color: L.muted, fontSize: 13, lineHeight: 1.6 }}>
+              Discover authors on the map to build your collection.
+            </p>
+          </ShelfCard>
+        )}
+
+        {user && discoveredAuthors.length === 0 && (
+          <ShelfCard accentColor={L.coral}>
+            <p style={{ fontFamily: 'Bungee, sans-serif', color: L.coral, fontSize: 12, marginBottom: 8, letterSpacing: '0.05em' }}>
+              NO AUTHORS YET
+            </p>
+            <p style={{ fontFamily: 'Special Elite, serif', color: L.muted, fontSize: 13, fontStyle: 'italic', lineHeight: 1.6 }}>
+              Hover over states on the map to find the authors who called them home.
+            </p>
+          </ShelfCard>
+        )}
+
+        {user && discoveredAuthors.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {discoveredAuthors.map(a => (
+              <a
+                key={a.id}
+                href={`${appBase}/author?state=${encodeURIComponent(a.state)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: 'none' }}
+              >
+                <div style={{
+                  borderRadius: 12, overflow: 'hidden', display: 'flex',
+                  border: '1px solid rgba(255,107,122,0.2)', background: L.white,
+                  transition: 'border-color 0.15s, box-shadow 0.15s',
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = L.coral; e.currentTarget.style.boxShadow = '0 3px 10px rgba(255,107,122,0.15)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,107,122,0.2)'; e.currentTarget.style.boxShadow = 'none'; }}
+                >
+                  <div style={{ width: 4, background: L.coral, flexShrink: 0 }} />
+                  <div style={{ flex: 1, padding: '12px 12px 12px 10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+                      <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, margin: 0, letterSpacing: '0.03em' }}>
+                        {a.name}
+                      </p>
+                      <p style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: L.coral, margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                        {a.state}
+                      </p>
+                    </div>
+                    {a.hookLine && (
+                      <p style={{ fontFamily: 'Georgia, serif', fontSize: 12, color: L.mid, fontStyle: 'italic', margin: 0, lineHeight: 1.5,
+                        overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {a.hookLine}
+                      </p>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0 12px', color: L.coral, fontSize: 16, flexShrink: 0 }}>
+                    →
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
         )}
       </SectionShell>
     );

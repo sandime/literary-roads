@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 
 // ── Library palette ────────────────────────────────────────────────────────────
 const L = {
@@ -293,8 +294,130 @@ function CatLink({ size = 180 }) {
   );
 }
 
+// ── Author Room doorway card ──────────────────────────────────────────────────
+function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
+  const [hov, setHov] = useState(false);
+
+  const totalStates      = Object.keys(AUTHOR_TIDBITS).length;
+  const discoveredStates = new Set(discoveredAuthors.map(a => a.state));
+  const previewDiscovered = discoveredAuthors.slice(0, 3);
+  const undiscoveredSlots = Object.keys(AUTHOR_TIDBITS)
+    .filter(s => !discoveredStates.has(s))
+    .slice(0, Math.max(0, 3 - previewDiscovered.length));
+  const remaining = totalStates - discoveredAuthors.length;
+
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate('authorRoom')}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: 0, width: '100%', textAlign: 'left',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        transition: 'transform 0.22s ease',
+      }}
+    >
+      <div style={{
+        borderRadius: 12, overflow: 'hidden', display: 'flex',
+        border: `1px solid ${hov ? '#FF6B7A' : 'rgba(255,107,122,0.25)'}`,
+        background: '#FFFAF5',
+        boxShadow: hov ? '0 5px 16px rgba(255,107,122,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
+      }}>
+        {/* Coral accent stripe */}
+        <div style={{ width: 4, background: '#FF6B7A', flexShrink: 0 }} />
+
+        {/* Body */}
+        <div style={{ flex: 1, padding: '14px 12px' }}>
+          {/* Eyebrow */}
+          <p style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 9,
+            color: '#FF6B7A', letterSpacing: '0.14em',
+            textTransform: 'uppercase', margin: '0 0 5px',
+          }}>
+            SECOND ROOM
+          </p>
+
+          {/* Title */}
+          <h3 style={{
+            fontFamily: 'Georgia, serif', fontSize: 18,
+            color: '#2D2D2D', fontWeight: 700,
+            margin: '0 0 7px', lineHeight: 1.2,
+          }}>
+            The Author Room
+          </h3>
+
+          {/* Description */}
+          <p style={{
+            fontFamily: 'Special Elite, serif', fontSize: 12,
+            color: '#888', lineHeight: 1.6, margin: '0 0 12px',
+          }}>
+            Authors discovered through your literary road trips — waiting to be found.
+          </p>
+
+          {/* Preview chip strip */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+            {previewDiscovered.map(a => (
+              <span key={a.id} style={{
+                fontFamily: 'Special Elite, serif', fontSize: 10,
+                background: 'rgba(245,166,35,0.14)',
+                border: '1px solid rgba(245,166,35,0.45)',
+                borderRadius: 20, padding: '3px 9px',
+                color: '#7A5800', whiteSpace: 'nowrap',
+              }}>
+                {a.name} · {a.state}
+              </span>
+            ))}
+            {undiscoveredSlots.map(state => (
+              <span key={state} style={{
+                fontFamily: 'Special Elite, serif', fontSize: 10,
+                background: 'transparent',
+                border: '1px dashed rgba(0,0,0,0.18)',
+                borderRadius: 20, padding: '3px 9px',
+                color: 'rgba(0,0,0,0.28)', whiteSpace: 'nowrap',
+              }}>
+                ??? · {state}
+              </span>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
+              <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#FF6B7A' }}>
+                {discoveredAuthors.length}
+              </strong>{' '}discovered
+            </span>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
+              <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#AAAAAA' }}>
+                {remaining}
+              </strong>{' '}remaining
+            </span>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
+              <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#C07A10' }}>
+                {authorBooksCount}
+              </strong>{' '}books added
+            </span>
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div style={{
+          display: 'flex', alignItems: 'center',
+          padding: '0 14px 0 4px',
+          color: '#FF6B7A', fontSize: 18, flexShrink: 0,
+        }}>
+          →
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ── LibraryHome ───────────────────────────────────────────────────────────────
-export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null }) {
+export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null, discoveredAuthors = [], authorBooksCount = 0 }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 300,
@@ -379,6 +502,22 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
               <Ring      color={L.gold}      size={16} />
               <Trapezoid color={L.peach}     size={24} />
               <Boomerang color={L.sparkle1}  size={28} />
+            </div>
+
+            {/* Author Room doorway */}
+            <div style={{ marginTop: 28 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
+                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: 'rgba(255,107,122,0.6)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                  through the doorway
+                </span>
+                <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
+              </div>
+              <AuthorRoomCard
+                discoveredAuthors={discoveredAuthors}
+                authorBooksCount={authorBooksCount}
+                onNavigate={onNavigate}
+              />
             </div>
           </div>
 
