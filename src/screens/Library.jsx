@@ -719,6 +719,42 @@ function PostcardShelfCard({ pc, isActive, onClick }) {
   );
 }
 
+// ── Author cat — links to Substack newsletter ─────────────────────────────────
+function AuthorCat({ size = 160 }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+      <a
+        href="https://literaryroads.substack.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+        style={{
+          display: 'block', flexShrink: 0,
+          borderRadius: 12, textDecoration: 'none',
+          transform: hov ? 'scale(1.06)' : 'scale(1)',
+          transition: 'transform 0.22s ease',
+          boxShadow: hov
+            ? `0 0 0 2px ${L.coral}, 0 6px 20px rgba(255,107,122,0.3)`
+            : 'none',
+        }}
+        title="Literary Roads on Substack"
+      >
+        <img
+          src={`${import.meta.env.BASE_URL}images/author-cat.png`}
+          alt="Author cat"
+          style={{
+            width: size, height: size, objectFit: 'contain',
+            borderRadius: 12, display: 'block',
+            animation: 'lib-float 4s ease-in-out infinite',
+          }}
+        />
+      </a>
+    </div>
+  );
+}
+
 // ── Section shell ─────────────────────────────────────────────────────────────
 function SectionShell({ title, accentColor, onBack, children }) {
   return (
@@ -726,6 +762,7 @@ function SectionShell({ title, accentColor, onBack, children }) {
       <style>{`
         @keyframes lib-spin { to { transform: rotate(360deg); } }
         @keyframes lib-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes lib-float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-7px); } }
       `}</style>
       {/* Header */}
       <div style={{ position: 'sticky', top: 0, zIndex: 10,
@@ -1452,6 +1489,9 @@ export default function Library({ onBack }) {
             </div>
           ))}
         </div>
+
+        {/* Author cat */}
+        <AuthorCat />
 
         {!user && (
           <ShelfCard accentColor={L.coral}>
