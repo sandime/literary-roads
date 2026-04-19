@@ -50,17 +50,17 @@ const LOG_VIBE_TAGS = [
 ];
 const FOUND_AT_OPTIONS = [
   'recommendation', 'podcast', 'library', 'bookstore',
-  "friend's shelf", 'book review', 'Instagram', 'BookTok', 'somewhere else',
+  "friend's shelf", 'book review', 'Instagram', 'BookTok', 'book app', 'somewhere else',
 ];
-const FEEL_OPTIONS    = ['joyful', 'changed', 'sad', 'emotional'];
-const EXTRAS_OPTIONS  = ['memorable characters', 'unforgettable line', 'scenery', 'great idea'];
+const FEEL_OPTIONS    = ['joyful', 'changed', 'sad', 'emotional', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder', 'inspired'];
+const EXTRAS_OPTIONS  = ['memorable characters', 'unforgettable line', 'scenery', 'great premise'];
 
 const NF_VIBE_TAGS = [
   'eye-opening', 'well researched', 'accessible', 'dense', 'inspiring',
   'practical', 'changed my mind', 'fascinating', 'timely', 'essential reading',
   'beautifully written', 'quick read', 'deep dive', 'personal', 'controversial', 'life changing',
 ];
-const NF_FEEL_OPTIONS   = ['inspired', 'informed', 'challenged', 'motivated', 'overwhelmed', 'enlightened', 'skeptical', 'moved'];
+const NF_FEEL_OPTIONS   = ['inspired', 'informed', 'challenged', 'motivated', 'overwhelmed', 'enlightened', 'skeptical', 'moved', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder'];
 const NF_EXTRAS_OPTIONS = ['changed my perspective', 'surprising facts', 'would read again', 'dense but worth it', 'accessible writing'];
 
 // Detect fiction vs nonfiction from Google Books categories array
@@ -836,6 +836,10 @@ export default function Library({ onBack }) {
   // Read Next state
   const [readNext, setReadNext] = useState([]);
   const [activeReadNext, setActiveReadNext] = useState(null);
+  const [showReadNextAdd, setShowReadNextAdd] = useState(false);
+  const [readNextBook, setReadNextBook] = useState(null);
+  const [readNextDiscovery, setReadNextDiscovery] = useState('');
+  const [readNextSaving, setReadNextSaving] = useState(false);
 
   // Real-time subscriptions
   useEffect(() => {
@@ -968,6 +972,27 @@ export default function Library({ onBack }) {
       await deleteDoc(doc(db, 'users', user.uid, 'libraryReadNext', id));
       setActiveReadNext(null);
     } catch (err) { console.error('[Library] delete readNext:', err); }
+  };
+
+  const handleSaveReadNextManual = async () => {
+    if (!user || !readNextBook) return;
+    setReadNextSaving(true);
+    try {
+      const safeId = (readNextBook.id || '').replace(/\//g, '_');
+      const docId = `manual_${safeId}_${Date.now()}`;
+      await setDoc(doc(db, 'users', user.uid, 'libraryReadNext', docId), {
+        title:        readNextBook.title,
+        author:       readNextBook.author || '',
+        coverUrl:     readNextBook.coverURL || '',
+        googleBooksId: readNextBook.id,
+        whoWhatWhere: readNextDiscovery.trim() || '',
+        date:         serverTimestamp(),
+      });
+      setReadNextBook(null);
+      setReadNextDiscovery('');
+      setShowReadNextAdd(false);
+    } catch (err) { console.error('[Library] save readNext manual:', err); }
+    finally { setReadNextSaving(false); }
   };
 
   const activeEntry = sortedBooks.find(b => b.id === activeCard);
@@ -1376,13 +1401,66 @@ export default function Library({ onBack }) {
 
         {user && (
           <ShelfCard accentColor={L.peach}>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: '#C07A10', letterSpacing: '0.05em' }}>
                 {sortedReadNext.length > 0 ? `${sortedReadNext.length} book${sortedReadNext.length !== 1 ? 's' : ''} queued` : 'READ NEXT'}
               </span>
+              <button onClick={() => { setShowReadNextAdd(v => !v); setReadNextBook(null); setReadNextDiscovery(''); }}
+                style={{ ...primaryBtn, background: showReadNextAdd ? L.muted : L.peach, padding: '6px 12px', fontSize: 10, borderRadius: 20 }}>
+                {showReadNextAdd ? 'CANCEL' : '+ ADD BOOK'}
+              </button>
             </div>
 
-            {sortedReadNext.length === 0 && (
+            {showReadNextAdd && (
+              <div style={{ marginBottom: 16, padding: 14, borderRadius: 12,
+                background: 'rgba(255,184,163,0.1)', border: `1.5px solid rgba(255,184,163,0.4)`,
+                animation: 'lib-fade-in 0.18s ease' }}>
+                {!readNextBook ? (
+                  <>
+                    <p style={{ fontFamily: 'Bungee, sans-serif', color: '#C07A10', fontSize: 10, letterSpacing: '0.08em', marginBottom: 10 }}>FIND A BOOK</p>
+                    <BookSearch onSelect={book => setReadNextBook(book)} />
+                  </>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
+                      <div style={{ width: 44, height: 62, flexShrink: 0, borderRadius: 4, overflow: 'hidden',
+                        border: `1.5px solid rgba(255,184,163,0.5)`, background: L.card }}>
+                        <img src={readNextBook.coverURL || CAT_SRC} onLoad={onCoverLoad} onError={onCoverError}
+                          alt={readNextBook.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.dark, lineHeight: 1.3, marginBottom: 2 }}>{readNextBook.title}</p>
+                        <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.mid }}>{readNextBook.author}</p>
+                      </div>
+                      <button onClick={() => setReadNextBook(null)}
+                        style={{ background: 'none', border: 'none', color: L.muted, cursor: 'pointer', fontSize: 16, padding: '0 4px', lineHeight: 1 }}>
+                        x
+                      </button>
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: '#C07A10', letterSpacing: '0.06em', display: 'block', marginBottom: 6 }}>
+                        HOW DID YOU DISCOVER THIS? <span style={{ color: L.muted, fontFamily: 'Special Elite, serif', textTransform: 'none', letterSpacing: 0 }}>(optional)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={readNextDiscovery}
+                        onChange={e => setReadNextDiscovery(e.target.value)}
+                        placeholder="literary roads"
+                        style={{ ...inputStyle, fontSize: 13 }}
+                        onFocus={e => { e.currentTarget.style.borderColor = L.peach; e.currentTarget.style.boxShadow = `0 0 0 3px rgba(255,184,163,0.2)`; }}
+                        onBlur={e => { e.currentTarget.style.borderColor = L.inputBdr; e.currentTarget.style.boxShadow = 'none'; }}
+                      />
+                    </div>
+                    <button onClick={handleSaveReadNextManual} disabled={readNextSaving}
+                      style={{ ...primaryBtn, background: L.peach, padding: '10px 20px', fontSize: 11, width: '100%', opacity: readNextSaving ? 0.6 : 1 }}>
+                      {readNextSaving ? 'SAVING...' : 'ADD TO READ NEXT'}
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+
+            {sortedReadNext.length === 0 && !showReadNextAdd && (
               <div style={{ textAlign: 'center', padding: '24px 16px' }}>
                 <p style={{ fontFamily: 'Bungee, sans-serif', color: '#C07A10', fontSize: 12, letterSpacing: '0.05em', marginBottom: 8 }}>
                   YOUR WISH LIST IS EMPTY

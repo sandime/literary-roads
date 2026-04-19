@@ -100,7 +100,7 @@ function SkeletonCard() {
 
 // ── Journal entry card ────────────────────────────────────────────────────────
 function JournalCard({ item, expanded, onToggleExpand }) {
-  const showNotes = !item.personalNotesPrivate && !!item.personalNotes;
+  const showNotes = !!item.personalNotes;
 
   return (
     <div
@@ -229,14 +229,21 @@ function JournalCard({ item, expanded, onToggleExpand }) {
           {showNotes && (
             <div style={{
               marginTop: 8, padding: '8px 10px', borderRadius: 8,
-              background: 'rgba(255,184,163,0.22)',
-              border: `1px solid rgba(245,166,35,0.22)`,
+              background: item.personalNotesPrivate ? 'rgba(150,150,150,0.1)' : 'rgba(255,184,163,0.22)',
+              border: `1px solid ${item.personalNotesPrivate ? 'rgba(150,150,150,0.2)' : 'rgba(245,166,35,0.22)'}`,
             }}>
               <p style={{
                 fontFamily: 'Special Elite, serif', fontSize: 11,
                 color: L.dark, lineHeight: 1.65, margin: 0,
               }}>
                 {item.personalNotes}
+              </p>
+              <p style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: 8,
+                color: item.personalNotesPrivate ? L.muted : L.gold,
+                letterSpacing: '0.08em', margin: '5px 0 0',
+              }}>
+                {item.personalNotesPrivate ? 'PRIVATE' : 'PUBLIC'}
               </p>
             </div>
           )}

@@ -790,6 +790,7 @@ function Step2({ book, onNext, onBack, onClose }) {
   const [message, setMessage] = useState('');
   const [authorName, setAuthorName] = useState(user?.displayName || '');
   const [vibeTags, setVibeTags] = useState([]);
+  const [bookType, setBookType] = useState('fiction');
   const [hashtags, setHashtags] = useState(() => {
     const slug = (book.title || '').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
     return ['#literaryroads', slug ? `#${slug}` : ''].filter(Boolean).join(' ');
@@ -877,30 +878,36 @@ function Step2({ book, onNext, onBack, onClose }) {
 
         {/* Vibe tags */}
         <label className="font-bungee" style={labelStyle}>VIBE TAGS</label>
+        {/* Fiction / Nonfiction toggle */}
+        <div style={{ display: 'inline-flex', background: 'rgba(56,197,197,0.08)', borderRadius: 20,
+          padding: 3, marginBottom: 10, gap: 2 }}>
+          {['fiction', 'nonfiction'].map(type => (
+            <button key={type} type="button" onClick={() => { setBookType(type); setVibeTags([]); }}
+              className="font-bungee"
+              style={{
+                padding: '4px 14px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                background: bookType === type ? PB.coral : 'transparent',
+                color: bookType === type ? PB.white : PB.mid,
+                boxShadow: bookType === type ? '0 2px 8px rgba(255,107,122,0.25)' : 'none',
+              }}>
+              {type.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
-          {VIBE_TAGS.map((tag, idx) => {
-            if (tag === '__separator__') {
-              return (
-                <div key="sep" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0' }}>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(56,197,197,0.2)' }} />
-                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: 'rgba(56,197,197,0.5)', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>NON-FICTION</span>
-                  <div style={{ flex: 1, height: 1, background: 'rgba(56,197,197,0.2)' }} />
-                </div>
-              );
-            }
-            return (
-              <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
-                style={{
-                  padding: '3px 9px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
-                  border: 'none', cursor: 'pointer', transition: 'all 0.15s',
-                  background: vibeTags.includes(tag) ? PB.coral : 'rgba(56,197,197,0.08)',
-                  color: vibeTags.includes(tag) ? PB.white : PB.mid,
-                  boxShadow: vibeTags.includes(tag) ? '0 2px 8px rgba(255,107,122,0.3)' : 'none',
-                }}>
-                {tag.toUpperCase()}
-              </button>
-            );
-          })}
+          {(bookType === 'fiction' ? FICTION_VIBE_TAGS : NF_VIBE_TAGS).map(tag => (
+            <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
+              style={{
+                padding: '3px 9px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
+                border: 'none', cursor: 'pointer', transition: 'all 0.15s',
+                background: vibeTags.includes(tag) ? PB.coral : 'rgba(56,197,197,0.08)',
+                color: vibeTags.includes(tag) ? PB.white : PB.mid,
+                boxShadow: vibeTags.includes(tag) ? '0 2px 8px rgba(255,107,122,0.3)' : 'none',
+              }}>
+              {tag.toUpperCase()}
+            </button>
+          ))}
         </div>
 
         {/* Signature */}
@@ -931,6 +938,7 @@ function Step2({ book, onNext, onBack, onClose }) {
           state: selectedState?.name || stateCode,
           message,
           vibeTags,
+          bookType,
           hashtags: hashtags.trim().split(/\s+/).filter(h => h.startsWith('#')),
           authorName: authorName.trim() || 'A Literary Traveler',
         })}
@@ -941,6 +949,7 @@ function Step2({ book, onNext, onBack, onClose }) {
 
 function Step3({ data, onBack, saving, saved, onClose }) {
   const [downloading, setDownloading] = useState(false);
+  const [previewEnlarged, setPreviewEnlarged] = useState(false);
 
   const caption = [data.message, ...(data.hashtags || [])].join(' ');
 
@@ -1010,10 +1019,26 @@ function Step3({ data, onBack, saving, saved, onClose }) {
       <StepHeader step={3} title="PREVIEW & SHARE" onClose={onClose} />
 
       {/* Preview */}
-      <div style={{ width: '100%', overflowX: 'auto', marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
-        <div style={{ transform: 'scale(0.5)', transformOrigin: 'top center', height: 200, pointerEvents: 'none' }}>
-          <PostcardFront data={data} scale={1} />
+      <div style={{ width: '100%', marginBottom: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div onClick={() => setPreviewEnlarged(v => !v)}
+          style={{ cursor: 'pointer', overflowX: previewEnlarged ? 'auto' : 'hidden',
+            width: '100%', display: 'flex', justifyContent: 'center',
+            transition: 'height 0.25s ease' }}>
+          <div style={{
+            transform: previewEnlarged ? 'scale(0.85)' : 'scale(0.5)',
+            transformOrigin: 'top center',
+            height: previewEnlarged ? 350 : 200,
+            transition: 'transform 0.25s ease, height 0.25s ease',
+            pointerEvents: 'none',
+          }}>
+            <PostcardFront data={data} scale={1} />
+          </div>
         </div>
+        <button onClick={() => setPreviewEnlarged(v => !v)} className="font-bungee"
+          style={{ background: 'none', border: 'none', color: PB.muted, fontSize: 9,
+            letterSpacing: '0.08em', cursor: 'pointer', marginBottom: 12, padding: '2px 0' }}>
+          {previewEnlarged ? 'SHRINK PREVIEW' : 'ENLARGE PREVIEW'}
+        </button>
       </div>
 
       {/* Save status */}

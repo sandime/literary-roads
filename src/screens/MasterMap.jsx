@@ -1169,6 +1169,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const infoMenuRef = useRef(null);
   const journeysMenuRef = useRef(null);
   const [dcPillPos, setDcPillPos] = useState(null); // null = default CSS position
+  const [nearMePos, setNearMePos] = useState(null); // null = default header position
   const [listeningMode, setListeningMode] = useState(false);
   const [announcement, setAnnouncement] = useState('');
 
@@ -2454,17 +2455,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
           {/* Right buttons */}
           <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            {/* Near Me */}
-            <button onClick={handleNearMe}
-              className="bg-atomic-orange text-midnight-navy font-bungee px-4 py-2 rounded-full hover:bg-starlight-turquoise transition-all shadow-lg flex items-center gap-2 text-sm"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              NEAR ME
-            </button>
-
             {/* Curated Journeys */}
             <div className="relative" ref={journeysMenuRef}>
               <button onClick={() => setShowJourneysMenu(v => !v)} title="Curated Journeys"
@@ -2726,6 +2716,66 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           />
         </div>
       )}
+
+      {/* Near Me — draggable fixed pill */}
+      <button
+        onClick={handleNearMe}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          const rect = e.currentTarget.getBoundingClientRect();
+          const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+          let moved = false;
+          const onMove = (me) => { moved = true; setNearMePos({ top: me.clientY - offY, right: undefined, left: me.clientX - offX }); };
+          const onUp = (ue) => {
+            window.removeEventListener('mousemove', onMove);
+            window.removeEventListener('mouseup', onUp);
+            if (moved) ue.stopPropagation();
+          };
+          window.addEventListener('mousemove', onMove);
+          window.addEventListener('mouseup', onUp);
+        }}
+        onTouchStart={(e) => {
+          const touch = e.touches[0];
+          const rect = e.currentTarget.getBoundingClientRect();
+          const offX = touch.clientX - rect.left, offY = touch.clientY - rect.top;
+          let moved = false;
+          const onMove = (te) => { moved = true; te.preventDefault(); const t = te.touches[0]; setNearMePos({ top: t.clientY - offY, right: undefined, left: t.clientX - offX }); };
+          const onEnd = () => {
+            window.removeEventListener('touchmove', onMove);
+            window.removeEventListener('touchend', onEnd);
+          };
+          window.addEventListener('touchmove', onMove, { passive: false });
+          window.addEventListener('touchend', onEnd);
+        }}
+        style={{
+          position: 'fixed',
+          top:   nearMePos ? nearMePos.top  : '0.6rem',
+          left:  nearMePos?.left != null ? nearMePos.left : undefined,
+          right: nearMePos?.left != null ? undefined : '1rem',
+          zIndex: 1001,
+          background: '#FF4E00',
+          color: '#1A1B2E',
+          border: 'none',
+          borderRadius: 9999,
+          padding: '8px 16px',
+          fontFamily: 'Bungee, sans-serif',
+          fontSize: 14,
+          letterSpacing: '0.04em',
+          cursor: 'grab',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          boxShadow: '0 2px 12px rgba(255,78,0,0.4)',
+          userSelect: 'none',
+          touchAction: 'none',
+        }}
+      >
+        <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        NEAR ME
+      </button>
 
             {/* Map */}
       <div id="main-content" className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
