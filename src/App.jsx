@@ -19,6 +19,7 @@ import Credits from './screens/Credits';
 import Badges from './screens/Badges';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import EthicsModal from './components/EthicsModal';
+import WelcomeModal, { hasBeenWelcomed } from './components/WelcomeModal';
 import AdminUpload from './screens/AdminUpload';
 import AdminPanel from './screens/AdminPanel';
 import NewsletterPreview from './screens/NewsletterPreview';
@@ -44,6 +45,7 @@ function AppInner() {
   // Tracks where Profile was opened from — never clobbered by sub-navigation
   const [profileOrigin, setProfileOrigin] = useState('map');
   const [showEthicsModal, setShowEthicsModal] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
   // Check if logged-in user has accepted the Code of Ethics; show modal if not
   useEffect(() => {
@@ -68,7 +70,10 @@ function AppInner() {
     if (landmarkId) routeStateRef.current.pendingLandmark = landmarkId;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleLoadingComplete = () => setScreen('map');
+  const handleLoadingComplete = () => {
+    setScreen('map');
+    if (!hasBeenWelcomed()) setShowWelcomeModal(true);
+  };
 
   const handleHome = () => {
     // MasterMap handles its own state-selection mode internally;
@@ -300,6 +305,14 @@ function AppInner() {
       )}
       {screen === 'privacy' && (
         <PrivacyPolicy onBack={handleAuthBack} />
+      )}
+
+      {/* First-visit welcome modal — shown once after odometer, dismissed to map */}
+      {showWelcomeModal && (
+        <WelcomeModal
+          onDismiss={() => setShowWelcomeModal(false)}
+          onSignIn={() => { setShowWelcomeModal(false); handleShowLogin(); }}
+        />
       )}
 
       {/* First-time ethics acceptance modal — blocks app until accepted */}
