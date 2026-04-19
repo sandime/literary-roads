@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "STARSIDE",
-      "author": "Alex Aster",
+      "title": "RITES OF THE STARLING",
+      "author": "Devney Perry",
       "weeksOnList": 1,
-      "isbn13": "9780063462434",
-      "description": "Aris traverses a realm of magic and immortals, where she faces dangers as she seeks to avenge her family’s death.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063462434.jpg"
+      "isbn13": "9781682816752",
+      "description": "The second book in the “Shield of Sparrows” series. Secrets uncovered may stop the devastation of a cursed realm.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781682816752.jpg"
     },
     {
       "rank": 2,
-      "title": "THE NIGHT WE MET",
-      "author": "Abby Jimenez",
-      "weeksOnList": 2,
-      "isbn13": "9781538759226",
-      "description": "Larissa makes a choice after a concert to ride home with Chris’s best friend, which may cause life-changing results.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538759226.jpg"
+      "title": "YESTERYEAR",
+      "author": "Caro Claire Burke",
+      "weeksOnList": 1,
+      "isbn13": "9780593804216",
+      "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
       "rank": 3,
+      "title": "REVENGE PREY",
+      "author": "John Sandford",
+      "weeksOnList": 1,
+      "isbn13": "9780593852064",
+      "description": "The 36th book in the Prey series. Davenport and White must protect a Russian intelligence officer and his family who are in hiding.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593852064.jpg"
+    },
+    {
+      "rank": 4,
       "title": "THE CORRESPONDENT",
       "author": "Virginia Evans",
-      "weeksOnList": 23,
+      "weeksOnList": 24,
       "isbn13": "9780593798430",
       "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
-      "rank": 4,
-      "title": "THE KEEPER",
-      "author": "Tana French",
-      "weeksOnList": 1,
-      "isbn13": "9780593493465",
-      "description": "The third book in the Cal Hooper series. Old feuds are reignited when a girl who was to be betrothed is found dead in a remote Irish village.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593493465.jpg"
-    },
-    {
       "rank": 5,
-      "title": "JUDGE STONE",
-      "author": "Viola Davis and James Patterson",
-      "weeksOnList": 4,
-      "isbn13": "9780316579834",
-      "description": "Judge Mary Stone oversees an ethically complex case in her courtroom in Union Springs, Ala.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316579834.jpg"
+      "title": "STARSIDE",
+      "author": "Alex Aster",
+      "weeksOnList": 2,
+      "isbn13": "9780063462434",
+      "description": "Aris traverses a realm of magic and immortals, where she faces dangers as she seeks to avenge her family’s death.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063462434.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "PHASES",
-      "author": "Brandy with Gerrick Kennedy",
+      "title": "LONDON FALLING",
+      "author": "Patrick Radden Keefe",
       "weeksOnList": 1,
-      "isbn13": "9781335013279",
-      "description": "The actress and Grammy Award-winning musician shares some of her early struggles and her rise to fame.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781335013279.jpg"
+      "isbn13": "9780385548533",
+      "description": "The author of “Say Nothing” details the efforts by the parents of a 19-year-old Londoner to uncover the truth about his mysterious death and secret life.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385548533.jpg"
     },
     {
       "rank": 2,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 11,
+      "weeksOnList": 12,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 3,
-      "title": "STRIPPED DOWN",
-      "author": "Bunnie Xo",
-      "weeksOnList": 7,
-      "isbn13": "9780063445192",
-      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
+      "title": "PLANET MONEY",
+      "author": "Alex Mayyasi and the hosts of NPR’s “Planet Money”",
+      "weeksOnList": 1,
+      "isbn13": "9781324078777",
+      "description": "Stories illustrating global economic forces at work and how they impact decisions we make.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781324078777.jpg"
     },
     {
       "rank": 4,
-      "title": "A WORLD APPEARS",
-      "author": "Michael Pollan",
-      "weeksOnList": 6,
-      "isbn13": "9781984881991",
-      "description": "The author of “This Is Your Mind on Plants” explores several perspectives on consciousness.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781984881991.jpg"
+      "title": "HERE WHERE WE LIVE IS OUR COUNTRY",
+      "author": "Molly Crabapple",
+      "weeksOnList": 1,
+      "isbn13": "9780593229453",
+      "description": "A portrayal of the Jewish Labor Bund, and the ways its development and dissolution resonate today.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593229453.jpg"
     },
     {
       "rank": 5,
-      "title": "THE INFINITY MACHINE",
-      "author": "Sebastian Mallaby",
-      "weeksOnList": 1,
-      "isbn13": "9780593831847",
-      "description": "A biography of the British artificial intelligence researcher and entrepreneur Demis Hassabis.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593831847.jpg"
+      "title": "STRIPPED DOWN",
+      "author": "Bunnie Xo",
+      "weeksOnList": 8,
+      "isbn13": "9780063445192",
+      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
     }
   ],
-  "issueDate": "Sunday, April 12, 2026",
-  "issueNumber": 67,
-  "updatedAt": "2026-04-12T10:29:56.950Z"
+  "issueDate": "Sunday, April 19, 2026",
+  "issueNumber": 68,
+  "updatedAt": "2026-04-19T10:30:39.864Z"
 }
