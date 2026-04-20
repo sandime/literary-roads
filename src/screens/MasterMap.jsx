@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap } from 'react-leaflet';
@@ -1633,14 +1633,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
   };
 
-  const handleStarburstChange = (locationId, hasStarburst) => {
+  const handleStarburstChange = useCallback((locationId, hasStarburst) => {
     setStarburstIds((prev) => {
+      const alreadyHas = prev.has(locationId);
+      if (hasStarburst === alreadyHas) return prev; // no change — skip re-render
       const next = new Set(prev);
       if (hasStarburst) next.add(locationId);
       else next.delete(locationId);
       return next;
     });
-  };
+  }, []);
 
   const handleRemoveFromTrip = (id) => {
     const updated = tripItems.filter((i) => i.id !== id);
@@ -3569,8 +3571,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </div>
             )}
 
-            {/* Pit stop rating — not shown for festivals (they're events, not permanent venues) */}
-            {selectedLocation.type !== 'festival' && (
+            {/* Pit stop rating — landmarks only (always shown, no tab to unmount it) */}
+            {selectedLocation.type === 'landmark' && (
               <PitStopRating
                 key={selectedLocation.id}
                 locationId={selectedLocation.id}
@@ -3611,6 +3613,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             {/* Tab: Info (or full content for landmarks + festivals) */}
             {(selectedLocation.type === 'landmark' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
               <div>
+                {/* Pit stop rating for bookstores, cafes, driveins — only mounted when info tab is active */}
+                {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe' || selectedLocation.type === 'drivein') && (
+                  <PitStopRating
+                    key={selectedLocation.id}
+                    locationId={selectedLocation.id}
+                    user={user}
+                    onShowLogin={onShowLogin}
+                    onStarburstChange={handleStarburstChange}
+                  />
+                )}
                 <p className="text-paper-white font-special-elite text-sm mb-2 line-clamp-3 md:line-clamp-none">
                   {selectedLocation.description}
                 </p>

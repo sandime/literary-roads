@@ -129,21 +129,27 @@ export async function checkSeasonalBadges(userId, booksReadThisYear, goal) {
 }
 
 // ── Award Founder's Circle badge ──────────────────────────────────────────────
-// Call after user saves a favorite book. Returns badge definition if newly awarded, else null.
-export async function checkAndAwardFoundersBadge(userId, founderEligible, favBookCount) {
-  if (!founderEligible || favBookCount < 1) return null;
+// Call after user logs a book. Conditions: accountNumber <= 100 AND booksRead >= 1.
+// Reads founderEligible and booksRead count from Firestore — no caller bookkeeping needed.
+export async function checkAndAwardFoundersBadge(userId) {
   try {
     const badgeRef  = doc(db, 'users', userId, 'badges', 'founders-circle');
     const badgeSnap = await getDoc(badgeRef);
     if (badgeSnap.exists()) return null; // already earned
 
-    const userSnap    = await getDoc(doc(db, 'users', userId));
-    const accountNumber = userSnap.data()?.accountNumber || 0;
+    const [userSnap, booksSnap] = await Promise.all([
+      getDoc(doc(db, 'users', userId)),
+      getDocs(collection(db, 'users', userId, 'booksRead')),
+    ]);
+
+    const userData = userSnap.data() || {};
+    if (!userData.founderEligible) return null;   // not in first 100
+    if (booksSnap.size < 1) return null;          // no book logged yet
 
     await setDoc(badgeRef, {
       badgeId:      'founders-circle',
       earnedAt:     serverTimestamp(),
-      serialNumber: accountNumber,
+      serialNumber: userData.accountNumber || 0,
       progress:     1,
     });
 

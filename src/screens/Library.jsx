@@ -3,7 +3,7 @@ import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimest
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
-import { checkAndAwardBadges } from '../utils/badgeChecker';
+import { checkAndAwardBadges, checkAndAwardFoundersBadge } from '../utils/badgeChecker';
 import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { BackArrowIcon, LibraryIcon } from '../components/Icons';
 import PostcardBuilder from '../components/PostcardBuilder';
@@ -925,6 +925,7 @@ export default function Library({ onBack }) {
       });
       setSelectedBook(null); setShowAddSearch(false);
       checkAndAwardBadges(user.uid).then(newly => { if (newly.length > 0) setNewBadges(newly); });
+      checkAndAwardFoundersBadge(user.uid).then(badge => { if (badge) setNewBadges(prev => [...prev, badge]); });
     } catch (err) {
       console.error('[Library] save:', err);
       setSaveError('Could not save. Try again.');
