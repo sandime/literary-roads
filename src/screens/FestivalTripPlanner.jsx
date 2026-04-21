@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
 import { saveRoute } from '../utils/savedRoutes';
@@ -9,7 +9,7 @@ import {
   getNearbyTheaters, getNearbyRestaurants, getNearbyDriveIns,
 } from '../utils/firestorePlaces';
 import { CATEGORY_RADII } from '../utils/nearbySearch';
-import festivalsData from '../data/literaryFestivals.json';
+import { getAllFestivals } from '../utils/literaryFestivals';
 import {
   PinIcon, StarburstIcon,
   BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon,
@@ -621,6 +621,12 @@ const buildFestivalGoogleMapsUrl = (startCoords, stops) => {
 // ── Main Component ─────────────────────────────────────────────────────────────
 const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
   const { user } = useAuth();
+
+  // Festivals loaded async from Firestore on mount
+  const [festivalsData, setFestivalsData] = useState([]);
+  useEffect(() => {
+    getAllFestivals().then(setFestivalsData).catch(err => console.error('[FestivalTripPlanner] load festivals:', err));
+  }, []);
 
   const [step, setStep] = useState('filter'); // filter → select → preferences → generating → itinerary
 

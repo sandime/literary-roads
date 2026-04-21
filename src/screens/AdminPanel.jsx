@@ -7,6 +7,7 @@ import {
   fetchAll, createItem, updateItem, deleteItem, ADMIN_UID,
   fetchCurrentIssue, saveCurrentIssue, publishIssue, deleteArchivedIssue,
   fetchFeatured, fetchArchivedIssues, fetchAllFeaturedSections,
+  fetchDraftFestivals, publishDraft,
 } from '../utils/newsletterAdmin';
 import { formatIssueDate } from '../components/GazetteContent';
 import { generateNewsletterHTML, generateSubstackText } from '../utils/newsletterGenerator';
@@ -373,7 +374,7 @@ function RepeaterField({ field, value, onChange }) {
 }
 
 // ── Item Modal ────────────────────────────────────────────────────────────────
-function ItemModal({ section, item, onSave, onClose, saving }) {
+function ItemModal({ section, item, onSave, onClose, saving, publishMode = false }) {
   const isEdit = !!item?.id;
   const [form, setForm] = useState(() => {
     const d = {};
@@ -506,11 +507,11 @@ function ItemModal({ section, item, onSave, onClose, saving }) {
           </button>
           <button
             type="button"
-            onClick={() => canSave && !saving && onSave(form)}
+            onClick={() => canSave && !saving && onSave(publishMode ? { ...form, status: 'published' } : form)}
             disabled={!canSave || saving}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', cursor: canSave && !saving ? 'pointer' : 'not-allowed', background: canSave && !saving ? C.teal : 'rgba(64,224,208,0.25)', color: C.bg, letterSpacing: '0.06em', transition: 'all 0.15s' }}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', cursor: canSave && !saving ? 'pointer' : 'not-allowed', background: canSave && !saving ? (publishMode ? C.orange : C.teal) : 'rgba(64,224,208,0.25)', color: '#fff', letterSpacing: '0.06em', transition: 'all 0.15s' }}
           >
-            {saving ? 'SAVING...' : isEdit ? 'SAVE CHANGES' : 'ADD'}
+            {saving ? 'SAVING...' : publishMode ? 'PUBLISH' : isEdit ? 'SAVE CHANGES' : 'ADD'}
           </button>
         </div>
       </div>
@@ -848,7 +849,9 @@ function SectionTab({ section, showToast }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      setItems(await fetchAll(section.key));
+      const all = await fetchAll(section.key);
+      // Festivals: hide drafts here — they live in the Festival Drafts tab
+      setItems(section.key === 'festivals' ? all.filter(i => i.status !== 'draft') : all);
     } catch {
       showToast('Failed to load', 'error');
     } finally {
@@ -988,6 +991,152 @@ function SectionTab({ section, showToast }) {
   );
 }
 
+// ── Festival Drafts Panel ─────────────────────────────────────────────────────
+// Shows auto-generated and manual draft festivals with Edit-and-publish / Discard.
+function DraftsPanel({ showToast }) {
+  const FESTIVALS_SECTION = SECTIONS.find(s => s.key === 'festivals');
+  const [drafts, setDrafts]             = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [editTarget, setEditTarget]     = useState(null); // draft object being edited
+  const [discardTarget, setDiscardTarget] = useState(null);
+  const [saving, setSaving]             = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setDrafts(await fetchDraftFestivals());
+    } catch {
+      showToast('Failed to load drafts', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [showToast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handlePublish = async (form) => {
+    setSaving(true);
+    try {
+      await publishDraft(editTarget.id, form);
+      showToast('Festival published!');
+      setEditTarget(null);
+      load();
+    } catch {
+      showToast('Publish failed', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDiscard = async () => {
+    try {
+      await deleteItem('festivals', discardTarget.id);
+      showToast('Draft discarded');
+      setDiscardTarget(null);
+      load();
+    } catch {
+      showToast('Discard failed', 'error');
+    }
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted }}>
+          {loading ? '...' : `${drafts.length} draft${drafts.length !== 1 ? 's' : ''} waiting for review`}
+        </span>
+        <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted }}>
+          · Auto-drafts are created every Monday at 8 AM for upcoming festivals
+        </span>
+      </div>
+
+      {loading ? (
+        <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 13, textAlign: 'center', padding: '48px 0' }}>Loading...</p>
+      ) : drafts.length === 0 ? (
+        <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 13, textAlign: 'center', padding: '48px 0' }}>
+          No drafts right now. Auto-drafts appear Monday mornings.
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {drafts.map(draft => (
+            <div key={draft.id} style={{ background: C.surface, border: `1px solid rgba(255,78,0,0.25)`, borderRadius: 10, padding: '14px 16px', position: 'relative' }}>
+              {/* Badges row */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,78,0,0.18)', color: C.orange, border: `1px solid rgba(255,78,0,0.35)`, letterSpacing: '0.07em' }}>
+                  DRAFT
+                </span>
+                {draft.autoGenerated && (
+                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(64,224,208,0.12)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.07em' }}>
+                    AUTO
+                  </span>
+                )}
+              </div>
+
+              {/* Name + location */}
+              <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.white, marginBottom: 3 }}>
+                {draft.name}
+              </div>
+              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted, marginBottom: 6 }}>
+                {[draft.location, draft.date ? new Date(draft.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : ''].filter(Boolean).join(' · ')}
+              </div>
+
+              {/* Description preview */}
+              {draft.context && (
+                <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: 'rgba(245,245,220,0.7)', lineHeight: 1.5, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {draft.context}
+                </p>
+              )}
+
+              {/* Website link */}
+              {draft.link && (
+                <a href={draft.link} target="_blank" rel="noopener noreferrer"
+                  style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.teal, textDecoration: 'none', display: 'inline-block', marginBottom: 12 }}>
+                  {draft.link.replace(/^https?:\/\//, '').replace(/\/$/, '')} →
+                </a>
+              )}
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={() => setEditTarget(draft)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 16px', borderRadius: 6, border: 'none', background: C.orange, color: '#fff', cursor: 'pointer', letterSpacing: '0.05em' }}>
+                  EDIT & PUBLISH
+                </button>
+                <button
+                  onClick={() => setDiscardTarget(draft)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                  DISCARD
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Edit-and-publish modal */}
+      {editTarget && (
+        <ItemModal
+          section={FESTIVALS_SECTION}
+          item={editTarget}
+          onSave={handlePublish}
+          onClose={() => setEditTarget(null)}
+          saving={saving}
+          publishMode
+        />
+      )}
+
+      {/* Discard confirm */}
+      {discardTarget && (
+        <DeleteConfirm
+          name={discardTarget.name}
+          onConfirm={handleDiscard}
+          onCancel={() => setDiscardTarget(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ── AdminPanel ─────────────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const { user } = useAuth();
@@ -1066,13 +1215,25 @@ export default function AdminPanel() {
           ★ ISSUE
         </button>
         {SECTIONS.map(s => (
-          <button
-            key={s.key}
-            onClick={() => setActiveTab(s.key)}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === s.key ? `2px solid ${C.teal}` : '2px solid transparent', color: activeTab === s.key ? C.teal : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
-          >
-            {s.label.toUpperCase()}
-          </button>
+          <>
+            <button
+              key={s.key}
+              onClick={() => setActiveTab(s.key)}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === s.key ? `2px solid ${C.teal}` : '2px solid transparent', color: activeTab === s.key ? C.teal : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+            >
+              {s.label.toUpperCase()}
+            </button>
+            {/* Drafts inbox — injected right after the Festival Trips tab */}
+            {s.key === 'festivals' && (
+              <button
+                key="festivalDrafts"
+                onClick={() => setActiveTab('festivalDrafts')}
+                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'festivalDrafts' ? `2px solid ${C.orange}` : '2px solid transparent', color: activeTab === 'festivalDrafts' ? C.orange : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+              >
+                FESTIVAL DRAFTS
+              </button>
+            )}
+          </>
         ))}
       </div>
 
@@ -1080,6 +1241,9 @@ export default function AdminPanel() {
       <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 20px 80px' }}>
         {activeTab === 'issue' && (
           <IssueTab showToast={showToast} />
+        )}
+        {activeTab === 'festivalDrafts' && (
+          <DraftsPanel showToast={showToast} />
         )}
         {SECTIONS.map(s => (
           activeTab === s.key && (

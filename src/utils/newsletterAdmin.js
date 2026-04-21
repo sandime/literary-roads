@@ -22,6 +22,27 @@ export async function fetchFeatured(col) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+// Fetch only gazette festival drafts (status === 'draft')
+export async function fetchDraftFestivals() {
+  const snap = await getDocs(query(collection(db, 'festivals'), where('status', '==', 'draft')));
+  // Sort client-side to avoid needing a composite index
+  const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return docs.sort((a, b) => {
+    const ta = a.createdAt?.seconds ?? 0;
+    const tb = b.createdAt?.seconds ?? 0;
+    return tb - ta; // newest first
+  });
+}
+
+// Promote a draft to published — merges updated form fields + sets status: 'published'
+export async function publishDraft(id, form) {
+  return firestoreUpdate(doc(db, 'festivals', id), {
+    ...form,
+    status: 'published',
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function createItem(col, data) {
   return addDoc(collection(db, col), {
     ...data,
@@ -95,7 +116,7 @@ export async function fetchArchivedIssueBySlug(slug) {
 // Returns a single data object with all featured content for the current issue.
 export async function fetchAllFeaturedSections(nytRaw) {
   const [
-    festivalTrips, handSelected, dispatches, readersChoice,
+    rawFestivalTrips, handSelected, dispatches, readersChoice,
     literaryLandmarks, readingRoom, headlights, onTheRoad,
     waystation, bookstoreQA, theLongRoad,
   ] = await Promise.all([
@@ -111,6 +132,9 @@ export async function fetchAllFeaturedSections(nytRaw) {
     fetchFeatured('bookstoreQA'),
     fetchFeatured('theLongRoad'),
   ]);
+  // Exclude drafts from public display — drafts are only visible in the admin inbox
+  const festivalTrips = rawFestivalTrips.filter(f => f.status !== 'draft');
+
   return {
     festivalTrips, handSelected, dispatches, readersChoice,
     literaryLandmarks, readingRoom, headlights, onTheRoad,

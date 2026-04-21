@@ -117,6 +117,12 @@ service cloud.firestore {
       }
     }
 
+    // ── Literary festival map data: public read, written only by Cloud Functions ─
+    match /literaryFestivals/{doc} {
+      allow read: if true;
+      allow write: if false; // Cloud Functions use Admin SDK (bypasses rules)
+    }
+
     // ── Public read collections (map data) ────────────────────────────────────
     match /literary_landmarks/{landmark} {
       allow read: if true;

@@ -1,4 +1,7 @@
-import festivalsData from '../data/literaryFestivals.json';
+import { db } from '../config/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+
+const COLLECTION = 'literaryFestivals';
 
 const distMiles = (lat1, lon1, lat2, lon2) => {
   const R = 3959;
@@ -26,21 +29,34 @@ const toLocation = (f) => ({
   size:             f.size,
 });
 
+// Fetch all festivals from Firestore (small collection — haversine filter client-side)
+async function fetchAll() {
+  const snap = await getDocs(collection(db, COLLECTION));
+  return snap.docs.map(d => d.data());
+}
+
 // Return festivals within radiusMiles of any sampled point along the route
-export const getLiteraryFestivalsAlongRoute = (routePoints, radiusMiles = 100) => {
+export async function getLiteraryFestivalsAlongRoute(routePoints, radiusMiles = 100) {
   if (!routePoints?.length) return [];
+  const festivals = await fetchAll();
   // Sample every 5th point + last point so the check stays fast on long routes
   const samples = routePoints
     .filter((_, i) => i % 5 === 0)
     .concat([routePoints[routePoints.length - 1]]);
-
-  return festivalsData
+  return festivals
     .filter(f => samples.some(([pLat, pLng]) => distMiles(f.lat, f.lng, pLat, pLng) <= radiusMiles))
     .map(toLocation);
-};
+}
 
 // Return festivals within radiusMiles of a single point (used for NEAR ME)
-export const getLiteraryFestivalsNear = (lat, lng, radiusMiles = 75) =>
-  festivalsData
+export async function getLiteraryFestivalsNear(lat, lng, radiusMiles = 75) {
+  const festivals = await fetchAll();
+  return festivals
     .filter(f => distMiles(f.lat, f.lng, lat, lng) <= radiusMiles)
     .map(toLocation);
+}
+
+// Return all festivals as raw data objects (for filtering UI in FestivalTripPlanner)
+export async function getAllFestivals() {
+  return fetchAll();
+}

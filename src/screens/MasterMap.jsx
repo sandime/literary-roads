@@ -1935,7 +1935,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     try {
       const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
         searchNearbyPlaces(DC_LAT, DC_LNG, 10),
-        Promise.resolve(getLiteraryFestivalsNear(DC_LAT, DC_LNG, 10)),
+        getLiteraryFestivalsNear(DC_LAT, DC_LNG, 10),
         getDriveInsNear(DC_LAT, DC_LNG, 10),
         getCuratedLandmarks([[DC_LAT, DC_LNG]], 10),
       ]);
@@ -2025,7 +2025,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
         const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 15),
-          Promise.resolve(getLiteraryFestivalsNear(latitude, longitude, 15)),
+          getLiteraryFestivalsNear(latitude, longitude, 15),
           getDriveInsNear(latitude, longitude, 15),
           getCuratedLandmarks([[latitude, longitude]], 15),
         ]);
@@ -2132,7 +2132,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         }
       };
 
-      const festivals = getLiteraryFestivalsAlongRoute(allTripPoints, 100);
+      const festivals = await getLiteraryFestivalsAlongRoute(allTripPoints, 100);
       const phase1Locations = [];
       mergeInto(phase1Locations, [...curatedLandmarks, ...driveIns, ...festivals, ...places, ...destPlaces]);
       setVisibleLocations(phase1Locations);
