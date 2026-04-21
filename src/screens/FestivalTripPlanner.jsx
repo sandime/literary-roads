@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { autocompleteAddress, geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
+import { geocodePlace, reverseGeocode } from '../utils/mapboxGeocoding';
 import { saveRoute } from '../utils/savedRoutes';
 import {
   getNearbyBookstores, getNearbyCoffeeShops, getNearbyLibraries,
@@ -10,13 +10,14 @@ import {
 } from '../utils/firestorePlaces';
 import { CATEGORY_RADII } from '../utils/nearbySearch';
 import { getAllFestivals } from '../utils/literaryFestivals';
-import {
-  PinIcon, StarburstIcon,
-  BookIcon, LibrariesIcon, LiteraryLandmarkIcon, DriveInTheaterIcon,
-  CoffeeCupIcon, RestaurantsIcon, MuseumsIcon, ParksIcon,
-  HistoricSitesIcon, ArtGalleriesIcon, ObservatoriesIcon, AquariumsIcon,
-  LivePerformanceIcon, FestivalTentIcon,
-} from '../components/Icons';
+import { PinIcon } from '../components/Icons';
+import AddressInput from '../components/journey/AddressInput';
+import WaypointsSheet from '../components/journey/WaypointsSheet';
+import SaveRouteButton from '../components/journey/SaveRouteButton';
+import JourneyGenerating from '../components/journey/JourneyGenerating';
+import JourneySteps from '../components/journey/JourneySteps';
+import Starburst from '../components/journey/Starburst';
+import { CATEGORY_GROUPS, ALL_CATEGORIES, TYPE_ICON } from '../components/journey/constants';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -33,40 +34,6 @@ const SIZE_BADGES = {
   specialty:{ label: 'SPECIALTY',bg: 'bg-chrome-silver/20 border-chrome-silver/40',     text: 'text-chrome-silver' },
 };
 
-// ── Waypoint categories (mirrors DayTripPlanner) ──────────────────────────────
-const CATEGORY_GROUPS = [
-  {
-    id: 'literary', Icon: BookIcon, label: 'LITERARY STOPS',
-    items: [
-      { key: 'bookstore',    Icon: BookIcon,             label: 'Bookstores'         },
-      { key: 'library',      Icon: LibrariesIcon,        label: 'Libraries'          },
-      { key: 'landmark',     Icon: LiteraryLandmarkIcon, label: 'Literary Landmarks' },
-      { key: 'drivein',      Icon: DriveInTheaterIcon,   label: 'Drive-in Theaters'  },
-    ],
-  },
-  {
-    id: 'food', Icon: CoffeeCupIcon, label: 'FOOD & DRINK',
-    items: [
-      { key: 'cafe',         Icon: CoffeeCupIcon,        label: 'Coffee Shops'       },
-      { key: 'restaurant',   Icon: RestaurantsIcon,      label: 'Restaurants'        },
-    ],
-  },
-  {
-    id: 'attractions', Icon: ArtGalleriesIcon, label: 'ATTRACTIONS',
-    items: [
-      { key: 'museum',       Icon: MuseumsIcon,          label: 'Museums'            },
-      { key: 'park',         Icon: ParksIcon,            label: 'Parks'              },
-      { key: 'historicSite', Icon: HistoricSitesIcon,    label: 'Historic Sites'     },
-      { key: 'artGallery',   Icon: ArtGalleriesIcon,     label: 'Art Galleries'      },
-      { key: 'observatory',  Icon: ObservatoriesIcon,    label: 'Observatories'      },
-      { key: 'aquarium',     Icon: AquariumsIcon,        label: 'Aquariums'          },
-      { key: 'theater',      Icon: LivePerformanceIcon,  label: 'Theaters'           },
-    ],
-  },
-];
-const CATEGORY_OPTIONS = CATEGORY_GROUPS.flatMap(g => g.items);
-const ALL_CATEGORIES   = new Set(CATEGORY_OPTIONS.map(c => c.key));
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const haversine = (lat1, lng1, lat2, lng2) => {
   const R = 3959;
@@ -74,249 +41,6 @@ const haversine = (lat1, lng1, lat2, lng2) => {
   const dLng = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-};
-
-// ── Googie atomic starburst accent ────────────────────────────────────────────
-const Starburst = ({ color = '#FF4E00', size = 20, style: sty = {} }) => {
-  const pts = Array.from({ length: 16 }, (_, i) => {
-    const angle = (i * Math.PI) / 8;
-    const r = i % 2 === 0 ? size / 2 : size / 4.5;
-    return `${size / 2 + r * Math.cos(angle)},${size / 2 + r * Math.sin(angle)}`;
-  }).join(' ');
-  return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'inline-block', flexShrink: 0, ...sty }}><polygon points={pts} fill={color} opacity="0.9" /></svg>;
-};
-
-// ── Address Autocomplete with embedded GPS button ──────────────────────────────
-const AddressInput = ({ value, onChange, onSelect, placeholder, confirmed, gpsLoading, onGPS, onClear }) => {
-  const [suggestions, setSuggestions] = useState([]);
-  const [showDrop, setShowDrop] = useState(false);
-  const containerRef = useRef(null);
-  const debounceRef  = useRef(null);
-
-  const handleChange = (v) => {
-    onChange(v);
-    clearTimeout(debounceRef.current);
-    if (!v || v.length < 2) { setSuggestions([]); setShowDrop(false); return; }
-    debounceRef.current = setTimeout(async () => {
-      const res = await autocompleteAddress(v, ['US', 'PR']);
-      if (res?.length) { setSuggestions(res); setShowDrop(true); }
-    }, 500);
-  };
-
-  const borderColor = confirmed ? 'rgba(64,224,208,0.9)' : 'rgba(64,224,208,0.4)';
-
-  return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-        <input
-          type="text" value={value} onChange={e => handleChange(e.target.value)}
-          onFocus={() => suggestions.length > 0 && setShowDrop(true)}
-          onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-          placeholder={placeholder}
-          className="font-special-elite text-paper-white"
-          style={{
-            width: '100%', background: 'rgba(0,0,0,0.5)',
-            border: `2px solid ${borderColor}`,
-            borderRadius: 10, padding: '12px 80px 12px 14px',
-            fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box',
-          }}
-          autoComplete="off"
-        />
-        <div style={{ position: 'absolute', right: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
-          {value && (
-            <button type="button" onPointerDown={e => { e.preventDefault(); onClear(); }}
-              style={{ width:30, height:30, borderRadius:6, background:'none', border:'none',
-                       cursor:'pointer', color:'rgba(192,192,192,0.5)', fontSize:18, lineHeight:1,
-                       display:'flex', alignItems:'center', justifyContent:'center' }}
-              title="Clear"
-            >×</button>
-          )}
-          <button type="button" onPointerDown={e => { e.preventDefault(); if (!gpsLoading) onGPS(); }}
-            disabled={gpsLoading}
-            style={{ width:36, height:36, borderRadius:8,
-                     background: confirmed ? 'rgba(64,224,208,0.15)' : 'rgba(64,224,208,0.08)',
-                     border: `1px solid ${confirmed ? 'rgba(64,224,208,0.5)' : 'rgba(64,224,208,0.2)'}`,
-                     cursor: gpsLoading ? 'default' : 'pointer',
-                     display:'flex', alignItems:'center', justifyContent:'center' }}
-            title="Use my location"
-          >
-            {gpsLoading
-              ? <span style={{ display:'inline-block', width:14, height:14,
-                               border:'2px solid rgba(64,224,208,0.3)', borderTopColor:'#40E0D0',
-                               borderRadius:'50%', animation:'spin 0.7s linear infinite' }} />
-              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke={confirmed ? '#40E0D0' : 'rgba(64,224,208,0.7)'} strokeWidth={2.5}>
-                  <path d="M12 2a7 7 0 017 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 017-7z"/>
-                  <circle cx="12" cy="9" r="2.5"/>
-                </svg>
-            }
-          </button>
-        </div>
-      </div>
-      {confirmed && (
-        <p className="font-special-elite" style={{ fontSize:11, color:'rgba(64,224,208,0.6)', marginTop:4, paddingLeft:2 }}>
-          ✓ Location confirmed
-        </p>
-      )}
-      {showDrop && suggestions.length > 0 && (
-        <ul style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:50, maxHeight:200, overflowY:'auto' }}
-          className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg shadow-2xl"
-        >
-          {suggestions.map((s, i) => (
-            <li key={i} onPointerDown={() => { onSelect(s); setShowDrop(false); }}
-              className="px-3 py-2.5 cursor-pointer hover:bg-starlight-turquoise/10 text-paper-white font-special-elite text-sm border-b border-starlight-turquoise/10 last:border-0"
-            >
-              {s.label || s.display || s}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-};
-
-// ── Waypoints Sheet Modal ──────────────────────────────────────────────────────
-const WaypointsSheet = ({ open, onClose, categories, setCategories }) => {
-  const sheetRef   = useRef(null);
-  const dragStartY = useRef(null);
-  const dragDelta  = useRef(0);
-
-  const onTouchStart = (e) => { dragStartY.current = e.touches[0].clientY; dragDelta.current = 0; };
-  const onTouchMove  = (e) => {
-    if (dragStartY.current === null) return;
-    const dy = e.touches[0].clientY - dragStartY.current;
-    dragDelta.current = dy;
-    if (dy > 0 && sheetRef.current) sheetRef.current.style.transform = `translateY(${dy}px)`;
-  };
-  const onTouchEnd = () => {
-    if (dragDelta.current > 80) onClose();
-    else if (sheetRef.current) sheetRef.current.style.transform = '';
-    dragStartY.current = null;
-    dragDelta.current  = 0;
-  };
-
-  const toggleCat = (key) => setCategories(prev => { const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n; });
-
-  if (!open) return null;
-
-  const selectedCount = categories.size;
-  const stickyBg = { position: 'sticky', zIndex: 10, background: '#1A1B2E' };
-
-  return (
-    <div
-      style={{ position:'fixed', inset:0, zIndex:1100, background:'rgba(0,0,0,0.65)',
-               display:'flex', flexDirection:'column', justifyContent:'flex-end', alignItems:'center' }}
-      onClick={onClose}
-    >
-      <div
-        ref={sheetRef}
-        style={{
-          width:'100%', maxWidth:480, maxHeight:'80vh',
-          overflowY:'auto', WebkitOverflowScrolling:'touch', overscrollBehavior:'contain',
-          background:'#1A1B2E', borderRadius:'24px 24px 0 0', transition:'transform 0.18s ease',
-        }}
-        onClick={e => e.stopPropagation()}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        {/* Sticky header */}
-        <div style={{ ...stickyBg, top: 0 }}>
-          <div style={{ display:'flex', justifyContent:'center', paddingTop:12, paddingBottom:4 }}>
-            <div style={{ width:40, height:4, borderRadius:2, background:'rgba(192,192,192,0.3)' }} />
-          </div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
-                        padding:'10px 20px 12px', borderBottom:'1px solid rgba(64,224,208,0.2)' }}>
-            <div>
-              <h3 className="text-starlight-turquoise font-bungee"
-                style={{ fontSize:16, textShadow:'0 0 6px rgba(64,224,208,0.6)', margin:0 }}>
-                INCLUDE STOPS
-              </h3>
-              <p className="font-special-elite" style={{ fontSize:11, color:'rgba(192,192,192,0.5)', margin:0 }}>
-                {selectedCount} of {ALL_CATEGORIES.size} selected
-              </p>
-            </div>
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <button onClick={() => setCategories(new Set(ALL_CATEGORIES))}
-                className="font-special-elite" style={{ fontSize:12, color:'rgba(64,224,208,0.6)', background:'none', border:'none', cursor:'pointer' }}>
-                All
-              </button>
-              <span style={{ color:'rgba(192,192,192,0.2)', fontSize:12 }}>·</span>
-              <button onClick={() => setCategories(new Set())}
-                className="font-special-elite" style={{ fontSize:12, color:'rgba(192,192,192,0.4)', background:'none', border:'none', cursor:'pointer' }}>
-                None
-              </button>
-              <button onClick={onClose}
-                style={{ marginLeft:4, width:28, height:28, borderRadius:'50%', border:'1px solid rgba(192,192,192,0.2)',
-                         background:'none', cursor:'pointer', color:'rgba(192,192,192,0.5)', fontSize:14,
-                         display:'flex', alignItems:'center', justifyContent:'center' }}>
-                ✕
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Scrollable content */}
-        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:24 }}>
-          {CATEGORY_GROUPS.map(group => {
-            const groupChecked = group.items.filter(i => categories.has(i.key)).length;
-            return (
-              <div key={group.id}>
-                <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
-                  <group.Icon size={18} />
-                  <span className="font-bungee text-atomic-orange" style={{ fontSize:11, letterSpacing:'0.1em' }}>{group.label}</span>
-                  <span className="font-special-elite" style={{ fontSize:11, color:'rgba(192,192,192,0.3)', marginLeft:2 }}>{groupChecked}/{group.items.length}</span>
-                </div>
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {group.items.map(({ key, Icon: ItemIcon, label }) => {
-                    const checked = categories.has(key);
-                    return (
-                      <button key={key} type="button" onClick={() => toggleCat(key)}
-                        style={{
-                          width:'100%', display:'flex', alignItems:'center', gap:12,
-                          padding:'12px 16px', borderRadius:12,
-                          border:`1px solid ${checked ? 'rgba(64,224,208,0.5)' : 'rgba(192,192,192,0.12)'}`,
-                          background: checked ? 'rgba(64,224,208,0.08)' : 'transparent',
-                          cursor:'pointer', textAlign:'left', minHeight:52,
-                        }}
-                      >
-                        <div style={{ width:20, height:20, borderRadius:4,
-                                      border:`2px solid ${checked ? '#40E0D0' : 'rgba(192,192,192,0.4)'}`,
-                                      background: checked ? '#40E0D0' : 'transparent', flexShrink:0,
-                                      display:'flex', alignItems:'center', justifyContent:'center' }}>
-                          {checked && <span style={{ color:'#1A1B2E', fontSize:10, fontWeight:900 }}>✓</span>}
-                        </div>
-                        <ItemIcon size={18} />
-                        <span className="font-special-elite" style={{ fontSize:14, flex:1, color: checked ? '#F5F5DC' : 'rgba(192,192,192,0.5)' }}>
-                          {label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-          <div style={{ height:8 }} />
-        </div>
-
-        {/* Sticky footer */}
-        <div style={{ ...stickyBg, bottom:0,
-                      padding:'12px 20px', paddingBottom:'calc(env(safe-area-inset-bottom) + 16px)',
-                      borderTop:'1px solid rgba(64,224,208,0.2)' }}>
-          <button onClick={onClose} className="font-bungee"
-            style={{ width:'100%', background:'#FF4E00', color:'#1A1B2E', border:'none',
-                     borderRadius:12, minHeight:56, fontSize:15, cursor:'pointer',
-                     boxShadow:'0 0 16px rgba(255,78,0,0.35)', transition:'background 0.15s' }}
-            onMouseEnter={e => e.currentTarget.style.background = '#40E0D0'}
-            onMouseLeave={e => e.currentTarget.style.background = '#FF4E00'}
-          >
-            DONE — {selectedCount} SELECTED
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 // ── Category-aware Firestore fetch ─────────────────────────────────────────────
@@ -795,23 +519,6 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
   const STEP_ORDER  = ['filter','select','preferences','generating','itinerary'];
   const stepIdx     = STEP_ORDER.indexOf(step);
 
-  const TYPE_STOP_ICON = {
-    festival:    FestivalTentIcon,
-    bookstore:   BookIcon,
-    library:     LibrariesIcon,
-    cafe:        CoffeeCupIcon,
-    travel:      null,
-    landmark:    LiteraryLandmarkIcon,
-    restaurant:  RestaurantsIcon,
-    museum:      MuseumsIcon,
-    park:        ParksIcon,
-    historicSite:HistoricSitesIcon,
-    artGallery:  ArtGalleriesIcon,
-    observatory: ObservatoriesIcon,
-    aquarium:    AquariumsIcon,
-    theater:     LivePerformanceIcon,
-    drivein:     DriveInTheaterIcon,
-  };
 
   // ─────────────────────────────────────────────────────────────────────────────
   return (
@@ -866,13 +573,7 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
         )}
         {/* Right side: step dots (filter) or New Trip button (all other steps) */}
         {step === 'filter' ? (
-          <div className="flex gap-1 flex-shrink-0">
-            {['filter','select','preferences','itinerary'].map((s, i) => (
-              <div key={s} className={`w-2 h-2 rounded-full transition-all ${
-                step === s ? 'bg-starlight-turquoise' : 'bg-chrome-silver/20'
-              }`} />
-            ))}
-          </div>
+          <JourneySteps steps={['filter','select','preferences','itinerary']} currentStep={step} />
         ) : (
           <button
             onClick={() => {
@@ -1166,8 +867,13 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
               </button>
             </div>
 
-            <WaypointsSheet open={showWaypoints} onClose={() => setShowWaypoints(false)}
-              categories={categories} setCategories={setCategories} />
+            <WaypointsSheet
+              open={showWaypoints}
+              onClose={() => setShowWaypoints(false)}
+              categories={categories}
+              setCategories={setCategories}
+              title="INCLUDE STOPS"
+            />
 
             {/* Travel style */}
             <div>
@@ -1201,20 +907,9 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
 
         {/* ══ STEP 4: GENERATING ══════════════════════════════════════════════ */}
         {step === 'generating' && (
-          <div className="flex flex-col items-center justify-center h-full py-24 lr-fade">
-            <div className="relative mb-6">
-              <div className="w-20 h-20 border-4 border-starlight-turquoise/30 border-t-starlight-turquoise rounded-full animate-spin" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <StarburstIcon size={44} />
-              </div>
-            </div>
-            <p className="text-starlight-turquoise font-bungee text-lg drop-shadow-[0_0_8px_rgba(64,224,208,0.7)]">
-              BUILDING YOUR JOURNEY…
-            </p>
-            <p className="text-chrome-silver font-special-elite text-sm mt-2 text-center px-8">
-              Finding bookstores, cafes, and literary spots near the festival
-            </p>
-          </div>
+          <JourneyGenerating
+            subMessage="Finding bookstores, cafes, and literary spots near the festival"
+          />
         )}
 
         {/* ══ STEP 5: ITINERARY ═══════════════════════════════════════════════ */}
@@ -1246,7 +941,7 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
                   {/* Stops */}
                   <div className="divide-y divide-starlight-turquoise/10">
                     {day.stops.map((stop, idx) => {
-                      const StopIcon = TYPE_STOP_ICON[stop.type];
+                      const StopIcon = TYPE_ICON[stop.type];
                       const isFestival = stop.isFestival;
                       return (
                         <div key={stop.id || idx} className={`px-4 py-3 flex gap-3 ${isFestival ? 'bg-[#B044FB]/5' : ''}`}>
@@ -1319,20 +1014,12 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
               })()}
 
 
-              {saved ? (
-                <div className="w-full border border-starlight-turquoise text-starlight-turquoise font-bungee py-3.5 rounded-xl text-center text-sm">
-                  ✓ SAVED TO YOUR ROUTES
-                </div>
-              ) : (
-                <button onClick={handleSave} disabled={saving}
-                  className="w-full border-2 border-starlight-turquoise text-starlight-turquoise font-bungee py-3.5 rounded-xl hover:bg-starlight-turquoise hover:text-midnight-navy transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-                >
-                  {saving
-                    ? <><div className="w-4 h-4 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" />SAVING…</>
-                    : <><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>SAVE THIS JOURNEY</>
-                  }
-                </button>
-              )}
+              <SaveRouteButton
+                onSave={handleSave}
+                saving={saving}
+                saved={saved}
+                label="SAVE THIS JOURNEY"
+              />
 
               <button onClick={() => { setStep('filter'); setSelectedFests([]); setItinerary(null); setSaved(false); }}
                 className="w-full text-chrome-silver/50 hover:text-chrome-silver font-special-elite text-sm py-2"

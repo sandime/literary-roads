@@ -123,6 +123,18 @@ service cloud.firestore {
       allow write: if false; // Cloud Functions use Admin SDK (bypasses rules)
     }
 
+    // ── RSS feed configuration: admin-managed ────────────────────────────────
+    match /rssFeeds/{doc} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ── RSS drafts: admin inbox, written by Cloud Functions ──────────────────
+    match /rssDrafts/{doc} {
+      allow read: if isAdmin();
+      allow write: if isAdmin(); // Cloud Functions (Admin SDK) bypass this
+    }
+
     // ── Public read collections (map data) ────────────────────────────────────
     match /literary_landmarks/{landmark} {
       allow read: if true;

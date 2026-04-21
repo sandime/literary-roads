@@ -8,6 +8,8 @@ import {
   fetchCurrentIssue, saveCurrentIssue, publishIssue, deleteArchivedIssue,
   fetchFeatured, fetchArchivedIssues, fetchAllFeaturedSections,
   fetchDraftFestivals, publishDraft,
+  fetchRSSDrafts, discardRSSDraft,
+  fetchRSSFeeds, createRSSFeed, updateRSSFeed, deleteRSSFeed,
 } from '../utils/newsletterAdmin';
 import { formatIssueDate } from '../components/GazetteContent';
 import { generateNewsletterHTML, generateSubstackText } from '../utils/newsletterGenerator';
@@ -991,6 +993,365 @@ function SectionTab({ section, showToast }) {
   );
 }
 
+// ── RSS Tab ───────────────────────────────────────────────────────────────────
+// Maps suggestedSection → human label + pre-fill logic for "Use this" form
+const RSS_SECTION_LABELS = {
+  handSelected:  'Hand-Selected',
+  readersChoice: "Readers' Choice",
+  headlights:    'Headlights',
+  onTheRoad:     'On the Road',
+  waystation:    'The Waystation',
+  readingRoom:   'The Reading Room',
+  dispatches:    'Dispatches',
+  festivals:     'Festival Trips',
+};
+
+// Maps suggestedSection → minimal fields pre-populated from the RSS draft
+const RSS_PREFILL = {
+  headlights:    (d) => ({ headline: d.title, body: d.summary, link: d.link }),
+  onTheRoad:     (d) => ({ authorName: '', bookTitle: '', rsvpLink: d.link, notes: d.title }),
+  waystation:    (d) => ({ name: d.title, website: d.link, whyWorthy: d.summary }),
+  handSelected:  (d) => ({ description: d.summary }),
+  readersChoice: (d) => ({ bookTitle: d.title, whyBuzzing: d.summary, link: d.link }),
+  readingRoom:   (d) => ({ communityNote: d.summary }),
+  dispatches:    (d) => ({ title: d.title, narrative: d.summary, appRouteLink: d.link }),
+  festivals:     (d) => ({ name: d.title, context: d.summary, link: d.link }),
+};
+
+// ── Feed Manager overlay ──────────────────────────────────────────────────────
+function FeedManager({ onClose, showToast }) {
+  const SECTION_OPTIONS = Object.entries(RSS_SECTION_LABELS).map(([k, v]) => ({ value: k, label: v }));
+  const [feeds, setFeeds]     = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm]       = useState({ url: '', sourceName: '', suggestedSection: 'headlights', keywords: '', frequency: 'daily' });
+  const [adding, setAdding]   = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setFeeds(await fetchRSSFeeds()); }
+    catch { showToast('Failed to load feeds', 'error'); }
+    finally { setLoading(false); }
+  }, [showToast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleToggle = async (feed) => {
+    try {
+      await updateRSSFeed(feed.id, { active: !feed.active });
+      load();
+    } catch { showToast('Update failed', 'error'); }
+  };
+
+  const handleDelete = async (feed) => {
+    if (!window.confirm(`Remove "${feed.sourceName}"?`)) return;
+    try {
+      await deleteRSSFeed(feed.id);
+      showToast('Feed removed');
+      load();
+    } catch { showToast('Delete failed', 'error'); }
+  };
+
+  const handleAdd = async () => {
+    if (!form.url || !form.sourceName) return;
+    setAdding(true);
+    try {
+      await createRSSFeed({
+        url:              form.url.trim(),
+        sourceName:       form.sourceName.trim(),
+        suggestedSection: form.suggestedSection,
+        keywords:         form.keywords.split(',').map(k => k.trim()).filter(Boolean),
+        active:           true,
+        frequency:        form.frequency,
+      });
+      setForm({ url: '', sourceName: '', suggestedSection: 'headlights', keywords: '', frequency: 'daily' });
+      showToast('Feed added');
+      load();
+    } catch { showToast('Add failed', 'error'); }
+    finally { setAdding(false); }
+  };
+
+  const inputStyle = { width: '100%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 6, padding: '7px 10px', color: C.white, fontFamily: 'Special Elite, serif', fontSize: 12, boxSizing: 'border-box' };
+  const labelStyle = { display: 'block', fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.07em', marginBottom: 4 };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+      onClick={onClose}>
+      <div style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 620, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
+        onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.teal, margin: 0, letterSpacing: '0.06em' }}>RSS FEED MANAGER</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: C.silver, cursor: 'pointer', fontSize: 22, lineHeight: 1, padding: 0 }}>×</button>
+        </div>
+
+        {/* Feed list */}
+        {loading ? (
+          <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 12, textAlign: 'center', padding: '20px 0' }}>Loading...</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 24 }}>
+            {feeds.map(feed => (
+              <div key={feed.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 12px' }}>
+                {/* Active toggle */}
+                <button onClick={() => handleToggle(feed)}
+                  style={{ width: 34, height: 18, borderRadius: 9, background: feed.active ? C.teal : 'rgba(192,192,192,0.18)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  <span style={{ position: 'absolute', top: 2, left: feed.active ? 17 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
+                </button>
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: feed.active ? C.white : C.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {feed.sourceName}
+                  </div>
+                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {RSS_SECTION_LABELS[feed.suggestedSection] || feed.suggestedSection} · {(feed.keywords || []).join(', ')}
+                  </div>
+                </div>
+                <button onClick={() => handleDelete(feed)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 9px', borderRadius: 5, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', flexShrink: 0 }}>
+                  DEL
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add feed form */}
+        <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20 }}>
+          <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: C.teal, margin: '0 0 14px', letterSpacing: '0.06em' }}>ADD FEED</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label style={labelStyle}>SOURCE NAME <span style={{ color: C.orange }}>*</span></label>
+              <input value={form.sourceName} onChange={e => setForm(f => ({ ...f, sourceName: e.target.value }))} style={inputStyle} placeholder="Literary Hub" />
+            </div>
+            <div>
+              <label style={labelStyle}>SECTION</label>
+              <select value={form.suggestedSection} onChange={e => setForm(f => ({ ...f, suggestedSection: e.target.value }))} style={{ ...inputStyle, cursor: 'pointer' }}>
+                {SECTION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <label style={labelStyle}>FEED URL <span style={{ color: C.orange }}>*</span></label>
+            <input value={form.url} onChange={e => setForm(f => ({ ...f, url: e.target.value }))} style={inputStyle} placeholder="https://example.com/feed" />
+          </div>
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>KEYWORDS (comma-separated)</label>
+            <input value={form.keywords} onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))} style={inputStyle} placeholder="books, literary, reading" />
+          </div>
+          <button onClick={handleAdd} disabled={!form.url || !form.sourceName || adding}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', background: (!form.url || !form.sourceName) ? 'rgba(64,224,208,0.25)' : C.teal, color: C.bg, cursor: (!form.url || !form.sourceName) ? 'not-allowed' : 'pointer', letterSpacing: '0.05em' }}>
+            {adding ? 'ADDING...' : '+ ADD FEED'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── "Use This" modal — maps RSS draft to closest section form ─────────────────
+function UseThisModal({ draft, onClose, onUsed, showToast }) {
+  const section = SECTIONS.find(s => s.key === (
+    // Map suggestedSection string to the section key (they match except waystation/readingRoom)
+    draft.suggestedSection === 'waystation'    ? 'waystation'    :
+    draft.suggestedSection === 'readingRoom'   ? 'readingRoom'   :
+    draft.suggestedSection === 'handSelected'  ? 'indiePicks'    :
+    draft.suggestedSection === 'readersChoice' ? 'bookTokPicks'  :
+    draft.suggestedSection === 'dispatches'    ? 'tripReports'   :
+    draft.suggestedSection === 'onTheRoad'     ? 'onTheRoad'     :
+    draft.suggestedSection === 'headlights'    ? 'headlights'    :
+    draft.suggestedSection === 'festivals'     ? 'festivals'     :
+    'headlights'
+  )) || SECTIONS.find(s => s.key === 'headlights');
+
+  const prefill = (RSS_PREFILL[draft.suggestedSection] || (() => ({})))(draft);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async (form) => {
+    setSaving(true);
+    try {
+      await createItem(section.key, { ...form, featured: section.defaultFeatured });
+      // Mark draft as used
+      await discardRSSDraft(draft.id);
+      showToast(`Added to ${RSS_SECTION_LABELS[draft.suggestedSection] || section.label}`);
+      onUsed();
+      onClose();
+    } catch {
+      showToast('Something went wrong', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <ItemModal
+      section={section}
+      item={{ ...prefill, id: null }}
+      onSave={handleSave}
+      onClose={onClose}
+      saving={saving}
+    />
+  );
+}
+
+// ── RSS Tab Panel ─────────────────────────────────────────────────────────────
+function RSSTab({ showToast }) {
+  const [drafts, setDrafts]           = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [filterSection, setFilterSection] = useState('all');
+  const [useTarget, setUseTarget]     = useState(null);
+  const [discardTarget, setDiscardTarget] = useState(null);
+  const [showFeedManager, setShowFeedManager] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setDrafts(await fetchRSSDrafts()); }
+    catch { showToast('Failed to load RSS drafts', 'error'); }
+    finally { setLoading(false); }
+  }, [showToast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleDiscard = async () => {
+    try {
+      await discardRSSDraft(discardTarget.id);
+      showToast('Draft discarded');
+      setDiscardTarget(null);
+      load();
+    } catch { showToast('Discard failed', 'error'); }
+  };
+
+  const visible = filterSection === 'all'
+    ? drafts
+    : drafts.filter(d => d.suggestedSection === filterSection);
+
+  const sectionCounts = drafts.reduce((acc, d) => {
+    acc[d.suggestedSection] = (acc[d.suggestedSection] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Gear icon SVG
+  const GearIcon = () => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  );
+
+  return (
+    <div>
+      {/* Header row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted }}>
+          {loading ? '...' : `${drafts.length} draft${drafts.length !== 1 ? 's' : ''} — new content arrives daily at 6 AM`}
+        </span>
+        <button onClick={() => setShowFeedManager(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
+          <GearIcon /> FEEDS
+        </button>
+      </div>
+
+      {/* Section filter bar */}
+      {!loading && drafts.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 18 }}>
+          {[{ key: 'all', label: `All (${drafts.length})` },
+            ...Object.entries(sectionCounts).map(([k, n]) => ({
+              key: k, label: `${RSS_SECTION_LABELS[k] || k} (${n})`,
+            }))
+          ].map(opt => (
+            <button key={opt.key} onClick={() => setFilterSection(opt.key)}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 11px', borderRadius: 20, border: `1px solid ${filterSection === opt.key ? C.teal : C.border}`, background: filterSection === opt.key ? 'rgba(64,224,208,0.1)' : 'transparent', color: filterSection === opt.key ? C.teal : C.muted, cursor: 'pointer', letterSpacing: '0.04em', transition: 'all 0.15s' }}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Draft list */}
+      {loading ? (
+        <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 13, textAlign: 'center', padding: '48px 0' }}>Loading...</p>
+      ) : visible.length === 0 ? (
+        <p style={{ fontFamily: 'Special Elite, serif', color: C.muted, fontSize: 13, textAlign: 'center', padding: '48px 0' }}>
+          {drafts.length === 0 ? 'No drafts right now — new content arrives daily at 6 AM.' : 'No drafts in this section.'}
+        </p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {visible.map(draft => (
+            <div key={draft.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px 16px' }}>
+              {/* Badges */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(64,224,208,0.1)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.06em' }}>
+                  {draft.sourceName}
+                </span>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,78,0,0.1)', color: C.orange, border: `1px solid rgba(255,78,0,0.3)`, letterSpacing: '0.06em' }}>
+                  {RSS_SECTION_LABELS[draft.suggestedSection] || draft.suggestedSection}
+                </span>
+              </div>
+
+              {/* Title */}
+              <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.white, marginBottom: 5, lineHeight: 1.35 }}>
+                {draft.title}
+              </div>
+
+              {/* Summary — 2 lines */}
+              {draft.summary && (
+                <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: 'rgba(245,245,220,0.65)', lineHeight: 1.5, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  {draft.summary}
+                </p>
+              )}
+
+              {/* Link + date */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                {draft.link && (
+                  <a href={draft.link} target="_blank" rel="noopener noreferrer"
+                    style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.teal, textDecoration: 'none' }}>
+                    Read article →
+                  </a>
+                )}
+                {draft.createdAt?.seconds && (
+                  <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted }}>
+                    {new Date(draft.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </span>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => setUseTarget(draft)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 16px', borderRadius: 6, border: 'none', background: C.teal, color: C.bg, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                  USE THIS
+                </button>
+                <button onClick={() => setDiscardTarget(draft)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                  DISCARD
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {useTarget && (
+        <UseThisModal
+          draft={useTarget}
+          onClose={() => setUseTarget(null)}
+          onUsed={load}
+          showToast={showToast}
+        />
+      )}
+
+      {discardTarget && (
+        <DeleteConfirm
+          name={discardTarget.title}
+          onConfirm={handleDiscard}
+          onCancel={() => setDiscardTarget(null)}
+        />
+      )}
+
+      {showFeedManager && (
+        <FeedManager onClose={() => setShowFeedManager(false)} showToast={showToast} />
+      )}
+    </div>
+  );
+}
+
 // ── Festival Drafts Panel ─────────────────────────────────────────────────────
 // Shows auto-generated and manual draft festivals with Edit-and-publish / Discard.
 function DraftsPanel({ showToast }) {
@@ -1235,6 +1596,13 @@ export default function AdminPanel() {
             )}
           </>
         ))}
+        {/* RSS tab — always last */}
+        <button
+          onClick={() => setActiveTab('rss')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'rss' ? `2px solid ${C.teal}` : '2px solid transparent', color: activeTab === 'rss' ? C.teal : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+        >
+          RSS
+        </button>
       </div>
 
       {/* ── Content ── */}
@@ -1244,6 +1612,9 @@ export default function AdminPanel() {
         )}
         {activeTab === 'festivalDrafts' && (
           <DraftsPanel showToast={showToast} />
+        )}
+        {activeTab === 'rss' && (
+          <RSSTab showToast={showToast} />
         )}
         {SECTIONS.map(s => (
           activeTab === s.key && (

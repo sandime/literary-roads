@@ -62,6 +62,37 @@ export async function deleteItem(col, id) {
   return firestoreDelete(doc(db, col, id));
 }
 
+// ── RSS drafts (rssDrafts collection) ────────────────────────────────────────
+
+export async function fetchRSSDrafts() {
+  const snap = await getDocs(query(collection(db, 'rssDrafts'), where('status', '==', 'draft')));
+  const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return docs.sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+}
+
+export async function discardRSSDraft(id) {
+  return firestoreDelete(doc(db, 'rssDrafts', id));
+}
+
+// ── RSS feed config (rssFeeds collection) ─────────────────────────────────────
+
+export async function fetchRSSFeeds() {
+  const snap = await getDocs(query(collection(db, 'rssFeeds'), orderBy('sourceName')));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function createRSSFeed(data) {
+  return addDoc(collection(db, 'rssFeeds'), { ...data, createdAt: serverTimestamp() });
+}
+
+export async function updateRSSFeed(id, data) {
+  return firestoreUpdate(doc(db, 'rssFeeds', id), { ...data, updatedAt: serverTimestamp() });
+}
+
+export async function deleteRSSFeed(id) {
+  return firestoreDelete(doc(db, 'rssFeeds', id));
+}
+
 // ── Current issue metadata (gazette/currentIssue) ────────────────────────────
 
 export async function fetchCurrentIssue() {
