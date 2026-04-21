@@ -7,6 +7,7 @@ const functions          = require("firebase-functions/v1");
 const { defineSecret }   = require("firebase-functions/params");
 const admin              = require("firebase-admin");
 const Stripe             = require("stripe");
+const { XMLParser }      = require("fast-xml-parser");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -209,6 +210,188 @@ exports.gazetteAutoFestivalDrafts = functions
     }
 
     console.log(`[gazetteAutoFestivalDrafts] Done — created: ${created}, skipped (duplicates): ${skipped}`);
+  });
+
+// ── Gazette: RSS fetch — every day at 6 AM Eastern ───────────────────────────
+// Reads active feed configs from rssFeeds collection, fetches each RSS feed,
+// filters items by keywords, deduplicates against rssDrafts, and creates new
+// draft documents. Caps at 15 new drafts per run.
+//
+// HTTP: native fetch (Node.js 20 built-in — no node-fetch needed)
+// XML:  fast-xml-parser (no callback API, handles malformed RSS gracefully)
+exports.gazetteRSSFetch = functions
+  .runWith({ memory: "512MB", timeoutSeconds: 120 })
+  .pubsub.schedule("0 6 * * *")
+  .timeZone("America/New_York")
+  .onRun(async () => {
+    const MAX_DRAFTS_PER_RUN = 30;
+
+    // Per-source caps — prolific feeds capped higher, all others at 3
+    const perSourceCap = (sourceName) => {
+      if (sourceName === 'Atlas Obscura' || sourceName === 'Literary Hub') return 5;
+      return 3;
+    };
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    // Strip HTML tags and collapse whitespace
+    const stripHtml = (str = "") =>
+      str.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+
+    // Return true if any keyword appears (case-insensitive) in the text
+    const matchesKeywords = (text, keywords) => {
+      const lower = (text || "").toLowerCase();
+      return (keywords || []).some((kw) => lower.includes(kw.toLowerCase()));
+    };
+
+    // Parse RSS or Atom XML into a normalised array of { title, description, link, pubDate }
+    const parseXML = (xmlText) => {
+      const parser = new XMLParser({
+        ignoreAttributes: false,
+        attributeNamePrefix: "@_",
+        cdataPropName: "__cdata",
+        isArray: (name) => ["item", "entry"].includes(name),
+      });
+
+      let parsed;
+      try {
+        parsed = parser.parse(xmlText);
+      } catch (e) {
+        console.warn("[gazetteRSSFetch] XML parse error:", e.message);
+        return [];
+      }
+
+      // RSS 2.0
+      const rssItems = parsed?.rss?.channel?.item;
+      if (Array.isArray(rssItems)) {
+        return rssItems.map((it) => ({
+          title:       String(it.title?.["__cdata"] ?? it.title ?? "").trim(),
+          description: String(it.description?.["__cdata"] ?? it.description ?? "").trim(),
+          link:        String(it.link ?? "").trim(),
+          pubDate:     String(it.pubDate ?? "").trim(),
+        }));
+      }
+
+      // Atom
+      const atomEntries = parsed?.feed?.entry;
+      if (Array.isArray(atomEntries)) {
+        return atomEntries.map((it) => ({
+          title:       String(it.title?.["__cdata"] ?? it.title ?? "").trim(),
+          description: String(it.summary?.["__cdata"] ?? it.summary ?? it.content?.["__cdata"] ?? it.content ?? "").trim(),
+          link:        String(it.link?.["@_href"] ?? it.link ?? "").trim(),
+          pubDate:     String(it.updated ?? it.published ?? "").trim(),
+        }));
+      }
+
+      return [];
+    };
+
+    // ── Load active feeds ────────────────────────────────────────────────────
+    const feedsSnap = await db.collection("rssFeeds")
+      .where("active", "==", true)
+      .get();
+
+    if (feedsSnap.empty) {
+      console.log("[gazetteRSSFetch] No active feeds configured — rssFeeds collection is empty or all feeds are inactive.");
+      return;
+    }
+
+    const feeds = feedsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    console.log(`[gazetteRSSFetch] Found ${feeds.length} active feed(s): ${feeds.map(f => f.sourceName).join(", ")}`);
+
+    // ── Load existing draft titles for deduplication ─────────────────────────
+    const existingSnap = await db.collection("rssDrafts").get();
+    const existingTitles = new Set(
+      existingSnap.docs.map((d) => (d.data().title || "").toLowerCase().trim())
+    );
+    console.log(`[gazetteRSSFetch] ${existingTitles.size} existing draft title(s) loaded for dedup`);
+
+    // ── Process feeds ────────────────────────────────────────────────────────
+    let totalCreated = 0;
+    let totalSkipped = 0;
+
+    for (const feed of feeds) {
+      if (totalCreated >= MAX_DRAFTS_PER_RUN) {
+        console.log(`[gazetteRSSFetch] Cap of ${MAX_DRAFTS_PER_RUN} reached — stopping early`);
+        break;
+      }
+
+      console.log(`[gazetteRSSFetch] --- ${feed.sourceName} | cap: ${perSourceCap(feed.sourceName)} | ${feed.url}`);
+
+      let xmlText;
+      try {
+        const res = await fetch(feed.url, {
+          headers: { "User-Agent": "Literary Roads Gazette Bot/1.0" },
+          signal: AbortSignal.timeout(15000),
+        });
+        console.log(`[gazetteRSSFetch]   fetch → HTTP ${res.status} ${res.statusText}`);
+        if (!res.ok) {
+          console.warn(`[gazetteRSSFetch]   SKIP: non-OK status`);
+          continue;
+        }
+        xmlText = await res.text();
+        console.log(`[gazetteRSSFetch]   response body: ${xmlText.length} chars`);
+        // Log first 200 chars so we can see if it's XML, HTML, or an error page
+        console.log(`[gazetteRSSFetch]   body preview: ${xmlText.substring(0, 200).replace(/\n/g, " ")}`);
+      } catch (e) {
+        console.warn(`[gazetteRSSFetch]   FETCH ERROR: ${e.message}`);
+        continue;
+      }
+
+      const items = parseXML(xmlText);
+      console.log(`[gazetteRSSFetch]   parsed ${items.length} item(s) from XML`);
+      if (items.length > 0) {
+        console.log(`[gazetteRSSFetch]   first item title: "${items[0].title}"`);
+      }
+
+      let feedKeywordPass = 0;
+      let feedDupSkip = 0;
+      let feedCreated = 0;
+      const feedCap = perSourceCap(feed.sourceName);
+
+      for (const item of items) {
+        if (totalCreated >= MAX_DRAFTS_PER_RUN) break;
+        if (feedCreated >= feedCap) break;
+
+        const combinedText = `${item.title} ${item.description}`;
+        if (!matchesKeywords(combinedText, feed.keywords)) {
+          totalSkipped++;
+          continue;
+        }
+        feedKeywordPass++;
+
+        const titleLower = item.title.toLowerCase().trim();
+        if (!titleLower || existingTitles.has(titleLower)) {
+          totalSkipped++;
+          feedDupSkip++;
+          continue;
+        }
+
+        const summary = stripHtml(item.description).substring(0, 300);
+
+        await db.collection("rssDrafts").add({
+          title:            item.title,
+          sourceName:       feed.sourceName,
+          sourceUrl:        feed.url,
+          summary,
+          link:             item.link,
+          pubDate:          item.pubDate,
+          suggestedSection: feed.suggestedSection,
+          autoGenerated:    true,
+          status:           "draft",
+          createdAt:        admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        existingTitles.add(titleLower);
+        totalCreated++;
+        feedCreated++;
+        console.log(`[gazetteRSSFetch]   DRAFT CREATED: "${item.title}"`);
+      }
+
+      console.log(`[gazetteRSSFetch]   summary → keyword pass: ${feedKeywordPass}, dup skipped: ${feedDupSkip}, created: ${feedCreated}`);
+    }
+
+    console.log(`[gazetteRSSFetch] ===== DONE — total created: ${totalCreated}, total skipped: ${totalSkipped} =====`);
   });
 
 // ── Store: fetch product from Printful ───────────────────────────────────────
