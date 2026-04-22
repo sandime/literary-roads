@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { doc, getDoc, updateDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, onSnapshot, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { SparkleIcon } from '../components/Icons';
@@ -131,18 +131,16 @@ function SurpriseMe({ user }) {
     setSaveStatus('saving');
     try {
       const docId = book.id.replace(/\//g, '_');
-      const ref = doc(db, 'users', user.uid, 'wantToRead', docId);
+      const ref = doc(db, 'users', user.uid, 'libraryReadNext', docId);
       const snap = await getDoc(ref);
       if (snap.exists()) { setSaveStatus('duplicate'); return; }
       await setDoc(ref, {
-        bookTitle:   book.title,
-        bookAuthor:  book.author,
-        bookCover:   book.coverURL || null,
-        genre:       book.genre,
-        description: book.description || '',
+        title:         book.title,
+        author:        book.author,
+        coverUrl:      book.coverURL || '',
         googleBooksId: book.id,
-        savedAt:     serverTimestamp(),
-        read:        false,
+        whoWhatWhere:  `Surprise Me · ${book.genre}`,
+        date:          serverTimestamp(),
       });
       setSaveStatus('saved');
     } catch {
@@ -328,7 +326,7 @@ function SurpriseMe({ user }) {
                 color: '#40E0D0', padding: '10px 4px',
                 filter: 'drop-shadow(0 0 6px rgba(64,224,208,0.6))',
               }}>
-                ✓ SAVED TO READING LIST!
+                ✓ ADDED TO READ NEXT!
               </span>
             ) : saveStatus === 'duplicate' ? (
               <span style={{
@@ -358,7 +356,7 @@ function SurpriseMe({ user }) {
                 onMouseEnter={e => { if (saveStatus !== 'saving') e.currentTarget.style.background = 'rgba(64,224,208,0.1)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
               >
-                {saveStatus === 'saving' ? 'SAVING…' : 'SAVE FOR LATER'}
+                {saveStatus === 'saving' ? 'SAVING…' : 'ADD TO READ NEXT'}
               </button>
             ) : (
               <span style={{
@@ -389,374 +387,6 @@ function SurpriseMe({ user }) {
   );
 }
 
-// ── Want to Read Carousel ──────────────────────────────────────────────────
-
-// Scroll advance distance (≈ 4 card widths + gaps)
-const CAROUSEL_SCROLL_STEP = 620;
-
-function BookDetailModal({ book, onClose, onRemove, onMarkRead }) {
-  const [markStatus, setMarkStatus] = useState('idle'); // idle | saving | done
-  const [removeStatus, setRemoveStatus] = useState('idle');
-
-  const handleMarkRead = async () => {
-    if (markStatus === 'saving') return;
-    setMarkStatus('saving');
-    try {
-      const docId = book.id.replace(/\//g, '_');
-      await setDoc(doc(db, 'users', book._uid, 'booksRead', docId), {
-        bookTitle:     book.bookTitle,
-        bookAuthor:    book.bookAuthor,
-        bookCover:     book.bookCover || null,
-        googleBooksId: book.id,
-        rating: 0,
-        finishedMonth: '',
-        finishedYear: '',
-        format: 'read',
-        timestamp: serverTimestamp(),
-      });
-      await deleteDoc(doc(db, 'users', book._uid, 'wantToRead', docId));
-      setMarkStatus('done');
-      setTimeout(() => { onMarkRead(book.id); onClose(); }, 800);
-    } catch {
-      setMarkStatus('idle');
-    }
-  };
-
-  const handleRemove = async () => {
-    if (removeStatus === 'saving') return;
-    setRemoveStatus('saving');
-    try {
-      const docId = book.id.replace(/\//g, '_');
-      await deleteDoc(doc(db, 'users', book._uid, 'wantToRead', docId));
-      onRemove(book.id);
-      onClose();
-    } catch {
-      setRemoveStatus('idle');
-    }
-  };
-
-  return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 2000,
-        background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '16px',
-      }}
-    >
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#0D0E1A', border: '1.5px solid rgba(64,224,208,0.35)',
-          borderRadius: '16px', maxWidth: '420px', width: '100%',
-          maxHeight: '88vh', overflowY: 'auto',
-          boxShadow: '0 0 40px rgba(64,224,208,0.15), 0 20px 60px rgba(0,0,0,0.7)',
-        }}
-      >
-        {/* Cover hero */}
-        {book.bookCover && (
-          <div style={{ textAlign: 'center', padding: '24px 24px 0', background: 'rgba(255,255,255,0.02)' }}>
-            <img src={book.bookCover} alt={book.bookTitle}
-              style={{
-                height: '180px', borderRadius: '8px',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                display: 'inline-block',
-              }}
-            />
-          </div>
-        )}
-
-        {/* Info */}
-        <div style={{ padding: '20px 24px' }}>
-          <h2 style={{
-            fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px,3vw,18px)',
-            color: '#F5F5DC', lineHeight: 1.25, marginBottom: '6px',
-          }}>
-            {book.bookTitle}
-          </h2>
-          <p style={{
-            fontFamily: 'Special Elite, serif', fontSize: '13px',
-            color: 'rgba(200,155,70,0.75)', marginBottom: '10px',
-          }}>
-            by {book.bookAuthor}
-          </p>
-
-          {book.genre && (
-            <span style={{
-              fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.08em',
-              color: '#40E0D0', background: 'rgba(64,224,208,0.1)',
-              border: '1px solid rgba(64,224,208,0.3)', borderRadius: '4px',
-              padding: '2px 8px', display: 'inline-block', marginBottom: '12px',
-            }}>
-              {book.genre}
-            </span>
-          )}
-
-          {book.description && (
-            <p style={{
-              fontFamily: 'Special Elite, serif', fontSize: '12px',
-              color: 'rgba(245,245,220,0.6)', lineHeight: 1.7,
-              marginBottom: '20px',
-              display: '-webkit-box', WebkitLineClamp: 5,
-              WebkitBoxOrient: 'vertical', overflow: 'hidden',
-            }}>
-              {book.description}
-            </p>
-          )}
-
-          {/* Action buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button onClick={handleMarkRead} disabled={markStatus !== 'idle'}
-              style={{
-                fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.06em',
-                background: markStatus === 'done' ? '#40E0D0' : 'rgba(64,224,208,0.15)',
-                color: '#40E0D0', border: '1.5px solid rgba(64,224,208,0.5)',
-                borderRadius: '10px', padding: '12px', cursor: markStatus !== 'idle' ? 'default' : 'pointer',
-                transition: 'background .2s',
-              }}>
-              {markStatus === 'saving' ? 'SAVING…' : markStatus === 'done' ? '✓ MOVED TO BOOK LOG!' : 'MARK AS READ'}
-            </button>
-            <button onClick={handleRemove} disabled={removeStatus === 'saving'}
-              style={{
-                fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.06em',
-                background: 'transparent', color: 'rgba(255,78,0,0.7)',
-                border: '1.5px solid rgba(255,78,0,0.3)', borderRadius: '10px',
-                padding: '12px', cursor: removeStatus === 'saving' ? 'default' : 'pointer',
-                transition: 'background .15s',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.08)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              {removeStatus === 'saving' ? 'REMOVING…' : 'REMOVE FROM LIST'}
-            </button>
-            <button onClick={onClose}
-              style={{
-                fontFamily: 'Special Elite, serif', fontSize: '13px',
-                background: 'transparent', color: 'rgba(192,192,192,0.4)',
-                border: 'none', cursor: 'pointer', padding: '8px',
-              }}>
-              CLOSE
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function WantToReadCarousel({ user }) {
-  const [books, setBooks]   = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modal, setModal]   = useState(null);
-  const scrollRef = useRef(null);
-
-  useEffect(() => {
-    if (!user) { setLoading(false); return; }
-    const unsub = onSnapshot(collection(db, 'users', user.uid, 'wantToRead'), snap => {
-      const data = snap.docs
-        .map(d => ({ id: d.id, _uid: user.uid, ...d.data() }))
-        .sort((a, b) => (b.savedAt?.toMillis?.() ?? 0) - (a.savedAt?.toMillis?.() ?? 0));
-      setBooks(data);
-      setLoading(false);
-    }, () => setLoading(false));
-    return unsub;
-  }, [user]);
-
-  const handleRemove = (id) => setBooks(prev => prev.filter(b => b.id !== id));
-  const doScroll = (dir) => scrollRef.current?.scrollBy({ left: dir * CAROUSEL_SCROLL_STEP, behavior: 'smooth' });
-
-  if (!user) return null;
-
-  return (
-    <section style={{ marginBottom: '44px' }}>
-      {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-        <Starburst color="#40E0D0" size={24} />
-        <h2 style={{
-          fontFamily: 'Bungee, sans-serif', fontSize: 'clamp(14px, 2.5vw, 18px)',
-          color: '#40E0D0', letterSpacing: '0.08em', margin: 0,
-          textShadow: '0 0 12px rgba(64,224,208,0.5)', whiteSpace: 'nowrap',
-        }}>
-          NEXT READS
-        </h2>
-        {!loading && books.length > 0 && (
-          <span style={{
-            fontFamily: 'Bungee, sans-serif', fontSize: '10px',
-            color: 'rgba(64,224,208,0.55)', letterSpacing: '0.06em', whiteSpace: 'nowrap',
-          }}>
-            ({books.length} saved)
-          </span>
-        )}
-        <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(64,224,208,0.4), transparent)' }} />
-      </div>
-
-      {loading ? (
-        <p style={{
-          fontFamily: 'Special Elite, serif', fontSize: '13px',
-          color: 'rgba(200,155,70,0.5)', fontStyle: 'italic', textAlign: 'center', padding: '16px 0',
-        }}>
-          Loading your reading list…
-        </p>
-      ) : books.length === 0 ? (
-        <div style={{
-          background: 'rgba(64,224,208,0.03)', border: '1px dashed rgba(64,224,208,0.2)',
-          borderRadius: '12px', padding: '24px', textAlign: 'center',
-        }}>
-          <Starburst color="rgba(64,224,208,0.3)" size={36} style={{ marginBottom: '8px' }} />
-          <p style={{
-            fontFamily: 'Special Elite, serif', fontSize: '13px',
-            color: 'rgba(200,155,70,0.55)', lineHeight: 1.6, fontStyle: 'italic',
-          }}>
-            No books saved yet! Click Surprise Me to discover your next read.
-          </p>
-        </div>
-      ) : (
-        /* Carousel — all books, arrows advance ~4 cards */
-        <div style={{ position: 'relative' }}>
-          {/* Left arrow */}
-          <button onClick={() => doScroll(-1)}
-            style={{
-              position: 'absolute', left: '-14px', top: '45%', transform: 'translateY(-50%)',
-              zIndex: 2, background: 'rgba(13,14,26,0.9)', border: '1px solid rgba(64,224,208,0.3)',
-              borderRadius: '50%', width: '32px', height: '32px',
-              color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 10px rgba(64,224,208,0.2)',
-            }}>‹</button>
-
-          <div ref={scrollRef} style={{
-            display: 'flex', gap: '12px',
-            overflowX: 'auto', scrollSnapType: 'x mandatory',
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none', msOverflowStyle: 'none',
-            paddingBottom: '4px',
-          }}>
-            <style>{`#lr-wtr-scroll::-webkit-scrollbar { display: none; }`}</style>
-            {books.map(book => (
-              <BookCarouselCard key={book.id} book={book} onOpen={setModal} onRemove={handleRemove} uid={user.uid} />
-            ))}
-          </div>
-
-          {/* Right arrow */}
-          <button onClick={() => doScroll(1)}
-            style={{
-              position: 'absolute', right: '-14px', top: '45%', transform: 'translateY(-50%)',
-              zIndex: 2, background: 'rgba(13,14,26,0.9)', border: '1px solid rgba(64,224,208,0.3)',
-              borderRadius: '50%', width: '32px', height: '32px',
-              color: '#40E0D0', fontSize: '18px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 10px rgba(64,224,208,0.2)',
-            }}>›</button>
-        </div>
-      )}
-
-      {modal && (
-        <BookDetailModal
-          book={modal}
-          onClose={() => setModal(null)}
-          onRemove={(id) => { handleRemove(id); setModal(null); }}
-          onMarkRead={(id) => { handleRemove(id); setModal(null); }}
-        />
-      )}
-    </section>
-  );
-}
-
-function BookCarouselCard({ book, onOpen, onRemove, uid }) {
-  const [removing, setRemoving] = useState(false);
-
-  const handleRemove = async (e) => {
-    e.stopPropagation();
-    if (removing) return;
-    setRemoving(true);
-    try {
-      await deleteDoc(doc(db, 'users', uid, 'wantToRead', book.id));
-      onRemove(book.id);
-    } catch {
-      setRemoving(false);
-    }
-  };
-
-  return (
-    <div
-      onClick={() => onOpen(book)}
-      style={{
-        flexShrink: 0,
-        width: 'clamp(110px, 22vw, 140px)',
-        scrollSnapAlign: 'start',
-        cursor: 'pointer',
-        position: 'relative',
-      }}
-    >
-      {/* Cover */}
-      <div style={{
-        width: '100%', aspectRatio: '2/3',
-        borderRadius: '8px', overflow: 'hidden',
-        background: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(64,224,208,0.15)',
-        marginBottom: '8px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
-        transition: 'box-shadow .2s, transform .2s',
-      }}
-        onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 4px 20px rgba(64,224,208,0.3)'; e.currentTarget.style.transform = 'scale(1.02)'; }}
-        onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)'; e.currentTarget.style.transform = 'scale(1)'; }}
-      >
-        {book.bookCover ? (
-          <img src={book.bookCover} alt={book.bookTitle}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement.style.background = 'rgba(64,224,208,0.08)'; }}
-          />
-        ) : (
-          <div style={{
-            width: '100%', height: '100%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(64,224,208,0.05)',
-          }}>
-            <Starburst color="rgba(64,224,208,0.25)" size={40} />
-          </div>
-        )}
-      </div>
-
-      {/* Remove × */}
-      <button
-        onClick={handleRemove}
-        title="Remove from list"
-        style={{
-          position: 'absolute', top: '4px', right: '4px',
-          width: '20px', height: '20px', borderRadius: '50%',
-          background: 'rgba(13,14,26,0.85)', border: '1px solid rgba(255,78,0,0.4)',
-          color: 'rgba(255,78,0,0.7)', fontSize: '11px', lineHeight: 1,
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          opacity: removing ? 0.4 : 0.7,
-          transition: 'opacity .15s',
-        }}
-        onMouseEnter={e => { e.currentTarget.style.opacity = '1'; }}
-        onMouseLeave={e => { e.currentTarget.style.opacity = removing ? '0.4' : '0.7'; }}
-      >
-        ×
-      </button>
-
-      {/* Title + author */}
-      <p style={{
-        fontFamily: 'Bungee, sans-serif', fontSize: '10px',
-        color: '#F5F5DC', letterSpacing: '0.02em',
-        lineHeight: 1.3, marginBottom: '3px',
-        overflow: 'hidden', display: '-webkit-box',
-        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
-      }}>
-        {book.bookTitle}
-      </p>
-      <p style={{
-        fontFamily: 'Special Elite, serif', fontSize: '10px',
-        color: 'rgba(200,155,70,0.6)', lineHeight: 1.3,
-        overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis',
-      }}>
-        {book.bookAuthor}
-      </p>
-    </div>
-  );
-}
 
 // ── Coming-soon sections ───────────────────────────────────────────────────
 const COMING_SOON = [
