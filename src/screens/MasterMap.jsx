@@ -8,7 +8,8 @@ import 'react-leaflet-cluster/lib/assets/MarkerCluster.css';
 import 'react-leaflet-cluster/lib/assets/MarkerCluster.Default.css';
 import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
-import { autocompleteCity, geocodePlace, searchPlaces } from '../utils/mapboxGeocoding';
+import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
+import { searchFirestore, searchMapbox, searchGooglePlaces, getCategoryType } from '../utils/placeSearch';
 import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
@@ -977,60 +978,142 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
   );
 };
 
-// Inline search bar rendered inside the header when showSearch is true
-const PlaceSearch = ({ onSelect }) => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [dropdownPos, setDropdownPos] = useState({});
-  const inputRef = useRef(null);
+// ── Category badge colors ──────────────────────────────────────────────────
+const SEARCH_BADGE = {
+  bookstore:  { label: 'Bookstore',  bg: '#FF4E00', text: '#1A1B2E' },
+  cafe:       { label: 'Coffee',     bg: '#40E0D0', text: '#1A1B2E' },
+  landmark:   { label: 'Landmark',   bg: '#40E0D0', text: '#1A1B2E' },
+  festival:   { label: 'Festival',   bg: '#B044FB', text: '#fff'    },
+  drivein:    { label: 'Drive-in',   bg: '#FFB347', text: '#1A1B2E' },
+  ghostTown:  { label: 'Ghost Town', bg: '#C0C0C0', text: '#1A1B2E' },
+  search:     { label: 'Location',   bg: '#4a4a6a', text: '#C0C0C0' },
+};
+
+// ── Three-tier place search ────────────────────────────────────────────────
+// Props:
+//   onSelect     — called when user picks a result
+//   mapCenter    — [lat, lng] — used to sort Firestore results by distance
+const PlaceSearch = ({ onSelect, mapCenter }) => {
+  const [query, setQuery]               = useState('');
+  const [fsResults, setFsResults]       = useState([]);   // tier 1
+  const [mbResults, setMbResults]       = useState([]);   // tier 2
+  const [gpResults, setGpResults]       = useState([]);   // tier 3
+  const [loadingFs, setLoadingFs]       = useState(false);
+  const [loadingMb, setLoadingMb]       = useState(false);
+  const [loadingGp, setLoadingGp]       = useState(false);
+  const [showResults, setShowResults]   = useState(false);
+  const [dropdownPos, setDropdownPos]   = useState({});
+  const [gpError, setGpError]           = useState('');
+  const inputRef    = useRef(null);
   const dropdownRef = useRef(null);
   const debounceRef = useRef(null);
+  const abortRef    = useRef(null); // AbortController for in-flight Mapbox/Places requests
+  const gpAbortRef  = useRef(null); // separate abort for Google Places
 
+  const centerLat = mapCenter?.[0] ?? 39.5;
+  const centerLng = mapCenter?.[1] ?? -98.4;
+
+  // Re-position dropdown after results arrive
+  const reposition = () => {
+    if (inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
+      setDropdownPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    }
+  };
+
+  // Tier 1 + 2 fire together on every keystroke (debounced 500ms).
+  // Tier 2 only runs when Firestore returns fewer than 3 results.
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    if (!query || query.length < 2) { setResults([]); setShowResults(false); return; }
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true);
-      const res = await searchPlaces(query);
-      setResults(res);
-      if (res.length > 0 && inputRef.current) {
-        const r = inputRef.current.getBoundingClientRect();
-        setDropdownPos({ top: r.bottom + 4, left: r.left, width: r.width });
-        setShowResults(true);
-      } else {
-        setShowResults(false);
-      }
-      setSearching(false);
-    }, 500);
-    return () => clearTimeout(debounceRef.current);
-  }, [query]);
+    abortRef.current?.abort();
 
+    if (!query || query.trim().length < 2) {
+      setFsResults([]); setMbResults([]); setGpResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      abortRef.current = new AbortController();
+      const { signal } = abortRef.current;
+      const isCategory = !!getCategoryType(query);
+
+      // ── Tier 1: Firestore ────────────────────────────────────────────────
+      setLoadingFs(true);
+      let fs = [];
+      try {
+        fs = await searchFirestore(query, centerLat, centerLng);
+        if (signal.aborted) return;
+        setFsResults(fs);
+        reposition();
+        setShowResults(true);
+      } catch { /* silent */ }
+      finally { setLoadingFs(false); }
+
+      // ── Tier 2: Mapbox — skip for category queries (would return roads/creeks)
+      //    Only run for specific place/address searches with fewer than 3 FS results.
+      if (!isCategory && fs.length < 3) {
+        setLoadingMb(true);
+        try {
+          const mb = await searchMapbox(query, signal);
+          if (signal.aborted) return;
+          setMbResults(mb);
+          reposition();
+          setShowResults(true);
+        } catch { /* silent */ }
+        finally { setLoadingMb(false); }
+      } else {
+        setMbResults([]);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
+    };
+  }, [query, centerLat, centerLng]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close on outside click
   useEffect(() => {
     const close = (e) => {
       if (
         dropdownRef.current && !dropdownRef.current.contains(e.target) &&
-        inputRef.current && !inputRef.current.contains(e.target)
+        inputRef.current   && !inputRef.current.contains(e.target)
       ) setShowResults(false);
     };
     document.addEventListener('mousedown', close);
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  // ── Tier 3: Google Places — explicit click only ──────────────────────────
+  const handleGoogleSearch = async () => {
+    if (!query || loadingGp) return;
+    gpAbortRef.current?.abort();
+    gpAbortRef.current = new AbortController();
+    setLoadingGp(true);
+    setGpError('');
+    try {
+      const { results, error } = await searchGooglePlaces(query, centerLat, centerLng, gpAbortRef.current.signal);
+      setGpResults(results);
+      if (error) setGpError(error);
+      setShowResults(true);
+      reposition();
+    } catch { /* AbortError or other — ignored */ }
+    finally { setLoadingGp(false); }
+  };
+
   const handleSelect = (place) => {
     setQuery('');
-    setResults([]);
+    setFsResults([]); setMbResults([]); setGpResults([]);
     setShowResults(false);
+    abortRef.current?.abort();
+    gpAbortRef.current?.abort();
     onSelect(place);
   };
 
-  const typeEmoji = {
-    bookstore: '📚', cafe: '☕', landmark: '🌲', drivein: '🎬', festival: '🎪',
-    museum: '🏛️', restaurant: '🍽️', park: '🌲', historicSite: '🏰',
-    artGallery: '🎨', observatory: '🔭', aquarium: '🐠', theater: '🎭',
-    search: '📍',
-  };
+  const hasAnyResults = fsResults.length > 0 || mbResults.length > 0 || gpResults.length > 0 || !!gpError;
+  const isLoading     = loadingFs || loadingMb;
+  const totalResults  = fsResults.length + mbResults.length;
 
   return (
     <div className="max-w-2xl mx-auto w-full px-0 pb-1.5">
@@ -1039,44 +1122,128 @@ const PlaceSearch = ({ onSelect }) => {
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search bookstores, cafes, landmarks…"
+          onChange={(e) => { setQuery(e.target.value); setGpResults([]); setGpError(''); }}
+          placeholder="Search bookstores, cafes, landmarks, places…"
           className="w-full bg-black/60 border-2 border-starlight-turquoise/70 text-paper-white font-special-elite px-3 py-2 pr-8 rounded-lg focus:outline-none focus:border-starlight-turquoise"
           style={{ fontSize: '0.875rem' }}
           autoFocus
         />
-        {searching && (
+        {isLoading && (
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
             <div className="w-3.5 h-3.5 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin" />
           </div>
         )}
       </div>
-      {showResults && results.length > 0 && createPortal(
-        <ul
+
+      {showResults && (hasAnyResults || loadingGp) && createPortal(
+        <div
           ref={dropdownRef}
           style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
           className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg overflow-hidden shadow-[0_0_20px_rgba(64,224,208,0.3)]"
         >
-          {results.map((place, i) => (
-            <li
-              key={place.id}
-              onPointerDown={() => handleSelect(place)}
-              style={{ touchAction: 'manipulation' }}
-              className={[
-                'px-3 py-2.5 cursor-pointer transition-colors hover:bg-starlight-turquoise/10',
-                i > 0 ? 'border-t border-starlight-turquoise/20' : '',
-              ].join(' ')}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm flex-shrink-0">{typeEmoji[place.type] || '📍'}</span>
+          {/* ── Tier 1: Firestore results ── */}
+          {fsResults.map((place, i) => {
+            const badge = SEARCH_BADGE[place.type] || SEARCH_BADGE.search;
+            return (
+              <div
+                key={place.id}
+                onPointerDown={() => handleSelect(place)}
+                style={{ touchAction: 'manipulation' }}
+                className={`px-3 py-2.5 cursor-pointer transition-colors hover:bg-starlight-turquoise/10 flex items-center gap-2 ${i > 0 ? 'border-t border-starlight-turquoise/20' : ''}`}
+              >
+                <span
+                  className="font-bungee flex-shrink-0"
+                  style={{ fontSize: 8, letterSpacing: '0.06em', background: badge.bg, color: badge.text,
+                           borderRadius: 3, padding: '2px 5px', whiteSpace: 'nowrap' }}
+                >
+                  {badge.label}
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className="font-special-elite text-paper-white text-sm truncate">{place.name}</p>
                   <p className="font-special-elite text-chrome-silver text-xs truncate">{place.address}</p>
                 </div>
               </div>
-            </li>
-          ))}
-        </ul>,
+            );
+          })}
+
+          {/* ── Tier 2: Mapbox results (with divider) ── */}
+          {mbResults.length > 0 && (
+            <>
+              <div className="px-3 py-1 border-t border-starlight-turquoise/20"
+                style={{ background: 'rgba(64,224,208,0.04)' }}>
+                <span className="font-bungee text-chrome-silver/40" style={{ fontSize: 8, letterSpacing: '0.1em' }}>
+                  LOCATIONS
+                </span>
+              </div>
+              {mbResults.map((place, i) => (
+                <div
+                  key={place.id}
+                  onPointerDown={() => handleSelect(place)}
+                  style={{ touchAction: 'manipulation' }}
+                  className="px-3 py-2.5 cursor-pointer transition-colors hover:bg-starlight-turquoise/10 flex items-center gap-2 border-t border-starlight-turquoise/10"
+                >
+                  <span className="text-chrome-silver/40 flex-shrink-0" style={{ fontSize: 12 }}>📍</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-special-elite text-paper-white text-sm truncate">{place.name}</p>
+                    <p className="font-special-elite text-chrome-silver/60 text-xs truncate">{place.address}</p>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* ── Tier 3: Google Places results (with divider) ── */}
+          {gpResults.length > 0 && (
+            <>
+              <div className="px-3 py-1 border-t border-starlight-turquoise/20"
+                style={{ background: 'rgba(64,224,208,0.04)' }}>
+                <span className="font-bungee text-chrome-silver/40" style={{ fontSize: 8, letterSpacing: '0.1em' }}>
+                  MORE PLACES
+                </span>
+              </div>
+              {gpResults.map((place) => (
+                <div
+                  key={place.id}
+                  onPointerDown={() => handleSelect(place)}
+                  style={{ touchAction: 'manipulation' }}
+                  className="px-3 py-2.5 cursor-pointer transition-colors hover:bg-starlight-turquoise/10 flex items-center gap-2 border-t border-starlight-turquoise/10"
+                >
+                  <span className="font-bungee flex-shrink-0"
+                    style={{ fontSize: 8, background: '#4285F4', color: '#fff',
+                             borderRadius: 3, padding: '2px 5px' }}>G</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-special-elite text-paper-white text-sm truncate">{place.name}</p>
+                    <p className="font-special-elite text-chrome-silver/60 text-xs truncate">{place.address}</p>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* ── "Search more places" button (explicit Tier 3 trigger) ── */}
+          {query.length >= 2 && !loadingGp && gpResults.length === 0 && (
+            <div className="border-t border-starlight-turquoise/20" style={{ background: 'rgba(0,0,0,0.2)' }}>
+              <button
+                onPointerDown={(e) => { e.preventDefault(); handleGoogleSearch(); }}
+                className="w-full px-3 py-2.5 text-left font-special-elite text-xs text-chrome-silver/50 hover:text-chrome-silver transition-colors flex items-center gap-2"
+              >
+                <span className="font-bungee" style={{ fontSize: 8, background: '#4285F4', color: '#fff', borderRadius: 3, padding: '2px 5px' }}>G</span>
+                Search more places →
+              </button>
+            </div>
+          )}
+          {loadingGp && (
+            <div className="border-t border-starlight-turquoise/20 px-3 py-2.5 flex items-center gap-2">
+              <div className="w-3 h-3 border-2 border-starlight-turquoise/40 border-t-starlight-turquoise rounded-full animate-spin flex-shrink-0" />
+              <span className="font-special-elite text-chrome-silver/40 text-xs">Searching Google Places…</span>
+            </div>
+          )}
+          {gpError && !loadingGp && (
+            <div className="border-t border-starlight-turquoise/20 px-3 py-2 text-xs font-special-elite text-atomic-orange/70">
+              {gpError}
+            </div>
+          )}
+        </div>,
         document.body
       )}
     </div>
@@ -2183,7 +2350,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const handleSearchSelect = async (place) => {
     // Non-literary search results (landmark tagged by Google but not ALA/Wikipedia)
     // get a yellow pin and no Shelf — just zoom + popup
-    const isLiteraryResult = place.type === 'bookstore' || place.type === 'cafe' ||
+    const isLiteraryResult = place.source === 'firestore' ||
+      place.type === 'bookstore' || place.type === 'cafe' ||
       (place.type === 'landmark' && place.source !== 'search');
     const normalizedPlace = isLiteraryResult ? place : { ...place, type: 'search' };
 
@@ -2678,7 +2846,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
 
         {showSearch && (
-          <PlaceSearch onSelect={handleSearchSelect} />
+          <PlaceSearch onSelect={handleSearchSelect} mapCenter={mapCenter} />
         )}
       </div>
 
