@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Literary Roads — State Field Migration</title>
+  <style>
+    body  { font-family: monospace; background: #1a1b2e; color: #f5f5dc; padding: 20px; max-width: 800px; }
+    h2    { color: #40e0d0; }
+    h3    { color: #ff4e00; margin-top: 24px; }
+    .ok   { color: #40e0d0; }
+    .warn { color: #ff4e00; }
+    .dim  { color: #888; }
+    button {
+      background: #ff4e00; color: #fff; border: none; padding: 10px 24px;
+      font-family: monospace; font-size: 14px; cursor: pointer; border-radius: 4px;
+      margin: 8px 0;
+    }
+    button:disabled { background: #444; cursor: not-allowed; }
+    pre   { background: #111; padding: 12px; border-radius: 4px; white-space: pre-wrap; }
+    #log  { background: #111; padding: 12px; border-radius: 4px; height: 400px;
+            overflow-y: auto; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h2>State Field Migration — coffeeShops + bookstores</h2>
+  <p>Normalizes <code>state</code> field to uppercase (CA, NY, OH…) for any doc where it isn't already.</p>
+  <p>Sign in with the admin Google account, then click Run Migration.</p>
+
+  <div id="auth-section">
+    <button id="btn-signin">Sign in with Google</button>
+    <span id="auth-status" class="dim"> not signed in</span>
+  </div>
+
+  <br>
+  <button id="btn-run" disabled>Run Migration (dry run first)</button>
+  <button id="btn-commit" disabled style="background:#1a6a3a">Commit Changes</button>
+  <span class="dim" id="mode-label"> — sign in first</span>
+
+  <h3>Log</h3>
+  <div id="log"></div>
+
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import { getFirestore, collection, getDocs, writeBatch, doc }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const app = initializeApp({
+      apiKey:            "AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE",
+      authDomain:        "the-literary-roads.firebaseapp.com",
+      projectId:         "the-literary-roads",
+      storageBucket:     "the-literary-roads.firebasestorage.app",
+      messagingSenderId: "305145573086",
+      appId:             "1:305145573086:web:206ec464384fe149c45c4f",
+    });
+    const auth     = getAuth(app);
+    const db       = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    const logEl    = document.getElementById('log');
+    const btnRun   = document.getElementById('btn-run');
+    const btnCommit= document.getElementById('btn-commit');
+    const modeLabel= document.getElementById('mode-label');
+    const authStat = document.getElementById('auth-status');
+
+    function log(msg, cls = '') {
+      const line = document.createElement('div');
+      if (cls) line.className = cls;
+      line.textContent = msg;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    document.getElementById('btn-signin').addEventListener('click', async () => {
+      try { await signInWithPopup(auth, provider); }
+      catch (e) { log('Sign-in failed: ' + e.message, 'warn'); }
+    });
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        authStat.textContent = ` signed in as ${user.email}`;
+        authStat.className   = 'ok';
+        btnRun.disabled      = false;
+        modeLabel.textContent = ' — dry run (no writes)';
+      } else {
+        authStat.textContent = ' not signed in';
+        authStat.className   = 'dim';
+        btnRun.disabled      = true;
+        btnCommit.disabled   = true;
+        modeLabel.textContent = ' — sign in first';
+      }
+    });
+
+    // ── Migration logic ───────────────────────────────────────────────────────
+    // Returns list of { ref, currentState, newState } for docs that need updating.
+    async function scanCollection(colName) {
+      log(`\nScanning ${colName}...`);
+      const snap = await getDocs(collection(db, colName));
+      const toFix = [];
+      let checked = 0;
+
+      for (const d of snap.docs) {
+        checked++;
+        const state = d.data().state;
+        if (state == null || state === '') continue;          // no state field — skip
+        const upper = state.toUpperCase();
+        if (state === upper) continue;                        // already correct
+        toFix.push({ ref: doc(db, colName, d.id), id: d.id, currentState: state, newState: upper });
+      }
+
+      log(`  Checked : ${checked} docs`, 'dim');
+      log(`  Need fix: ${toFix.length} docs`, toFix.length > 0 ? 'warn' : 'ok');
+      if (toFix.length > 0 && toFix.length <= 20) {
+        toFix.forEach(f => log(`    [${f.id}]  "${f.currentState}" → "${f.newState}"`, 'dim'));
+      } else if (toFix.length > 20) {
+        toFix.slice(0, 10).forEach(f => log(`    [${f.id}]  "${f.currentState}" → "${f.newState}"`, 'dim'));
+        log(`    ... and ${toFix.length - 10} more`, 'dim');
+      }
+
+      return { colName, checked, toFix };
+    }
+
+    // Writes updates in batches of 500 (Firestore limit).
+    async function commitFixes(colName, toFix) {
+      if (toFix.length === 0) { log(`  Nothing to update in ${colName}.`, 'ok'); return 0; }
+
+      const BATCH_SIZE = 500;
+      let updated = 0;
+      for (let i = 0; i < toFix.length; i += BATCH_SIZE) {
+        const chunk = toFix.slice(i, i + BATCH_SIZE);
+        const batch = writeBatch(db);
+        for (const { ref, newState } of chunk) {
+          batch.update(ref, { state: newState });
+        }
+        await batch.commit();
+        updated += chunk.length;
+        log(`  Committed batch ${Math.ceil(updated / BATCH_SIZE)} — ${updated}/${toFix.length} docs`, 'ok');
+      }
+      return updated;
+    }
+
+    // ── Dry run button ────────────────────────────────────────────────────────
+    let lastScan = null;
+
+    btnRun.addEventListener('click', async () => {
+      btnRun.disabled    = true;
+      btnCommit.disabled = true;
+      logEl.innerHTML    = '';
+      modeLabel.textContent = ' — scanning...';
+
+      try {
+        const [coffee, books] = await Promise.all([
+          scanCollection('coffeeShops'),
+          scanCollection('bookstores'),
+        ]);
+        lastScan = [coffee, books];
+
+        const totalFix = coffee.toFix.length + books.toFix.length;
+        log(`\nDry run complete.`);
+        log(`  coffeeShops : ${coffee.toFix.length} docs to update`, coffee.toFix.length > 0 ? 'warn' : 'ok');
+        log(`  bookstores  : ${books.toFix.length} docs to update`,  books.toFix.length  > 0 ? 'warn' : 'ok');
+
+        if (totalFix > 0) {
+          btnCommit.disabled    = false;
+          modeLabel.textContent = ` — ${totalFix} docs ready to commit`;
+        } else {
+          modeLabel.textContent = ' — all state fields already uppercase, nothing to do';
+        }
+      } catch (e) {
+        log('Scan error: ' + e.message, 'warn');
+        modeLabel.textContent = ' — error (check log)';
+      } finally {
+        btnRun.disabled = false;
+      }
+    });
+
+    // ── Commit button ─────────────────────────────────────────────────────────
+    btnCommit.addEventListener('click', async () => {
+      if (!lastScan) return;
+      btnCommit.disabled = true;
+      btnRun.disabled    = true;
+      modeLabel.textContent = ' — writing...';
+
+      try {
+        const [coffee, books] = lastScan;
+        log('\nCommitting updates...');
+
+        const coffeeUpdated = await commitFixes('coffeeShops', coffee.toFix);
+        const booksUpdated  = await commitFixes('bookstores',  books.toFix);
+
+        log(`\nMigration complete.`, 'ok');
+        log(`  coffeeShops updated : ${coffeeUpdated}`, 'ok');
+        log(`  bookstores updated  : ${booksUpdated}`,  'ok');
+        modeLabel.textContent = ' — done';
+      } catch (e) {
+        log('Commit error: ' + e.message, 'warn');
+        modeLabel.textContent = ' — error (check log)';
+        btnCommit.disabled = false;
+      } finally {
+        btnRun.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

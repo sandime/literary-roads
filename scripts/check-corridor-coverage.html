@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Corridor Coverage Check</title>
+  <style>
+    body { font-family: monospace; background: #1a1b2e; color: #f5f5dc; padding: 20px; }
+    h2   { color: #40e0d0; }
+    .ok  { color: #40e0d0; }
+    .warn{ color: #ff4e00; }
+    table{ border-collapse: collapse; margin: 12px 0; }
+    td,th{ border: 1px solid #444; padding: 4px 14px; }
+    th   { color: #40e0d0; background: #111; }
+    .zero{ color: #ff4e00; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>NYC → Bismarck Corridor — Firestore Coverage Check</h2>
+  <p>Querying coffeeShops by lat range for each state along the route…</p>
+  <div id="out"></div>
+
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getFirestore, collection, query, where, getCountFromServer }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const app = initializeApp({
+      apiKey:            "AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE",
+      authDomain:        "the-literary-roads.firebaseapp.com",
+      projectId:         "the-literary-roads",
+      storageBucket:     "the-literary-roads.firebasestorage.app",
+      messagingSenderId: "305145573086",
+      appId:             "1:305145573086:web:206ec464384fe149c45c4f",
+    });
+    const db  = getFirestore(app);
+    const out = document.getElementById('out');
+    function html(s) { out.innerHTML += s; }
+
+    // Approximate lat ranges for each corridor state
+    const STATES = [
+      { name: 'New York',      latMin: 40.5, latMax: 45.0 },
+      { name: 'New Jersey',    latMin: 38.9, latMax: 41.4 },
+      { name: 'Pennsylvania',  latMin: 39.7, latMax: 42.3 },
+      { name: 'Ohio',          latMin: 38.4, latMax: 42.3 },
+      { name: 'Indiana',       latMin: 37.8, latMax: 41.8 },
+      { name: 'Illinois',      latMin: 36.9, latMax: 42.5 },
+      { name: 'Wisconsin',     latMin: 42.5, latMax: 47.1 },
+      { name: 'Minnesota',     latMin: 43.5, latMax: 49.4 },
+      { name: 'South Dakota',  latMin: 42.5, latMax: 45.9 },
+      { name: 'North Dakota',  latMin: 45.9, latMax: 49.0 },
+    ];
+
+    html(`<table><tr><th>State</th><th>coffeeShops in Firestore</th><th>In GeoJSON</th><th>Status</th></tr>`);
+
+    // GeoJSON counts from the file (pre-computed)
+    const GEOJSON = { 'New York':3429,'New Jersey':644,'Pennsylvania':1153,
+      'Ohio':1019,'Indiana':383,'Illinois':1371,'Wisconsin':704,
+      'Minnesota':694,'South Dakota':111,'North Dakota':52 };
+
+    for (const st of STATES) {
+      const q = query(
+        collection(db, 'coffeeShops'),
+        where('lat', '>=', st.latMin),
+        where('lat', '<=', st.latMax),
+      );
+      try {
+        const snap = await getCountFromServer(q);
+        const n    = snap.data().count;
+        const gj   = GEOJSON[st.name] || '?';
+        const cls  = n === 0 ? 'zero' : 'ok';
+        const status = n === 0 ? 'NOT SEEDED' : n < 10 ? 'very sparse' : 'ok';
+        html(`<tr>
+          <td>${st.name}</td>
+          <td class="${cls}">${n}</td>
+          <td>${gj}</td>
+          <td class="${cls}">${status}</td>
+        </tr>`);
+      } catch(e) {
+        html(`<tr><td>${st.name}</td><td class="warn" colspan="3">query error: ${e.message}</td></tr>`);
+      }
+    }
+
+    html(`</table>`);
+    html(`<p>Done. If "NOT SEEDED" states exist in the GeoJSON but not Firestore, the fix is to seed from the existing coffee-shops.geojson file.</p>`);
+  </script>
+</body>
+</html>

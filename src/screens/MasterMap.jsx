@@ -10,7 +10,7 @@ import L from 'leaflet';
 import { MAP_CONFIG } from '../config/config';
 import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
 import { searchFirestore, searchMapbox, searchGooglePlaces, getCategoryType } from '../utils/placeSearch';
-import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute } from '../utils/nearbySearch';
+import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute, distributeAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
 import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
@@ -2255,7 +2255,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       let routePoints = await getMapboxRoute(
         startCoords.lat, startCoords.lng,
-        endCoords.lat, endCoords.lng
+        endCoords.lat, endCoords.lng,
+        true  // full geometry — needed for accurate every-15-mile place sampling
       );
 
       if (!routePoints) {
@@ -2277,12 +2278,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         [endCoords.lat, endCoords.lng],
       ];
 
-      // ── Phase 1: bookstores, cafes, libraries, drive-ins, literary landmarks ──
-      const [places, curatedLandmarks, driveIns, destPlaces] = await Promise.all([
+      // ── Phase 1: bookstores, cafes, drive-ins, literary landmarks ──────────
+      // Note: no separate destPlaces call — route sampling already covers the endpoint,
+      // and distributeAlongRoute guarantees ≥3 bookstores + cafes near the destination.
+      const [places, curatedLandmarks, driveIns] = await Promise.all([
         searchAlongRoute(routePoints),
         getCuratedLandmarks(allTripPoints, 20),
         getDriveInsAlongRoute(allTripPoints, 20),
-        searchNearbyPlacesTiered(endCoords.lat, endCoords.lng),
       ]);
 
       const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2300,8 +2302,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       };
 
       const festivals = await getLiteraryFestivalsAlongRoute(allTripPoints, 100);
-      const phase1Locations = [];
-      mergeInto(phase1Locations, [...curatedLandmarks, ...driveIns, ...festivals, ...places, ...destPlaces]);
+      const allRaw = [];
+      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...festivals, ...places]);
+
+      // Apply geographic thinning across all types so pins spread evenly along the
+      // route rather than bunching at start/end, then guarantee destination coverage.
+      const phase1Locations = distributeAlongRoute(
+        allRaw, routePoints, endCoords.lat, endCoords.lng
+      );
       setVisibleLocations(phase1Locations);
       setUiMode('explore');
 

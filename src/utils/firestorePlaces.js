@@ -46,6 +46,7 @@ export const getNearbyBookstores = async (lat, lng, radiusMiles = 5) => {
       return snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .sort((a, b) => haversine(lat, lng, a.lat, a.lng) - haversine(lat, lng, b.lat, b.lng))
         .map(b => ({
           id:          b.id,
           name:        b.name,
@@ -82,6 +83,7 @@ export const getNearbyCoffeeShops = async (lat, lng, radiusMiles = 5) => {
       return snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
         .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .sort((a, b) => haversine(lat, lng, a.lat, a.lng) - haversine(lat, lng, b.lat, b.lng))
         .map(b => ({
           id:          b.id,
           name:        b.name,

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Literary Roads — Firestore Diagnostic</title>
+  <style>
+    body { font-family: monospace; background: #1a1b2e; color: #f5f5dc; padding: 20px; }
+    h2   { color: #40e0d0; }
+    h3   { color: #ff4e00; margin-top: 24px; }
+    .ok  { color: #40e0d0; }
+    .warn{ color: #ff4e00; }
+    table{ border-collapse: collapse; margin: 8px 0; }
+    td,th{ border: 1px solid #333; padding: 4px 12px; text-align: left; }
+    th   { color: #40e0d0; }
+    .empty { color: #ff4e00; font-weight: bold; }
+    pre  { background: #111; padding: 10px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h2>Literary Roads — Firestore Diagnostic</h2>
+  <p>Querying coffeeShops and bookstores collections...</p>
+  <div id="out"></div>
+
+  <script type="module">
+    import { initializeApp }                      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import { getFirestore, collection, getDocs }  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const app = initializeApp({
+      apiKey:            "AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE",
+      authDomain:        "the-literary-roads.firebaseapp.com",
+      projectId:         "the-literary-roads",
+      storageBucket:     "the-literary-roads.firebasestorage.app",
+      messagingSenderId: "305145573086",
+      appId:             "1:305145573086:web:206ec464384fe149c45c4f",
+    });
+    const db  = getFirestore(app);
+    const out = document.getElementById('out');
+
+    const ROUTE_STATES = [
+      'New York','New Jersey','Pennsylvania','Ohio','Indiana',
+      'Illinois','Wisconsin','Minnesota','South Dakota','North Dakota',
+    ];
+
+    function html(str) { out.innerHTML += str; }
+
+    async function auditCollection(colName) {
+      html(`<h3>${colName}</h3>`);
+      html(`<p>Fetching all docs...</p>`);
+
+      let docs;
+      try {
+        const snap = await getDocs(collection(db, colName));
+        docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        html(`<p class="warn">ERROR: ${e.message}</p>`);
+        return;
+      }
+
+      const total       = docs.length;
+      const missingLat  = docs.filter(d => d.lat  == null).length;
+      const missingLng  = docs.filter(d => d.lng  == null).length;
+      const missingName = docs.filter(d => !d.name).length;
+      const wrongLatType = docs.filter(d => d.lat != null && typeof d.lat !== 'number').length;
+
+      html(`<pre>
+Total docs    : ${total}
+Missing lat   : ${missingLat}  ${missingLat  > 0 ? '⚠️' : '✓'}
+Missing lng   : ${missingLng}  ${missingLng  > 0 ? '⚠️' : '✓'}
+Missing name  : ${missingName} ${missingName > 0 ? '⚠️' : '✓'}
+lat not number: ${wrongLatType} ${wrongLatType > 0 ? '⚠️ FORMAT BUG' : '✓'}
+</pre>`);
+
+      // Count by state
+      const bySt = {};
+      for (const d of docs) {
+        const st = (d.state || '(none)').trim();
+        bySt[st] = (bySt[st] || 0) + 1;
+      }
+      const sorted = Object.entries(bySt).sort((a, b) => b[1] - a[1]);
+
+      html(`<b>NYC → Bismarck corridor:</b><table><tr><th>State</th><th>Count</th><th></th></tr>`);
+      for (const st of ROUTE_STATES) {
+        const n    = bySt[st] || 0;
+        const cls  = n === 0 ? 'empty' : 'ok';
+        const flag = n === 0 ? 'EMPTY — not seeded' : '';
+        html(`<tr><td>${st}</td><td class="${cls}">${n}</td><td class="${cls}">${flag}</td></tr>`);
+      }
+      html(`</table>`);
+
+      html(`<b>All states (top 30 by count):</b><table><tr><th>State</th><th>Count</th></tr>`);
+      sorted.slice(0, 30).forEach(([st, n]) => {
+        html(`<tr><td>${st}</td><td>${n}</td></tr>`);
+      });
+      html(`</table>`);
+
+      // Sample 3 docs
+      html(`<b>Sample docs (first 3):</b><pre>`);
+      docs.slice(0, 3).forEach(d => {
+        html(`[${d.id}]\n  name : ${d.name}\n  lat  : ${d.lat} (${typeof d.lat})\n  lng  : ${d.lng} (${typeof d.lng})\n  state: ${d.state}\n  city : ${d.city}\n\n`);
+      });
+      html(`</pre>`);
+    }
+
+    await auditCollection('coffeeShops');
+    await auditCollection('bookstores');
+    html(`<h3 class="ok">Done.</h3>`);
+  </script>
+</body>
+</html>
