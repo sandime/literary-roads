@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Activate Ghost Towns</title>
+  <style>
+    body { font-family: monospace; background: #1a1b2e; color: #f5f5dc; padding: 20px; }
+    h2   { color: #40e0d0; }
+    button { font-family: monospace; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; margin-right: 10px; }
+    .run   { background: #ff4e00; color: #fff; }
+    .dry   { background: #40e0d0; color: #000; }
+    .ok    { color: #40e0d0; }
+    .warn  { color: #ff4e00; }
+    .muted { color: rgba(192,192,192,0.6); }
+    pre    { background: #0d0e1a; padding: 12px; border-radius: 8px; white-space: pre-wrap; max-height: 500px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h2>Activate Ghost Towns — set active: true on all docs</h2>
+  <p>Signs in with your Google account (must be admin), then sets <code>active: true</code> on every doc in the <code>ghostTowns</code> collection that doesn't already have it.</p>
+
+  <button class="dry" onclick="signIn()">SIGN IN WITH GOOGLE</button>
+  <span id="user-status" class="muted">Not signed in</span>
+
+  <br><br>
+  <button class="dry" onclick="run(true)">DRY RUN (count only)</button>
+  <button class="run" onclick="run(false)">ACTIVATE ALL</button>
+
+  <pre id="out">Sign in first, then run the dry run to see how many docs will be updated.</pre>
+
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import {
+      getFirestore, collection, getDocs, doc, writeBatch,
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const app = initializeApp({
+      apiKey:            "AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE",
+      authDomain:        "the-literary-roads.firebaseapp.com",
+      projectId:         "the-literary-roads",
+      storageBucket:     "the-literary-roads.firebasestorage.app",
+      messagingSenderId: "305145573086",
+      appId:             "1:305145573086:web:206ec464384fe149c45c4f",
+    });
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const out  = document.getElementById('out');
+    const statusEl = document.getElementById('user-status');
+
+    onAuthStateChanged(auth, u => {
+      statusEl.textContent = u ? `Signed in as ${u.email}` : 'Not signed in';
+      statusEl.className   = u ? 'ok' : 'muted';
+    });
+
+    window.signIn = async () => {
+      try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+      catch (e) { out.textContent = `Sign-in error: ${e.message}`; }
+    };
+
+    window.run = async (dryRun) => {
+      out.textContent = dryRun ? 'Scanning ghostTowns collection…\n' : 'Activating all ghost towns…\n';
+
+      const snap = await getDocs(collection(db, 'ghostTowns'));
+      const total = snap.size;
+      const needsUpdate = snap.docs.filter(d => d.data().active !== true);
+
+      out.textContent += `Total docs: ${total}\n`;
+      out.textContent += `Already active: ${total - needsUpdate.length}\n`;
+      out.textContent += `Need active: true → ${needsUpdate.length}\n\n`;
+
+      if (needsUpdate.length === 0) {
+        out.textContent += 'All docs already have active: true. Nothing to do.';
+        return;
+      }
+
+      if (dryRun) {
+        out.textContent += 'Sample of docs that will be updated:\n';
+        needsUpdate.slice(0, 10).forEach(d => {
+          const data = d.data();
+          out.textContent += `  [${d.id}] "${data.name || '(unnamed)'" in ${data.state || '?'}\n`;
+        });
+        if (needsUpdate.length > 10) out.textContent += `  … and ${needsUpdate.length - 10} more\n`;
+        out.textContent += '\nDry run complete. Click ACTIVATE ALL to apply.';
+        return;
+      }
+
+      // Commit in batches of 500 (Firestore limit)
+      const BATCH_SIZE = 500;
+      let updated = 0;
+      for (let i = 0; i < needsUpdate.length; i += BATCH_SIZE) {
+        const batch = writeBatch(db);
+        const chunk = needsUpdate.slice(i, i + BATCH_SIZE);
+        chunk.forEach(d => batch.update(doc(db, 'ghostTowns', d.id), { active: true }));
+        await batch.commit();
+        updated += chunk.length;
+        out.textContent += `Updated ${updated} / ${needsUpdate.length}…\n`;
+      }
+
+      out.textContent += `\nDone. ${updated} docs now have active: true.\n`;
+      out.textContent += `Total visible ghost towns on map: ${total} (all active).`;
+    };
+  </script>
+</body>
+</html>

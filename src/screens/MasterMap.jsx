@@ -12,7 +12,7 @@ import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
 import { searchFirestore, searchMapbox, searchGooglePlaces, getCategoryType } from '../utils/placeSearch';
 import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute, distributeAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
-import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
+import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear, getGhostTownsNear, getGhostTownsAlongRoute } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
@@ -701,6 +701,31 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false, label = ''
           <!-- Small open book inside arch -->
           <path d="M14 25 L14 20 Q20 22 20 22 Q20 22 26 20 L26 25 Q20 27 20 27 Q20 27 14 25" fill="none" stroke="#AEEA00" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
           <line x1="20" y1="20.5" x2="20" y2="26.5" stroke="#AEEA00" stroke-width="1"/>
+        </g>
+      </svg>
+    `,
+
+    // GHOST - Ghost Towns (White)
+    ghostTown: `
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-white-${uid}" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-white-${uid})" class="neon-marker">
+          <!-- Rounded head -->
+          <path d="M 10 24 L 10 17 Q 10 7 20 7 Q 30 7 30 17 L 30 24 L 30 33 L 26 29 L 22 33 L 18 29 L 14 33 Z"
+                fill="none" stroke="#F5F5DC" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+          <!-- Left eye -->
+          <ellipse cx="16" cy="18" rx="2.5" ry="3" fill="none" stroke="#F5F5DC" stroke-width="1.5"/>
+          <!-- Right eye -->
+          <ellipse cx="24" cy="18" rx="2.5" ry="3" fill="none" stroke="#F5F5DC" stroke-width="1.5"/>
         </g>
       </svg>
     `,
@@ -1586,7 +1611,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   // Spread co-located markers across types so they don't hide each other.
   // Groups any two markers within ~60 m of each other and fans them out ~30 m apart.
   const spreadMap = useMemo(() => {
-    const TYPES = new Set(['landmark','festival','drivein','bookstore','cafe']);
+    const TYPES = new Set(['landmark','festival','drivein','ghostTown','bookstore','cafe']);
     const markers = visibleLocations.filter(l => TYPES.has(l.type));
     const THRESHOLD = 0.0006; // ~60 m
     const RADIUS    = 0.00028; // ~30 m
@@ -2100,14 +2125,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSearchTarget({ center: [DC_LAT, DC_LNG], zoom: 13 });
     setLoading(true);
     try {
-      const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+      const [places, nearFestivals, nearDriveIns, nearCurated, nearGhostTowns] = await Promise.all([
         searchNearbyPlaces(DC_LAT, DC_LNG, 10),
         getLiteraryFestivalsNear(DC_LAT, DC_LNG, 10),
         getDriveInsNear(DC_LAT, DC_LNG, 10),
         getCuratedLandmarks([[DC_LAT, DC_LNG]], 10),
+        getGhostTownsNear(DC_LAT, DC_LNG, 75),
       ]);
       const seenIds = new Set();
-      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearGhostTowns]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
       setVisibleLocations(combined);
     } catch (err) {
@@ -2190,16 +2216,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+        const [places, nearFestivals, nearDriveIns, nearCurated, nearGhostTowns] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 15),
           getLiteraryFestivalsNear(latitude, longitude, 15),
           getDriveInsNear(latitude, longitude, 15),
           getCuratedLandmarks([[latitude, longitude]], 15),
+          getGhostTownsNear(latitude, longitude, 75),
         ]);
 
         // Deduplicate by id in case any location appears in multiple sources
         const seenIds = new Set();
-        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearGhostTowns]
           .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
         setSearchTarget({ center: [latitude, longitude], zoom: 12 });
@@ -2281,10 +2308,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       // ── Phase 1: bookstores, cafes, drive-ins, literary landmarks ──────────
       // Note: no separate destPlaces call — route sampling already covers the endpoint,
       // and distributeAlongRoute guarantees ≥3 bookstores + cafes near the destination.
-      const [places, curatedLandmarks, driveIns] = await Promise.all([
+      const [places, curatedLandmarks, driveIns, ghostTowns] = await Promise.all([
         searchAlongRoute(routePoints),
         getCuratedLandmarks(allTripPoints, 20),
         getDriveInsAlongRoute(allTripPoints, 20),
+        getGhostTownsAlongRoute(routePoints, 30),
       ]);
 
       const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2303,7 +2331,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       const festivals = await getLiteraryFestivalsAlongRoute(allTripPoints, 100);
       const allRaw = [];
-      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...festivals, ...places]);
+      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...ghostTowns, ...festivals, ...places]);
 
       // Apply geographic thinning across all types so pins spread evenly along the
       // route rather than bunching at start/end, then guarantee destination coverage.
@@ -2373,15 +2401,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setShowSearch(false);
 
       const { lat, lng } = place;
-      const [nearby, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+      const [nearby, nearFestivals, nearDriveIns, nearCurated, nearGhostTowns] = await Promise.all([
         searchNearbyPlacesTiered(lat, lng),
         Promise.resolve(getLiteraryFestivalsNear(lat, lng, 15)),
         getDriveInsNear(lat, lng, 15),
         getCuratedLandmarks([[lat, lng]], 15),
+        getGhostTownsNear(lat, lng, 75),
       ]);
 
       const seenIds = new Set();
-      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearGhostTowns]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
       setVisibleLocations(combined);
@@ -3108,6 +3137,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             ))
           }
 
+          {/* Ghost town markers — not clustered (sparse by nature) */}
+          {visibleLocations
+            .filter(l => l.type === 'ghostTown')
+            .map(location => (
+              <Marker
+                key={location.id}
+                position={spreadMap[location.id] ?? [location.lat, location.lng]}
+                icon={createCustomIcon('ghostTown', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Ghost Town`)}
+                eventHandlers={{ click: () => setSelectedLocation(location) }}
+              />
+            ))
+          }
+
           {/* Car check-in badges — rendered above location pins */}
           {Object.entries(locationCars).map(([locationId, cars]) => {
             if (!cars.length) return null;
@@ -3731,6 +3773,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {selectedLocation.type === 'festival' && (
                   <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#B044FB', borderColor: '#B044FB' }}>BOOK FESTIVAL</span>
                 )}
+                {selectedLocation.type === 'ghostTown' && (
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#F5F5DC', borderColor: '#F5F5DC' }}>GHOST TOWN</span>
+                )}
                 {starburstIds.has(selectedLocation.id) && (
                   <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
                 )}
@@ -3829,6 +3874,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </div>
                 )}
 
+                {/* Ghost-town-specific fields */}
+                {selectedLocation.type === 'ghostTown' && selectedLocation.historicalNotes && (
+                  <div className="font-special-elite text-sm text-chrome-silver mb-2" style={{ lineHeight: 1.5 }}>
+                    <span className="font-bungee text-[9px] text-paper-white/60 tracking-widest uppercase block mb-1">Historical Notes</span>
+                    {selectedLocation.historicalNotes}
+                  </div>
+                )}
+                {selectedLocation.type === 'ghostTown' && selectedLocation.bestTimeToVisit && (
+                  <div className="font-special-elite text-sm text-chrome-silver mb-2">
+                    <span className="font-bungee text-[9px] text-paper-white/60 tracking-widest uppercase">Best time to visit: </span>
+                    {selectedLocation.bestTimeToVisit}
+                  </div>
+                )}
+
                 {/* Festival-specific: dates and schedule */}
                 {selectedLocation.type === 'festival' && selectedLocation.typicalMonth && (
                   <div className="flex items-start gap-2 text-chrome-silver font-special-elite text-sm mb-2">
@@ -3853,6 +3912,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                       {selectedLocation.type === 'festival' ? 'Visit Festival Website' :
                        selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' :
                        selectedLocation.type === 'drivein' ? 'Visit Website' :
+                       selectedLocation.type === 'ghostTown' ? 'Learn More' :
                        selectedLocation.website ? 'Visit Website' : 'Read more on Wikipedia'}
                     </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

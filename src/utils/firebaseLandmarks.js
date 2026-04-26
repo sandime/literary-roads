@@ -98,6 +98,74 @@ export const getDriveInsNear = async (lat, lng, radiusMiles = 75) => {
   }
 };
 
+// ── Ghost Towns ───────────────────────────────────────────────────────────────
+const _ghostTownCache = { data: null, ts: 0 };
+const GHOST_TOWN_TTL  = 10 * 60 * 1000; // 10 min
+
+const fetchAllGhostTowns = async () => {
+  const now = Date.now();
+  if (_ghostTownCache.data && now - _ghostTownCache.ts < GHOST_TOWN_TTL) {
+    return _ghostTownCache.data;
+  }
+  const snapshot = await getDocs(collection(db, 'ghostTowns'));
+  const all = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
+    if (data.active === false) return;
+    all.push({
+      id:               doc.id,
+      name:             data.name             || '',
+      type:             'ghostTown',
+      lat:              data.lat,
+      lng:              data.lng,
+      city:             data.city             || '',
+      state:            data.state            || '',
+      description:      data.description      || '',
+      historicalNotes:  data.historicalNotes  || '',
+      bestTimeToVisit:  data.bestTimeToVisit  || '',
+      website:          data.website          || '',
+      source:           'firestore',
+      coords:           [data.lat, data.lng],
+    });
+  });
+  console.log(`[Firestore] ${all.length} active ghost towns fetched`);
+  _ghostTownCache.data = all;
+  _ghostTownCache.ts   = now;
+  return all;
+};
+
+export const getGhostTownsNear = async (lat, lng, radiusMiles = 75) => {
+  try {
+    const all = await fetchAllGhostTowns();
+    const nearby = all.filter(g => getDistance(g.lat, g.lng, lat, lng) <= radiusMiles);
+    console.log(`[GhostTowns] ${all.length} total, ${nearby.length} within ${radiusMiles}mi of [${lat.toFixed(2)}, ${lng.toFixed(2)}]`);
+    return nearby;
+  } catch (error) {
+    console.error('[GhostTowns] getGhostTownsNear FAILED:', error);
+    return [];
+  }
+};
+
+export const getGhostTownsAlongRoute = async (routePoints, radiusMiles = 30) => {
+  try {
+    const all = await fetchAllGhostTowns();
+    const samples = routePoints
+      .filter((_, i) => i % 5 === 0)
+      .concat(routePoints[routePoints.length - 1])
+      .filter(p => Array.isArray(p) && p.length >= 2);
+    if (!samples.length) return [];
+    const nearby = all.filter(g =>
+      samples.some(([pLat, pLng]) => getDistance(g.lat, g.lng, pLat, pLng) <= radiusMiles)
+    );
+    console.log(`[GhostTowns] ${nearby.length} within ${radiusMiles}mi of route`);
+    return nearby;
+  } catch (error) {
+    console.error('[GhostTowns] getGhostTownsAlongRoute FAILED:', error);
+    return [];
+  }
+};
+
 // ── Extra collections for main map (route planner + NEAR ME) ─────────────────
 // Each collection is small enough to fetch-all and filter client-side.
 const EXTRA_COLLECTIONS = [
