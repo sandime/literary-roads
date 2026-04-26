@@ -2,45 +2,45 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "RITES OF THE STARLING",
-      "author": "Devney Perry",
+      "title": "HOPE RISES",
+      "author": "David Baldacci",
       "weeksOnList": 1,
-      "isbn13": "9781682816752",
-      "description": "The second book in the “Shield of Sparrows” series. Secrets uncovered may stop the devastation of a cursed realm.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781682816752.jpg"
+      "isbn13": "9781538758021",
+      "description": "The second book in the Walter Nash series. Using an alias and some lethal skills, Nash works to bring down a global criminal operation.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538758021.jpg"
     },
     {
       "rank": 2,
-      "title": "YESTERYEAR",
-      "author": "Caro Claire Burke",
-      "weeksOnList": 1,
-      "isbn13": "9780593804216",
-      "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
-    },
-    {
-      "rank": 3,
-      "title": "REVENGE PREY",
-      "author": "John Sandford",
-      "weeksOnList": 1,
-      "isbn13": "9780593852064",
-      "description": "The 36th book in the Prey series. Davenport and White must protect a Russian intelligence officer and his family who are in hiding.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593852064.jpg"
-    },
-    {
-      "rank": 4,
       "title": "THE CORRESPONDENT",
       "author": "Virginia Evans",
-      "weeksOnList": 24,
+      "weeksOnList": 25,
       "isbn13": "9780593798430",
       "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
+      "rank": 3,
+      "title": "YESTERYEAR",
+      "author": "Caro Claire Burke",
+      "weeksOnList": 2,
+      "isbn13": "9780593804216",
+      "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
+    },
+    {
+      "rank": 4,
+      "title": "RITES OF THE STARLING",
+      "author": "Devney Perry",
+      "weeksOnList": 2,
+      "isbn13": "9781682816752",
+      "description": "The second book in the “Shield of Sparrows” series. Secrets uncovered may stop the devastation of a cursed realm.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781682816752.jpg"
+    },
+    {
       "rank": 5,
       "title": "STARSIDE",
       "author": "Alex Aster",
-      "weeksOnList": 2,
+      "weeksOnList": 3,
       "isbn13": "9780063462434",
       "description": "Aris traverses a realm of magic and immortals, where she faces dangers as she seeks to avenge her family’s death.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063462434.jpg"
@@ -49,51 +49,51 @@
   "nonfiction": [
     {
       "rank": 1,
-      "title": "LONDON FALLING",
-      "author": "Patrick Radden Keefe",
+      "title": "FAMESICK",
+      "author": "Lena Dunham",
       "weeksOnList": 1,
-      "isbn13": "9780385548533",
-      "description": "The author of “Say Nothing” details the efforts by the parents of a 19-year-old Londoner to uncover the truth about his mysterious death and secret life.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385548533.jpg"
+      "isbn13": "9780593129326",
+      "description": "The author of “Not That Kind of Girl” evaluates the effects that pursuing her creative endeavors had on her.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593129326.jpg"
     },
     {
       "rank": 2,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 12,
+      "weeksOnList": 13,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 3,
-      "title": "PLANET MONEY",
-      "author": "Alex Mayyasi and the hosts of NPR’s “Planet Money”",
+      "title": "POISONED IVIES",
+      "author": "Elise Stefanik",
       "weeksOnList": 1,
-      "isbn13": "9781324078777",
-      "description": "Stories illustrating global economic forces at work and how they impact decisions we make.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781324078777.jpg"
+      "isbn13": "9781668087534",
+      "description": "The Republican congresswoman from New York shares her perspective on higher education in America.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668087534.jpg"
     },
     {
       "rank": 4,
-      "title": "HERE WHERE WE LIVE IS OUR COUNTRY",
-      "author": "Molly Crabapple",
-      "weeksOnList": 1,
-      "isbn13": "9780593229453",
-      "description": "A portrayal of the Jewish Labor Bund, and the ways its development and dissolution resonate today.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593229453.jpg"
+      "title": "LONDON FALLING",
+      "author": "Patrick Radden Keefe",
+      "weeksOnList": 2,
+      "isbn13": "9780385548533",
+      "description": "The author of “Say Nothing” details the efforts by the parents of a 19-year-old Londoner to uncover the truth about his mysterious death and secret life.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385548533.jpg"
     },
     {
       "rank": 5,
-      "title": "STRIPPED DOWN",
-      "author": "Bunnie Xo",
-      "weeksOnList": 8,
-      "isbn13": "9780063445192",
-      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
+      "title": "LAST BRANCH STANDING",
+      "author": "Sarah Isgur",
+      "weeksOnList": 1,
+      "isbn13": "9780593800928",
+      "description": "The editor of SCOTUSblog gives insights into how the current Supreme Court functions.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593800928.jpg"
     }
   ],
-  "issueDate": "Sunday, April 19, 2026",
-  "issueNumber": 68,
-  "updatedAt": "2026-04-19T10:30:39.864Z"
+  "issueDate": "Sunday, April 26, 2026",
+  "issueNumber": 69,
+  "updatedAt": "2026-04-26T10:36:30.703Z"
 }
