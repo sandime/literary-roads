@@ -13,6 +13,7 @@ import {
 } from '../utils/newsletterAdmin';
 import { formatIssueDate } from '../components/GazetteContent';
 import { generateNewsletterHTML, generateSubstackText } from '../utils/newsletterGenerator';
+import CuratedRoutesTab from './CuratedRoutesTab';
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 // Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
@@ -1596,6 +1597,13 @@ export default function AdminPanel() {
             )}
           </>
         ))}
+        {/* Curated Routes tab — after THE LONG ROAD, before RSS */}
+        <button
+          onClick={() => setActiveTab('curatedRoutes')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'curatedRoutes' ? `2px solid ${C.teal}` : '2px solid transparent', color: activeTab === 'curatedRoutes' ? C.teal : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+        >
+          CURATED ROUTES
+        </button>
         {/* RSS tab — always last */}
         <button
           onClick={() => setActiveTab('rss')}
@@ -1612,6 +1620,9 @@ export default function AdminPanel() {
         )}
         {activeTab === 'festivalDrafts' && (
           <DraftsPanel showToast={showToast} />
+        )}
+        {activeTab === 'curatedRoutes' && (
+          <CuratedRoutesTab showToast={showToast} />
         )}
         {activeTab === 'rss' && (
           <RSSTab showToast={showToast} />

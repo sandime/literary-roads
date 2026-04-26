@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Migrate curatedRoutes readingList</title>
+  <style>
+    body { font-family: monospace; background: #1a1b2e; color: #f5f5dc; padding: 20px; }
+    h2   { color: #40e0d0; }
+    button { font-family: monospace; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; margin-right: 10px; }
+    .run   { background: #ff4e00; color: #fff; }
+    .dry   { background: #40e0d0; color: #000; }
+    .ok    { color: #40e0d0; }
+    .warn  { color: #ff4e00; }
+    .muted { color: rgba(192,192,192,0.6); }
+    pre    { background: #0d0e1a; padding: 12px; border-radius: 8px; white-space: pre-wrap; }
+    #sign-in { margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Migrate curatedRoutes — readingList { before/with/after } → array</h2>
+  <p>Finds all docs with the old object shape and converts them to <code>[{title,author,description},...]</code>.</p>
+
+  <div id="sign-in">
+    <button class="dry" onclick="signIn()">SIGN IN WITH GOOGLE</button>
+    <span id="user-status" class="muted">Not signed in</span>
+  </div>
+
+  <button class="dry" onclick="run(true)">DRY RUN</button>
+  <button class="run" onclick="run(false)">COMMIT MIGRATION</button>
+
+  <pre id="out">Sign in first, then click Dry Run to preview changes.</pre>
+
+  <script type="module">
+    import { initializeApp }
+      from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+    import {
+      getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+    import {
+      getFirestore, collection, getDocs, doc, updateDoc,
+    } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+
+    const app = initializeApp({
+      apiKey:            "AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE",
+      authDomain:        "the-literary-roads.firebaseapp.com",
+      projectId:         "the-literary-roads",
+      storageBucket:     "the-literary-roads.firebasestorage.app",
+      messagingSenderId: "305145573086",
+      appId:             "1:305145573086:web:206ec464384fe149c45c4f",
+    });
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const out  = document.getElementById('out');
+    const statusEl = document.getElementById('user-status');
+
+    const BLANK = { title: '', author: '', description: '' };
+
+    function needsMigration(rl) {
+      if (!rl) return false;
+      if (Array.isArray(rl)) return false;
+      // Old object shape has before/with/after keys
+      return 'before' in rl || 'with' in rl || 'after' in rl;
+    }
+
+    function toArray(rl) {
+      return [
+        { ...BLANK, ...(rl.before || {}) },
+        { ...BLANK, ...(rl.with   || {}) },
+        { ...BLANK, ...(rl.after  || {}) },
+      ];
+    }
+
+    onAuthStateChanged(auth, u => {
+      statusEl.textContent = u ? `Signed in as ${u.email}` : 'Not signed in';
+      statusEl.className   = u ? 'ok' : 'muted';
+    });
+
+    window.signIn = async () => {
+      try {
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      } catch (e) {
+        out.textContent = `Sign-in error: ${e.message}`;
+      }
+    };
+
+    window.run = async (dryRun) => {
+      out.textContent = dryRun ? 'Dry run — scanning…\n' : 'Committing migration…\n';
+
+      const snap = await getDocs(collection(db, 'curatedRoutes'));
+      const toMigrate = [];
+
+      for (const d of snap.docs) {
+        const data = d.data();
+        if (needsMigration(data.readingList)) {
+          toMigrate.push({ id: d.id, name: data.name || '(unnamed)', old: data.readingList });
+        }
+      }
+
+      if (toMigrate.length === 0) {
+        out.textContent += '\nNo docs need migration. All readingList fields are already in array format (or missing).';
+        return;
+      }
+
+      out.textContent += `\nFound ${toMigrate.length} doc(s) to migrate:\n\n`;
+      for (const item of toMigrate) {
+        const newVal = toArray(item.old);
+        out.textContent += `[${item.id}] "${item.name}"\n`;
+        out.textContent += `  OLD: ${JSON.stringify(item.old)}\n`;
+        out.textContent += `  NEW: ${JSON.stringify(newVal)}\n\n`;
+
+        if (!dryRun) {
+          await updateDoc(doc(db, 'curatedRoutes', item.id), { readingList: newVal });
+          out.textContent += `  -> UPDATED\n\n`;
+        }
+      }
+
+      out.textContent += dryRun
+        ? '\nDry run complete. Click COMMIT MIGRATION to apply.'
+        : '\nMigration complete.';
+    };
+  </script>
+</body>
+</html>

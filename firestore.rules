@@ -68,6 +68,10 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    match /curatedRoutes/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
     // ── User data (private per user) ──────────────────────────────────────────
     match /users/{userId} {
