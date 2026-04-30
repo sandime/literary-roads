@@ -105,8 +105,7 @@ export async function fetchAllCuratedRoutes() {
 
 export async function saveCuratedRoute(data, existingId = null) {
   if (existingId) {
-    const ref = doc(db, COL, existingId);
-    await updateDoc(ref, { ...data, updatedAt: serverTimestamp() });
+    await setDoc(doc(db, COL, existingId), { ...data, updatedAt: serverTimestamp() });
     return existingId;
   } else {
     const ref = await addDoc(collection(db, COL), {
