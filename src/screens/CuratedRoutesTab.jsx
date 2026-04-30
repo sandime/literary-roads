@@ -124,7 +124,7 @@ function ReadingListRow({ index, value, onChange }) {
 }
 
 // ── Stop item (draggable) ─────────────────────────────────────────────────────
-function StopItem({ stop, index, total, onRemove, onNoteChange, onMoveUp, onMoveDown,
+function StopItem({ stop, index, total, onRemove, onFieldChange, onMoveUp, onMoveDown,
                     dragHandlers }) {
   return (
     <div
@@ -135,10 +135,9 @@ function StopItem({ stop, index, total, onRemove, onNoteChange, onMoveUp, onMove
       style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 8, cursor: 'grab' }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-        {/* drag handle */}
         <span style={{ color: C.muted, fontSize: 16, lineHeight: 1, flexShrink: 0, marginTop: 2, cursor: 'grab' }}>⠿</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
             <div>
               <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.05em', marginRight: 6 }}>
                 STOP {index + 1}
@@ -159,12 +158,25 @@ function StopItem({ stop, index, total, onRemove, onNoteChange, onMoveUp, onMove
                 style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: '0 4px' }}>×</button>
             </div>
           </div>
-          <input
-            style={{ ...inputStyle, fontSize: 11 }}
-            value={stop._note || ''}
-            onChange={e => onNoteChange(index, e.target.value)}
-            placeholder="Optional note for this stop…"
-          />
+          <div style={{ marginBottom: 8 }}>
+            <label style={labelStyle}>ROUTE NOTE</label>
+            <textarea
+              style={{ ...inputStyle, resize: 'vertical', fontSize: 11 }}
+              rows={2}
+              value={stop.routeNote || ''}
+              onChange={e => onFieldChange(index, 'routeNote', e.target.value)}
+              placeholder="Your editorial description of this stop in the context of this route…"
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>OVERNIGHT SUGGESTION</label>
+            <input
+              style={{ ...inputStyle, fontSize: 11 }}
+              value={stop.overnightNote || ''}
+              onChange={e => onFieldChange(index, 'overnightNote', e.target.value)}
+              placeholder="Nearby camping, lodging, or overnight options…"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -270,17 +282,18 @@ export default function CuratedRoutesTab({ showToast }) {
 
   // ── Add stop from search ─────────────────────────────────────────────────────
   const handleAddStop = (loc) => {
-    const already = form.stops.some(s => s.id === loc.id && s._fromCollection === loc._fromCollection);
+    const already = form.stops.some(s => s.sourceId === loc.id && s._fromCollection === loc._fromCollection);
     if (already) return;
     const stop = {
-      id:               loc.id,
-      name:             loc.name || '',
-      city:             loc.city || '',
-      state:            loc.state || '',
-      lat:              loc.lat  ?? null,
-      lng:              loc.lng  ?? null,
-      _fromCollection:  loc._fromCollection || '',
-      _note:            '',
+      sourceId:        loc.id,
+      name:            loc.name || '',
+      city:            loc.city || '',
+      state:           loc.state || '',
+      lat:             loc.lat  ?? null,
+      lng:             loc.lng  ?? null,
+      _fromCollection: loc._fromCollection || '',
+      routeNote:       '',
+      overnightNote:   '',
     };
     upd('stops', [...form.stops, stop]);
     setStopQuery('');
@@ -292,7 +305,11 @@ export default function CuratedRoutesTab({ showToast }) {
     setAddingManual(true);
     try {
       const newStop = await addManualStop(form.routeType, stopData);
-      upd('stops', [...form.stops, { ...newStop, _note: '' }]);
+      upd('stops', [...form.stops, {
+        sourceId: newStop.id, name: newStop.name || '', city: newStop.city || '',
+        state: newStop.state || '', lat: newStop.lat ?? null, lng: newStop.lng ?? null,
+        _fromCollection: newStop._fromCollection || '', routeNote: '', overnightNote: '',
+      }]);
       setShowManualStop(false);
       showToast('Stop added to database and route');
     } catch {
@@ -333,9 +350,21 @@ export default function CuratedRoutesTab({ showToast }) {
   // ── Edit existing route ──────────────────────────────────────────────────────
   const handleEdit = (route) => {
     const { id, createdAt, updatedAt, ...rest } = route;
+    // Normalize stops: old shape had `id`+`_note`, new shape has `sourceId`+`routeNote`+`overnightNote`
+    const normalizedStops = (rest.stops || []).map(s => ({
+      sourceId:        s.sourceId || s.id || '',
+      name:            s.name || '',
+      city:            s.city || '',
+      state:           s.state || '',
+      lat:             s.lat ?? null,
+      lng:             s.lng ?? null,
+      _fromCollection: s._fromCollection || '',
+      routeNote:       s.routeNote || s._note || '',
+      overnightNote:   s.overnightNote || '',
+    }));
     setForm({
       ...BLANK_FORM, ...rest,
-      stops:       rest.stops || [],
+      stops:       normalizedStops,
       readingList: normalizeReadingList(rest.readingList),
     });
     setEditingId(id);
@@ -352,13 +381,14 @@ export default function CuratedRoutesTab({ showToast }) {
     }
     setSaving(true);
     try {
-      // Strip internal props before saving
-      const cleanStops = form.stops.map(({ _fromCollection, ...s }) => s);
+      // Strip internal _fromCollection prop; rest (sourceId, routeNote, overnightNote…) saves as-is
+      const cleanStops = form.stops.map(({ _fromCollection, _note, ...s }) => s);
       await saveCuratedRoute({ ...form, stops: cleanStops }, editingId);
       showToast(editingId ? 'Route updated' : 'Route saved');
       handleReset();
       await reload();
-    } catch {
+    } catch (err) {
+      console.error('[CuratedRoutes] save failed:', err);
       showToast('Save failed', 'error');
     } finally { setSaving(false); }
   };
@@ -480,7 +510,7 @@ export default function CuratedRoutesTab({ showToast }) {
                 style={inputStyle}
                 value={stopQuery}
                 onChange={e => setStopQuery(e.target.value)}
-                placeholder={`Search ${cfg?.label || ''} locations…`}
+                placeholder={`Type a location name to search ${cfg?.label || 'locations'}…`}
               />
               {searchingStops && (
                 <span style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted }}>searching…</span>
@@ -502,6 +532,11 @@ export default function CuratedRoutesTab({ showToast }) {
                   ))}
                 </div>
               )}
+              {stopResults.length === 0 && stopQuery.trim().length >= 2 && !searchingStops && (
+                <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted, margin: '8px 0 0' }}>
+                  No results found — use the button below to add this stop manually.
+                </p>
+              )}
             </div>
           )}
 
@@ -510,14 +545,14 @@ export default function CuratedRoutesTab({ showToast }) {
             <div style={{ marginBottom: 12 }}>
               {form.stops.map((stop, i) => (
                 <StopItem
-                  key={`${stop.id}_${i}`}
+                  key={`${stop.sourceId}_${i}`}
                   stop={stop}
                   index={i}
                   total={form.stops.length}
                   onRemove={i => upd('stops', form.stops.filter((_, idx) => idx !== i))}
-                  onNoteChange={(i, note) => {
+                  onFieldChange={(i, field, val) => {
                     const stops = [...form.stops];
-                    stops[i] = { ...stops[i], _note: note };
+                    stops[i] = { ...stops[i], [field]: val };
                     upd('stops', stops);
                   }}
                   onMoveUp={i => moveStop(i, -1)}

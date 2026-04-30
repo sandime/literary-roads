@@ -29,19 +29,29 @@ export const ROUTE_TYPE_OPTIONS = Object.entries(ROUTE_TYPE_CONFIG).map(([k, v])
 // Uses Firestore prefix query (orderBy name, startAt/endAt).
 // Falls back to getDocs+filter if the index isn't set up.
 async function searchSingleCollection(colName, q, lim = 10) {
+  // Run prefix queries for multiple case variants simultaneously (Wikidata names are title-cased,
+  // but users type lowercase). Dedup by id and return up to lim results.
+  const titleCase = q.charAt(0).toUpperCase() + q.slice(1).toLowerCase();
+  const variants  = [...new Set([q, titleCase, q.toLowerCase()])];
   try {
-    const snap = await getDocs(
-      query(
-        collection(db, colName),
-        orderBy('name'),
-        startAt(q),
-        endAt(q + '\uf8ff'),
-        firestoreLimit(lim),
+    const resultSets = await Promise.all(
+      variants.map(v =>
+        getDocs(query(
+          collection(db, colName),
+          orderBy('name'),
+          startAt(v),
+          endAt(v + '\uf8ff'),
+          firestoreLimit(lim),
+        )).then(snap => snap.docs.map(d => ({ id: d.id, ...d.data(), _fromCollection: colName })))
       )
     );
-    return snap.docs.map(d => ({ id: d.id, ...d.data(), _fromCollection: colName }));
+    const seenIds = new Set();
+    return resultSets.flat().filter(d => {
+      if (seenIds.has(d.id)) return false;
+      seenIds.add(d.id); return true;
+    }).slice(0, lim);
   } catch {
-    // Index not available — fall back to full scan + filter (admin use only, ok cost-wise)
+    // Index not available — fall back to full scan + case-insensitive filter (admin only, ok cost)
     try {
       const snap = await getDocs(collection(db, colName));
       return snap.docs
