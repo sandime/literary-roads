@@ -12,13 +12,14 @@ const COL = 'curatedRoutes';
 // unavailable = collection doesn't exist yet — show friendly message
 export const ROUTE_TYPE_CONFIG = {
   ghostTown:        { label: 'Ghost Town Tour',         collection: 'ghostTowns',        available: true  },
-  ufo:              { label: 'UFO & Paranormal Tour',    collection: 'ufoLocations',       available: false },
-  nationalPark:     { label: 'National Park Route',      collection: 'nationalParks',      available: true  },
-  lighthouse:       { label: 'Lighthouse Tour',          collection: 'lighthouses',        available: false },
-  coffeeShop:       { label: 'Coffee Shop Crawl',        collection: 'coffeeShops',        available: true  },
-  bookstore:        { label: 'Bookstore Crawl',          collection: 'bookstores',         available: true  },
-  literaryLandmark: { label: 'Literary Landmarks Tour',  collection: 'literary_landmarks', available: true  },
-  authorCountry:    { label: 'Author Country Route',     collection: ['literary_landmarks', 'bookstores'], available: true },
+  ufo:              { label: 'UFO & Paranormal Tour',    collection: 'ufoLocations',      available: true  },
+  nationalPark:     { label: 'National Park Route',      collection: 'nationalParks',     available: true  },
+  lighthouse:       { label: 'Lighthouse Tour',          collection: 'lighthouses',       available: true  },
+  coffeeShop:       { label: 'Coffee Shop Crawl',        collection: 'coffeeShops',       available: true  },
+  bookstore:        { label: 'Bookstore Crawl',          collection: 'bookstores',        available: true  },
+  literaryLandmark: { label: 'Literary Landmarks Tour',  collection: 'literary_landmarks',available: true  },
+  authorCountry:    { label: 'Author Country Route',     collection: 'authorLocations',   available: true  },
+  roadTrip:         { label: 'Road Trip',                collection: ['coffeeShops', 'bookstores', 'literary_landmarks', 'historicSites', 'ghostTowns'], available: true },
 };
 
 export const ROUTE_TYPE_OPTIONS = Object.entries(ROUTE_TYPE_CONFIG).map(([k, v]) => ({
@@ -70,11 +71,11 @@ export async function searchStopsCollection(routeType, q) {
   if (!q || q.trim().length < 2) return [];
 
   if (Array.isArray(cfg.collection)) {
-    // Author Country Route — search both collections in parallel
-    const [a, b] = await Promise.all(
-      cfg.collection.map(c => searchSingleCollection(c, q, 6))
+    const perCol = Math.ceil(10 / cfg.collection.length);
+    const results = await Promise.all(
+      cfg.collection.map(c => searchSingleCollection(c, q, perCol))
     );
-    return [...a, ...b].slice(0, 10);
+    return results.flat().slice(0, 10);
   }
   return searchSingleCollection(cfg.collection, q, 10);
 }
@@ -105,7 +106,8 @@ export async function fetchAllCuratedRoutes() {
 
 export async function saveCuratedRoute(data, existingId = null) {
   if (existingId) {
-    await setDoc(doc(db, COL, existingId), { ...data, updatedAt: serverTimestamp() });
+    // merge: true preserves fields not in data (e.g. createdAt) so orderBy('createdAt') still works
+    await setDoc(doc(db, COL, existingId), { ...data, updatedAt: serverTimestamp() }, { merge: true });
     return existingId;
   } else {
     const ref = await addDoc(collection(db, COL), {

@@ -1882,8 +1882,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const handleLoadRoute = (savedRoute) => {
     const type = savedRoute.routeType || 'literary';
 
-    // Day/festival trips → itinerary list only, no map
-    if (type === 'dayTrip' || type === 'festivalTrip') {
+    // Day/festival trips and curated routes (ghost towns, lighthouses, etc.) → itinerary list, no map
+    // Curated routes have no routeCoordinates polyline, so they can't load onto the map.
+    const isCurated = !!savedRoute.curatedRouteRef;
+    if (type === 'dayTrip' || type === 'festivalTrip' || isCurated) {
       // Normalize stops that only have coords:[lat,lng] so NAVIGATE button works
       const normalizedStops = (savedRoute.stops || []).map(s =>
         s.lat == null && s.coords?.length ? { ...s, lat: s.coords[0], lng: s.coords[1] } : s
@@ -4105,7 +4107,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   : ''}
                 {(itineraryRoute.stops || []).length} stop{(itineraryRoute.stops || []).length !== 1 ? 's' : ''}
                 {' · '}
-                <span className="text-atomic-orange">{itineraryRoute.routeType === 'festivalTrip' ? 'Festival Trip' : 'Day Trip'}</span>
+                <span className="text-atomic-orange">{
+                  itineraryRoute.routeType === 'festivalTrip' ? 'Festival Trip' :
+                  itineraryRoute.routeType === 'dayTrip' ? 'Day Trip' :
+                  itineraryRoute.curatedRouteRef ? 'Curated Route' : 'Day Trip'
+                }</span>
               </p>
             </div>
           </div>

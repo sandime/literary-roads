@@ -396,6 +396,7 @@ export default function PosterIllustration({ type, style = {} }) {
   let Component;
   switch (type) {
     case 'route66':           Component = Route66Illustration;          break;
+    case 'roadTrip':          Component = Route66Illustration;          break;
     case 'ghostTown':         Component = GhostTownIllustration;        break;
     case 'lighthouse':        Component = LighthouseIllustration;       break;
     case 'ufo':               Component = UfoIllustration;              break;

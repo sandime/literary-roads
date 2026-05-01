@@ -185,12 +185,21 @@ function StopItem({ stop, index, total, onRemove, onFieldChange, onMoveUp, onMov
               placeholder="Nearby camping, lodging, or overnight options…"
             />
           </div>
-          <div>
+          <div style={{ marginBottom: 8 }}>
             <label style={labelStyle}>LEARN MORE URL <span style={{ color: C.muted }}>(optional)</span></label>
             <input
               style={{ ...inputStyle, fontSize: 11 }}
               value={stop.stopLink || ''}
               onChange={e => onFieldChange(index, 'stopLink', e.target.value)}
+              placeholder="https://…"
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>STOP PHOTO URL <span style={{ color: C.muted }}>(optional)</span></label>
+            <input
+              style={{ ...inputStyle, fontSize: 11 }}
+              value={stop.stopImageUrl || ''}
+              onChange={e => onFieldChange(index, 'stopImageUrl', e.target.value)}
               placeholder="https://…"
             />
           </div>
@@ -379,6 +388,7 @@ export default function CuratedRoutesTab({ showToast }) {
       routeNote:       s.routeNote || s._note || '',
       overnightNote:   s.overnightNote || '',
       stopLink:        s.stopLink || '',
+      stopImageUrl:    s.stopImageUrl || '',
     }));
     setForm({
       ...BLANK_FORM, ...rest,
@@ -671,6 +681,20 @@ export default function CuratedRoutesTab({ showToast }) {
                   <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={leg.legDescription || ''} onChange={e => {
                     const legs = [...form.legs]; legs[i] = { ...legs[i], legDescription: e.target.value }; upd('legs', legs);
                   }} placeholder="What makes this segment special…" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 8 }}>
+                  <div>
+                    <label style={labelStyle}>LEARN MORE LINK <span style={{ color: C.muted }}>(optional)</span></label>
+                    <input style={{ ...inputStyle, fontSize: 11 }} value={leg.legLink || ''} onChange={e => {
+                      const legs = [...form.legs]; legs[i] = { ...legs[i], legLink: e.target.value }; upd('legs', legs);
+                    }} placeholder="https://…" />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>LEG PHOTO URL <span style={{ color: C.muted }}>(optional)</span></label>
+                    <input style={{ ...inputStyle, fontSize: 11 }} value={leg.legImageUrl || ''} onChange={e => {
+                      const legs = [...form.legs]; legs[i] = { ...legs[i], legImageUrl: e.target.value }; upd('legs', legs);
+                    }} placeholder="https://…" />
+                  </div>
                 </div>
                 <div style={{ marginTop: 8 }}>
                   <label style={labelStyle}>ASSIGN LEG NUMBER TO STOPS</label>

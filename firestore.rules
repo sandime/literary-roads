@@ -76,6 +76,18 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isAdmin();
     }
+    match /lighthouses/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /ufoLocations/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /authorLocations/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
     // ── User data (private per user) ──────────────────────────────────────────
     match /users/{userId} {
