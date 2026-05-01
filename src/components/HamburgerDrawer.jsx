@@ -32,7 +32,7 @@ const HamburgerDrawer = ({
   tripItems = [],
   earnedBadgeCount = 0,
   // GUIDED JOURNEYS
-  onDayTrip, onFestivalTrip,
+  onDayTrip, onFestivalTrip, onJourneys,
   // AFTERWORD
   onAbout, onEthics, onPrivacy, onCredits,
   // CURRENT ROUTE (MasterMap only)
@@ -174,6 +174,20 @@ const HamburgerDrawer = ({
                 <div>
                   <p className="font-bungee text-[13px]">FESTIVAL TRIPS</p>
                   <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Plan a trip around a festival</p>
+                </div>
+              </button>
+            )}
+            {onJourneys && (
+              <button
+                onClick={close(onJourneys)}
+                className="w-full flex items-center gap-4 px-5 py-3 text-left font-bungee text-[13px] text-paper-white hover:bg-starlight-turquoise/10 hover:text-starlight-turquoise transition-colors"
+              >
+                <svg className="w-5 h-5 flex-shrink-0 text-starlight-turquoise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <div>
+                  <p className="font-bungee text-[13px]">CURATED ROUTES</p>
+                  <p className="text-chrome-silver/50 font-special-elite text-[11px] normal-case font-normal">Literary road trips by theme</p>
                 </div>
               </button>
             )}

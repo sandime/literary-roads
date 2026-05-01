@@ -1275,7 +1275,7 @@ const PlaceSearch = ({ onSelect, mapCenter }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   // Initialize from saved ref so route survives navigating away and back
@@ -2688,11 +2688,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </button>
                   <button
                     onClick={() => { setShowJourneysMenu(false); onShowFestivalTrip?.(); }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors border-b border-starlight-turquoise/20"
                   >
                     <div>
                       <p className="text-paper-white font-bungee text-xs">FESTIVAL TRIPS</p>
                       <p className="text-chrome-silver/60 font-special-elite text-[10px]">Plan around a festival</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => { setShowJourneysMenu(false); onShowJourneys?.(); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-starlight-turquoise/10 transition-colors"
+                  >
+                    <div>
+                      <p className="text-paper-white font-bungee text-xs">CURATED ROUTES</p>
+                      <p className="text-chrome-silver/60 font-special-elite text-[10px]">Literary road trips by theme</p>
                     </div>
                   </button>
                 </div>
@@ -2906,6 +2915,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             earnedBadgeCount={earnedBadgeData.length}
             onDayTrip={onShowDayTrip}
             onFestivalTrip={onShowFestivalTrip}
+            onJourneys={onShowJourneys}
             onAbout={onShowAbout}
             onEthics={onShowEthics}
             onPrivacy={onShowPrivacy}

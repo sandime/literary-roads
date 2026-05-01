@@ -72,6 +72,14 @@ function normalizeReadingList(rl) {
 const BLANK_FORM = {
   routeType: '', name: '', state: '', region: '', description: '',
   duration: '', bestSeason: [], active: false,
+  // Journeys page fields
+  featured: false,
+  posterImageUrl: '',
+  reversible: false,
+  forwardStartLabel: '',
+  reverseStartLabel: '',
+  reverseDescription: '',
+  legs: [],
   stops: [],
   readingList: BLANK_READING_LIST.map(b => ({ ...b })),
   inspiration: '',
@@ -168,13 +176,22 @@ function StopItem({ stop, index, total, onRemove, onFieldChange, onMoveUp, onMov
               placeholder="Your editorial description of this stop in the context of this route…"
             />
           </div>
-          <div>
+          <div style={{ marginBottom: 8 }}>
             <label style={labelStyle}>OVERNIGHT SUGGESTION</label>
             <input
               style={{ ...inputStyle, fontSize: 11 }}
               value={stop.overnightNote || ''}
               onChange={e => onFieldChange(index, 'overnightNote', e.target.value)}
               placeholder="Nearby camping, lodging, or overnight options…"
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>LEARN MORE URL <span style={{ color: C.muted }}>(optional)</span></label>
+            <input
+              style={{ ...inputStyle, fontSize: 11 }}
+              value={stop.stopLink || ''}
+              onChange={e => onFieldChange(index, 'stopLink', e.target.value)}
+              placeholder="https://…"
             />
           </div>
         </div>
@@ -361,6 +378,7 @@ export default function CuratedRoutesTab({ showToast }) {
       _fromCollection: s._fromCollection || '',
       routeNote:       s.routeNote || s._note || '',
       overnightNote:   s.overnightNote || '',
+      stopLink:        s.stopLink || '',
     }));
     setForm({
       ...BLANK_FORM, ...rest,
@@ -469,6 +487,45 @@ export default function CuratedRoutesTab({ showToast }) {
               <Toggle value={form.active} onChange={v => upd('active', v)} label={form.active ? 'ACTIVE' : 'INACTIVE'} />
             </div>
           </div>
+          <div>
+            <label style={labelStyle}>FEATURE ON JOURNEYS PAGE</label>
+            <div style={{ paddingTop: 8 }}>
+              <Toggle value={form.featured} onChange={v => upd('featured', v)} label={form.featured ? 'FEATURED' : 'NOT FEATURED'} />
+            </div>
+          </div>
+        </div>
+
+        {/* Poster image URL */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>POSTER IMAGE URL <span style={{ color: C.muted }}>(optional — replaces auto illustration)</span></label>
+          <input style={inputStyle} value={form.posterImageUrl} onChange={e => upd('posterImageUrl', e.target.value)} placeholder="https://firebasestorage.googleapis.com/…" />
+          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted, marginTop: 3 }}>
+            Upload to Firebase Storage under journey-posters/&#123;routeId&#125; and paste the download URL here.
+          </div>
+        </div>
+
+        {/* Reversible route */}
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>REVERSIBLE ROUTE</label>
+          <div style={{ paddingTop: 4, marginBottom: form.reversible ? 12 : 0 }}>
+            <Toggle value={form.reversible} onChange={v => upd('reversible', v)} label={form.reversible ? 'REVERSIBLE' : 'ONE DIRECTION'} />
+          </div>
+          {form.reversible && (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+              <div>
+                <label style={labelStyle}>FORWARD START LABEL</label>
+                <input style={inputStyle} value={form.forwardStartLabel} onChange={e => upd('forwardStartLabel', e.target.value)} placeholder="e.g. Heading North" />
+              </div>
+              <div>
+                <label style={labelStyle}>REVERSE START LABEL</label>
+                <input style={inputStyle} value={form.reverseStartLabel} onChange={e => upd('reverseStartLabel', e.target.value)} placeholder="e.g. Heading South" />
+              </div>
+              <div style={{ gridColumn: '1/-1' }}>
+                <label style={labelStyle}>REVERSE DESCRIPTION <span style={{ color: C.muted }}>(optional, shown when reversed)</span></label>
+                <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={3} value={form.reverseDescription} onChange={e => upd('reverseDescription', e.target.value)} placeholder="Alternate description for the reverse direction…" />
+              </div>
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: 16 }}>
@@ -572,6 +629,62 @@ export default function CuratedRoutesTab({ showToast }) {
           )}
           {showManualStop && (
             <ManualStopForm onAdd={handleManualStop} onCancel={() => setShowManualStop(false)} saving={addingManual} />
+          )}
+        </div>
+
+        {/* ── Legs (multi-leg routes) ── */}
+        <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, marginBottom: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <h4 style={{ ...sectionHead, margin: 0 }}>LEGS <span style={{ color: C.muted, fontFamily: 'Special Elite, serif', fontSize: 10, letterSpacing: 0 }}>(optional — group stops into named segments)</span></h4>
+            <button type="button"
+              onClick={() => upd('legs', [...(form.legs || []), { legNumber: (form.legs || []).length + 1, legName: '', legDescription: '' }])}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '6px 12px', borderRadius: 6, border: `1px dashed ${C.teal}`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.05em' }}>
+              + ADD LEG
+            </button>
+          </div>
+          {(form.legs || []).length === 0 ? (
+            <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted }}>No legs — all stops shown as a single route. Use legs to group stops by day, region, or theme.</p>
+          ) : (
+            (form.legs || []).map((leg, i) => (
+              <div key={i} style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.05em' }}>LEG {leg.legNumber}</span>
+                  <button onClick={() => upd('legs', form.legs.filter((_, idx) => idx !== i))}
+                    style={{ background: 'none', border: 'none', color: C.muted, cursor: 'pointer', fontSize: 16, lineHeight: 1 }}>×</button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 10, marginBottom: 8 }}>
+                  <div>
+                    <label style={labelStyle}>LEG NUMBER</label>
+                    <input style={inputStyle} type="number" min="1" value={leg.legNumber} onChange={e => {
+                      const legs = [...form.legs]; legs[i] = { ...legs[i], legNumber: parseInt(e.target.value) || i + 1 }; upd('legs', legs);
+                    }} />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>LEG NAME</label>
+                    <input style={inputStyle} value={leg.legName} onChange={e => {
+                      const legs = [...form.legs]; legs[i] = { ...legs[i], legName: e.target.value }; upd('legs', legs);
+                    }} placeholder="e.g. The Arizona Stretch" />
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>LEG DESCRIPTION <span style={{ color: C.muted }}>(optional)</span></label>
+                  <textarea style={{ ...inputStyle, resize: 'vertical' }} rows={2} value={leg.legDescription || ''} onChange={e => {
+                    const legs = [...form.legs]; legs[i] = { ...legs[i], legDescription: e.target.value }; upd('legs', legs);
+                  }} placeholder="What makes this segment special…" />
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <label style={labelStyle}>ASSIGN LEG NUMBER TO STOPS</label>
+                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted }}>
+                    Set each stop's leg by editing the stop's leg field, or add <code style={{ color: C.teal }}>legNumber: {leg.legNumber}</code> to stop data.
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+          {(form.legs || []).length > 0 && (
+            <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted, marginTop: 8 }}>
+              Stops without a leg number assigned will appear in the "All legs" view only.
+            </div>
           )}
         </div>
 
@@ -774,7 +887,7 @@ export default function CuratedRoutesTab({ showToast }) {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: `1px solid ${C.border}` }}>
-                  {['NAME','TYPE','STATE','STOPS','DURATION','ACTIVE','',''].map(h => (
+                  {['NAME','TYPE','STATE','STOPS','DURATION','ACTIVE','FEATURED','',''].map(h => (
                     <th key={h} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal, letterSpacing: '0.06em', padding: '8px 10px', textAlign: 'left' }}>{h}</th>
                   ))}
                 </tr>
@@ -795,6 +908,13 @@ export default function CuratedRoutesTab({ showToast }) {
                       <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '3px 8px', borderRadius: 10, background: route.active ? 'rgba(64,224,208,0.15)' : 'rgba(192,192,192,0.1)', color: route.active ? C.teal : C.muted, letterSpacing: '0.05em' }}>
                         {route.active ? 'ACTIVE' : 'OFF'}
                       </span>
+                    </td>
+                    <td style={{ padding: '10px 10px' }}>
+                      {route.featured && (
+                        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '3px 8px', borderRadius: 10, background: 'rgba(255,78,0,0.15)', color: C.orange, letterSpacing: '0.05em' }}>
+                          FEATURED
+                        </span>
+                      )}
                     </td>
                     <td style={{ padding: '10px 6px' }}>
                       <button onClick={() => handleEdit(route)}

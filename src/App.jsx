@@ -28,6 +28,7 @@ import GazetteIssue from './screens/GazetteIssue';
 import GazetteNewspaper from './screens/GazetteNewspaper';
 import Store from './screens/Store';
 import AuthorPage from './screens/AuthorPage';
+import JourneysPage from './screens/JourneysPage';
 import './App.css';
 
 function AppInner() {
@@ -39,7 +40,7 @@ function AppInner() {
     const s = p.get('screen');
     if (s === 'library') return 'library';
     return (p.get('back') || p.get('landmark')) ? 'map' : 'loading';
-  }); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy'
+  }); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy' | 'journeys'
   const [selectedStates, setSelectedStates] = useState([]);
   const [previousScreen, setPreviousScreen] = useState(null);
   // Tracks where Profile was opened from — never clobbered by sub-navigation
@@ -160,6 +161,26 @@ function AppInner() {
     setScreen('festivalTrip');
   };
 
+  const handleShowJourneys = () => {
+    setPreviousScreen(screen);
+    setScreen('journeys');
+  };
+
+  const handleLoadCuratedRoute = ({ route, stops, direction }) => {
+    setSelectedStates([]);
+    setPreviousScreen(screen);
+    const validStops = stops.filter(s => s.lat != null && s.lng != null);
+    routeStateRef.current = {
+      startCity: stops[0]?.name || '',
+      endCity:   stops[stops.length - 1]?.name || '',
+      route:     [],
+      visibleLocations: validStops,
+      showPlanner: false,
+      curatedRouteBanner: { name: route.name, routeId: route.id },
+    };
+    setScreen('map');
+  };
+
   const handleShowBadges = () => {
     setPreviousScreen(screen);
     setScreen('badges');
@@ -243,6 +264,7 @@ function AppInner() {
           onShowCredits={handleShowCredits}
           onShowDayTrip={handleShowDayTrip}
           onShowFestivalTrip={handleShowFestivalTrip}
+          onShowJourneys={handleShowJourneys}
           onShowBadges={handleShowBadges}
           onShowPrivacy={handleShowPrivacy}
           routeStateRef={routeStateRef}
@@ -305,6 +327,15 @@ function AppInner() {
       )}
       {screen === 'privacy' && (
         <PrivacyPolicy onBack={handleAuthBack} />
+      )}
+      {screen === 'journeys' && (
+        <JourneysPage
+          onBack={handleAuthBack}
+          onShowDayTrip={handleShowDayTrip}
+          onShowFestivalTrip={handleShowFestivalTrip}
+          onLoadCuratedRoute={handleLoadCuratedRoute}
+          onShowLogin={handleShowLogin}
+        />
       )}
 
       {/* First-visit welcome modal — shown once after odometer, dismissed to map */}
