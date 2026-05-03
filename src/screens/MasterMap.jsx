@@ -36,7 +36,7 @@ import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
 import AudioNarrative from '../components/AudioNarrative';
 import NavigateModal from '../components/NavigateModal';
-import { AUTHOR_TIDBITS } from '../data/authorTidbits';
+import { AUTHOR_TIDBITS, pickAuthorForState } from '../data/authorTidbits';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
@@ -871,7 +871,8 @@ const UiModeController = ({ uiMode }) => {
 // Auto-dismisses after 4.5s; hovering the card pauses the timer.
 const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
   const map                     = useMap();
-  const author                  = AUTHOR_TIDBITS[stateName];
+  // Pick one author from the array once on mount; session deduplication handled inside pickAuthorForState
+  const [author]                = useState(() => pickAuthorForState(stateName));
   const [dismissed, setDismiss] = useState(false);
   const [hovered,   setHovered] = useState(false);
   const [color]                 = useState(() => Math.random() < 0.5 ? '#FF4E00' : '#40E0D0');
@@ -927,7 +928,7 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
         onMouseLeave={() => { setHovered(false); startTimer(); }}
         onClick={() => {
           triggerDismiss();
-          window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(stateName)}`, '_blank', 'noopener noreferrer');
+          window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(stateName)}&author=${encodeURIComponent(author.name)}`, '_blank', 'noopener noreferrer');
         }}
       >
         {/* Container — extra height for depth shadow offset */}

@@ -41,7 +41,11 @@ export default function AuthorPage() {
   const navigate          = useNavigate();
   const { user }          = useAuth();
   const stateName         = searchParams.get('state') || '';
-  const author            = AUTHOR_TIDBITS[stateName] || null;
+  const authorName        = searchParams.get('author') || '';
+  const authorList        = AUTHOR_TIDBITS[stateName] || [];
+  const author            = authorName
+    ? (authorList.find(a => a.name === authorName) || authorList[0] || null)
+    : (authorList[0] || null);
   const discoveredAuthors = useDiscoveredAuthors(user?.uid);
 
   const [works,      setWorks]      = useState([]);
@@ -52,23 +56,22 @@ export default function AuthorPage() {
 
   // Check if already saved
   useEffect(() => {
-    if (discoveredAuthors.some(a => a.state === stateName)) setSaved(true);
-  }, [discoveredAuthors, stateName]);
+    if (author && discoveredAuthors.some(a => a.state === stateName && a.name === author.name)) setSaved(true);
+  }, [discoveredAuthors, stateName, author]);
 
-  // Fetch notable works from Open Library
+  // Fetch Open Library data in the background — used only for cover URL lookup when adding to Read Next.
+  // Not displayed directly; author.books is the authoritative display list.
   useEffect(() => {
     if (!author) return;
-    fetch(`https://openlibrary.org/search.json?author=${encodeURIComponent(author.name)}&limit=8&fields=title,cover_i,key,first_publish_year,author_name`)
+    fetch(`https://openlibrary.org/search.json?author=${encodeURIComponent(author.name)}&limit=12&fields=title,cover_i,key`)
       .then(r => r.json())
       .then(data => {
         const results = (data.docs || [])
           .filter(b => b.cover_i)
-          .slice(0, 6)
           .map(b => ({
-            key:       b.key,
-            title:     b.title,
-            year:      b.first_publish_year,
-            coverUrl:  `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`,
+            key:      b.key,
+            title:    b.title,
+            coverUrl: `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`,
           }));
         setWorks(results);
       })
@@ -101,7 +104,7 @@ export default function AuthorPage() {
         name:              author.name,
         state:             stateName,
         hookLine:          author.tidbit,
-        expandedNarrative: author.tidbit,
+        expandedNarrative: author.expandedNarrative || author.tidbit,
         wikipediaUrl:      author.url,
       });
       setSaved(true);
@@ -191,7 +194,7 @@ export default function AuthorPage() {
         {/* The Story */}
         <section style={styles.section}>
           <h2 style={styles.sectionHeading}>The Story</h2>
-          <p style={styles.narrative}>{author.tidbit}</p>
+          <p style={styles.narrative}>{author.expandedNarrative || author.tidbit}</p>
           <p style={styles.wikiLink}>
             <a href={author.url} target="_blank" rel="noopener noreferrer" style={styles.link}>
               Read full biography on Wikipedia
@@ -199,32 +202,39 @@ export default function AuthorPage() {
           </p>
         </section>
 
-        {/* Notable Works */}
-        {works.length > 0 && (
+        {/* Notable Works — driven by author.books (authoritative curated list).
+             Open Library results (works) used only for cover URL lookup when adding to Read Next. */}
+        {author.books && author.books.length > 0 && (
           <section style={styles.section}>
             <h2 style={styles.sectionHeading}>Notable Works</h2>
-            <div style={styles.worksGrid}>
-              {works.map(work => {
-                const bookId = work.key?.replace(/\//g, '_') || work.title.replace(/\s/g, '_');
-                const added  = readNextAdded.has(bookId);
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {author.books.map((title, i) => {
+                // Look up cover URL from background Open Library fetch — matched by title (case-insensitive)
+                const olMatch = works.find(w => w.title.toLowerCase() === title.toLowerCase());
+                const bookId  = olMatch?.key?.replace(/\//g, '_') || title.replace(/\s+/g, '_');
+                const added   = readNextAdded.has(bookId);
+                const work    = { title, coverUrl: olMatch?.coverUrl || null, key: olMatch?.key || null };
                 return (
-                  <div key={work.key || work.title} style={styles.workCard}>
-                    <div style={styles.coverWrap}>
-                      <img
-                        src={work.coverUrl}
-                        alt={work.title}
-                        style={styles.cover}
-                        onLoad={onCoverLoad}
-                        onError={onCoverError}
-                      />
-                    </div>
-                    <p style={styles.workTitle}>{work.title}</p>
-                    {work.year && <p style={styles.workYear}>{work.year}</p>}
+                  <div key={i} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    gap: 12, padding: '8px 12px',
+                    background: C.cardBg,
+                    border: `1px solid ${C.divider}`,
+                    borderLeft: `3px solid ${C.coral}`,
+                    borderRadius: 4,
+                  }}>
+                    <p style={{
+                      fontFamily: 'Special Elite, serif', fontSize: 14,
+                      color: C.darkBrown, fontStyle: 'italic',
+                      margin: 0, flex: 1,
+                    }}>
+                      {title}
+                    </p>
                     {user && (
                       <button
                         onClick={() => handleAddReadNext(work)}
                         disabled={added}
-                        style={{ ...styles.readNextBtn, opacity: added ? 0.55 : 1, cursor: added ? 'default' : 'pointer' }}
+                        style={{ ...styles.readNextBtn, flexShrink: 0, opacity: added ? 0.55 : 1, cursor: added ? 'default' : 'pointer' }}
                       >
                         {added ? 'Added' : '+ Read next'}
                       </button>

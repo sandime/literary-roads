@@ -21,17 +21,20 @@ export function subscribeToDiscoveredAuthors(uid, callback) {
   });
 }
 
-export async function isAuthorDiscovered(uid, state) {
+export async function isAuthorDiscovered(uid, state, name) {
   const ref = collection(db, 'users', uid, 'discoveredAuthors');
-  const q   = query(ref, where('state', '==', state));
+  // With multi-author states, check by name+state if name provided; fall back to state-only
+  const q = name
+    ? query(ref, where('state', '==', state), where('name', '==', name))
+    : query(ref, where('state', '==', state));
   const snap = await getDocs(q);
   return !snap.empty;
 }
 
 export async function addDiscoveredAuthor(uid, { name, state, hookLine, expandedNarrative, wikipediaUrl }) {
-  // Prevent duplicates
+  // Prevent duplicates — check by state + name so multiple authors from the same state can each be saved
   const ref  = collection(db, 'users', uid, 'discoveredAuthors');
-  const q    = query(ref, where('state', '==', state));
+  const q    = query(ref, where('state', '==', state), where('name', '==', name));
   const snap = await getDocs(q);
   if (!snap.empty) return snap.docs[0].id; // already saved
 
