@@ -164,6 +164,7 @@ const STATE_CENTERS = {
   'Wisconsin':            [44.268543,  -89.616508, 7],
   'Wyoming':              [42.755966, -107.302490, 7],
   'District of Columbia': [38.9072,    -77.0369,  13],
+  'Puerto Rico':          [18.2208,    -66.5901,   9],
 };
 
 
@@ -1003,6 +1004,22 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
   );
 };
 
+// Fires a tidbit for a named state/territory on the next moveend event.
+// Used by Explore DC / Explore PR buttons to show the author card after flyTo settles.
+const MoveEndTidbitTrigger = ({ stateName, onFire }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!stateName) return;
+    const handler = () => {
+      map.off('moveend', handler);
+      onFire(stateName);
+    };
+    map.on('moveend', handler);
+    return () => { map.off('moveend', handler); };
+  }, [stateName, map, onFire]);
+  return null;
+};
+
 // ── Category badge colors ──────────────────────────────────────────────────
 const SEARCH_BADGE = {
   bookstore:  { label: 'Bookstore',  bg: '#FF4E00', text: '#1A1B2E' },
@@ -1361,6 +1378,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const infoMenuRef = useRef(null);
   const journeysMenuRef = useRef(null);
   const [dcPillPos, setDcPillPos] = useState(null); // null = default CSS position
+  const [prPillPos, setPrPillPos] = useState(null); // null = default CSS position
+  const [pendingExploreTidbit, setPendingExploreTidbit] = useState(null); // triggers moveend tidbit
   const [nearMePos, setNearMePos] = useState(null); // null = default header position
   const [listeningMode, setListeningMode] = useState(false);
   const [announcement, setAnnouncement] = useState('');
@@ -2124,6 +2143,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setRoute([]);
     setLoadedRoute(null);
     setCurrentRouteStops([]);
+    setPendingExploreTidbit('District of Columbia');
     setSearchTarget({ center: [DC_LAT, DC_LNG], zoom: 13 });
     setLoading(true);
     try {
@@ -2140,6 +2160,36 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setVisibleLocations(combined);
     } catch (err) {
       console.error('[handleExploreDC]', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Jump directly into Puerto Rico — same treatment as DC
+  const handleExplorePR = async () => {
+    const PR_LAT = 18.2208, PR_LNG = -66.5901;
+    setActiveStates(['Puerto Rico']);
+    setUiMode('explore');
+    setShowPlanner(false);
+    setRoute([]);
+    setLoadedRoute(null);
+    setCurrentRouteStops([]);
+    setPendingExploreTidbit('Puerto Rico');
+    setSearchTarget({ center: [PR_LAT, PR_LNG], zoom: 9 });
+    setLoading(true);
+    try {
+      const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+        searchNearbyPlaces(PR_LAT, PR_LNG, 50),
+        getLiteraryFestivalsNear(PR_LAT, PR_LNG, 50),
+        getDriveInsNear(PR_LAT, PR_LNG, 50),
+        getCuratedLandmarks([[PR_LAT, PR_LNG]], 50),
+      ]);
+      const seenIds = new Set();
+      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+        .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
+      setVisibleLocations(combined);
+    } catch (err) {
+      console.error('[handleExplorePR]', err);
     } finally {
       setLoading(false);
     }
@@ -3019,14 +3069,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <MapPositionTracker routeStateRef={routeStateRef} onMove={setMapCenter} />
           <UiModeController uiMode={uiMode} />
 
-          {/* Author tidbit trapezoid — shown after 600ms hover on a state, auto-dismisses */}
-          {uiMode === 'stateSelect' && tidbitState && (
+          {/* Author tidbit trapezoid — shown after 600ms hover or on Explore DC/PR click */}
+          {tidbitState && (
             <AuthorTidbitOverlay
               key={tidbitState}
               stateName={tidbitState}
               onDismiss={() => setTidbitState(null)}
             />
           )}
+
+          {/* Fires tidbit on moveend after Explore DC / Explore PR fly animation */}
+          <MoveEndTidbitTrigger
+            stateName={pendingExploreTidbit}
+            onFire={(name) => { setTidbitState(name); setPendingExploreTidbit(null); }}
+          />
 
           {/* State-selection GeoJSON — shown only in stateSelect mode */}
           {uiMode === 'stateSelect' && ssGeoJson && (
@@ -3306,6 +3362,54 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             }}
           >
             EXPLORE D.C.
+          </button>
+
+          {/* Puerto Rico button — draggable; off the main map */}
+          <button
+            onClick={handleExplorePR}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              const rect = e.currentTarget.getBoundingClientRect();
+              const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
+              let moved = false;
+              const onMove = (me) => { moved = true; setPrPillPos({ top: me.clientY - offY, left: me.clientX - offX }); };
+              const onUp = (ue) => {
+                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener('mouseup', onUp);
+                if (moved) ue.stopPropagation();
+              };
+              window.addEventListener('mousemove', onMove);
+              window.addEventListener('mouseup', onUp);
+            }}
+            onTouchStart={(e) => {
+              const touch = e.touches[0];
+              const rect = e.currentTarget.getBoundingClientRect();
+              const offX = touch.clientX - rect.left, offY = touch.clientY - rect.top;
+              let moved = false;
+              const onMove = (te) => { moved = true; te.preventDefault(); const t = te.touches[0]; setPrPillPos({ top: t.clientY - offY, left: t.clientX - offX }); };
+              const onEnd = () => {
+                window.removeEventListener('touchmove', onMove);
+                window.removeEventListener('touchend', onEnd);
+              };
+              window.addEventListener('touchmove', onMove, { passive: false });
+              window.addEventListener('touchend', onEnd);
+            }}
+            className="font-bungee"
+            style={{
+              position: 'fixed',
+              top:   prPillPos ? prPillPos.top  : '7rem',
+              left:  prPillPos ? prPillPos.left : undefined,
+              right: prPillPos ? undefined       : '1rem',
+              zIndex: 1002,
+              padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
+              border: '2px solid rgba(64,224,208,0.4)',
+              background: 'rgba(26,27,46,0.92)',
+              color: '#F5F5DC',
+              cursor: 'grab', backdropFilter: 'blur(4px)',
+              userSelect: 'none', touchAction: 'none',
+            }}
+          >
+            EXPLORE PR
           </button>
 
           {/* Hovered state label */}
@@ -3681,8 +3785,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
       )}
 
-      {/* Stops-only Info — festival / near-me / day-trip: stops exist but no route polyline */}
-      {route.length === 0 && visibleLocations.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
+      {/* Stops-only Info — festival / near-me / day-trip: stops exist but no route polyline.
+           Hidden for Explore DC / Explore PR (single-territory browse, not a navigation intent) */}
+      {route.length === 0 && visibleLocations.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 &&
+       !(activeStates.length === 1 && ['District of Columbia', 'Puerto Rico'].includes(activeStates[0])) && (
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
           <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg flex items-center gap-3">
             <button

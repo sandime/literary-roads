@@ -52,6 +52,7 @@ export const AUTHOR_TIDBITS = {
   'Wisconsin':            { name: 'Thornton Wilder',         url: 'https://en.wikipedia.org/wiki/Thornton_Wilder',            tidbit: 'Our Town is set in fictional New Hampshire — but Wilder grew up in Madison, WI.' },
   'Wyoming':              { name: 'Annie Proulx',            url: 'https://en.wikipedia.org/wiki/Annie_Proulx',               tidbit: 'Wyoming Stories (including Brokeback Mountain) was written after she moved to a ranch outside Centennial, WY.' },
   'District of Columbia': { name: 'Edward P. Jones',         url: 'https://en.wikipedia.org/wiki/Edward_P._Jones',            tidbit: 'The Known World and Lost in the City are intimate portraits of Washington D.C.\'s Black communities.' },
+  'Puerto Rico':          { name: 'Esmeralda Santiago',      url: 'https://en.wikipedia.org/wiki/Esmeralda_Santiago',         tidbit: 'Grew up eating mangoes in Puerto Rico — her opening line about them became one of the most celebrated sentences in American memoir.' },
 };
 
 // State geographic centers [lat, lng] — used by AuthorPage to filter nearby landmarks.
@@ -107,4 +108,5 @@ export const STATE_CENTERS = {
   'Wisconsin':            [44.268543,  -89.616508],
   'Wyoming':              [42.755966, -107.302490],
   'District of Columbia': [38.907200,  -77.036900],
+  'Puerto Rico':          [18.220800,  -66.590100],
 };
