@@ -3860,11 +3860,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             </button>
           )}
 
-          {/* Scrollable content */}
+          {/* Close + desktop minimize — direct child of shelf so absolute positioning
+               is always relative to the card, never affected by the scroll container */}
           {isExpanded && (
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full">
-            {/* Close + desktop minimize buttons */}
-            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1.5">
+            <div className="absolute top-3 right-3 md:top-5 md:right-5 flex items-center gap-1.5" style={{ zIndex: 10 }}>
               {/* Desktop minimize */}
               <button
                 className="hidden md:flex items-center justify-center w-7 h-7 rounded-full text-chrome-silver/60 hover:text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-colors"
@@ -3881,11 +3880,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 aria-label={`Close ${selectedLocation.name} details`}
                 className="text-starlight-turquoise hover:text-atomic-orange transition-colors"
               >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
+          )}
+
+          {/* Scrollable content */}
+          {isExpanded && (
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full">
 
             {/* Type badge + name — compact single block */}
             <div className="mb-1.5">
