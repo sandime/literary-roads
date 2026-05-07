@@ -140,8 +140,9 @@ export default function AuthorPage() {
   };
 
   const appBase = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-  const openMap = () => { window.location.href = appBase + '/?back=1'; };
-  const landmarkHref = (id) => `${appBase}/?landmark=${encodeURIComponent(id)}`;
+  // AuthorPage opens in a new tab — use browser back to return to the map
+  const openMap = () => window.history.back();
+  const landmarkHref = (id) => `${appBase}/#/?landmark=${encodeURIComponent(id)}`;
 
   if (!author) {
     return (
@@ -163,8 +164,8 @@ export default function AuthorPage() {
         </button>
         <span style={styles.navTitle}>Literary Roads / Library</span>
         <div style={styles.navLinks}>
-          <a href={`${appBase}/?screen=library`} style={styles.navLink}>Library</a>
-          <a href={`${appBase}/newspaper/current`} style={styles.navLink}>Gazette</a>
+          <a href={`${appBase}/#/library`} style={styles.navLink}>Library</a>
+          <a href={`${appBase}/#/newspaper/current`} style={styles.navLink}>Gazette</a>
         </div>
       </nav>
 

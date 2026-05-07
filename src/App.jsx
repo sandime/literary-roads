@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Routes, Route, useSearchParams } from 'react-router-dom';
+import { Routes, Route, useSearchParams, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 import SharedRoutePage from './screens/SharedRoutePage';
@@ -33,30 +33,23 @@ import './App.css';
 
 function AppInner() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
-  // Skip odometer when returning from an internal page (?back=1/?screen=X) or deep-linking to a landmark (?landmark=)
-  const [screen, setScreen] = useState(() => {
-    const p = new URLSearchParams(window.location.search);
-    const s = p.get('screen');
-    if (s === 'library') return 'library';
-    return (p.get('back') || p.get('landmark')) ? 'map' : 'loading';
-  }); // 'loading' | 'map' | 'login' | 'profile' | 'resources' | 'library' | 'ethics' | 'credits' | 'badges' | 'privacy' | 'journeys'
+
+  // Show odometer only on fresh load at '/' with no back/landmark signals
+  const [showOdometer, setShowOdometer] = useState(() => {
+    const hash = window.location.hash.slice(1) || '/';
+    const [hashPath, hashQuery] = hash.split('?');
+    const p = new URLSearchParams(hashQuery || '');
+    return hashPath === '/' && !p.get('back') && !p.get('landmark');
+  });
+
   const [selectedStates, setSelectedStates] = useState([]);
-  const [previousScreen, setPreviousScreen] = useState(null);
-  // Tracks where Profile was opened from — never clobbered by sub-navigation
-  const [profileOrigin, setProfileOrigin] = useState('map');
   const [showEthicsModal, setShowEthicsModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
 
-  // Check if logged-in user has accepted the Code of Ethics; show modal if not
-  useEffect(() => {
-    if (!user) { setShowEthicsModal(false); return; }
-    getDoc(doc(db, 'users', user.uid)).then(snap => {
-      if (!snap.exists() || !snap.data().acceptedEthics) setShowEthicsModal(true);
-    }).catch(() => {});
-  }, [user]);
-
-  // Persists route state across navigation so the map restores when returning
+  // Persists map/route state across navigation so the map restores when returning
   const routeStateRef = useRef({
     startCity: '',
     endCity: '',
@@ -65,22 +58,21 @@ function AppInner() {
     showPlanner: true,
   });
 
-  // Capture ?landmark=id on initial load so MasterMap can open it on mount
+  // Ethics modal — shown to logged-in users who haven't accepted yet
+  useEffect(() => {
+    if (!user) { setShowEthicsModal(false); return; }
+    getDoc(doc(db, 'users', user.uid)).then(snap => {
+      if (!snap.exists() || !snap.data().acceptedEthics) setShowEthicsModal(true);
+    }).catch(() => {});
+  }, [user]);
+
+  // Capture ?landmark=id on load so MasterMap can open it on mount
   useEffect(() => {
     const landmarkId = searchParams.get('landmark');
     if (landmarkId) routeStateRef.current.pendingLandmark = landmarkId;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleLoadingComplete = () => {
-    setScreen('map');
-    if (!hasBeenWelcomed()) setShowWelcomeModal(true);
-  };
-
-  const handleHome = () => {
-    // MasterMap handles its own state-selection mode internally;
-    // this is kept as a no-op safety valve (e.g., back from profile when screen was 'stateSelector')
-    setScreen('map');
-  };
+  // ── Navigation handlers ───────────────────────────────────────────────────
 
   const handleLoadSavedRoute = (savedRoute) => {
     const states = savedRoute.selectedStates?.length ? savedRoute.selectedStates : [];
@@ -91,18 +83,17 @@ function AppInner() {
       route: typeof savedRoute.routeCoordinates === 'string'
         ? JSON.parse(savedRoute.routeCoordinates)
         : (savedRoute.routeCoordinates || []),
-      // Normalize festival stops that only have coords:[lat,lng] (no lat/lng properties)
       visibleLocations: (savedRoute.stops || []).map(s =>
         s.lat == null && s.coords?.length ? { ...s, lat: s.coords[0], lng: s.coords[1] } : s
       ),
       showPlanner: false,
-      pendingLoadedRoute: savedRoute, // MasterMap reads this on mount to set fitTarget + loadedRoute panel
+      pendingLoadedRoute: savedRoute,
     };
-    setScreen('map');
+    navigate('/');
   };
 
   const handleShowLogin = () => {
-    // Preserve any plotted route in localStorage so it survives sign-in / registration
+    // Preserve any plotted route so it survives sign-in / registration
     const { route, startCity, endCity, visibleLocations } = routeStateRef.current;
     if (route?.length > 0) {
       try {
@@ -116,59 +107,37 @@ function AppInner() {
         }));
       } catch {}
     }
-    setPreviousScreen(screen);
-    setScreen('login');
+    navigate('/login', { state: { from: location.pathname } });
   };
 
-  const handleShowProfile = () => {
-    setProfileOrigin(screen);   // remember map vs stateSelector
-    setPreviousScreen(screen);
-    setScreen('profile');
+  const handleLoginSuccess = () => {
+    // Restore any route that was saved before sign-in (within the last 30 min)
+    try {
+      const raw = localStorage.getItem('lr_pending_route');
+      if (raw) {
+        const pending = JSON.parse(raw);
+        const THIRTY_MIN = 30 * 60 * 1000;
+        if (Date.now() - pending.timestamp < THIRTY_MIN && pending.route?.length > 0) {
+          routeStateRef.current = {
+            ...routeStateRef.current,
+            route:            pending.route,
+            startCity:        pending.startCity        || '',
+            endCity:          pending.endCity          || '',
+            visibleLocations: pending.visibleLocations || [],
+            showPlanner:      false,
+            pendingSavePrompt: true,
+          };
+          if (pending.selectedStates?.length) setSelectedStates(pending.selectedStates);
+        }
+        localStorage.removeItem('lr_pending_route');
+      }
+    } catch {}
+    const from = location.state?.from || '/';
+    navigate(from, { replace: true });
   };
 
-  const handleShowResources = () => {
-    setPreviousScreen(screen);
-    setScreen('resources');
-  };
-
-  const handleShowAbout = () => {
-    setPreviousScreen(screen);
-    setScreen('about');
-  };
-
-  const handleShowEthics = () => {
-    setPreviousScreen(screen);
-    setScreen('ethics');
-  };
-
-  const handleShowCredits = () => {
-    setPreviousScreen(screen);
-    setScreen('credits');
-  };
-
-  const handleShowLibrary = () => {
-    setPreviousScreen(screen);
-    setScreen('library');
-  };
-
-  const handleShowDayTrip = () => {
-    setPreviousScreen(screen);
-    setScreen('dayTripPlanner');
-  };
-
-  const handleShowFestivalTrip = () => {
-    setPreviousScreen(screen);
-    setScreen('festivalTrip');
-  };
-
-  const handleShowJourneys = () => {
-    setPreviousScreen(screen);
-    setScreen('journeys');
-  };
-
-  const handleLoadCuratedRoute = ({ route, stops, direction }) => {
+  const handleLoadCuratedRoute = ({ route, stops }) => {
     setSelectedStates([]);
-    setPreviousScreen(screen);
     const validStops = stops.filter(s => s.lat != null && s.lng != null);
     routeStateRef.current = {
       startCity: stops[0]?.name || '',
@@ -178,22 +147,11 @@ function AppInner() {
       showPlanner: false,
       curatedRouteBanner: { name: route.name, routeId: route.id },
     };
-    setScreen('map');
+    navigate('/', { state: { fromPlanner: 'curated' } });
   };
 
-  const handleShowBadges = () => {
-    setPreviousScreen(screen);
-    setScreen('badges');
-  };
-
-  const handleShowPrivacy = () => {
-    setPreviousScreen(screen);
-    setScreen('privacy');
-  };
-
-  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops, selectedStates: _ignored, routeType }) => {
+  const handleLoadDayTrip = ({ startCity, endCity, route, visibleLocations, showPlanner, tripStops, routeType }) => {
     setSelectedStates([]);
-    setPreviousScreen(screen);
     const ref = { startCity, endCity, route, visibleLocations, showPlanner, tripStops: tripStops ?? visibleLocations ?? [], routeType: routeType || 'dayTrip' };
     if (route?.length > 0) {
       const lats = route.map(p => p[0]);
@@ -213,132 +171,108 @@ function AppInner() {
       ref.mapZoom   = zoom;
     }
     routeStateRef.current = ref;
-    setScreen('map');
+    navigate('/', { state: { fromPlanner: routeType === 'festivalTrip' ? 'festivalTrip' : 'dayTrip' } });
   };
 
-  // Profile back uses profileOrigin, which is never clobbered by sub-screen navigation.
-  const handleProfileBack = () => setScreen(profileOrigin);
+  const isMapRoute = location.pathname === '/';
 
-  const handleAuthBack = () => {
-    setScreen(previousScreen || 'map');
-  };
-
-  const handleLoginSuccess = () => {
-    // Restore any route that was saved before sign-in (within the last 30 min)
-    try {
-      const raw = localStorage.getItem('lr_pending_route');
-      if (raw) {
-        const pending = JSON.parse(raw);
-        const THIRTY_MIN = 30 * 60 * 1000;
-        if (Date.now() - pending.timestamp < THIRTY_MIN && pending.route?.length > 0) {
-          routeStateRef.current = {
-            ...routeStateRef.current,
-            route:            pending.route,
-            startCity:        pending.startCity        || '',
-            endCity:          pending.endCity          || '',
-            visibleLocations: pending.visibleLocations || [],
-            showPlanner:      false,
-            pendingSavePrompt: true,  // MasterMap shows "save your route?" banner
-          };
-          if (pending.selectedStates?.length) setSelectedStates(pending.selectedStates);
-        }
-        localStorage.removeItem('lr_pending_route');
-      }
-    } catch {}
-    setScreen(previousScreen || 'map');
-  };
+  // fromPlanner: used by MasterMap to show "Back to Planner" button
+  const fromPlanner = location.state?.fromPlanner ?? null;
 
   return (
     <>
-      {screen === 'loading' && <Odometer onComplete={handleLoadingComplete} />}
-      {screen === 'map' && (
+      {/* Odometer — shown once on fresh app load */}
+      {showOdometer && (
+        <Odometer onComplete={() => {
+          setShowOdometer(false);
+          if (!hasBeenWelcomed()) setShowWelcomeModal(true);
+        }} />
+      )}
+
+      {/* MasterMap — always mounted after odometer, never unmounts on navigation */}
+      {!showOdometer && (
         <MasterMap
           selectedStates={selectedStates}
-          onHome={handleHome}
-          onShowProfile={handleShowProfile}
+          onHome={() => navigate('/')}
+          onShowProfile={() => navigate('/profile')}
           onShowLogin={handleShowLogin}
-          onShowResources={handleShowResources}
-          onShowLibrary={handleShowLibrary}
-          onShowAbout={handleShowAbout}
-          onShowEthics={handleShowEthics}
-          onShowCredits={handleShowCredits}
-          onShowDayTrip={handleShowDayTrip}
-          onShowFestivalTrip={handleShowFestivalTrip}
-          onShowJourneys={handleShowJourneys}
-          onShowBadges={handleShowBadges}
-          onShowPrivacy={handleShowPrivacy}
+          onShowResources={() => navigate('/resources')}
+          onShowLibrary={() => navigate('/library')}
+          onShowAbout={() => navigate('/about')}
+          onShowEthics={() => navigate('/ethics')}
+          onShowCredits={() => navigate('/credits')}
+          onShowDayTrip={() => navigate('/daytrip')}
+          onShowFestivalTrip={() => navigate('/festivaltrip')}
+          onShowJourneys={() => navigate('/journeys')}
+          onShowBadges={() => navigate('/badges')}
+          onShowPrivacy={() => navigate('/privacy')}
           routeStateRef={routeStateRef}
-          onBackToPlanner={
-            previousScreen === 'festivalTrip' ? handleShowFestivalTrip :
-            previousScreen === 'dayTripPlanner' ? handleShowDayTrip :
-            undefined
-          }
-        />
-      )}
-      {screen === 'dayTripPlanner' && (
-        <DayTripPlanner
-          onBack={handleAuthBack}
-          onLoadTrip={handleLoadDayTrip}
-          onShowLogin={handleShowLogin}
-        />
-      )}
-      {screen === 'festivalTrip' && (
-        <FestivalTripPlanner
-          onBack={handleAuthBack}
-          onHome={handleHome}
-          onLoadTrip={handleLoadDayTrip}
-          onShowLogin={handleShowLogin}
-        />
-      )}
-      {screen === 'login' && (
-        <Login
-          onLoginSuccess={handleLoginSuccess}
-          onBack={handleAuthBack}
-          onContinueAsGuest={handleAuthBack}
-          onShowPrivacy={handleShowPrivacy}
-          onShowEthics={handleShowEthics}
-        />
-      )}
-      {screen === 'profile' && (
-        <Profile
-          onBack={handleProfileBack}
-          onShowLibrary={handleShowLibrary}
-          onShowBadges={handleShowBadges}
-          selectedStates={selectedStates}
-        />
-      )}
-      {screen === 'badges' && (
-        <Badges onBack={handleAuthBack} />
-      )}
-      {screen === 'library' && (
-        <Library onBack={handleAuthBack} />
-      )}
-      {screen === 'resources' && (
-        <Resources onBack={handleAuthBack} />
-      )}
-      {screen === 'about' && (
-        <About onBack={handleAuthBack} />
-      )}
-      {screen === 'ethics' && (
-        <Ethics onBack={handleAuthBack} onShowPrivacy={handleShowPrivacy} />
-      )}
-      {screen === 'credits' && (
-        <Credits onBack={handleAuthBack} />
-      )}
-      {screen === 'privacy' && (
-        <PrivacyPolicy onBack={handleAuthBack} />
-      )}
-      {screen === 'journeys' && (
-        <JourneysPage
-          onBack={handleAuthBack}
-          onShowDayTrip={handleShowDayTrip}
-          onShowFestivalTrip={handleShowFestivalTrip}
-          onLoadCuratedRoute={handleLoadCuratedRoute}
-          onShowLogin={handleShowLogin}
+          onBackToPlanner={fromPlanner ? () => navigate(-1) : undefined}
         />
       )}
 
-      {/* First-visit welcome modal — shown once after odometer, dismissed to map */}
+      {/* Full-screen overlay for non-map routes — covers map, map stays mounted */}
+      {!showOdometer && !isMapRoute && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: '#1A1B2E', overflow: 'hidden',
+        }}>
+          <Routes>
+            <Route path="/login" element={
+              <Login
+                onLoginSuccess={handleLoginSuccess}
+                onBack={() => navigate(-1)}
+                onContinueAsGuest={() => navigate(-1)}
+                onShowPrivacy={() => navigate('/privacy')}
+                onShowEthics={() => navigate('/ethics')}
+              />
+            } />
+            <Route path="/profile" element={
+              <Profile
+                onBack={() => navigate(-1)}
+                onShowLibrary={() => navigate('/library')}
+                onShowBadges={() => navigate('/badges')}
+                selectedStates={selectedStates}
+              />
+            } />
+            <Route path="/badges" element={<Badges onBack={() => navigate(-1)} />} />
+            <Route path="/library/*" element={<Library onBack={() => navigate(-1)} />} />
+            <Route path="/resources" element={<Resources onBack={() => navigate(-1)} />} />
+            <Route path="/about" element={<About onBack={() => navigate(-1)} />} />
+            <Route path="/ethics" element={
+              <Ethics onBack={() => navigate(-1)} onShowPrivacy={() => navigate('/privacy')} />
+            } />
+            <Route path="/credits" element={<Credits onBack={() => navigate(-1)} />} />
+            <Route path="/privacy" element={<PrivacyPolicy onBack={() => navigate(-1)} />} />
+            <Route path="/journeys/*" element={
+              <JourneysPage
+                onBack={() => navigate(-1)}
+                onShowDayTrip={() => navigate('/daytrip')}
+                onShowFestivalTrip={() => navigate('/festivaltrip')}
+                onLoadCuratedRoute={handleLoadCuratedRoute}
+                onShowLogin={handleShowLogin}
+              />
+            } />
+            <Route path="/daytrip" element={
+              <DayTripPlanner
+                onBack={() => navigate(-1)}
+                onLoadTrip={handleLoadDayTrip}
+                onShowLogin={handleShowLogin}
+              />
+            } />
+            <Route path="/festivaltrip" element={
+              <FestivalTripPlanner
+                onBack={() => navigate(-1)}
+                onHome={() => navigate('/')}
+                onLoadTrip={handleLoadDayTrip}
+                onShowLogin={handleShowLogin}
+              />
+            } />
+          </Routes>
+        </div>
+      )}
+
+      {/* First-visit welcome modal */}
       {showWelcomeModal && (
         <WelcomeModal
           onDismiss={() => setShowWelcomeModal(false)}
@@ -346,7 +280,7 @@ function AppInner() {
         />
       )}
 
-      {/* First-time ethics acceptance modal — blocks app until accepted */}
+      {/* Ethics acceptance modal — blocks app until accepted */}
       {showEthicsModal && user && (
         <EthicsModal user={user} onAccepted={() => setShowEthicsModal(false)} />
       )}
@@ -358,6 +292,7 @@ function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Standalone routes — outside the main app shell */}
         <Route path="/route/:routeId" element={<SharedRoutePage />} />
         <Route path="/admin" element={<AdminUpload />} />
         <Route path="/gazette" element={<AdminPanel />} />
@@ -367,7 +302,8 @@ function App() {
         <Route path="/newspaper/:slug" element={<GazetteIssue />} />
         <Route path="/store" element={<Store onBack={() => window.history.back()} />} />
         <Route path="/author" element={<AuthorPage />} />
-        <Route path="*" element={<AppInner />} />
+        {/* Main app — AppInner handles map + overlay screens */}
+        <Route path="/*" element={<AppInner />} />
       </Routes>
     </AuthProvider>
   );

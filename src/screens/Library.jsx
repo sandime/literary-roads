@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
@@ -808,9 +809,38 @@ function ShelfCard({ accentColor, children }) {
 }
 
 // ── Main Library ──────────────────────────────────────────────────────────────
+// URL ↔ view name mapping
+const PATH_TO_VIEW = {
+  '':          'home',
+  'booklog':   'bookLog',
+  'archive':   'archive',
+  'postcards': 'postcards',
+  'recs':      'myRecs',
+  'readnext':  'readNext',
+  'authors':   'authorRoom',
+};
+const VIEW_TO_PATH = Object.fromEntries(
+  Object.entries(PATH_TO_VIEW).map(([k, v]) => [v, k])
+);
+
 export default function Library({ onBack }) {
   const { user } = useAuth();
-  const [view, setView] = useState('home'); // 'home'|'bookLog'|'postcards'|'myRecs'|'readNext'|'authorRoom'
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Derive view from URL — /library/authors → 'authorRoom', /library → 'home', etc.
+  const subPath = location.pathname.replace(/^\/library\/?/, '').split('?')[0];
+  const view = PATH_TO_VIEW[subPath] ?? 'home';
+
+  // setView: forward navigation pushes history; back-to-home pops history
+  const setView = (v) => {
+    if (v === 'home') {
+      navigate(-1);
+    } else {
+      const p = VIEW_TO_PATH[v] ?? '';
+      navigate(p ? `/library/${p}` : '/library');
+    }
+  };
 
   // Book log state
   const [loggedBooks, setLoggedBooks] = useState([]);

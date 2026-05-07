@@ -1,5 +1,6 @@
 // JourneysPage.jsx — Curated literary road trips page.
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import {
@@ -889,10 +890,17 @@ export default function JourneysPage({
   // filter = null → landing (featured poster). filter = 'ghostTown' etc → preview cards.
   const [filter, setFilter]           = useState(null);
   const [stateFilter, setStateFilter] = useState('');
-  const [detail, setDetail]           = useState(null);
+  const navigate_    = useNavigate();
+  const location_    = useLocation();
 
-  const openDetail  = useCallback((route) => setDetail(route), []);
-  const closeDetail = useCallback(() => setDetail(null), []);
+  // Derive detail from URL + location state — /journeys/:id → detail view
+  const journeySubPath = location_.pathname.replace(/^\/journeys\/?/, '').split('?')[0];
+  const detail = journeySubPath ? (location_.state?.route ?? null) : null;
+
+  const openDetail  = useCallback((route) => {
+    navigate_(`/journeys/${route.id}`, { state: { route } });
+  }, [navigate_]);
+  const closeDetail = useCallback(() => navigate_('/journeys'), [navigate_]);
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 

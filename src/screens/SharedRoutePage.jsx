@@ -78,7 +78,7 @@ const SharedRoutePage = () => {
 
   const handleClone = async () => {
     if (!user) {
-      navigate(`${import.meta.env.BASE_URL}`.replace(/\/$/, '') + '?login=1');
+      navigate('/login');
       return;
     }
     setCloning(true);
@@ -122,7 +122,7 @@ const SharedRoutePage = () => {
             This route may have been deleted or the link is invalid.
           </p>
           <button
-            onClick={() => navigate(import.meta.env.BASE_URL || '/')}
+            onClick={() => navigate('/')}
             className="bg-starlight-turquoise text-midnight-navy font-bungee px-6 py-3 rounded-lg hover:bg-atomic-orange transition-all"
           >
             GO TO THE LITERARY ROADS
@@ -138,7 +138,7 @@ const SharedRoutePage = () => {
       <div className="absolute top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-4 py-3">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate(import.meta.env.BASE_URL || '/')}
+            onClick={() => navigate('/')}
             className="text-starlight-turquoise hover:text-atomic-orange transition-colors flex-shrink-0"
             title="Go to The Literary Roads"
           >
@@ -215,7 +215,7 @@ const SharedRoutePage = () => {
           <div className="text-center">
             <p className="text-starlight-turquoise font-bungee text-sm mb-3">✓ ROUTE SAVED TO YOUR TRIPS!</p>
             <button
-              onClick={() => navigate(import.meta.env.BASE_URL || '/')}
+              onClick={() => navigate('/')}
               className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-all"
             >
               OPEN IN THE LITERARY ROADS

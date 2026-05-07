@@ -928,7 +928,7 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
         onMouseLeave={() => { setHovered(false); startTimer(); }}
         onClick={() => {
           triggerDismiss();
-          window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/author?state=${encodeURIComponent(stateName)}&author=${encodeURIComponent(author.name)}`, '_blank', 'noopener noreferrer');
+          window.open(`${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/#/author?state=${encodeURIComponent(stateName)}&author=${encodeURIComponent(author.name)}`, '_blank', 'noopener noreferrer');
         }}
       >
         {/* Container — extra height for depth shadow offset */}
@@ -3829,6 +3829,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
           style={{
             pointerEvents: 'auto',
+            position: 'relative',
             height: isMob ? snapH : (shelfDeskMinimized ? '56px' : undefined),
             maxHeight: isMob ? undefined : (shelfDeskMinimized ? '56px' : '65vh'),
             overflow: 'hidden',
