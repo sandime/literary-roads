@@ -1428,9 +1428,18 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       .catch(() => setSsLoadError(true));
   }, [uiMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reset shelf snap/minimize when a new location is opened
+  // Reset shelf snap/minimize when a new location is opened — instant (no height transition)
   useEffect(() => {
-    if (selectedLocation) { setShelfSnap('half'); setShelfDeskMinimized(false); }
+    if (selectedLocation) {
+      // Suppress the CSS height transition so switching locations feels instant
+      if (shelfRef.current) shelfRef.current.style.transition = 'none';
+      setShelfSnap('half');
+      setShelfDeskMinimized(false);
+      // Restore transition on the next frame so drag-to-snap still animates
+      requestAnimationFrame(() => {
+        if (shelfRef.current) shelfRef.current.style.transition = '';
+      });
+    }
   }, [selectedLocation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear pendingLocation from ref after mount so it doesn't survive future navigations
@@ -3808,6 +3817,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         const isExpanded = isMob ? shelfSnap !== 'mini' : !shelfDeskMinimized;
         const snapH = { mini: '56px', half: '50vh', full: '80vh' }[shelfSnap];
         return (
+        // Full-screen pointer-events:none shell — lets map marker clicks pass through
+        // the area above the shelf so users can tap any marker without closing first.
+        <div style={{ position: 'fixed', inset: 0, zIndex: 1001, pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
         <div
           ref={shelfRef}
           role="dialog"
@@ -3816,7 +3828,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           tabIndex={-1}
           className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
           style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1001,
+            pointerEvents: 'auto',
             height: isMob ? snapH : (shelfDeskMinimized ? '56px' : undefined),
             maxHeight: isMob ? undefined : (shelfDeskMinimized ? '56px' : '65vh'),
             overflow: 'hidden',
@@ -4186,6 +4198,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             })()}
           </div>
           )}
+        </div>
         </div>
         );
       })()}

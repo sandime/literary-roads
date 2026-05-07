@@ -201,73 +201,48 @@ if (DRY_RUN) {
   process.exit(0);
 }
 
-// ── Upload to Firestore (via Admin SDK with service account) ─────────────────
+// ── Upload to Firestore (via client SDK — requires open write rules) ──────────
 console.log('\n  Starting Firestore upload...\n');
+console.log('  Note: requires bookstores write rule to be open (allow write: if true)\n');
 
-// Locate service account key
-const keyArg    = process.argv.find((a, i) => process.argv[i - 1] === '--key');
-const keyPaths  = [
-  keyArg,
-  join(__dirname, '..', 'service-account.json'),
-  join(__dirname, '..', 'serviceAccount.json'),
-  join(__dirname, 'service-account.json'),
-].filter(Boolean);
+const { initializeApp }    = await import('firebase/app');
+const { getFirestore, collection: col, doc: fdoc, getDoc, writeBatch, serverTimestamp } =
+  await import('firebase/firestore');
 
-const keyFile = keyPaths.find(p => existsSync(p));
-if (!keyFile) {
-  console.error(`
-  ✗ No service account key found.
+const firebaseConfig = {
+  apiKey:            'AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE',
+  authDomain:        'the-literary-roads.firebaseapp.com',
+  projectId:         'the-literary-roads',
+  storageBucket:     'the-literary-roads.firebasestorage.app',
+  messagingSenderId: '305145573086',
+  appId:             '1:305145573086:web:206ec464384fe149c45c4f',
+};
 
-  To fix:
-    1. Go to Firebase Console → Project Settings → Service Accounts
-    2. Click "Generate New Key" → downloads a JSON file
-    3. Save it as: ${join(__dirname, '..', 'service-account.json')}
-    4. Re-run: node scripts/seed-bookstores.mjs --upload
-
-  (The file is in .gitignore — it will NOT be committed.)
-`);
-  process.exit(1);
-}
-
-console.log(`  Using service account: ${keyFile}\n`);
-
-const admin   = (await import('firebase-admin')).default;
-const serviceAccount = JSON.parse(readFileSync(keyFile, 'utf8'));
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
-
-const db     = admin.firestore();
-const colRef = db.collection('bookstores');
+const app    = initializeApp(firebaseConfig);
+const db     = getFirestore(app);
+const colRef = col(db, 'bookstores');
 
 let added = 0, skipped = 0, failed = 0;
-const BATCH_SIZE = 400; // Firestore batch limit is 500 ops
+const BATCH_SIZE = 400;
 
-// Process in batches for speed
 for (let bStart = 0; bStart < unique.length; bStart += BATCH_SIZE) {
   const chunk = unique.slice(bStart, bStart + BATCH_SIZE);
 
-  // Check existence in parallel first
-  const snapshots = await Promise.all(chunk.map(e => colRef.doc(e.docId).get()));
+  const snapshots = await Promise.all(chunk.map(e => getDoc(fdoc(db, 'bookstores', e.docId))));
 
-  const batch = db.batch();
+  const batch = writeBatch(db);
   let batchCount = 0;
 
   for (let i = 0; i < chunk.length; i++) {
     const { docId, ...data } = chunk[i];
-    if (snapshots[i].exists) {
-      console.log(`  ⊗ Already in Firestore: ${data.name} (${data.city}, ${data.state})`);
+    if (snapshots[i].exists()) {
       skipped++;
       continue;
     }
-    batch.set(colRef.doc(docId), {
+    batch.set(fdoc(db, 'bookstores', docId), {
       ...data,
-      addedAt: admin.firestore.FieldValue.serverTimestamp(),
+      addedAt: serverTimestamp(),
     });
-    console.log(`  ✓ Added: ${data.name} — ${data.city ?? '?'}, ${data.state ?? '?'}`);
     added++;
     batchCount++;
   }
@@ -275,12 +250,16 @@ for (let bStart = 0; bStart < unique.length; bStart += BATCH_SIZE) {
   if (batchCount > 0) {
     try {
       await batch.commit();
+      console.log(`  ✓ Batch ${Math.ceil((bStart + 1) / BATCH_SIZE)}: committed ${batchCount} bookstores`);
     } catch (err) {
-      console.error(`  ✗ Batch commit failed: ${err.message}`);
+      console.error(`  ✗ Batch failed: ${err.message}`);
       failed += batchCount;
       added  -= batchCount;
     }
   }
+
+  const pct = Math.round(((bStart + chunk.length) / unique.length) * 100);
+  process.stdout.write(`\r  Progress: ${pct}%  (added: ${added}, skipped: ${skipped}, failed: ${failed})`);
 }
 
 // ── Final summary ────────────────────────────────────────────────────────────

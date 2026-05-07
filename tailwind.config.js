@@ -17,7 +17,6 @@ export default {
       fontFamily: {
         'bungee': ['Bungee', 'cursive'],
         'special-elite': ['Special Elite', 'monospace'],
-        'atomic': ['Atomic Age', 'cursive'],
       },
     },
   },

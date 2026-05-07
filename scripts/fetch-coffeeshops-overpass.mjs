@@ -135,7 +135,10 @@ const fetchOverpass = async (query, stateName, attempt = 1) => {
   try {
     const res = await fetch(OVERPASS_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'literary-roads-seed-script/1.0',
+      },
       body: `data=${encodeURIComponent(query)}`,
     });
     if (!res.ok) {
