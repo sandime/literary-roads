@@ -1570,7 +1570,6 @@ export default function Library({ onBack }) {
 
   // ── AUTHOR ROOM ───────────────────────────────────────────────────────────────
   if (view === 'authorRoom') {
-    const appBase    = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
     const totalCount = Object.keys(AUTHOR_TIDBITS).length;
 
     return (
@@ -1629,10 +1628,9 @@ export default function Library({ onBack }) {
             {discoveredAuthors.map(a => (
               <a
                 key={a.id}
-                href={`${appBase}/author?state=${encodeURIComponent(a.state)}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href={`#/author?state=${encodeURIComponent(a.state)}`}
                 style={{ textDecoration: 'none' }}
+                onClick={(e) => { e.preventDefault(); navigate(`/author?state=${encodeURIComponent(a.state)}`); }}
               >
                 <div style={{
                   borderRadius: 12, overflow: 'hidden', display: 'flex',

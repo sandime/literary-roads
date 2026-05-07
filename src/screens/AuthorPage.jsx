@@ -307,13 +307,14 @@ export default function AuthorPage() {
               {discoveredAuthors.map(a => (
                 <a
                   key={a.id}
-                  href={`?state=${encodeURIComponent(a.state)}`}
+                  href={`#/author?state=${encodeURIComponent(a.state)}`}
                   style={{
                     ...styles.pill,
                     background: a.state === stateName ? C.coral : 'rgba(44,24,16,0.06)',
                     color:      a.state === stateName ? '#fff' : C.darkBrown,
                     borderColor: a.state === stateName ? C.coral : C.divider,
                   }}
+                  onClick={(e) => { e.preventDefault(); navigate(`/author?state=${encodeURIComponent(a.state)}`); }}
                 >
                   <span style={styles.pillName}>{a.name}</span>
                   <span style={styles.pillState}>{a.state}</span>
