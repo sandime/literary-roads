@@ -1293,7 +1293,7 @@ const PlaceSearch = ({ onSelect, mapCenter }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner, mapResetKey }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   // Initialize from saved ref so route survives navigating away and back
@@ -2228,6 +2228,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     ssSelectedRef.current = new Set();
     setUiMode('stateSelect');
   };
+
+  // Reset map to fresh state when mobile back button is pressed at the map route
+  useEffect(() => {
+    if (!mapResetKey) return;
+    handleGoHome();
+  }, [mapResetKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Compute initial map view from all selected states
   const initMapState = (() => {

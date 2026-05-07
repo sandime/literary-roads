@@ -45,6 +45,10 @@ function AppInner() {
     return hashPath === '/' && !p.get('back') && !p.get('landmark');
   });
 
+  // Incremented when back is pressed while already on the map — MasterMap resets to fresh state
+  const [mapResetKey, setMapResetKey] = useState(0);
+  const locationPathnameRef = useRef(location.pathname);
+
   const [selectedStates, setSelectedStates] = useState([]);
   const [showEthicsModal, setShowEthicsModal] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -71,6 +75,30 @@ function AppInner() {
     const landmarkId = searchParams.get('landmark');
     if (landmarkId) routeStateRef.current.pendingLandmark = landmarkId;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep pathname ref current so popstate handler sees latest value
+  useEffect(() => {
+    locationPathnameRef.current = location.pathname;
+  }, [location.pathname]);
+
+  // Push a buffer history entry so back-press at the map gives us one intercept slot,
+  // then reset the map to a fresh state rather than exiting the app.
+  useEffect(() => {
+    if (showOdometer) return;
+    // Push the buffer entry once the map is shown
+    window.history.pushState({ literaryRoadsBuffer: true }, '', window.location.href);
+    const handlePop = () => {
+      const hash = window.location.hash;
+      const atMap = !hash || hash === '#/' || hash === '#';
+      if (atMap && locationPathnameRef.current === '/') {
+        // Re-push the buffer so the next back press also intercepts
+        window.history.pushState({ literaryRoadsBuffer: true }, '', window.location.href);
+        setMapResetKey(k => k + 1);
+      }
+    };
+    window.addEventListener('popstate', handlePop);
+    return () => window.removeEventListener('popstate', handlePop);
+  }, [showOdometer]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Navigation handlers ───────────────────────────────────────────────────
 
@@ -208,6 +236,7 @@ function AppInner() {
           onShowPrivacy={() => navigate('/privacy')}
           routeStateRef={routeStateRef}
           onBackToPlanner={fromPlanner ? () => navigate(-1) : undefined}
+          mapResetKey={mapResetKey}
         />
       )}
 
