@@ -1570,7 +1570,7 @@ export default function Library({ onBack }) {
 
   // ── AUTHOR ROOM ───────────────────────────────────────────────────────────────
   if (view === 'authorRoom') {
-    const totalCount = Object.keys(AUTHOR_TIDBITS).length;
+    const totalCount = Object.values(AUTHOR_TIDBITS).reduce((sum, arr) => sum + arr.length, 0);
 
     return (
       <SectionShell title="THE AUTHOR ROOM" accentColor={L.coral} onBack={() => setView('home')}>
