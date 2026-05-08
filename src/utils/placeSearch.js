@@ -47,8 +47,15 @@ const CATEGORY_MAP = {
   'drive-ins':    'drivein',
   'drivein':      'drivein',
   'drive in':     'drivein',
-  'ghost town':   'ghostTown',
-  'ghost towns':  'ghostTown',
+  'ghost town':    'ghostTown',
+  'ghost towns':   'ghostTown',
+  'ufo':           'ufoLocation',
+  'ufo location':  'ufoLocation',
+  'ufo locations': 'ufoLocation',
+  'alien':         'ufoLocation',
+  'aliens':        'ufoLocation',
+  'sighting':      'ufoLocation',
+  'sightings':     'ufoLocation',
 };
 
 // Returns the Firestore type for a category query, or null if it's a specific search.
@@ -122,6 +129,9 @@ export async function searchFirestore(q, centerLat, centerLng) {
     } else if (categoryType === 'ghostTown') {
       const all = await cachedFetch('ghostTowns', () => fetchAll('ghostTowns'));
       items = all.filter(i => i.active && i.lat && i.lng).map(i => ({ ...i, type: 'ghostTown' }));
+    } else if (categoryType === 'ufoLocation') {
+      const all = await cachedFetch('ufoLocations', () => fetchAll('ufoLocations'));
+      items = all.filter(i => i.active && i.lat && i.lng).map(i => ({ ...i, type: 'ufoLocation' }));
     }
     return items
       .sort((a, b) => dist(a) - dist(b))
@@ -132,11 +142,12 @@ export async function searchFirestore(q, centerLat, centerLng) {
   // ── Specific search mode ─────────────────────────────────────────────────
   // Bookstores and coffeeShops use fetchAll (cached 10 min) so a specific name
   // like "Kean Coffee" is found regardless of where the map is currently centered.
-  const [landmarks, festivals, driveIns, ghostTowns, bookstores, coffeeShops] = await Promise.all([
+  const [landmarks, festivals, driveIns, ghostTowns, ufoLocations, bookstores, coffeeShops] = await Promise.all([
     cachedFetch('literary_landmarks', () => fetchAll('literary_landmarks')),
     cachedFetch('literaryFestivals',  () => fetchAll('literaryFestivals')),
     cachedFetch('driveIns',           () => fetchAll('driveIns')),
     cachedFetch('ghostTowns',         () => fetchAll('ghostTowns')),
+    cachedFetch('ufoLocations',       () => fetchAll('ufoLocations')),
     cachedFetch('bookstores',         () => fetchAll('bookstores')),
     cachedFetch('coffeeShops',        () => fetchAll('coffeeShops')),
   ]);
@@ -153,7 +164,8 @@ export async function searchFirestore(q, centerLat, centerLng) {
     ...pickTop(landmarks.map(l => ({ ...l, type: 'landmark' })),     'landmark'),
     ...pickTop(festivals.map(f => ({ ...f, type: 'festival' })),     'festival'),
     ...pickTop(driveIns.map(d => ({ ...d, type: 'drivein' })),       'drivein'),
-    ...pickTop(ghostTowns.filter(g => g.active).map(g => ({ ...g, type: 'ghostTown' })), 'ghostTown'),
+    ...pickTop(ghostTowns.filter(g => g.active).map(g => ({ ...g, type: 'ghostTown' })),     'ghostTown'),
+    ...pickTop(ufoLocations.filter(u => u.active).map(u => ({ ...u, type: 'ufoLocation' })), 'ufoLocation'),
     ...pickTop(bookstores,  'bookstore'),
     ...pickTop(coffeeShops, 'cafe'),
   ];

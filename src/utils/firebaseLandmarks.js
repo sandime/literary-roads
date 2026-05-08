@@ -166,6 +166,74 @@ export const getGhostTownsAlongRoute = async (routePoints, radiusMiles = 30) => 
   }
 };
 
+// ── UFO Locations ─────────────────────────────────────────────────────────────
+const _ufoLocationCache = { data: null, ts: 0 };
+const UFO_LOCATION_TTL  = 10 * 60 * 1000; // 10 min
+
+const fetchAllUfoLocations = async () => {
+  const now = Date.now();
+  if (_ufoLocationCache.data && now - _ufoLocationCache.ts < UFO_LOCATION_TTL) {
+    return _ufoLocationCache.data;
+  }
+  const snapshot = await getDocs(collection(db, 'ufoLocations'));
+  const all = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
+    if (data.active === false) return;
+    all.push({
+      id:               doc.id,
+      name:             data.name             || '',
+      type:             'ufoLocation',
+      lat:              data.lat,
+      lng:              data.lng,
+      city:             data.city             || '',
+      state:            data.state            || '',
+      description:      data.description      || '',
+      incidentType:     data.incidentType     || '',
+      paranormalNotes:  data.paranormalNotes  || '',
+      website:          data.website          || '',
+      source:           'firestore',
+      coords:           [data.lat, data.lng],
+    });
+  });
+  console.log(`[Firestore] ${all.length} active UFO locations fetched`);
+  _ufoLocationCache.data = all;
+  _ufoLocationCache.ts   = now;
+  return all;
+};
+
+export const getUfoLocationsAlongRoute = async (routePoints, radiusMiles = 75) => {
+  try {
+    const all = await fetchAllUfoLocations();
+    const samples = routePoints
+      .filter((_, i) => i % 5 === 0)
+      .concat(routePoints[routePoints.length - 1])
+      .filter(p => Array.isArray(p) && p.length >= 2);
+    if (!samples.length) return [];
+    const nearby = all.filter(u =>
+      samples.some(([pLat, pLng]) => getDistance(u.lat, u.lng, pLat, pLng) <= radiusMiles)
+    );
+    console.log(`[UfoLocations] ${nearby.length} within ${radiusMiles}mi of route`);
+    return nearby;
+  } catch (error) {
+    console.error('[UfoLocations] getUfoLocationsAlongRoute FAILED:', error);
+    return [];
+  }
+};
+
+export const getUfoLocationsNear = async (lat, lng, radiusMiles = 200) => {
+  try {
+    const all = await fetchAllUfoLocations();
+    const nearby = all.filter(u => getDistance(u.lat, u.lng, lat, lng) <= radiusMiles);
+    console.log(`[UfoLocations] ${all.length} total, ${nearby.length} within ${radiusMiles}mi of [${lat.toFixed(2)}, ${lng.toFixed(2)}]`);
+    return nearby;
+  } catch (error) {
+    console.error('[UfoLocations] getUfoLocationsNear FAILED:', error);
+    return [];
+  }
+};
+
 // ── Extra collections for main map (route planner + NEAR ME) ─────────────────
 // Each collection is small enough to fetch-all and filter client-side.
 const EXTRA_COLLECTIONS = [
