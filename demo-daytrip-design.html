@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Literary Roads — Day Trip Design Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:     #1A1B2E;
+      --navy-mid: #12132099;
+      --teal:     #40E0D0;
+      --orange:   #FF4E00;
+      --paper:    #F5F5DC;
+      --silver:   #C0C0C0;
+      --green:    #39FF14;
+    }
+
+    body {
+      font-family: 'Special Elite', serif;
+      background-color: var(--navy);
+      color: var(--paper);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Road Map Background ── */
+    .road-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        /* subtle grid lines — latitude/longitude feel */
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 79px,
+          rgba(64,224,208,0.04) 79px,
+          rgba(64,224,208,0.04) 80px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          transparent,
+          transparent 79px,
+          rgba(64,224,208,0.04) 79px,
+          rgba(64,224,208,0.04) 80px
+        ),
+        /* diagonal road 1 */
+        linear-gradient(
+          135deg,
+          transparent 0%,
+          transparent 42%,
+          rgba(255,78,0,0.07) 42%,
+          rgba(255,78,0,0.07) 43.5%,
+          transparent 43.5%,
+          transparent 57%,
+          rgba(255,78,0,0.05) 57%,
+          rgba(255,78,0,0.05) 58%,
+          transparent 58%
+        ),
+        /* diagonal road 2 */
+        linear-gradient(
+          60deg,
+          transparent 0%,
+          transparent 28%,
+          rgba(64,224,208,0.06) 28%,
+          rgba(64,224,208,0.06) 29.5%,
+          transparent 29.5%,
+          transparent 68%,
+          rgba(64,224,208,0.05) 68%,
+          rgba(64,224,208,0.05) 69%,
+          transparent 69%
+        ),
+        /* base deep navy gradient */
+        radial-gradient(ellipse at 20% 80%, #0d1a2e 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, #1a0d2e 0%, transparent 60%),
+        linear-gradient(160deg, #0e0f1e 0%, #1A1B2E 50%, #0e1520 100%);
+    }
+
+    /* animated dashed center line */
+    .road-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          135deg,
+          transparent 0px,
+          transparent 18px,
+          rgba(255,78,0,0.12) 18px,
+          rgba(255,78,0,0.12) 30px,
+          transparent 30px,
+          transparent 48px
+        );
+      animation: roadScroll 12s linear infinite;
+    }
+
+    @keyframes roadScroll {
+      from { background-position: 0 0; }
+      to   { background-position: 100px 100px; }
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 0 0 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 2px solid var(--teal);
+      background: rgba(10,11,22,0.85);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .header-back {
+      width: 36px;
+      height: 36px;
+      border: 1.5px solid var(--teal);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--teal);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .header-back:hover { background: rgba(64,224,208,0.15); }
+
+    .header-title {
+      font-family: 'Bungee', cursive;
+      font-size: 18px;
+      color: var(--teal);
+      text-shadow: 0 0 12px rgba(64,224,208,0.6);
+      letter-spacing: 1px;
+    }
+
+    .header-badge {
+      margin-left: auto;
+      font-family: 'Bungee', cursive;
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,78,0,0.5);
+      color: var(--orange);
+    }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 36px 20px 28px;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Bungee', cursive;
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--orange);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    .hero-headline {
+      font-family: 'Bungee', cursive;
+      font-size: clamp(28px, 7vw, 40px);
+      line-height: 1.1;
+      color: var(--paper);
+      text-shadow:
+        0 0 20px rgba(64,224,208,0.35),
+        0 0 40px rgba(64,224,208,0.15);
+      margin-bottom: 12px;
+    }
+
+    .hero-headline span {
+      color: var(--teal);
+      text-shadow:
+        0 0 16px rgba(64,224,208,0.8),
+        0 0 32px rgba(64,224,208,0.4);
+    }
+
+    .hero-sub {
+      font-size: 14px;
+      color: var(--silver);
+      max-width: 320px;
+      margin: 0 auto 20px;
+      line-height: 1.6;
+    }
+
+    /* neon underline accent */
+    .hero-divider {
+      width: 80px;
+      height: 2px;
+      margin: 0 auto;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent);
+      box-shadow: 0 0 8px var(--teal);
+    }
+
+    /* ── Location Input Section ── */
+    .section {
+      padding: 0 20px 20px;
+    }
+
+    .section-label {
+      font-family: 'Bungee', cursive;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--silver);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .input-field {
+      flex: 1;
+      background: rgba(0,0,0,0.5);
+      border: 1.5px solid rgba(64,224,208,0.35);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: var(--paper);
+      font-family: 'Special Elite', serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field::placeholder { color: rgba(192,192,192,0.4); }
+    .input-field:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(64,224,208,0.12), 0 0 16px rgba(64,224,208,0.1);
+    }
+
+    .locate-btn {
+      background: rgba(64,224,208,0.1);
+      border: 1.5px solid var(--teal);
+      border-radius: 10px;
+      padding: 0 14px;
+      color: var(--teal);
+      cursor: pointer;
+      font-family: 'Bungee', cursive;
+      font-size: 9px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      transition: background 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .locate-btn:hover { background: rgba(64,224,208,0.2); }
+
+    /* ── Duration Selector ── */
+    .duration-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .duration-card {
+      background: rgba(0,0,0,0.4);
+      border: 1.5px solid rgba(64,224,208,0.2);
+      border-radius: 12px;
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .duration-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(64,224,208,0.06) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .duration-card:hover { border-color: rgba(64,224,208,0.5); }
+    .duration-card:hover::before { opacity: 1; }
+
+    .duration-card.active {
+      border-color: var(--teal);
+      background: rgba(64,224,208,0.1);
+      box-shadow: 0 0 16px rgba(64,224,208,0.2), inset 0 0 16px rgba(64,224,208,0.05);
+    }
+    .duration-card.active::before { opacity: 1; }
+
+    .duration-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+
+    .duration-name {
+      font-family: 'Bungee', cursive;
+      font-size: 12px;
+      color: var(--paper);
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .duration-time {
+      font-size: 10px;
+      color: var(--silver);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .duration-stops {
+      font-family: 'Bungee', cursive;
+      font-size: 10px;
+      color: var(--teal);
+      display: block;
+    }
+
+    /* ── Category Cards ── */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .cat-card {
+      background: rgba(0,0,0,0.45);
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 14px 8px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .cat-card:hover {
+      border-color: rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    .cat-card.active-teal {
+      border-color: var(--teal);
+      background: rgba(64,224,208,0.08);
+      box-shadow: 0 0 14px rgba(64,224,208,0.15);
+    }
+
+    .cat-card.active-orange {
+      border-color: var(--orange);
+      background: rgba(255,78,0,0.08);
+      box-shadow: 0 0 14px rgba(255,78,0,0.15);
+    }
+
+    .cat-card.active-green {
+      border-color: var(--green);
+      background: rgba(57,255,20,0.08);
+      box-shadow: 0 0 14px rgba(57,255,20,0.15);
+    }
+
+    .cat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      font-size: 18px;
+    }
+
+    .cat-icon-teal   { background: rgba(64,224,208,0.15);  border: 1.5px solid rgba(64,224,208,0.4);  }
+    .cat-icon-orange { background: rgba(255,78,0,0.15);    border: 1.5px solid rgba(255,78,0,0.4);    }
+    .cat-icon-green  { background: rgba(57,255,20,0.12);   border: 1.5px solid rgba(57,255,20,0.4);   }
+    .cat-icon-purple { background: rgba(155,89,182,0.15);  border: 1.5px solid rgba(155,89,182,0.4);  }
+    .cat-icon-yellow { background: rgba(255,200,0,0.12);   border: 1.5px solid rgba(255,200,0,0.4);   }
+    .cat-icon-pink   { background: rgba(255,80,150,0.12);  border: 1.5px solid rgba(255,80,150,0.4);  }
+
+    .cat-name {
+      font-family: 'Bungee', cursive;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      color: var(--paper);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .cat-count {
+      font-size: 10px;
+      color: var(--silver);
+      display: block;
+    }
+
+    .cat-check {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--teal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--navy);
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .cat-card.active-teal .cat-check,
+    .cat-card.active-orange .cat-check,
+    .cat-card.active-green .cat-check { opacity: 1; }
+
+    .cat-card.active-orange .cat-check { background: var(--orange); }
+    .cat-card.active-green  .cat-check { background: var(--green); color: #000; }
+
+    /* ── Radius Pill Row ── */
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .radius-pill {
+      background: rgba(0,0,0,0.4);
+      border: 1.5px solid rgba(64,224,208,0.2);
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-family: 'Bungee', cursive;
+      font-size: 11px;
+      color: var(--silver);
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .radius-pill:hover { border-color: rgba(64,224,208,0.45); color: var(--paper); }
+
+    .radius-pill.active {
+      border-color: var(--teal);
+      background: rgba(64,224,208,0.12);
+      color: var(--teal);
+      box-shadow: 0 0 10px rgba(64,224,208,0.15);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      margin: 4px 20px 20px;
+      background: linear-gradient(90deg, transparent, rgba(64,224,208,0.15), transparent);
+    }
+
+    /* ── Section heading ── */
+    .sec-heading {
+      padding: 0 20px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sec-heading-text {
+      font-family: 'Bungee', cursive;
+      font-size: 13px;
+      letter-spacing: 1.5px;
+      color: var(--silver);
+      text-transform: uppercase;
+    }
+
+    .sec-heading-line {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(64,224,208,0.2), transparent);
+    }
+
+    /* ── Generate Button ── */
+    .generate-wrap {
+      padding: 8px 20px 0;
+    }
+
+    .generate-btn {
+      width: 100%;
+      background: var(--orange);
+      border: none;
+      border-radius: 14px;
+      padding: 18px 24px;
+      font-family: 'Bungee', cursive;
+      font-size: 18px;
+      letter-spacing: 2px;
+      color: var(--navy);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow:
+        0 0 24px rgba(255,78,0,0.5),
+        0 0 48px rgba(255,78,0,0.2),
+        0 4px 12px rgba(0,0,0,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .generate-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        0 0 32px rgba(255,78,0,0.65),
+        0 0 64px rgba(255,78,0,0.25),
+        0 6px 20px rgba(0,0,0,0.5);
+    }
+
+    .generate-btn:active { transform: translateY(0); }
+
+    .generate-arrow {
+      font-size: 22px;
+      animation: arrowBounce 1.4s ease-in-out infinite;
+    }
+
+    @keyframes arrowBounce {
+      0%, 100% { transform: translateX(0); }
+      50%       { transform: translateX(5px); }
+    }
+
+    .generate-sub {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 11px;
+      color: rgba(192,192,192,0.5);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Result Preview Card ── */
+    .result-card {
+      margin: 20px 20px 0;
+      background: rgba(0,0,0,0.5);
+      border: 1.5px solid rgba(64,224,208,0.35);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(64,224,208,0.08);
+    }
+
+    .result-header {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid rgba(64,224,208,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .result-title {
+      font-family: 'Bungee', cursive;
+      font-size: 14px;
+      color: var(--teal);
+      text-shadow: 0 0 8px rgba(64,224,208,0.5);
+      flex: 1;
+    }
+
+    .result-badge {
+      font-family: 'Bungee', cursive;
+      font-size: 9px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(255,78,0,0.15);
+      border: 1px solid rgba(255,78,0,0.4);
+      color: var(--orange);
+      letter-spacing: 1px;
+    }
+
+    .stop-list { padding: 10px 0; }
+
+    .stop-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 16px;
+      transition: background 0.15s;
+    }
+    .stop-row:hover { background: rgba(64,224,208,0.04); }
+
+    .stop-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(64,224,208,0.5);
+      background: rgba(64,224,208,0.1);
+      color: var(--teal);
+      font-family: 'Bungee', cursive;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .stop-info { flex: 1; min-width: 0; }
+
+    .stop-type {
+      font-family: 'Bungee', cursive;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: rgba(192,192,192,0.5);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .stop-name {
+      font-family: 'Bungee', cursive;
+      font-size: 13px;
+      color: var(--paper);
+      display: block;
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stop-addr {
+      font-size: 11px;
+      color: var(--silver);
+      opacity: 0.6;
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .stop-dist {
+      font-family: 'Bungee', cursive;
+      font-size: 10px;
+      color: rgba(192,192,192,0.4);
+      flex-shrink: 0;
+      align-self: center;
+    }
+
+    .route-connector {
+      margin-left: 28px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .connector-line {
+      width: 1px;
+      height: 14px;
+      background: linear-gradient(to bottom, rgba(64,224,208,0.3), rgba(64,224,208,0.1));
+      margin-left: 12px;
+    }
+
+    .connector-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(64,224,208,0.3);
+      margin-left: 11px;
+    }
+
+    .result-footer {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(64,224,208,0.12);
+      display: flex;
+      gap: 10px;
+    }
+
+    .footer-stat {
+      flex: 1;
+      text-align: center;
+    }
+
+    .footer-stat-val {
+      font-family: 'Bungee', cursive;
+      font-size: 18px;
+      color: var(--teal);
+      display: block;
+      text-shadow: 0 0 8px rgba(64,224,208,0.4);
+    }
+
+    .footer-stat-lbl {
+      font-size: 10px;
+      color: var(--silver);
+      opacity: 0.6;
+      display: block;
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    .footer-divider {
+      width: 1px;
+      background: rgba(64,224,208,0.12);
+      align-self: stretch;
+    }
+
+    /* ── Action buttons ── */
+    .action-row {
+      display: flex;
+      gap: 10px;
+      padding: 14px 16px;
+      border-top: 1px solid rgba(64,224,208,0.12);
+    }
+
+    .btn-navigate {
+      flex: 2;
+      background: var(--orange);
+      border: none;
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-family: 'Bungee', cursive;
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: var(--navy);
+      cursor: pointer;
+      transition: opacity 0.2s;
+      box-shadow: 0 0 14px rgba(255,78,0,0.35);
+    }
+    .btn-navigate:hover { opacity: 0.85; }
+
+    .btn-save {
+      flex: 1;
+      background: rgba(64,224,208,0.1);
+      border: 1.5px solid var(--teal);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-family: 'Bungee', cursive;
+      font-size: 13px;
+      letter-spacing: 1px;
+      color: var(--teal);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-save:hover { background: rgba(64,224,208,0.18); }
+
+    /* ── Neon pulse dot ── */
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+      animation: pulse 2s ease-in-out infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1;   box-shadow: 0 0 6px var(--green); }
+      50%       { opacity: 0.4; box-shadow: 0 0 14px var(--green); }
+    }
+
+    /* ── Loading state demo ── */
+    .loading-bar-wrap {
+      padding: 24px 20px;
+      text-align: center;
+    }
+
+    .loading-label {
+      font-family: 'Bungee', cursive;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--teal);
+      margin-bottom: 14px;
+      text-shadow: 0 0 8px rgba(64,224,208,0.5);
+    }
+
+    .loading-track {
+      height: 4px;
+      background: rgba(64,224,208,0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .loading-fill {
+      height: 100%;
+      width: 65%;
+      background: linear-gradient(90deg, var(--teal), rgba(64,224,208,0.4));
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--teal);
+      animation: loadPulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes loadPulse {
+      0%   { width: 20%; }
+      50%  { width: 80%; }
+      100% { width: 20%; }
+    }
+
+    .loading-sub {
+      font-size: 11px;
+      color: rgba(192,192,192,0.45);
+      margin-top: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── Demo section labels (meta, not product UI) ── */
+    .demo-label {
+      margin: 30px 20px 0;
+      font-family: 'Bungee', cursive;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: rgba(64,224,208,0.3);
+      text-transform: uppercase;
+      border-top: 1px dashed rgba(64,224,208,0.1);
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="road-bg"></div>
+
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <div class="header">
+    <div class="header-back">
+      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </div>
+    <div class="header-title">DAY TRIP PLANNER</div>
+    <div class="header-badge">BETA</div>
+  </div>
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-eyebrow">Literary Roads</div>
+    <h1 class="hero-headline">PLAN YOUR<br><span>PERFECT DAY</span></h1>
+    <p class="hero-sub">Drop a pin, pick your vibe, and we'll build a bookshop-hopping, coffee-fueled itinerary around you.</p>
+    <div class="hero-divider"></div>
+  </div>
+
+  <!-- ── LOCATION INPUT ── -->
+  <div class="sec-heading">
+    <div class="sec-heading-text">Starting Point</div>
+    <div class="sec-heading-line"></div>
+  </div>
+
+  <div class="section">
+    <div class="input-row">
+      <input class="input-field" type="text" placeholder="Enter city or address..." value="Portland, OR" />
+      <button class="locate-btn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+          <circle cx="12" cy="9" r="2.5" stroke-width="2"/>
+        </svg>
+        USE ME
+      </button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── DURATION ── -->
+  <div class="sec-heading">
+    <div class="sec-heading-text">How Long?</div>
+    <div class="sec-heading-line"></div>
+  </div>
+
+  <div class="section">
+    <div class="duration-grid">
+      <div class="duration-card">
+        <span class="duration-icon">&#9889;</span>
+        <span class="duration-name">QUICK</span>
+        <span class="duration-time">30 min – 1 hr</span>
+        <span class="duration-stops">2–3 stops</span>
+      </div>
+      <div class="duration-card active">
+        <span class="duration-icon">&#9728;</span>
+        <span class="duration-name">HALF DAY</span>
+        <span class="duration-time">1–3 hours</span>
+        <span class="duration-stops">4–6 stops</span>
+      </div>
+      <div class="duration-card">
+        <span class="duration-icon">&#127758;</span>
+        <span class="duration-name">FULL DAY</span>
+        <span class="duration-time">3–5 hours</span>
+        <span class="duration-stops">7–10 stops</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── CATEGORIES ── -->
+  <div class="sec-heading">
+    <div class="sec-heading-text">What's Your Vibe?</div>
+    <div class="sec-heading-line"></div>
+  </div>
+
+  <div class="section">
+    <div class="category-grid">
+
+      <div class="cat-card active-orange" onclick="this.classList.toggle('active-orange')">
+        <div class="cat-check">&#10003;</div>
+        <div class="cat-icon cat-icon-orange">&#128218;</div>
+        <span class="cat-name">BOOKSHOPS</span>
+        <span class="cat-count">indie stores</span>
+      </div>
+
+      <div class="cat-card active-teal" onclick="this.classList.toggle('active-teal')">
+        <div class="cat-check">&#10003;</div>
+        <div class="cat-icon cat-icon-teal">&#9749;</div>
+        <span class="cat-name">COFFEE</span>
+        <span class="cat-count">cafes &amp; roasters</span>
+      </div>
+
+      <div class="cat-card active-green" onclick="this.classList.toggle('active-green')">
+        <div class="cat-check">&#10003;</div>
+        <div class="cat-icon cat-icon-green">&#127981;</div>
+        <span class="cat-name">LANDMARKS</span>
+        <span class="cat-count">literary sites</span>
+      </div>
+
+      <div class="cat-card" onclick="this.classList.toggle('active-teal')">
+        <div class="cat-check">&#10003;</div>
+        <div class="cat-icon cat-icon-purple">&#127981;</div>
+        <span class="cat-name">MUSEUMS</span>
+        <span class="cat-count">art &amp; history</span>
+      </div>
+
+      <div class="cat-card" onclick="this.classList.toggle('active-teal')">
+        <div class="cat-check">&#10003;</div>
+        <div class="cat-icon cat-icon-yellow">&#127774;</div>
+        <span class="cat-name">PARKS</span>
+        <span class="cat-count">gardens &amp; trails</span>
+      </div>
+
+      <div class="cat-card" onclick="this.classList.toggle('active-teal')">
+        <div class="cat-check">&#10003;</div>
+        <div class="cat-icon cat-icon-pink">&#127914;</div>
+        <span class="cat-name">THEATERS</span>
+        <span class="cat-count">live &amp; cinema</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── RADIUS ── -->
+  <div class="sec-heading">
+    <div class="sec-heading-text">Search Radius</div>
+    <div class="sec-heading-line"></div>
+  </div>
+
+  <div class="section">
+    <div class="pill-row">
+      <div class="radius-pill" onclick="setPill(this)">5 MI</div>
+      <div class="radius-pill" onclick="setPill(this)">10 MI</div>
+      <div class="radius-pill active" onclick="setPill(this)">20 MI</div>
+      <div class="radius-pill" onclick="setPill(this)">35 MI</div>
+      <div class="radius-pill" onclick="setPill(this)">50 MI</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── GENERATE BUTTON ── -->
+  <div class="generate-wrap">
+    <button class="generate-btn" onclick="showResult()">
+      BUILD MY TRIP
+      <span class="generate-arrow">&#8594;</span>
+    </button>
+    <div class="generate-sub"><span class="pulse-dot"></span> finds the best stops within your radius</div>
+  </div>
+
+  <!-- ── LOADING STATE (hidden by default) ── -->
+  <div class="loading-bar-wrap" id="loading" style="display:none;">
+    <div class="loading-label">PLOTTING YOUR ROUTE...</div>
+    <div class="loading-track"><div class="loading-fill"></div></div>
+    <div class="loading-sub">Scanning 20-mile radius &bull; Portland, OR</div>
+  </div>
+
+  <!-- ── RESULT CARD (hidden by default) ── -->
+  <div class="result-card" id="result" style="display:none;">
+    <div class="result-header">
+      <div class="result-title">HALF DAY IN PORTLAND</div>
+      <div class="result-badge">5 STOPS</div>
+    </div>
+
+    <div class="stop-list">
+
+      <div class="stop-row">
+        <div class="stop-num">1</div>
+        <div class="stop-info">
+          <span class="stop-type">Bookshop</span>
+          <span class="stop-name">Powell's City of Books</span>
+          <span class="stop-addr">1005 W Burnside St, Portland</span>
+        </div>
+        <div class="stop-dist">0.2 mi</div>
+      </div>
+      <div class="connector-line"></div>
+
+      <div class="stop-row">
+        <div class="stop-num">2</div>
+        <div class="stop-info">
+          <span class="stop-type">Coffee</span>
+          <span class="stop-name">Heart Coffee Roasters</span>
+          <span class="stop-addr">537 SW 12th Ave, Portland</span>
+        </div>
+        <div class="stop-dist">0.5 mi</div>
+      </div>
+      <div class="connector-line"></div>
+
+      <div class="stop-row">
+        <div class="stop-num">3</div>
+        <div class="stop-info">
+          <span class="stop-type">Literary Landmark</span>
+          <span class="stop-name">Oregon Book Awards Site</span>
+          <span class="stop-addr">Literary Arts, SW Broadway</span>
+        </div>
+        <div class="stop-dist">1.1 mi</div>
+      </div>
+      <div class="connector-line"></div>
+
+      <div class="stop-row">
+        <div class="stop-num">4</div>
+        <div class="stop-info">
+          <span class="stop-type">Bookshop</span>
+          <span class="stop-name">Broadway Books</span>
+          <span class="stop-addr">1714 NE Broadway, Portland</span>
+        </div>
+        <div class="stop-dist">2.4 mi</div>
+      </div>
+      <div class="connector-line"></div>
+
+      <div class="stop-row">
+        <div class="stop-num">5</div>
+        <div class="stop-info">
+          <span class="stop-type">Coffee</span>
+          <span class="stop-name">Coava Coffee Roasters</span>
+          <span class="stop-addr">1300 SE Grand Ave, Portland</span>
+        </div>
+        <div class="stop-dist">3.2 mi</div>
+      </div>
+
+    </div>
+
+    <div class="result-footer">
+      <div class="footer-stat">
+        <span class="footer-stat-val">2.1</span>
+        <span class="footer-stat-lbl">TOTAL HRS</span>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-stat">
+        <span class="footer-stat-val">8.4</span>
+        <span class="footer-stat-lbl">MILES</span>
+      </div>
+      <div class="footer-divider"></div>
+      <div class="footer-stat">
+        <span class="footer-stat-val">5</span>
+        <span class="footer-stat-lbl">STOPS</span>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="btn-navigate">NAVIGATE &#8594;</button>
+      <button class="btn-save">SAVE TRIP</button>
+    </div>
+  </div>
+
+  <!-- spacer -->
+  <div style="height: 20px;"></div>
+
+</div><!-- /page -->
+
+<script>
+  function showResult() {
+    const loading = document.getElementById('loading');
+    const result  = document.getElementById('result');
+    loading.style.display = 'block';
+    result.style.display  = 'none';
+    setTimeout(() => {
+      loading.style.display = 'none';
+      result.style.display  = 'block';
+      result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 2200);
+  }
+
+  function setPill(el) {
+    document.querySelectorAll('.radius-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
