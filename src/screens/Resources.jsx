@@ -785,7 +785,7 @@ export default function Resources({ onBack }) {
               Trending books, indie picks, debut authors, festivals, and road trip routes — every Sunday.
             </p>
             <a
-              href="https://sandime.github.io/literary-roads/newspaper/current"
+              href="#/newspaper/current"
               target="_blank"
               rel="noopener noreferrer"
               style={{
