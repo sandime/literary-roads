@@ -227,7 +227,7 @@ export default function GazetteNewspaper() {
               {label}
             </a>
           ))}
-          <a href="/literary-roads/" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', color: C.coral, textDecoration: 'none', padding: '10px 13px', whiteSpace: 'nowrap', borderBottom: '3px solid transparent', display: 'flex', alignItems: 'center', fontWeight: 700, marginLeft: 'auto' }}>
+          <a href="#/" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', color: C.coral, textDecoration: 'none', padding: '10px 13px', whiteSpace: 'nowrap', borderBottom: '3px solid transparent', display: 'flex', alignItems: 'center', fontWeight: 700, marginLeft: 'auto' }}>
             &#9658; Explore Map
           </a>
         </nav>
@@ -289,12 +289,12 @@ export default function GazetteNewspaper() {
             <div>
               <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.teal, letterSpacing: '0.06em', marginBottom: 12 }}>Literary Roads</div>
               <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, lineHeight: 1.7, color: 'rgba(245,241,235,0.75)', margin: '0 0 10px' }}>
-                The Gazette is published by <a href="/literary-roads/" style={{ color: C.coral, textDecoration: 'none' }}>Literary Roads</a> — a map-based app for literary road trips across America.
+                The Gazette is published by <a href="#/" style={{ color: C.coral, textDecoration: 'none' }}>Literary Roads</a> — a map-based app for literary road trips across America.
               </p>
               <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, lineHeight: 1.7, color: 'rgba(245,241,235,0.75)', margin: '0 0 10px' }}>
                 Find bookstores, cafes, and literary landmarks along any route.
               </p>
-              <a href="/literary-roads/" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: C.coral, textDecoration: 'none', letterSpacing: '0.06em' }}>
+              <a href="#/" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: C.coral, textDecoration: 'none', letterSpacing: '0.06em' }}>
                 Open the Map →
               </a>
             </div>

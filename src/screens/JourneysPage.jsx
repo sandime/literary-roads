@@ -900,7 +900,7 @@ export default function JourneysPage({
   const openDetail  = useCallback((route) => {
     navigate_(`/journeys/${route.id}`, { state: { route } });
   }, [navigate_]);
-  const closeDetail = useCallback(() => navigate_('/journeys'), [navigate_]);
+  const closeDetail = useCallback(() => navigate_(-1), [navigate_]);
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
