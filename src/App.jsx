@@ -45,13 +45,13 @@ function AppInner() {
   // Show odometer only on the very first load — never again after it completes, even if
   // AppInner remounts (which happens when navigating to/from standalone routes like /gazette).
   const [showOdometer, setShowOdometer] = useState(() => {
-    if (window.__lr_odometer_done) return false;
+    if (sessionStorage.getItem('lr_odometer_done')) return false;
     const hash = window.location.hash.slice(1) || '/';
     const [hashPath, hashQuery] = hash.split('?');
     const p = new URLSearchParams(hashQuery || '');
     const shouldShow = hashPath === '/' && !p.get('back') && !p.get('landmark');
-    // Mark done immediately if we're skipping it — so remounts never re-trigger it
-    if (!shouldShow) window.__lr_odometer_done = true;
+    // Mark done immediately if we're skipping — so remounts and page reloads never re-trigger
+    if (!shouldShow) sessionStorage.setItem('lr_odometer_done', '1');
     return shouldShow;
   });
 
@@ -226,7 +226,7 @@ function AppInner() {
       {/* Odometer — shown once on fresh app load */}
       {showOdometer && (
         <Odometer onComplete={() => {
-          window.__lr_odometer_done = true;
+          sessionStorage.setItem('lr_odometer_done', '1');
           setShowOdometer(false);
           if (!hasBeenWelcomed()) setShowWelcomeModal(true);
         }} />

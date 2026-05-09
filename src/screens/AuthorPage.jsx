@@ -142,7 +142,7 @@ export default function AuthorPage() {
   const appBase = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
   // Navigate to the map directly — back() is unreliable here because history may contain
   // Library or other intermediate entries depending on how the user arrived.
-  const openMap = () => navigate('/');
+  const openMap = () => { sessionStorage.setItem('lr_odometer_done', '1'); navigate('/'); };
   const landmarkHref = (id) => `${appBase}/#/?landmark=${encodeURIComponent(id)}`;
 
   if (!author) {
@@ -165,8 +165,8 @@ export default function AuthorPage() {
         </button>
         <span style={styles.navTitle}>Literary Roads / Library</span>
         <div style={styles.navLinks}>
-          <a href={`${appBase}/#/library`} style={styles.navLink}>Library</a>
-          <a href={`${appBase}/#/newspaper/current`} style={styles.navLink}>Gazette</a>
+          <a href="#/library" style={styles.navLink}>Library</a>
+          <a href="#/newspaper/current" style={styles.navLink}>Gazette</a>
         </div>
       </nav>
 
