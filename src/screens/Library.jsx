@@ -1629,8 +1629,9 @@ export default function Library({ onBack }) {
               <a
                 key={a.id}
                 href={`#/author?state=${encodeURIComponent(a.state)}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{ textDecoration: 'none' }}
-                onClick={(e) => { e.preventDefault(); navigate(`/author?state=${encodeURIComponent(a.state)}`); }}
               >
                 <div style={{
                   borderRadius: 12, overflow: 'hidden', display: 'flex',

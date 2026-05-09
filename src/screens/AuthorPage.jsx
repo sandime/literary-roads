@@ -140,8 +140,9 @@ export default function AuthorPage() {
   };
 
   const appBase = window.location.origin + (import.meta.env.BASE_URL || '/').replace(/\/$/, '');
-  // AuthorPage opens in a new tab — use browser back to return to the map
-  const openMap = () => window.history.back();
+  // Navigate to the map directly — back() is unreliable here because history may contain
+  // Library or other intermediate entries depending on how the user arrived.
+  const openMap = () => navigate('/');
   const landmarkHref = (id) => `${appBase}/#/?landmark=${encodeURIComponent(id)}`;
 
   if (!author) {

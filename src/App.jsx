@@ -31,14 +31,21 @@ import AuthorPage from './screens/AuthorPage';
 import JourneysPage from './screens/JourneysPage';
 import './App.css';
 
+// window flags: survive HMR module re-evaluation (unlike module-level lets) but reset on
+// full page reload — exactly the right lifetime for per-session, cross-remount state.
+// AppInner unmounts/remounts whenever the user navigates to standalone routes (/gazette,
+// /author, /newspaper/*) and back, so component state alone can't track these.
+
 function AppInner() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Show odometer only on fresh load at '/' with no back/landmark signals
+  // Show odometer only on the very first load — never again after it completes, even if
+  // AppInner remounts (which happens when navigating to/from standalone routes like /gazette).
   const [showOdometer, setShowOdometer] = useState(() => {
+    if (window.__lr_odometer_done) return false;
     const hash = window.location.hash.slice(1) || '/';
     const [hashPath, hashQuery] = hash.split('?');
     const p = new URLSearchParams(hashQuery || '');
@@ -81,18 +88,22 @@ function AppInner() {
     locationPathnameRef.current = location.pathname;
   }, [location.pathname]);
 
-  // Push a buffer history entry so back-press at the map gives us one intercept slot,
-  // then reset the map to a fresh state rather than exiting the app.
+  // Back-press at the map resets to a fresh state instead of exiting the app.
+  // The buffer entry is pushed once per page lifetime so AppInner remounts (when the user
+  // navigates to/from standalone routes like /author) don't accumulate extra history entries
+  // that would throw React Router out of sync.
   useEffect(() => {
     if (showOdometer) return;
-    // Push the buffer entry once the map is shown
-    window.history.pushState({ literaryRoadsBuffer: true }, '', window.location.href);
+    if (!window.__lr_buffer_pushed) {
+      window.history.pushState({ literaryRoadsBuffer: true }, '', window.location.href);
+      window.__lr_buffer_pushed = true;
+    }
     const handlePop = () => {
       const hash = window.location.hash;
       const atMap = !hash || hash === '#/' || hash === '#';
       if (atMap && locationPathnameRef.current === '/') {
-        // Re-push the buffer so the next back press also intercepts
-        window.history.pushState({ literaryRoadsBuffer: true }, '', window.location.href);
+        // Reset the map — do NOT push another buffer entry here, that would put React
+        // Router's internal history out of sync with the real browser history.
         setMapResetKey(k => k + 1);
       }
     };
@@ -212,6 +223,7 @@ function AppInner() {
       {/* Odometer — shown once on fresh app load */}
       {showOdometer && (
         <Odometer onComplete={() => {
+          window.__lr_odometer_done = true;
           setShowOdometer(false);
           if (!hasBeenWelcomed()) setShowWelcomeModal(true);
         }} />
