@@ -1165,7 +1165,7 @@
     "lat": 40.7608,
     "lng": -111.891,
     "description": "Annual statewide literary celebration presented by Utah Humanities, with author events at libraries and cultural venues across Salt Lake City and Utah.",
-    "website": "https://utahhumanities.org/book-festival/",
+    "website": "https://utahhumanities.org/programs/center-for-the-book/book-festival",
     "typicalMonth": "October",
     "recurringPattern": "Annual – October",
     "size": "regional",
@@ -1247,14 +1247,14 @@
     "genre": null
   },
   {
-    "id": "sacramento-book-fair",
-    "name": "Sacramento Book Fair",
+    "id": "sacramento-book-festival",
+    "name": "Sacramento Book Festival",
     "city": "Sacramento",
     "state": "CA",
     "lat": 38.5816,
     "lng": -121.4944,
     "description": "Annual gathering of independent booksellers, small presses, and literary organizations celebrating books and reading culture in California's capital.",
-    "website": "https://www.sacramentobookfair.com/",
+    "website": "https://www.sacramentobookfestival.com/",
     "typicalMonth": "April",
     "recurringPattern": "Annual – spring",
     "size": "regional",
@@ -1378,29 +1378,6 @@
       "world-fantasy-award"
     ],
     "genre": "fantasy"
-  },
-  {
-    "id": "nebula-awards-conference",
-    "name": "Nebula Awards Conference",
-    "city": "Various (rotating)",
-    "state": "CA",
-    "lat": 37.3861,
-    "lng": -122.0839,
-    "description": "Annual Science Fiction and Fantasy Writers of America conference presenting the Nebula Awards, rotating among US cities; includes craft panels and an awards banquet.",
-    "website": "https://nebulas.sfwa.org/",
-    "typicalMonth": "May",
-    "recurringPattern": "Annual – May, rotating cities",
-    "size": "specialty",
-    "primaryType": "genre",
-    "tags": [
-      "sci-fi",
-      "fantasy",
-      "awards",
-      "sfwa",
-      "rotating",
-      "nebula"
-    ],
-    "genre": "sci-fi"
   },
   {
     "id": "romance-writers-conference",
@@ -2304,30 +2281,6 @@
     "genre": null
   },
   {
-    "id": "idaho-cowboy-poetry-gathering",
-    "name": "Idaho Cowboy Poetry Gathering",
-    "city": "Nampa",
-    "state": "ID",
-    "lat": 43.5407,
-    "lng": -116.5635,
-    "description": "Annual Idaho gathering honoring the Basque and ranching heritage of the Treasure Valley through cowboy poetry, traditional music, and Western storytelling.",
-    "website": "https://www.idahocowboypoetry.com/",
-    "typicalMonth": "November",
-    "recurringPattern": "Annual – November",
-    "size": "regional",
-    "primaryType": "poetry",
-    "tags": [
-      "cowboy-poetry",
-      "western",
-      "idaho",
-      "basque-heritage",
-      "folk",
-      "ranch-culture",
-      "treasure-valley"
-    ],
-    "genre": null
-  },
-  {
     "id": "austin-international-poetry-festival",
     "name": "Austin International Poetry Festival",
     "city": "Austin",
@@ -2375,31 +2328,6 @@
       "high-school",
       "community",
       "major"
-    ],
-    "genre": null
-  },
-  {
-    "id": "brave-new-voices",
-    "name": "Brave New Voices International Teen Poetry Slam",
-    "city": "Various (rotating)",
-    "state": "CA",
-    "lat": 37.7749,
-    "lng": -122.4194,
-    "description": "Annual international teen slam poetry festival hosted by Youth Speaks, featuring young poets from cities worldwide competing and collaborating over a week-long event.",
-    "website": "https://www.youthspeaks.org/brave-new-voices/",
-    "typicalMonth": "July",
-    "recurringPattern": "Annual – July, rotating US cities",
-    "size": "major",
-    "primaryType": "poetry",
-    "tags": [
-      "slam",
-      "youth",
-      "teen",
-      "spoken-word",
-      "competition",
-      "international",
-      "rotating",
-      "youth-speaks"
     ],
     "genre": null
   },
@@ -3290,22 +3218,22 @@
   {
     "id": "book-lovers-con-las-vegas",
     "name": "Book Lovers Con",
-    "city": "Las Vegas",
-    "state": "NV",
-    "lat": 36.1699,
-    "lng": -115.1398,
+    "city": "New Orleans",
+    "state": "LA",
+    "lat": 29.9540,
+    "lng": -90.0681,
     "description": "Immersive reader experiences, mingling with beloved storytellers, morning mixers, three-hour book fests, and unforgettable evening events.",
     "website": "https://bookloverscon.com",
-    "typicalMonth": "March",
-    "recurringPattern": "Annual – late March",
+    "typicalMonth": "May",
+    "recurringPattern": "Annual – late May",
     "size": "medium",
     "primaryType": "general",
     "tags": [
       "books",
       "readers",
       "immersive",
-      "nevada",
-      "las-vegas"
+      "louisiana",
+      "new orleans"
     ],
     "genre": null
   },
@@ -3441,28 +3369,7 @@
     ],
     "genre": null
   },
-  {
-    "id": "sacramento-book-festival",
-    "name": "Sacramento Book Festival",
-    "city": "Sacramento",
-    "state": "CA",
-    "lat": 38.5816,
-    "lng": -121.4944,
-    "description": "Major literary event hosting more than 200 authors at the Scottish Rite Masonic Center. Features big name authors, prizes, food trucks, and outdoor seating.",
-    "website": "https://sacramentobookfestival.com",
-    "typicalMonth": "April",
-    "recurringPattern": "Annual – mid April",
-    "size": "major",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "authors",
-      "california",
-      "sacramento",
-      "major"
-    ],
-    "genre": null
-  },
+  
   {
     "id": "bam-festival-west-palm-beach",
     "name": "BAM! Festival",
@@ -3757,7 +3664,7 @@
     "lat": 38.9784,
     "lng": -76.4922,
     "description": "Free community festival celebrating the written word for 23 years. Features nationally renowned authors, children's activities, live music, food, and a literary marketplace.",
-    "website": "https://keyschool.org/annapolis-book-festival",
+    "website": "https://www.keyschool.org/community/annapolis-book-festival/festivalevents",
     "typicalMonth": "May",
     "recurringPattern": "Annual – early May",
     "size": "medium",

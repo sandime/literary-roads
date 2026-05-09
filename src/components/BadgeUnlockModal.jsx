@@ -92,10 +92,12 @@ const BadgeUnlockModal = ({ badges, onClose, onViewAll }) => {
                 '--badge-glow': badge.color + '60',
                 background: `radial-gradient(circle, ${badge.color}22, ${badge.color}08)`,
                 border: `3px solid ${badge.color}`,
-                fontSize: '3rem',
+                fontSize: badge.iconSvg ? undefined : '3rem',
               }}
             >
-              {badge.icon}
+              {badge.iconSvg
+                ? <div style={{ width: 52, height: 52 }} dangerouslySetInnerHTML={{ __html: badge.iconSvg }} />
+                : badge.icon}
             </div>
 
             {/* Badge name */}

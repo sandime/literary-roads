@@ -306,6 +306,31 @@ export const BADGES = [
     stat: 'booksLogged',
     required: 25,
   },
+
+  // ── DISCOVERY (easter eggs) ──────────────────────────────────────────────
+  {
+    id: 'curious-as-a-cat',
+    category: 'discovery',
+    name: 'Curious as a Cat',
+    description: 'Curiosity pays off',
+    shareText: 'I found a hidden secret on The Literary Roads! 🐱',
+    icon: '🐱',
+    iconSvg: `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M10 21 L14 9 L20 18" fill="#F5F5DC"/>
+      <path d="M30 21 L26 9 L20 18" fill="#F5F5DC"/>
+      <ellipse cx="20" cy="25" rx="12" ry="10.5" fill="#F5F5DC"/>
+      <circle cx="15.5" cy="23" r="3.6" fill="#1A1B2E"/>
+      <circle cx="17" cy="21.5" r="1.2" fill="#F5F5DC"/>
+      <circle cx="24.5" cy="23" r="3.6" fill="#1A1B2E"/>
+      <circle cx="26" cy="21.5" r="1.2" fill="#F5F5DC"/>
+      <path d="M19.5 27 L20 28.2 L20.5 27 Z" fill="#C0A090"/>
+    </svg>`,
+    color: '#F5F5DC',
+    stat: null,
+    required: null,
+    custom: true,
+    secret: true,
+  },
 ];
 
 export const BADGE_COUNT = BADGES.length;

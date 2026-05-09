@@ -9,6 +9,7 @@ import {
 } from 'firebase/firestore';
 import PosterIllustration from '../components/journey/PosterIllustrations';
 import { BookIcon, CoffeeCupIcon, LiteraryLandmarkIcon } from '../components/Icons';
+import SecretRoom from '../components/journey/SecretRoom';
 
 const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
 const JOURNEY_CAT_SRC = `${import.meta.env.BASE_URL}images/journey-cat.png`;
@@ -904,6 +905,9 @@ export default function JourneysPage({
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
+  const [catHover, setCatHover] = useState(false);
+  const [showSecretRoom, setShowSecretRoom] = useState(false);
+
   const loadRoutes = useCallback(async () => {
     setLoading(true);
     try {
@@ -1029,18 +1033,37 @@ export default function JourneysPage({
               Curated literary road trips — ghost towns, lighthouses, author country, and the open road.
             </p>
           </div>
-          {/* Journey cat */}
-          <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: 20 }}>
-            <img
-              src={JOURNEY_CAT_SRC}
-              alt="Your guide"
-              onError={e => { e.currentTarget.style.display = 'none'; }}
-              style={{
-                height: isMobile ? 100 : 120,
-                display: 'block',
-                animation: 'journey-float 3s ease-in-out infinite',
-              }}
-            />
+          {/* Journey cat — easter egg */}
+          <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: 20, position: 'relative' }}>
+            <div
+              style={{ position: 'relative', display: 'inline-block', cursor: 'pointer' }}
+              onClick={() => setShowSecretRoom(true)}
+              onMouseEnter={() => setCatHover(true)}
+              onMouseLeave={() => setCatHover(false)}
+            >
+              <img
+                src={JOURNEY_CAT_SRC}
+                alt="Your guide"
+                onError={e => { e.currentTarget.style.display = 'none'; }}
+                style={{
+                  height: isMobile ? 100 : 120,
+                  display: 'block',
+                  animation: 'journey-float 3s ease-in-out infinite',
+                  transition: 'filter 0.2s',
+                  filter: catHover ? 'brightness(1.1)' : 'none',
+                }}
+              />
+              {catHover && (
+                <div style={{
+                  position: 'absolute', top: -22, left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontFamily: 'Special Elite, serif',
+                  fontSize: 11, color: 'rgba(245,245,220,0.45)',
+                  pointerEvents: 'none', userSelect: 'none',
+                  whiteSpace: 'nowrap',
+                }}>purrrr</div>
+              )}
+            </div>
             <div style={{
               fontFamily: 'Special Elite, serif', fontSize: 8,
               color: P.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4,
@@ -1138,6 +1161,11 @@ export default function JourneysPage({
           </>
         )}
       </div>
+
+      {/* Secret room overlay */}
+      {showSecretRoom && (
+        <SecretRoom onClose={() => setShowSecretRoom(false)} />
+      )}
 
       {/* Footer */}
       <div style={{

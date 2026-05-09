@@ -81,7 +81,7 @@
         out.textContent += 'Sample of docs that will be updated:\n';
         needsUpdate.slice(0, 10).forEach(d => {
           const data = d.data();
-          out.textContent += `  [${d.id}] "${data.name || '(unnamed)'" in ${data.state || '?'}\n`;
+          out.textContent += `  [${d.id}] "${data.name || '(unnamed)'}" in ${data.state || '?'}\n`;
         });
         if (needsUpdate.length > 10) out.textContent += `  … and ${needsUpdate.length - 10} more\n`;
         out.textContent += '\nDry run complete. Click ACTIVATE ALL to apply.';

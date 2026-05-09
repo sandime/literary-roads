@@ -1,6 +1,6 @@
 import { db } from '../config/firebase';
 import {
-  collection, getDocs, getDoc, setDoc, doc, onSnapshot, serverTimestamp,
+  collection, getDocs, getDoc, setDoc, updateDoc, doc, onSnapshot, serverTimestamp,
 } from 'firebase/firestore';
 import { BADGES, BADGE_MAP } from './badgeDefinitions';
 
@@ -156,6 +156,33 @@ export async function checkAndAwardFoundersBadge(userId) {
     return BADGE_MAP['founders-circle'];
   } catch (err) {
     console.error('[badgeChecker] founders badge:', err);
+    return null;
+  }
+}
+
+// ── Award 'Curious as a Cat' easter egg badge ─────────────────────────────────
+// Called on first click of the journey cat easter egg.
+// Returns the badge definition if newly awarded, null if already earned.
+export async function checkAndAwardJourneyCatBadge(userId) {
+  try {
+    const badgeRef  = doc(db, 'users', userId, 'badges', 'curious-as-a-cat');
+    const badgeSnap = await getDoc(badgeRef);
+    if (badgeSnap.exists()) return null; // already earned
+
+    await Promise.all([
+      setDoc(badgeRef, {
+        badgeId:  'curious-as-a-cat',
+        earnedAt: serverTimestamp(),
+        progress: 1,
+      }),
+      updateDoc(doc(db, 'users', userId), {
+        'discoveries.journeyCat': true,
+      }),
+    ]);
+
+    return BADGE_MAP['curious-as-a-cat'];
+  } catch (err) {
+    console.error('[badgeChecker] journey cat badge:', err);
     return null;
   }
 }

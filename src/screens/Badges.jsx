@@ -19,10 +19,12 @@ function BadgeDetailModal({ badge, onClose }) {
             style={{
               background: `radial-gradient(circle, ${badge.color}22, ${badge.color}08)`,
               border: `2px solid ${badge.earned ? badge.color : 'rgba(192,192,192,0.2)'}`,
-              fontSize: '2.5rem',
+              fontSize: badge.iconSvg ? undefined : '2.5rem',
               filter: badge.earned ? 'none' : 'grayscale(1) brightness(0.4)',
             }}>
-            {badge.icon}
+            {badge.iconSvg
+              ? <div style={{ width: 48, height: 48 }} dangerouslySetInnerHTML={{ __html: badge.iconSvg }} />
+              : badge.icon}
           </div>
           <h2 className="font-bungee text-lg mb-1"
             style={{ color: badge.earned ? badge.color : 'rgba(192,192,192,0.4)', letterSpacing: '0.04em' }}>
@@ -45,6 +47,11 @@ function BadgeDetailModal({ badge, onClose }) {
                 </p>
               )}
             </div>
+          ) : badge.secret ? (
+            <p className="font-special-elite text-xs mb-5 text-center"
+              style={{ color: 'rgba(192,192,192,0.35)', lineHeight: 1.5, letterSpacing: '0.1em' }}>
+              ???
+            </p>
           ) : badge.custom ? (
             <p className="font-special-elite text-xs mb-5 text-center"
               style={{ color: 'rgba(192,192,192,0.45)', lineHeight: 1.5 }}>
@@ -95,14 +102,22 @@ function BadgeTile({ badge, onClick }) {
       onMouseEnter={e => { e.currentTarget.style.borderColor = badge.earned ? badge.color + '90' : 'rgba(255,255,255,0.15)'; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = badge.earned ? badge.color + '50' : 'rgba(255,255,255,0.07)'; }}
     >
-      <span style={{
-        fontSize: '2rem',
-        filter: badge.earned ? 'none' : 'grayscale(1) brightness(0.3)',
-        transition: 'filter 0.2s',
-        textShadow: badge.earned ? `0 0 12px ${badge.color}` : 'none',
-      }}>
-        {badge.icon}
-      </span>
+      {badge.iconSvg ? (
+        <div style={{
+          width: 36, height: 36,
+          filter: badge.earned ? 'none' : 'grayscale(1) brightness(0.3)',
+          transition: 'filter 0.2s',
+        }} dangerouslySetInnerHTML={{ __html: badge.iconSvg }} />
+      ) : (
+        <span style={{
+          fontSize: '2rem',
+          filter: badge.earned ? 'none' : 'grayscale(1) brightness(0.3)',
+          transition: 'filter 0.2s',
+          textShadow: badge.earned ? `0 0 12px ${badge.color}` : 'none',
+        }}>
+          {badge.icon}
+        </span>
+      )}
       <span className="font-bungee text-[9px] text-center leading-tight"
         style={{
           color: badge.earned ? badge.color : 'rgba(192,192,192,0.3)',
