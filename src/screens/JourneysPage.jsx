@@ -95,8 +95,10 @@ function TypeIcon({ type, color, size = 20 }) {
 }
 
 // ── Filter pills config ───────────────────────────────────────────────────────
-// null key = deselect / landing. Only type pills here — no "All routes".
+// key: null = featured landing view. Clicking an active pill does NOT toggle it
+// off — use the FEATURED pill explicitly to return to the landing view.
 const FILTER_PILLS = [
+  { key: null,               label: 'Featured'           },
   { key: 'ghostTown',        label: 'Ghost Towns'        },
   { key: 'lighthouse',       label: 'Lighthouses'        },
   { key: 'ufo',              label: 'UFO & Paranormal'   },
@@ -962,9 +964,7 @@ export default function JourneysPage({
     }
   };
 
-  const toggleFilter = (key) => {
-    setFilter(prev => prev === key ? null : key);
-  };
+  const selectFilter = (key) => setFilter(key);
 
   // ── Detail view ───────────────────────────────────────────────────────────
   if (detail) {
@@ -1082,16 +1082,24 @@ export default function JourneysPage({
         }}>
           {FILTER_PILLS.map(pill => {
             const active = filter === pill.key;
+            const isFeatured = pill.key === null;
             return (
-              <button key={pill.key} onClick={() => toggleFilter(pill.key)} style={{
-                flexShrink: 0, minHeight: 36, padding: '6px 14px', borderRadius: 18,
-                cursor: 'pointer', fontFamily: 'Bungee, sans-serif', fontSize: 9,
-                letterSpacing: '0.08em', whiteSpace: 'nowrap',
-                background: active ? P.orange : 'transparent',
-                color: active ? '#fff' : P.muted,
-                border: active ? 'none' : `1px solid #3a3520`,
-                transition: 'all 0.12s',
-              }}>{pill.label.toUpperCase()}</button>
+              <button
+                key={String(pill.key)}
+                onClick={() => selectFilter(pill.key)}
+                style={{
+                  flexShrink: 0, minHeight: 36, padding: '6px 14px', borderRadius: 18,
+                  cursor: active ? 'default' : 'pointer',
+                  fontFamily: 'Bungee, sans-serif', fontSize: 9,
+                  letterSpacing: '0.08em', whiteSpace: 'nowrap',
+                  background: active ? (isFeatured ? P.teal : P.orange) : 'transparent',
+                  color: active ? (isFeatured ? '#1C1A14' : '#fff') : (isFeatured ? P.teal : P.muted),
+                  border: active ? 'none' : `1px solid ${isFeatured ? P.teal + '60' : '#3a3520'}`,
+                  transition: 'all 0.12s',
+                }}
+              >
+                {pill.label.toUpperCase()}
+              </button>
             );
           })}
           <select value={stateFilter} onChange={e => setStateFilter(e.target.value)} style={{
