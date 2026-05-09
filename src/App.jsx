@@ -49,7 +49,10 @@ function AppInner() {
     const hash = window.location.hash.slice(1) || '/';
     const [hashPath, hashQuery] = hash.split('?');
     const p = new URLSearchParams(hashQuery || '');
-    return hashPath === '/' && !p.get('back') && !p.get('landmark');
+    const shouldShow = hashPath === '/' && !p.get('back') && !p.get('landmark');
+    // Mark done immediately if we're skipping it — so remounts never re-trigger it
+    if (!shouldShow) window.__lr_odometer_done = true;
+    return shouldShow;
   });
 
   // Incremented when back is pressed while already on the map — MasterMap resets to fresh state

@@ -209,25 +209,27 @@ export default function GazetteNewspaper() {
         {/* Nav bar */}
         <nav aria-label="Sections" style={{ background: C.teal, padding: '0 24px', display: 'flex', alignItems: 'stretch', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {[
-            ['#festivals',    'Festivals'],
-            ['#handselected', 'Hand-Selected'],
-            ['#dispatches',   'Dispatches'],
-            ['#readerschoice','Readers\' Choice'],
-            ['#landmark',     'Landmark'],
-            ['#readingroom',  'Reading Room'],
-            ['#headlights',   'Headlights'],
-            ['#ontheroad',    'On the Road'],
-            ['#waystation',   'Waystation'],
-            ['#qa',           'Q&A'],
-            ['#longroad',     'The Long Road'],
-          ].map(([href, label]) => (
-            <a key={href} href={href} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.85)', textDecoration: 'none', padding: '10px 13px', whiteSpace: 'nowrap', borderBottom: '3px solid transparent', display: 'flex', alignItems: 'center' }}
+            ['festivals',    'Festivals'],
+            ['handselected', 'Hand-Selected'],
+            ['dispatches',   'Dispatches'],
+            ['readerschoice',"Readers' Choice"],
+            ['landmark',     'Landmark'],
+            ['readingroom',  'Reading Room'],
+            ['headlights',   'Headlights'],
+            ['ontheroad',    'On the Road'],
+            ['waystation',   'Waystation'],
+            ['qa',           'Q&A'],
+            ['longroad',     'The Long Road'],
+          ].map(([id, label]) => (
+            <a key={id} href={`#${id}`} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.85)', textDecoration: 'none', padding: '10px 13px', whiteSpace: 'nowrap', borderBottom: '3px solid transparent', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+              onClick={e => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
               onMouseEnter={e => { e.currentTarget.style.color='#fff'; e.currentTarget.style.borderBottomColor=C.cream; }}
               onMouseLeave={e => { e.currentTarget.style.color='rgba(255,255,255,0.85)'; e.currentTarget.style.borderBottomColor='transparent'; }}>
               {label}
             </a>
           ))}
-          <a href="#/" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', color: C.coral, textDecoration: 'none', padding: '10px 13px', whiteSpace: 'nowrap', borderBottom: '3px solid transparent', display: 'flex', alignItems: 'center', fontWeight: 700, marginLeft: 'auto' }}>
+          <a href="#/" style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', color: C.coral, textDecoration: 'none', padding: '10px 13px', whiteSpace: 'nowrap', borderBottom: '3px solid transparent', display: 'flex', alignItems: 'center', fontWeight: 700, marginLeft: 'auto' }}
+            onClick={e => { e.preventDefault(); window.location.hash = '/'; }}>
             &#9658; Explore Map
           </a>
         </nav>
