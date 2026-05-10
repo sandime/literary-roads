@@ -4,7 +4,7 @@
       "rank": 1,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 3,
+      "weeksOnList": 4,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
@@ -13,54 +13,54 @@
       "rank": 2,
       "title": "THE CORRESPONDENT",
       "author": "Virginia Evans",
-      "weeksOnList": 26,
+      "weeksOnList": 27,
       "isbn13": "9780593798430",
       "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
       "rank": 3,
+      "title": "THE THRONE OF BROKEN GODS",
+      "author": "Amber V. Nicole",
+      "weeksOnList": 1,
+      "isbn13": "9781496758071",
+      "description": "The second book in the Gods and Monsters series. Samkiel hopes to save Dianna after her transformation.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781496758071.jpg"
+    },
+    {
+      "rank": 4,
       "title": "PURPLE STATE",
       "author": "Dana Perino",
-      "weeksOnList": 1,
+      "weeksOnList": 2,
       "isbn13": "9780063486560",
       "description": "A public relations professional goes with two of her friends to a swing district in Wisconsin and meets a guy with a different perspective.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063486560.jpg"
     },
     {
-      "rank": 4,
-      "title": "A WOMAN'S PLACE",
-      "author": "Danielle Steel",
-      "weeksOnList": 1,
-      "isbn13": "9780593973080",
-      "description": "After the sinking of the Titanic takes her father, Lady Victoria Oldbrooke marries an older industrialist and eventually steps into his business.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593973080.jpg"
-    },
-    {
       "rank": 5,
-      "title": "HOPE RISES",
-      "author": "David Baldacci",
-      "weeksOnList": 2,
-      "isbn13": "9781538758021",
-      "description": "The second book in the Walter Nash series. Using an alias and some lethal skills, Nash works to bring down a global criminal operation.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538758021.jpg"
+      "title": "BLOOD BOUND",
+      "author": "Ellis Hunter",
+      "weeksOnList": 1,
+      "isbn13": "9781668233139",
+      "description": "Skylar and Astrid take on inner demons and external forces as they fight to save their world.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668233139.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "WHEN WE SEE YOU AGAIN",
-      "author": "Rachel Goldberg-Polin",
+      "title": "DOGS, BOYS, AND OTHER THINGS I'VE CRIED ABOUT",
+      "author": "Isabel Klee",
       "weeksOnList": 1,
-      "isbn13": "9798217198009",
-      "description": "A mother recounts the capture of her son, Hersh, from the Nova Music Festival and his subsequent execution.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217198009.jpg"
+      "isbn13": "9780063451070",
+      "description": "Klee helps foster dogs overcome challenges while she faces her own complications.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063451070.jpg"
     },
     {
       "rank": 2,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 14,
+      "weeksOnList": 15,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
@@ -69,31 +69,31 @@
       "rank": 3,
       "title": "FAMESICK",
       "author": "Lena Dunham",
-      "weeksOnList": 2,
+      "weeksOnList": 3,
       "isbn13": "9780593129326",
       "description": "The author of “Not That Kind of Girl” evaluates the effects that pursuing her creative endeavors had on her.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593129326.jpg"
     },
     {
       "rank": 4,
-      "title": "LONDON FALLING",
-      "author": "Patrick Radden Keefe",
-      "weeksOnList": 3,
-      "isbn13": "9780385548533",
-      "description": "The author of “Say Nothing” details the efforts by the parents of a 19-year-old Londoner to uncover the truth about his mysterious death and secret life.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385548533.jpg"
+      "title": "WHEN WE SEE YOU AGAIN",
+      "author": "Rachel Goldberg-Polin",
+      "weeksOnList": 2,
+      "isbn13": "9798217198009",
+      "description": "A mother recounts the capture of her son, Hersh, from the Nova Music Festival and his subsequent execution.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217198009.jpg"
     },
     {
       "rank": 5,
-      "title": "THE FUTURE IS PEACE",
-      "author": "Aziz Abu Sarah and Maoz Inon",
-      "weeksOnList": 2,
-      "isbn13": "9798217086511",
-      "description": "A Palestinian and an Israeli share reflections from the journey they took together over the course of a week.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217086511.jpg"
+      "title": "LONDON FALLING",
+      "author": "Patrick Radden Keefe",
+      "weeksOnList": 4,
+      "isbn13": "9780385548533",
+      "description": "The author of “Say Nothing” details the efforts by the parents of a 19-year-old Londoner to uncover the truth about his mysterious death and secret life.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385548533.jpg"
     }
   ],
-  "issueDate": "Sunday, May 3, 2026",
-  "issueNumber": 70,
-  "updatedAt": "2026-05-03T10:44:08.640Z"
+  "issueDate": "Sunday, May 10, 2026",
+  "issueNumber": 71,
+  "updatedAt": "2026-05-10T10:54:33.285Z"
 }
