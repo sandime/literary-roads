@@ -1,5 +1,5 @@
 // JourneysPage.jsx — Curated literary road trips page.
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,7 +29,6 @@ const P = {
   navBg: '#141209',
 };
 
-// ── Route type colors ─────────────────────────────────────────────────────────
 const TYPE_COLOR = {
   ghostTown:        '#F0F0F0',
   ufo:              '#9B59B6',
@@ -58,71 +57,22 @@ const TYPE_LABEL = {
   roadTrip:         'Road Trips',
 };
 
-// ── SVG icons ─────────────────────────────────────────────────────────────────
-function GhostIcon({ size = 20, color = '#F0F0F0' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" style={{ flexShrink: 0 }}>
-      <path
-        d="M 10 24 L 10 17 Q 10 7 20 7 Q 30 7 30 17 L 30 24 L 30 33 L 26 29 L 22 33 L 18 29 L 14 33 Z"
-        fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"
-      />
-      <ellipse cx="16" cy="18" rx="2.5" ry="3" fill="none" stroke={color} strokeWidth="1.5" />
-      <ellipse cx="24" cy="18" rx="2.5" ry="3" fill="none" stroke={color} strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-function TypeIcon({ type, color, size = 20 }) {
-  const c = color || TYPE_COLOR[type] || P.teal;
-  switch (type) {
-    case 'ghostTown':
-      return <GhostIcon size={size} color={c} />;
-    case 'bookstore':
-      return <BookIcon size={size} className="" style={{ color: c }} />;
-    case 'coffeeShop':
-      return <CoffeeCupIcon size={size} className="" style={{ color: c }} />;
-    case 'literaryLandmark':
-      return <LiteraryLandmarkIcon size={size} className="" style={{ color: c }} />;
-    default:
-      return (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2"
-          strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-          <path d="M3 17l4-8 4 4 4-6 4 10" />
-          <path d="M3 17h18" />
-        </svg>
-      );
-  }
-}
-
-// ── Filter pills config ───────────────────────────────────────────────────────
-// key: null = featured landing view. Clicking an active pill does NOT toggle it
-// off — use the FEATURED pill explicitly to return to the landing view.
-const FILTER_PILLS = [
-  { key: null,               label: 'Featured'           },
-  { key: 'ghostTown',        label: 'Ghost Towns'        },
-  { key: 'lighthouse',       label: 'Lighthouses'        },
-  { key: 'ufo',              label: 'UFO & Paranormal'   },
-  { key: 'authorCountry',    label: 'Author Country'     },
-  { key: 'coffeeShop',       label: 'Coffee Crawls'      },
-  { key: 'bookstore',        label: 'Bookstores'         },
-  { key: 'literaryLandmark', label: 'Literary Landmarks' },
-  { key: 'route66',          label: 'Route 66'           },
-  { key: 'roadTrip',         label: 'Road Trips'         },
+// Category definitions for the stamp-album landing
+const CATEGORY_DEFS = [
+  { key: 'route66',          label: 'Route 66',            sub: 'Centennial 2026'     },
+  { key: 'ghostTown',        label: 'Ghost Towns',         sub: 'Boom & bust'         },
+  { key: 'lighthouse',       label: 'Lighthouses',         sub: 'Coastal beacons'     },
+  { key: 'ufo',              label: 'UFO & Paranormal',    sub: 'High strange'        },
+  { key: 'nationalPark',     label: 'National Parks',      sub: 'Public lands'        },
+  { key: 'coffeeShop',       label: 'Coffee Crawls',       sub: 'Third places'        },
+  { key: 'bookstore',        label: 'Bookstores',          sub: 'Indie shelves'       },
+  { key: 'literaryLandmark', label: 'Literary Landmarks',  sub: 'Where it happened'   },
+  { key: 'authorCountry',    label: 'Author Country',      sub: 'Lived geographies'   },
+  { key: 'roadTrip',         label: 'Road Trips',          sub: 'Open road'           },
+  { key: 'googie',           label: 'Googie Architecture', sub: 'Atomic age'          },
 ];
 
-const US_STATES = [
-  'Multi-state','Alabama','Alaska','Arizona','Arkansas','California','Colorado',
-  'Connecticut','Delaware','Florida','Georgia','Hawaii','Idaho','Illinois',
-  'Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland',
-  'Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana',
-  'Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York',
-  'North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania',
-  'Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah',
-  'Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming',
-  'District of Columbia',
-];
-
-// ── Dashed road rule ──────────────────────────────────────────────────────────
+// ── Utility components ────────────────────────────────────────────────────────
 function RoadRule({ style = {} }) {
   return (
     <div style={{
@@ -134,24 +84,353 @@ function RoadRule({ style = {} }) {
   );
 }
 
-// ── Stamp badge ───────────────────────────────────────────────────────────────
-function StampBadge({ routeType }) {
-  const text = (routeType === 'route66' || routeType === 'roadTrip') ? 'Centennial\n2026' : 'Literary\nRoads';
+// ── Stamp-album components ────────────────────────────────────────────────────
+function PostageBadge({ count, rotate = 8 }) {
   return (
     <div style={{
-      position: 'absolute', top: 10, right: 10,
-      width: 44, height: 44, borderRadius: '50%',
-      border: `2px solid ${P.orange}`,
-      background: 'rgba(255,78,0,0.08)',
+      position: 'absolute', top: 8, right: 8, width: 38, height: 38,
+      borderRadius: '50%', background: 'rgba(255,248,231,0.95)',
+      border: `1.5px dashed ${P.orange}`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      transform: 'rotate(12deg)',
-      pointerEvents: 'none',
+      transform: `rotate(${rotate}deg)`,
+      fontFamily: 'Bungee, sans-serif', fontSize: 5.5, color: P.orange,
+      letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.15,
+      whiteSpace: 'pre-line',
+      boxShadow: '0 1px 0 rgba(0,0,0,0.4)',
+      zIndex: 2, pointerEvents: 'none',
+    }}>{`${count}\nROUTES`}</div>
+  );
+}
+
+function PosterCard({ cat, featured, onTap }) {
+  return (
+    <div onClick={() => onTap?.(cat.key)} style={{
+      position: 'relative', cursor: 'pointer',
+      background: '#0a0805',
+      padding: 6, paddingBottom: 38,
+      border: `1px solid ${P.border}`,
+      boxShadow: '0 2px 0 rgba(0,0,0,0.6), 0 6px 18px rgba(0,0,0,0.5)',
+      transform: featured ? 'rotate(-0.4deg)' : 'rotate(0.3deg)',
     }}>
-      <span style={{
-        fontFamily: 'Bungee, sans-serif', fontSize: 6,
-        color: P.orange, textAlign: 'center', lineHeight: 1.3, whiteSpace: 'pre-line',
-        letterSpacing: '0.04em',
-      }}>{text}</span>
+      <div style={{
+        position: 'relative', width: '100%',
+        aspectRatio: featured ? '1.4' : '0.78',
+        overflow: 'hidden',
+        border: '1px solid #1a1810',
+      }}>
+        <PosterIllustration type={cat.key} />
+        {/* Type label overlay */}
+        <div style={{
+          position: 'absolute', left: 0, right: 0, bottom: 0,
+          background: 'linear-gradient(180deg, transparent 0%, rgba(10,5,2,0.85) 70%, rgba(10,5,2,0.95) 100%)',
+          padding: featured ? '36px 14px 12px' : '20px 8px 8px',
+        }}>
+          <div style={{
+            fontFamily: 'Special Elite, serif',
+            fontSize: featured ? 9 : 7, color: P.gold,
+            letterSpacing: '0.2em', textTransform: 'uppercase',
+            marginBottom: 3,
+          }}>{cat.sub}</div>
+          <div style={{
+            fontFamily: 'Bungee, sans-serif',
+            fontSize: featured ? 22 : 13, color: P.cream,
+            letterSpacing: '0.02em', lineHeight: 0.95,
+            textShadow: '0 1px 0 #000',
+          }}>{cat.label.toUpperCase()}</div>
+        </div>
+        <PostageBadge count={cat.count} rotate={featured ? -10 : 8} />
+      </div>
+      {/* Perforated stamp footer */}
+      <div style={{
+        position: 'absolute', left: 0, right: 0, bottom: 0, height: 32,
+        background: '#f4e4b0',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 10px',
+        borderTop: `1px dashed ${P.border}`,
+        backgroundImage: 'radial-gradient(circle at 4px 0, #0a0805 2.5px, transparent 2.5px), radial-gradient(circle at 4px 32px, #0a0805 2.5px, transparent 2.5px)',
+        backgroundSize: '8px 32px',
+        backgroundRepeat: 'repeat-x',
+      }}>
+        <span style={{
+          fontFamily: 'Special Elite, serif', fontSize: 9, color: '#3a2810',
+          letterSpacing: '0.12em', textTransform: 'uppercase',
+        }}>Literary Roads</span>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.orange }}>→</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Stamp-album landing ───────────────────────────────────────────────────────
+function JourneysLanding({ categories, featuredKey, onCategoryTap, onBack, onSecretRoom, onShowDayTrip, onShowFestivalTrip, totalRoutes }) {
+  const featuredCat = categories.find(c => c.key === featuredKey) || categories[0];
+  const restCats = categories.filter(c => c !== featuredCat);
+
+  return (
+    <div style={{
+      height: '100%', overflowY: 'auto', background: P.bg, color: P.cream,
+      backgroundImage: 'radial-gradient(rgba(255,78,0,0.04) 1px, transparent 1px)',
+      backgroundSize: '12px 12px',
+      position: 'relative',
+    }}>
+      {/* Journey cat — tour guide, upper-right corner */}
+      <style>{`
+        @keyframes journey-cat-bounce {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-8px); }
+        }
+      `}</style>
+      <img
+        src={JOURNEY_CAT_SRC}
+        alt=""
+        onClick={onSecretRoom}
+        onError={e => { e.currentTarget.style.display = 'none'; }}
+        style={{
+          position: 'absolute', top: 56, right: 12,
+          height: 96, cursor: 'pointer', zIndex: 101,
+          animation: 'journey-cat-bounce 1.6s ease-in-out infinite',
+          filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))',
+        }}
+      />
+
+      {/* Sticky nav */}
+      <div style={{
+        background: P.navBg, borderBottom: `1px solid ${P.border}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', position: 'sticky', top: 0, zIndex: 100, height: 48,
+      }}>
+        <button onClick={onBack} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal,
+          letterSpacing: '0.06em', padding: 0,
+        }}>← MAP</button>
+        <span style={{
+          fontFamily: 'Bungee, sans-serif', fontSize: 12, color: P.teal,
+          letterSpacing: '0.06em',
+          textShadow: '0 0 8px rgba(64,224,208,0.5)',
+        }}>LITERARY ROADS</span>
+        <div style={{ width: 40 }} />
+      </div>
+
+      <div style={{ padding: '20px 14px 60px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={{
+            fontFamily: 'Special Elite, serif', fontSize: 9, color: P.teal,
+            letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4,
+          }}>Plan your next adventure</div>
+          <h1 style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 38,
+            color: P.teal, margin: '0 0 6px', lineHeight: 0.95,
+            letterSpacing: '0.04em',
+            textShadow: '0 0 20px rgba(64,224,208,0.55)',
+          }}>JOURNEY<span style={{ color: P.orange }}>S</span></h1>
+          <p style={{
+            fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted,
+            margin: 0, lineHeight: 1.5, maxWidth: '88%',
+          }}>A stamp-album of curated American road trips — pick a postcard.</p>
+        </div>
+
+        <RoadRule style={{ marginBottom: 18, opacity: 0.6 }} />
+
+        {/* Featured poster */}
+        {featuredCat && (
+          <div style={{ marginBottom: 22 }}>
+            <PosterCard cat={featuredCat} featured onTap={onCategoryTap} />
+          </div>
+        )}
+
+        {/* The Collection divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+          <div style={{ flex: 1, height: 1, background: P.border }} />
+          <span style={{
+            fontFamily: 'Special Elite, serif', fontSize: 9, color: P.muted,
+            letterSpacing: '0.25em', textTransform: 'uppercase',
+          }}>The Collection</span>
+          <div style={{ flex: 1, height: 1, background: P.border }} />
+        </div>
+
+        {/* 2-column grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          {restCats.map((cat, i) => (
+            <div key={cat.key} style={{ transform: `rotate(${i % 2 === 0 ? 0.6 : -0.5}deg)` }}>
+              <PosterCard cat={cat} onTap={onCategoryTap} />
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{ marginTop: 28, textAlign: 'center' }}>
+          <div style={{
+            fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
+            fontStyle: 'italic', letterSpacing: '0.04em',
+          }}>~ choose your road ~</div>
+          {/* Route count + Day/Festival Trip links */}
+          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted }}>
+              {totalRoutes} {totalRoutes === 1 ? 'route' : 'routes'}
+            </span>
+            <div style={{ display: 'flex', gap: 14 }}>
+              {onShowDayTrip && (
+                <button onClick={onShowDayTrip} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
+                }}>Day Trip →</button>
+              )}
+              {onShowFestivalTrip && (
+                <button onClick={onShowFestivalTrip} style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
+                }}>Festival Trip →</button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Route card (category view) ────────────────────────────────────────────────
+function RouteCard({ route, onExplore }) {
+  const stops = route.stops || [];
+  const books = Array.isArray(route.readingList) ? route.readingList.filter(b => b.title) : [];
+  const blurb = books[0]?.title
+    ? `"${books[0].title}"${books[0].author ? ` — ${books[0].author}` : ''}`
+    : (route.description ? route.description.slice(0, 80) + (route.description.length > 80 ? '…' : '') : '');
+
+  return (
+    <div
+      onClick={() => onExplore(route)}
+      style={{
+        background: P.card, border: `1px solid ${P.border}`,
+        borderRadius: 4, overflow: 'hidden', marginBottom: 12,
+        display: 'grid', gridTemplateColumns: '110px 1fr',
+        cursor: 'pointer',
+      }}
+    >
+      <div style={{ height: '100%', minHeight: 110, position: 'relative' }}>
+        <PosterIllustration type={route.routeType} />
+      </div>
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{
+          fontFamily: 'Special Elite, serif', fontSize: 8, color: P.gold,
+          letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4,
+        }}>
+          {[route.state, route.duration].filter(Boolean).join(' · ')}
+        </div>
+        <h3 style={{
+          fontFamily: 'Georgia, serif', fontSize: 15, color: P.cream,
+          margin: '0 0 6px', lineHeight: 1.2,
+        }}>{route.name}</h3>
+        {blurb && (
+          <p style={{
+            fontFamily: 'Georgia, serif', fontSize: 11, color: P.muted,
+            fontStyle: 'italic', lineHeight: 1.45, margin: '0 0 10px',
+          }}>{blurb}</p>
+        )}
+        <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
+          {stops.length > 0 && (
+            <span style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: 7, color: P.orange,
+              letterSpacing: '0.08em', padding: '3px 6px',
+              border: `1px solid ${P.orange}`, borderRadius: 2,
+            }}>{stops.length} STOPS</span>
+          )}
+          {route.difficulty && (
+            <span style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: 7, color: P.teal,
+              letterSpacing: '0.08em', padding: '3px 6px',
+              border: `1px solid ${P.teal}`, borderRadius: 2,
+            }}>{route.difficulty.toUpperCase()}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Category view ─────────────────────────────────────────────────────────────
+function CategoryView({ categoryKey, routes, stateFilter, onStateFilter, onExplore, onBack }) {
+  const label = TYPE_LABEL[categoryKey] || categoryKey;
+  const states = useMemo(() => [...new Set(routes.map(r => r.state).filter(Boolean))].sort(), [routes]);
+
+  return (
+    <div style={{ height: '100%', overflowY: 'auto', background: P.bg, color: P.cream }}>
+      {/* Nav */}
+      <div style={{
+        background: P.navBg, borderBottom: `1px solid ${P.border}`,
+        display: 'flex', alignItems: 'center', padding: '0 16px',
+        position: 'sticky', top: 0, zIndex: 100, height: 48,
+      }}>
+        <button onClick={onBack} style={{
+          background: 'none', border: 'none', cursor: 'pointer',
+          fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal,
+          letterSpacing: '0.06em', padding: 0,
+        }}>← JOURNEYS</button>
+      </div>
+
+      {/* Hero poster */}
+      <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
+        <PosterIllustration type={categoryKey} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, transparent 30%, rgba(28,26,20,0.5) 60%, #1C1A14 100%)',
+        }} />
+        <div style={{ position: 'absolute', bottom: 14, left: 16, right: 16 }}>
+          <div style={{
+            fontFamily: 'Special Elite, serif', fontSize: 9, color: P.gold,
+            letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 4,
+          }}>The Collection</div>
+          <h1 style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 26, color: P.cream,
+            margin: 0, letterSpacing: '0.03em', lineHeight: 1,
+            textShadow: '0 2px 0 #000',
+          }}>{label.toUpperCase()}</h1>
+        </div>
+      </div>
+
+      <div style={{ padding: '18px 14px 60px' }}>
+        {/* State filter chips */}
+        <div style={{
+          display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 18, paddingBottom: 4,
+          msOverflowStyle: 'none', scrollbarWidth: 'none',
+        }}>
+          {['All States', ...states].map((s, i) => {
+            const active = i === 0 ? stateFilter === '' : stateFilter === s;
+            return (
+              <button key={s} onClick={() => onStateFilter(i === 0 ? '' : s)} style={{
+                flexShrink: 0, padding: '6px 12px', borderRadius: 16,
+                fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.08em',
+                background: active ? P.orange : 'transparent',
+                color: active ? '#fff' : P.muted,
+                border: active ? 'none' : `1px solid ${P.border}`,
+                cursor: 'pointer', whiteSpace: 'nowrap',
+              }}>{s.toUpperCase()}</button>
+            );
+          })}
+        </div>
+
+        {/* Route count rule */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <span style={{
+            fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted, letterSpacing: '0.1em',
+          }}>{routes.length} ROUTE{routes.length !== 1 ? 'S' : ''}</span>
+          <div style={{
+            flex: 1, height: 1,
+            background: 'repeating-linear-gradient(90deg, #FF4E00 0, #FF4E00 6px, transparent 6px, transparent 12px)',
+            opacity: 0.5,
+          }} />
+        </div>
+
+        {routes.length === 0 ? (
+          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted, padding: '32px 0', textAlign: 'center' }}>
+            No routes yet in this collection.
+          </div>
+        ) : (
+          routes.map(r => <RouteCard key={r.id} route={r} onExplore={onExplore} />)
+        )}
+      </div>
     </div>
   );
 }
@@ -185,225 +464,59 @@ function BookCard({ book, index, onAddToReadNext, onCoverFetched, user, forceAdd
     finally { setAdding(false); }
   };
 
+  const isDone = added || forceAdded;
+
   return (
     <div style={{
-      display: 'flex', gap: 12, alignItems: 'flex-start',
-      marginBottom: 14, paddingBottom: 14,
-      borderBottom: `1px solid ${P.border}`,
+      display: 'grid', gridTemplateColumns: '50px 1fr', gap: 12,
+      padding: '10px 0', borderBottom: `1px solid ${P.border}`,
     }}>
-      <div style={{ width: 44, height: 64, flexShrink: 0, background: '#1a1810', borderRadius: 3, overflow: 'hidden' }}>
-        <img
-          src={coverUrl || CAT_SRC}
-          alt={book.title}
-          onLoad={onCoverLoad}
-          onError={onCoverError}
-          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-        />
+      {/* Spine swatch */}
+      <div style={{
+        height: 70, background: 'linear-gradient(135deg, #5a1808 0%, #2a0a04 100%)',
+        borderRadius: 2, position: 'relative',
+        boxShadow: 'inset -2px 0 0 rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.5)',
+        overflow: 'hidden',
+      }}>
+        {coverUrl ? (
+          <img
+            src={coverUrl}
+            alt={book.title}
+            onLoad={onCoverLoad}
+            onError={onCoverError}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <div style={{
+            width: '100%', height: '100%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 4, textAlign: 'center',
+          }}>
+            <div style={{
+              fontFamily: 'Bungee, sans-serif', fontSize: 5, color: '#f4d878',
+              letterSpacing: '0.05em', lineHeight: 1.1,
+            }}>{book.title.toUpperCase()}</div>
+          </div>
+        )}
       </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: P.cream, marginBottom: 2, lineHeight: 1.3 }}>{book.title}</div>
+      <div>
+        <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: P.cream, marginBottom: 2, lineHeight: 1.25 }}>{book.title}</div>
         {book.author && (
-          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, marginBottom: 4 }}>{book.author}</div>
+          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted, marginBottom: 4 }}>{book.author}</div>
         )}
         {book.description && (
           <div style={{ fontFamily: 'Georgia, serif', fontSize: 11, color: P.muted, fontStyle: 'italic', marginBottom: 6, lineHeight: 1.4 }}>{book.description}</div>
         )}
         {user && (
-          <button onClick={handleAdd} disabled={adding || added || forceAdded} style={{
-            background: 'none', border: `1px solid ${(added || forceAdded) ? P.gold : P.teal}`,
-            borderRadius: 4, padding: '4px 10px', cursor: (added || forceAdded) ? 'default' : 'pointer',
-            fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.06em',
-            color: (added || forceAdded) ? P.gold : P.teal, opacity: adding ? 0.6 : 1,
+          <button onClick={handleAdd} disabled={adding || isDone} style={{
+            background: 'transparent', border: `1px solid ${isDone ? P.gold : P.teal}`,
+            borderRadius: 3, padding: '3px 8px', cursor: isDone ? 'default' : 'pointer',
+            fontFamily: 'Bungee, sans-serif', fontSize: 7, letterSpacing: '0.08em',
+            color: isDone ? P.gold : P.teal, opacity: adding ? 0.6 : 1,
           }}>
-            {(added || forceAdded) ? 'ADDED' : adding ? '...' : '+ READ NEXT'}
+            {isDone ? 'ADDED' : adding ? '...' : '+ READ NEXT'}
           </button>
         )}
-      </div>
-    </div>
-  );
-}
-
-// ── Featured poster card ──────────────────────────────────────────────────────
-function FeaturedPoster({ route, onExplore, onSave, isMobile }) {
-  if (!route) return null;
-  const stops = route.stops || [];
-  const books = Array.isArray(route.readingList) ? route.readingList.filter(b => b.title) : [];
-  const firstBook = books[0];
-
-  return (
-    <div style={{ marginBottom: 24 }}>
-      <div style={{ position: 'relative', width: '100%' }}>
-        <div style={{
-          position: 'absolute', inset: 0,
-          transform: 'translate(6px, 6px)',
-          background: '#0A0905', borderRadius: 4,
-        }} />
-        <div style={{
-          position: 'relative', border: `2px solid ${P.muted}`,
-          borderRadius: 3, overflow: 'hidden', background: P.card,
-        }}>
-          <div style={{ border: '1px solid #6a6050', margin: 3, borderRadius: 2, overflow: 'hidden' }}>
-            <div style={{ position: 'relative', height: isMobile ? 160 : 220, background: '#0d0d0d' }}>
-              {route.posterImageUrl ? (
-                <img src={route.posterImageUrl} alt={route.name}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                <PosterIllustration type={route.routeType} />
-              )}
-              <div style={{
-                position: 'absolute', bottom: 10, left: 10,
-                background: P.orange, color: '#fff',
-                fontFamily: 'Bungee, sans-serif', fontSize: 8,
-                letterSpacing: '0.06em', padding: '3px 8px', borderRadius: 12,
-              }}>FEATURED</div>
-              <StampBadge routeType={route.routeType} />
-            </div>
-            <div style={{ background: '#0d1a0d', padding: '16px 18px 20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <div style={{ flex: 1, height: 1, background: '#2a3a2a' }} />
-                <span style={{
-                  fontFamily: 'Special Elite, serif', fontSize: 8,
-                  letterSpacing: '0.3em', textTransform: 'uppercase', color: '#8a7060',
-                }}>{TYPE_LABEL[route.routeType] || route.routeType}</span>
-                <div style={{ flex: 1, height: 1, background: '#2a3a2a' }} />
-              </div>
-              <h2 style={{
-                fontFamily: 'Georgia, serif', fontSize: 24, color: P.cream,
-                letterSpacing: 1, margin: '0 0 6px', lineHeight: 1.2, textAlign: 'center',
-              }}>{route.name}</h2>
-              <p style={{
-                fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
-                textAlign: 'center', margin: '0 0 14px',
-                letterSpacing: '0.08em', textTransform: 'uppercase',
-              }}>
-                {stops.length} stops{route.state ? ` · ${route.state}` : ''}{route.reversible ? ' · Reversible' : ''}
-              </p>
-              <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-                border: '1px solid #2a3a2a', borderRadius: 4,
-                marginBottom: 14, overflow: 'hidden',
-              }}>
-                {[
-                  { num: stops.length || '—', label: 'STOPS'    },
-                  { num: route.state || '—',   label: 'STATE'    },
-                  { num: route.duration || '—',label: 'DURATION' },
-                  { num: route.difficulty || 'Any', label: 'LEVEL' },
-                ].map((m, i) => (
-                  <div key={i} style={{
-                    padding: '10px 6px', textAlign: 'center',
-                    borderRight: i < 3 ? '1px solid #2a3a2a' : 'none',
-                  }}>
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: P.orange, lineHeight: 1 }}>{m.num}</div>
-                    <div style={{ fontFamily: 'Special Elite, serif', fontSize: 8, color: P.muted, letterSpacing: '0.08em', marginTop: 3, textTransform: 'uppercase' }}>{m.label}</div>
-                  </div>
-                ))}
-              </div>
-              {firstBook && (
-                <div style={{ borderLeft: `2px solid ${P.orange}`, paddingLeft: 10, marginBottom: 16 }}>
-                  <div style={{ fontFamily: 'Georgia, serif', fontSize: 12, color: P.teal, fontStyle: 'italic', lineHeight: 1.4 }}>
-                    "{firstBook.title}"
-                    {firstBook.author && <span style={{ color: P.muted }}> — {firstBook.author}</span>}
-                  </div>
-                </div>
-              )}
-              <button onClick={() => onExplore(route)} style={{
-                width: '100%', fontFamily: 'Bungee, sans-serif', fontSize: 11,
-                letterSpacing: '0.06em', padding: '10px 16px',
-                background: P.orange, color: '#fff', border: 'none',
-                borderRadius: 4, cursor: 'pointer',
-              }}>EXPLORE THIS ROUTE →</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Flat preview card ─────────────────────────────────────────────────────────
-function PreviewCard({ route, onExplore, onSave, isMobile }) {
-  const typeColor = TYPE_COLOR[route.routeType] || P.teal;
-  const stops = route.stops || [];
-  const books = Array.isArray(route.readingList) ? route.readingList.filter(b => b.title) : [];
-  const firstBook = books[0];
-
-  return (
-    <div style={{
-      background: P.card,
-      border: `1px solid ${P.border}`,
-      borderRadius: 6,
-      overflow: 'hidden',
-      marginBottom: 14,
-    }}>
-      {/* Top color bar */}
-      <div style={{ height: 3, background: typeColor, opacity: 0.7 }} />
-
-      <div style={{ padding: '14px 16px' }}>
-        {/* Type label */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-          <TypeIcon type={route.routeType} color={typeColor} size={16} />
-          <span style={{
-            fontFamily: 'Special Elite, serif', fontSize: 8, color: typeColor,
-            letterSpacing: '0.15em', textTransform: 'uppercase',
-          }}>{TYPE_LABEL[route.routeType] || route.routeType}</span>
-        </div>
-
-        {/* Route name */}
-        <h3 style={{
-          fontFamily: 'Georgia, serif', fontSize: isMobile ? 18 : 21,
-          color: P.cream, margin: '0 0 4px', lineHeight: 1.25,
-        }}>{route.name}</h3>
-
-        {/* Subtitle */}
-        <p style={{
-          fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
-          margin: '0 0 12px', letterSpacing: '0.04em',
-        }}>
-          {[stops.length ? `${stops.length} stops` : null, route.state, route.duration, route.difficulty].filter(Boolean).join(' · ')}
-        </p>
-
-        {/* 4-column meta strip */}
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-          border: `1px solid ${P.border}`, borderRadius: 4,
-          marginBottom: 12, overflow: 'hidden',
-        }}>
-          {[
-            { num: stops.length || '—', label: 'STOPS'    },
-            { num: route.state || '—',   label: 'STATE'    },
-            { num: route.duration || '—',label: 'DURATION' },
-            { num: route.difficulty || 'Any', label: 'LEVEL' },
-          ].map((m, i) => (
-            <div key={i} style={{
-              padding: '8px 4px', textAlign: 'center',
-              borderRight: i < 3 ? `1px solid ${P.border}` : 'none',
-            }}>
-              <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: P.orange, lineHeight: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.num}</div>
-              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 7, color: P.muted, letterSpacing: '0.07em', marginTop: 2, textTransform: 'uppercase' }}>{m.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* First book */}
-        {firstBook && (
-          <div style={{ borderLeft: `2px solid ${P.border}`, paddingLeft: 10, marginBottom: 14 }}>
-            <div style={{
-              fontFamily: 'Georgia, serif', fontSize: 11, color: P.teal,
-              fontStyle: 'italic', lineHeight: 1.4,
-            }}>
-              "{firstBook.title}"
-              {firstBook.author && <span style={{ color: P.muted }}> — {firstBook.author}</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Action button */}
-        <button onClick={() => onExplore(route)} style={{
-          width: '100%', fontFamily: 'Bungee, sans-serif', fontSize: 10,
-          letterSpacing: '0.06em', padding: '9px 14px',
-          background: P.orange, color: '#fff', border: 'none',
-          borderRadius: 4, cursor: 'pointer',
-        }}>EXPLORE THIS ROUTE →</button>
       </div>
     </div>
   );
@@ -443,7 +556,7 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
   const [booksExpanded, setBooksExpanded] = useState(true);
   const [showNavModal, setShowNavModal]   = useState(false);
   const [navStops, setNavStops]           = useState([]);
-  const [coverUrls, setCoverUrls] = useState({});  // index → url, for Add All
+  const [coverUrls, setCoverUrls] = useState({});
   const [allAdded, setAllAdded]   = useState(false);
 
   const stops   = route.stops || [];
@@ -451,8 +564,8 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
   const hasLegs = legs.length > 0;
   const hasReverse = route.reversible && route.forwardStartLabel && route.reverseStartLabel;
 
-  const orderedStops   = direction === 'reverse' ? [...stops].reverse() : stops;
-  const filteredStops  = hasLegs && selectedLeg !== 'all'
+  const orderedStops  = direction === 'reverse' ? [...stops].reverse() : stops;
+  const filteredStops = hasLegs && selectedLeg !== 'all'
     ? orderedStops.filter(s => s.legNumber === parseInt(selectedLeg))
     : orderedStops;
 
@@ -508,11 +621,13 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
   const handleNavigateStops = () => {
     const selected = getSelectedStops().filter(s => s.lat && s.lng);
     if (!selected.length) return;
-    // Save in background simultaneously
     if (user && !saved) { handleSaveRoute(); }
     setNavStops(selected);
     setShowNavModal(true);
   };
+
+  const typeLabel = TYPE_LABEL[route.routeType] || route.routeType;
+  const typeColor = TYPE_COLOR[route.routeType] || P.teal;
 
   return (
     <div style={{ height: '100vh', overflowY: 'auto', background: P.bg, color: P.cream }}>
@@ -525,51 +640,61 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
       }}>
         <button onClick={onBack} style={{
           background: 'none', border: 'none', cursor: 'pointer',
-          fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.teal,
-          letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: 6,
-          padding: '12px 8px 12px 0', minHeight: 48,
-        }}>
-          ← BACK TO JOURNEYS
-        </button>
+          fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal,
+          letterSpacing: '0.06em', padding: '12px 8px 12px 0', minHeight: 48,
+        }}>← {typeLabel.toUpperCase()}</button>
       </div>
 
-      {/* Illustration */}
-      <div style={{ height: isMobile ? 200 : 260, position: 'relative', background: '#0d0d0d', flexShrink: 0 }}>
+      {/* Hero */}
+      <div style={{ position: 'relative', height: isMobile ? 220 : 260, background: '#0d0d0d' }}>
         {route.posterImageUrl ? (
           <img src={route.posterImageUrl} alt={route.name}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
           <PosterIllustration type={route.routeType} />
         )}
-        <StampBadge routeType={route.routeType} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(180deg, transparent 40%, rgba(28,26,20,0.6) 75%, #1C1A14 100%)',
+        }} />
+        {/* Postmark stamp */}
+        <div style={{
+          position: 'absolute', top: 14, right: 14, width: 56, height: 56,
+          borderRadius: '50%', border: `2px solid ${P.orange}`,
+          background: 'rgba(255,78,0,0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transform: 'rotate(-12deg)',
+          fontFamily: 'Bungee, sans-serif', fontSize: 6.5, color: P.orange,
+          textAlign: 'center', lineHeight: 1.2, letterSpacing: '0.06em',
+          whiteSpace: 'pre-line',
+        }}>{`LITERARY\nROADS\n${route.state ? route.state.slice(0, 2).toUpperCase() : ''}·26`}</div>
       </div>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: isMobile ? '20px 16px 60px' : '28px 24px 72px' }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 20 }}>
-          <span style={{
-            display: 'inline-block', marginBottom: 8,
-            fontFamily: 'Special Elite, serif', fontSize: 9,
-            color: TYPE_COLOR[route.routeType] || P.teal,
-            letterSpacing: '0.15em', textTransform: 'uppercase',
-            background: (TYPE_COLOR[route.routeType] || P.teal) + '18',
-            border: `1px solid ${(TYPE_COLOR[route.routeType] || P.teal)}40`,
-            padding: '3px 8px', borderRadius: 10,
-          }}>{TYPE_LABEL[route.routeType] || route.routeType}</span>
-          <h1 style={{
-            fontFamily: 'Georgia, serif', fontSize: isMobile ? 22 : 28,
-            color: P.cream, margin: '0 0 6px', lineHeight: 1.2,
-          }}>{route.name}</h1>
-          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, margin: 0 }}>
-            {[route.state, stops.length + ' stops'].filter(Boolean).join(' · ')}
-          </p>
-        </div>
+        {/* Title block */}
+        <span style={{
+          display: 'inline-block', marginBottom: 8,
+          fontFamily: 'Special Elite, serif', fontSize: 9, color: typeColor,
+          letterSpacing: '0.18em', textTransform: 'uppercase',
+          background: typeColor + '18', border: `1px solid ${typeColor}40`,
+          padding: '3px 8px', borderRadius: 10,
+        }}>{typeLabel}</span>
+        <h1 style={{
+          fontFamily: 'Bungee, sans-serif', fontSize: isMobile ? 20 : 24,
+          color: P.cream, margin: '0 0 4px', letterSpacing: '0.02em', lineHeight: 1.05,
+        }}>{route.name.toUpperCase()}</h1>
+        <p style={{
+          fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted,
+          margin: '0 0 16px', letterSpacing: '0.04em',
+        }}>
+          {[route.state, route.duration, route.difficulty].filter(Boolean).join(' · ')}
+        </p>
 
         {/* Direction selector */}
         {hasReverse && (
-          <div style={{ marginBottom: 24, padding: 16, background: P.card, border: `1px solid ${P.border}`, borderRadius: 6 }}>
-            <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, margin: '0 0 12px' }}>
+          <div style={{ marginBottom: 20, padding: 14, background: P.card, border: `1px solid ${P.border}`, borderRadius: 6 }}>
+            <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, margin: '0 0 10px' }}>
               Which direction are you traveling?
             </p>
             <div style={{ display: 'flex', gap: 10, flexDirection: isMobile ? 'column' : 'row' }}>
@@ -593,10 +718,32 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
 
         {/* Description */}
         {route.description && (
-          <p style={{ fontFamily: 'Georgia, serif', fontSize: 15, lineHeight: 1.8, color: P.cream, marginBottom: 24 }}>
+          <p style={{ fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.75, color: P.cream, marginBottom: 22 }}>
             {direction === 'reverse' && route.reverseDescription ? route.reverseDescription : route.description}
           </p>
         )}
+
+        {/* Stat strip */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+          border: `1px solid ${P.border}`, borderRadius: 4,
+          marginBottom: 24, overflow: 'hidden', background: P.card,
+        }}>
+          {[
+            { num: stops.length || '—', label: 'STOPS'    },
+            { num: route.duration || '—', label: 'DURATION' },
+            { num: route.difficulty ? route.difficulty[0] : '—', label: 'LEVEL' },
+            { num: books.length || '—', label: 'BOOKS'    },
+          ].map((m, i) => (
+            <div key={i} style={{
+              padding: '10px 4px', textAlign: 'center',
+              borderRight: i < 3 ? `1px solid ${P.border}` : 'none',
+            }}>
+              <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 18, color: P.orange, lineHeight: 1 }}>{m.num}</div>
+              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 8, color: P.muted, letterSpacing: '0.1em', marginTop: 4 }}>{m.label}</div>
+            </div>
+          ))}
+        </div>
 
         {/* Leg selector */}
         {hasLegs && (
@@ -643,44 +790,59 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
           );
         })()}
 
-        {/* Stops list */}
+        {/* THE ROUTE — stops timeline */}
         <div style={{ marginBottom: 28 }}>
-          <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal, letterSpacing: '0.08em', marginBottom: 12 }}>STOPS</h3>
+          <h3 style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.teal,
+            letterSpacing: '0.1em', margin: '0 0 14px',
+          }}>THE ROUTE</h3>
           {filteredStops.map((stop, idx) => {
             const origIdx = direction === 'reverse' ? stops.length - 1 - idx : idx;
             const isChecked = checkedStops[origIdx] !== false;
+            const isLast = idx === filteredStops.length - 1;
             return (
               <div key={idx} style={{
-                display: 'flex', gap: 12, paddingBottom: 14, marginBottom: 14,
-                borderBottom: `1px solid ${P.border}`,
-                opacity: isChecked ? 1 : 0.4,
+                display: 'grid', gridTemplateColumns: '32px 1fr', gap: 10,
+                paddingBottom: isLast ? 0 : 14, marginBottom: isLast ? 0 : 14,
+                borderBottom: isLast ? 'none' : `1px solid ${P.border}`,
+                opacity: isChecked ? 1 : 0.38,
               }}>
-                <div style={{ flexShrink: 0, paddingTop: 2 }}>
+                <div style={{ position: 'relative' }}>
                   <button
                     onClick={() => setCheckedStops(p => ({ ...p, [origIdx]: !isChecked }))}
                     style={{
-                      width: 18, height: 18, borderRadius: 3, cursor: 'pointer',
-                      border: `1.5px solid ${isChecked ? P.orange : P.muted}`,
-                      background: isChecked ? P.orange + '30' : 'transparent',
+                      width: 28, height: 28, borderRadius: '50%',
+                      background: isChecked ? P.orange : 'transparent',
+                      border: `2px solid ${isChecked ? P.orange : P.muted}`,
+                      cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                    {isChecked && <span style={{ color: P.orange, fontSize: 10, lineHeight: 1 }}>✓</span>}
-                  </button>
+                      fontFamily: 'Bungee, sans-serif', fontSize: 11,
+                      color: isChecked ? '#fff' : P.muted,
+                      boxShadow: isChecked ? '0 1px 0 rgba(0,0,0,0.4)' : 'none',
+                      padding: 0,
+                    }}
+                  >{idx + 1}</button>
+                  {!isLast && (
+                    <div style={{
+                      position: 'absolute', top: 30, left: 13, bottom: -14, width: 2,
+                      background: 'repeating-linear-gradient(180deg, #FF4E00 0, #FF4E00 4px, transparent 4px, transparent 8px)',
+                      opacity: 0.4,
+                    }} />
+                  )}
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, fontWeight: 'bold', color: P.cream, marginBottom: 2 }}>
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: P.teal, letterSpacing: '0.06em', marginRight: 8 }}>
-                      {idx + 1}
-                    </span>
+                <div>
+                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 14, color: P.cream, fontWeight: 'bold', marginBottom: 2 }}>
                     {stop.name}
                   </div>
                   {(stop.city || stop.state) && (
-                    <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, marginBottom: 4 }}>
+                    <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted, letterSpacing: '0.04em', marginBottom: 5 }}>
                       {[stop.city, stop.state].filter(Boolean).join(', ')}
                     </div>
                   )}
                   {stop.routeNote && (
-                    <div style={{ fontFamily: 'Georgia, serif', fontSize: 12, color: P.muted, fontStyle: 'italic', marginTop: 4, lineHeight: 1.5 }}>{stop.routeNote}</div>
+                    <div style={{ fontFamily: 'Georgia, serif', fontSize: 12, color: P.muted, fontStyle: 'italic', lineHeight: 1.5 }}>
+                      {stop.routeNote}
+                    </div>
                   )}
                   {stop.stopLink && (
                     <a href={stop.stopLink} target="_blank" rel="noopener noreferrer" style={{
@@ -706,11 +868,11 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
           })}
         </div>
 
-        {/* Reading list */}
+        {/* Read before you go */}
         {books.length > 0 && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal, letterSpacing: '0.1em', margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.teal, letterSpacing: '0.1em', margin: 0 }}>
                 READ BEFORE YOU GO
               </h3>
               {!isMobile && books.length > 2 && (
@@ -724,13 +886,10 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
             </div>
             {(booksExpanded || isMobile ? books : books.slice(0, 2)).map((book, i) => (
               <BookCard
-                key={i}
-                book={book}
-                index={i}
+                key={i} book={book} index={i}
                 onAddToReadNext={handleAddToReadNext}
                 onCoverFetched={(idx, url) => setCoverUrls(p => ({ ...p, [idx]: url }))}
-                forceAdded={allAdded}
-                user={user}
+                forceAdded={allAdded} user={user}
               />
             ))}
             {user && books.length > 1 && (
@@ -777,26 +936,26 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
         <RoadRule style={{ marginBottom: 20 }} />
 
         {/* Action buttons */}
-        <div style={{ display: 'flex', gap: 12, flexDirection: isMobile ? 'column' : 'row' }}>
-          <button
-            onClick={handleNavigateStops}
-            disabled={getSelectedStops().filter(s => s.lat && s.lng).length === 0}
-            style={{
-              flex: 1, fontFamily: 'Bungee, sans-serif', fontSize: 11,
-              letterSpacing: '0.06em', padding: '12px 20px',
-              background: P.orange, color: '#fff', border: 'none',
-              borderRadius: 4, cursor: 'pointer',
-              opacity: getSelectedStops().filter(s => s.lat && s.lng).length === 0 ? 0.4 : 1,
-            }}>NAVIGATE MY STOPS →</button>
-          <button onClick={handleSaveRoute} disabled={saving} style={{
-            flex: 1, fontFamily: 'Bungee, sans-serif', fontSize: 11,
-            letterSpacing: '0.06em', padding: '12px 20px',
-            background: 'transparent', color: saved ? P.gold : P.teal,
-            border: `1.5px solid ${saved ? P.gold : P.teal}`,
-            borderRadius: 4, cursor: saving ? 'not-allowed' : 'pointer',
-            opacity: saving ? 0.6 : 1,
-          }}>{saved ? 'SAVED' : saving ? 'SAVING...' : 'SAVE THIS ROUTE'}</button>
-        </div>
+        <button
+          onClick={handleNavigateStops}
+          disabled={getSelectedStops().filter(s => s.lat && s.lng).length === 0}
+          style={{
+            width: '100%', fontFamily: 'Bungee, sans-serif', fontSize: 12,
+            letterSpacing: '0.08em', padding: '14px',
+            background: P.orange, color: '#fff', border: 'none',
+            borderRadius: 4, cursor: 'pointer', marginBottom: 10,
+            boxShadow: '0 2px 0 rgba(0,0,0,0.4)',
+            opacity: getSelectedStops().filter(s => s.lat && s.lng).length === 0 ? 0.4 : 1,
+          }}>NAVIGATE MY STOPS →</button>
+        <button onClick={handleSaveRoute} disabled={saving} style={{
+          width: '100%', fontFamily: 'Bungee, sans-serif', fontSize: 11,
+          letterSpacing: '0.08em', padding: '12px',
+          background: 'transparent',
+          color: saved ? P.gold : P.teal,
+          border: `1.5px solid ${saved ? P.gold : P.teal}`,
+          borderRadius: 4, cursor: saving ? 'not-allowed' : 'pointer',
+          opacity: saving ? 0.6 : 1,
+        }}>{saved ? 'SAVED' : saving ? 'SAVING...' : 'SAVE THIS ROUTE'}</button>
 
         {!user && (
           <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, fontStyle: 'italic', marginTop: 8, textAlign: 'center' }}>
@@ -890,13 +1049,12 @@ export default function JourneysPage({
   const [routes, setRoutes]           = useState([]);
   const [featured, setFeatured]       = useState(null);
   const [loading, setLoading]         = useState(true);
-  // filter = null → landing (featured poster). filter = 'ghostTown' etc → preview cards.
   const [filter, setFilter]           = useState(null);
   const [stateFilter, setStateFilter] = useState('');
   const navigate_    = useNavigate();
   const location_    = useLocation();
+  const [showSecretRoom, setShowSecretRoom] = useState(false);
 
-  // Derive detail from URL + location state — /journeys/:id → detail view
   const journeySubPath = location_.pathname.replace(/^\/journeys\/?/, '').split('?')[0];
   const detail = journeySubPath ? (location_.state?.route ?? null) : null;
 
@@ -907,14 +1065,9 @@ export default function JourneysPage({
 
   const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
-  const [catHover, setCatHover] = useState(false);
-  const [showSecretRoom, setShowSecretRoom] = useState(false);
-
   const loadRoutes = useCallback(async () => {
     setLoading(true);
     try {
-      // Simple single-field query — no composite index needed, no createdAt-missing exclusion.
-      // Sort client-side so documents without createdAt still appear.
       const snap = await getDocs(query(
         collection(db, 'curatedRoutes'),
         where('active', '==', true),
@@ -937,7 +1090,20 @@ export default function JourneysPage({
 
   useEffect(() => { loadRoutes(); }, [loadRoutes]);
 
-  const filteredRoutes = routes.filter(r => {
+  // Route counts per category key
+  const countsByType = useMemo(() => {
+    const counts = {};
+    routes.forEach(r => {
+      if (!r.routeType) return;
+      counts[r.routeType] = (counts[r.routeType] || 0) + 1;
+    });
+    // roadTrip filter also shows route66 routes
+    counts['roadTrip'] = (counts['roadTrip'] || 0) + (counts['route66'] || 0);
+    return counts;
+  }, [routes]);
+
+  // Routes filtered by current category + state
+  const filteredRoutes = useMemo(() => routes.filter(r => {
     if (filter !== null) {
       const typeMatch = filter === 'roadTrip'
         ? (r.routeType === 'roadTrip' || r.routeType === 'route66')
@@ -946,25 +1112,12 @@ export default function JourneysPage({
     }
     if (stateFilter && r.state !== stateFilter) return false;
     return true;
-  });
+  }), [routes, filter, stateFilter]);
 
-  const handleSaveRoute = async (route) => {
-    if (!user) { onShowLogin?.(); return; }
-    try {
-      const docId = `curated_${route.id}_${Date.now()}`;
-      await setDoc(doc(db, 'users', user.uid, 'savedRoutes', docId), {
-        routeName: route.name, routeType: route.routeType,
-        stops: route.stops || [],
-        readingList: Array.isArray(route.readingList) ? route.readingList.filter(b => b.title) : [],
-        curatedRouteRef: route.id,
-        createdAt: serverTimestamp(),
-      });
-    } catch (err) {
-      console.error('[JourneysPage] quick save failed:', err);
-    }
+  const selectFilter = (key) => {
+    setFilter(key);
+    setStateFilter('');
   };
-
-  const selectFilter = (key) => setFilter(key);
 
   // ── Detail view ───────────────────────────────────────────────────────────
   if (detail) {
@@ -979,226 +1132,55 @@ export default function JourneysPage({
     );
   }
 
-  // ── Landing / browse page ─────────────────────────────────────────────────
-  return (
-    <div style={{ height: '100vh', overflowY: 'auto', background: P.bg, color: P.cream }}>
-      <style>{`
-        @keyframes journey-float {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-6px); }
-        }
-      `}</style>
+  // ── Category definitions with live counts ─────────────────────────────────
+  const categoriesWithCounts = CATEGORY_DEFS.map(c => ({
+    ...c,
+    count: countsByType[c.key] || 0,
+  }));
 
-      {/* Sticky nav bar */}
-      <div style={{
-        background: P.navBg, borderBottom: `1px solid ${P.border}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', position: 'sticky', top: 0, zIndex: 100, minHeight: 48,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.teal,
-          letterSpacing: '0.06em', padding: '12px 0', minHeight: 48,
-        }}>← MAP</button>
-        <span style={{
-          fontFamily: 'Bungee, sans-serif', fontSize: 14, color: P.teal,
-          letterSpacing: '0.06em', textTransform: 'uppercase',
-          textShadow: '0 0 8px rgba(64,224,208,0.5)',
-        }}>LITERARY ROADS</span>
-        <div style={{ width: 60 }} />
-      </div>
-
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: isMobile ? '20px 16px' : '32px 24px' }}>
-
-        {/* Page header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{
-              fontFamily: 'Special Elite, serif', fontSize: 9, color: P.teal,
-              letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 6,
-            }}>Plan your next adventure</div>
-            <h1 style={{
-              fontFamily: 'Bungee, sans-serif',
-              fontSize: isMobile ? 36 : 52,
-              color: P.teal, margin: '0 0 8px', lineHeight: 1,
-              letterSpacing: '0.06em', textTransform: 'uppercase',
-              textShadow: '0 0 20px rgba(64,224,208,0.65)',
-            }}>
-              JOURNEY<span style={{ color: P.orange }}>S</span>
-            </h1>
-            <p style={{
-              fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted,
-              margin: 0, lineHeight: 1.5,
-            }}>
-              Curated literary road trips — ghost towns, lighthouses, author country, and the open road.
-            </p>
-          </div>
-          {/* Journey cat — easter egg */}
-          <div style={{ textAlign: 'center', flexShrink: 0, marginLeft: 20, position: 'relative' }}>
-            <div
-              style={{ position: 'relative', display: 'inline-block', cursor: 'pointer' }}
-              onClick={() => setShowSecretRoom(true)}
-              onMouseEnter={() => setCatHover(true)}
-              onMouseLeave={() => setCatHover(false)}
-            >
-              <img
-                src={JOURNEY_CAT_SRC}
-                alt="Your guide"
-                onError={e => { e.currentTarget.style.display = 'none'; }}
-                style={{
-                  height: isMobile ? 100 : 120,
-                  display: 'block',
-                  animation: 'journey-float 3s ease-in-out infinite',
-                  transition: 'filter 0.2s',
-                  filter: catHover ? 'brightness(1.1)' : 'none',
-                }}
-              />
-              {catHover && (
-                <div style={{
-                  position: 'absolute', top: -22, left: '50%',
-                  transform: 'translateX(-50%)',
-                  fontFamily: 'Special Elite, serif',
-                  fontSize: 11, color: 'rgba(245,245,220,0.45)',
-                  pointerEvents: 'none', userSelect: 'none',
-                  whiteSpace: 'nowrap',
-                }}>purrrr</div>
-              )}
-            </div>
-            <div style={{
-              fontFamily: 'Special Elite, serif', fontSize: 8,
-              color: P.muted, letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: 4,
-            }}>Your guide</div>
-          </div>
-        </div>
-
-        <RoadRule style={{ marginBottom: 16 }} />
-
-        {/* Filter pills — primary navigation, first interactive element */}
-        <div style={{
-          display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6, marginBottom: 20,
-          alignItems: 'center',
-          // Hide scrollbar for cleaner look
-          msOverflowStyle: 'none', scrollbarWidth: 'none',
-        }}>
-          {FILTER_PILLS.map(pill => {
-            const active = filter === pill.key;
-            const isFeatured = pill.key === null;
-            return (
-              <button
-                key={String(pill.key)}
-                onClick={() => selectFilter(pill.key)}
-                style={{
-                  flexShrink: 0, minHeight: 36, padding: '6px 14px', borderRadius: 18,
-                  cursor: active ? 'default' : 'pointer',
-                  fontFamily: 'Bungee, sans-serif', fontSize: 9,
-                  letterSpacing: '0.08em', whiteSpace: 'nowrap',
-                  background: active ? (isFeatured ? P.teal : P.orange) : 'transparent',
-                  color: active ? (isFeatured ? '#1C1A14' : '#fff') : (isFeatured ? P.teal : P.muted),
-                  border: active ? 'none' : `1px solid ${isFeatured ? P.teal + '60' : '#3a3520'}`,
-                  transition: 'all 0.12s',
-                }}
-              >
-                {pill.label.toUpperCase()}
-              </button>
-            );
-          })}
-          <select value={stateFilter} onChange={e => setStateFilter(e.target.value)} style={{
-            flexShrink: 0, minHeight: 36, padding: '6px 10px', borderRadius: 18,
-            cursor: 'pointer', fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
-            background: stateFilter ? P.orange + '18' : 'transparent',
-            color: stateFilter ? P.orange : P.muted,
-            border: stateFilter ? `1px solid ${P.orange}` : '1px solid #3a3520',
-            outline: 'none',
-          }}>
-            <option value="">ALL STATES</option>
-            {US_STATES.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
-          </select>
-        </div>
-
-        {/* Content area: featured poster (filter=null) OR preview cards (filter set) */}
+  // ── Landing ───────────────────────────────────────────────────────────────
+  if (filter === null) {
+    return (
+      <div style={{ height: '100vh', position: 'relative', background: P.bg }}>
         {loading ? (
-          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted, padding: '32px 0' }}>
-            Loading routes…
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted }}>Loading routes…</span>
           </div>
-        ) : filter === null ? (
-          /* ── Landing: featured poster ── */
-          <>
-            {featured ? (
-              <FeaturedPoster
-                route={featured}
-                onExplore={openDetail}
-                onSave={handleSaveRoute}
-                isMobile={isMobile}
-              />
-            ) : (
-              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted, padding: '32px 0', textAlign: 'center' }}>
-                No featured routes yet — select a type above to browse.
-              </div>
-            )}
-          </>
         ) : (
-          /* ── Type selected: flat preview cards ── */
-          <>
-            {filteredRoutes.length === 0 ? (
-              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted, padding: '32px 0', textAlign: 'center' }}>
-                No {TYPE_LABEL[filter] || filter} routes yet.
-              </div>
-            ) : (
-              <div>
-                <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <TypeIcon type={filter} size={16} />
-                  <span style={{
-                    fontFamily: 'Bungee, sans-serif', fontSize: 11,
-                    color: TYPE_COLOR[filter] || P.teal, letterSpacing: '0.08em',
-                  }}>{(TYPE_LABEL[filter] || filter).toUpperCase()}</span>
-                  <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted }}>
-                    — {filteredRoutes.length} {filteredRoutes.length === 1 ? 'route' : 'routes'}
-                  </span>
-                </div>
-                {filteredRoutes.map(route => (
-                  <PreviewCard
-                    key={route.id}
-                    route={route}
-                    onExplore={openDetail}
-                    onSave={handleSaveRoute}
-                    isMobile={isMobile}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+          <JourneysLanding
+            categories={categoriesWithCounts}
+            featuredKey={featured?.routeType}
+            onCategoryTap={selectFilter}
+            onBack={onBack}
+            onSecretRoom={() => setShowSecretRoom(true)}
+            onShowDayTrip={onShowDayTrip}
+            onShowFestivalTrip={onShowFestivalTrip}
+            totalRoutes={routes.length}
+          />
         )}
+        {showSecretRoom && <SecretRoom onClose={() => setShowSecretRoom(false)} />}
       </div>
+    );
+  }
 
-      {/* Secret room overlay */}
-      {showSecretRoom && (
-        <SecretRoom onClose={() => setShowSecretRoom(false)} />
-      )}
-
-      {/* Footer */}
-      <div style={{
-        background: P.navBg, borderTop: `0.5px solid ${P.border}`,
-        padding: '14px 24px', display: 'flex',
-        justifyContent: 'space-between', alignItems: 'center', marginTop: 32,
-      }}>
-        <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted }}>
-          {routes.length} {routes.length === 1 ? 'route' : 'routes'}
-        </span>
-        <div style={{ display: 'flex', gap: 16 }}>
-          {onShowDayTrip && (
-            <button onClick={onShowDayTrip} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted,
-            }}>Day Trip →</button>
-          )}
-          {onShowFestivalTrip && (
-            <button onClick={onShowFestivalTrip} style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted,
-            }}>Festival Trip →</button>
-          )}
+  // ── Category view ─────────────────────────────────────────────────────────
+  return (
+    <div style={{ height: '100vh', position: 'relative', background: P.bg }}>
+      {loading ? (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted }}>Loading routes…</span>
         </div>
-      </div>
+      ) : (
+        <CategoryView
+          categoryKey={filter}
+          routes={filteredRoutes}
+          stateFilter={stateFilter}
+          onStateFilter={setStateFilter}
+          onExplore={openDetail}
+          onBack={() => setFilter(null)}
+        />
+      )}
+      {showSecretRoom && <SecretRoom onClose={() => setShowSecretRoom(false)} />}
     </div>
   );
 }

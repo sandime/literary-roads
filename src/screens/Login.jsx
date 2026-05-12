@@ -1,8 +1,18 @@
 import { useState, useEffect } from 'react';
 import { sendPasswordResetEmail } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { BackArrowIcon } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
+
+// ── Design tokens ─────────────────────────────────────────────────────────────
+const NEON_CYAN   = '#4DE3DA';
+const NEON_PINK   = '#F03A8E';
+const INK         = '#0A0E1F';
+const INK_2       = '#070A18';
+const PAPER       = '#F5EBD6';
+const LEATHER_1   = '#6E3D24';
+const LEATHER_2   = '#4A2614';
+const LEATHER_HI  = '#9C5A38';
+const GOLD        = '#E8C76B';
 
 const FIREBASE_ERRORS = {
   'auth/user-not-found':          'No account found with that email.',
@@ -16,92 +26,296 @@ const FIREBASE_ERRORS = {
 };
 
 const CSS = `
-  @keyframes lr-card-hum {
-    0%,100% { box-shadow: 0 0 0 1px #40E0D0, 0 0 18px rgba(64,224,208,0.45), 0 0 45px rgba(64,224,208,0.15), 0 8px 32px rgba(0,0,0,0.6); }
-    50%      { box-shadow: 0 0 0 1px #40E0D0, 0 0 28px rgba(64,224,208,0.65), 0 0 70px rgba(64,224,208,0.25), 0 8px 32px rgba(0,0,0,0.6); }
+  @keyframes lr-star-twinkle {
+    0%, 100% { opacity: var(--so, 0.6); }
+    50%       { opacity: calc(var(--so, 0.6) * 0.3); }
   }
-  @keyframes lr-title-glow {
-    0%,100% { text-shadow: 0 0 8px #40E0D0, 0 0 20px rgba(64,224,208,0.7), 0 0 45px rgba(64,224,208,0.3); }
-    50%      { text-shadow: 0 0 4px #40E0D0, 0 0 12px rgba(64,224,208,0.4), 0 0 25px rgba(64,224,208,0.15); }
-  }
-  @keyframes lr-btn-glow {
-    0%,100% { box-shadow: 0 0 10px #FF4E00, 0 0 22px rgba(255,78,0,0.6), 0 0 45px rgba(255,78,0,0.25); }
-    50%      { box-shadow: 0 0 16px #FF4E00, 0 0 34px rgba(255,78,0,0.8), 0 0 68px rgba(255,78,0,0.35); }
-  }
-
-  .lr-card      { animation: lr-card-hum 3.5s ease-in-out infinite; }
-  .lr-title     { animation: lr-title-glow 3s ease-in-out infinite; }
-  .lr-submit    { animation: lr-btn-glow 2s ease-in-out infinite; }
-
-  .lr-input {
+  .lr-field-input {
     width: 100%; box-sizing: border-box;
-    background: rgba(255,245,200,0.06);
-    border: 1px solid rgba(150,110,55,0.5);
-    border-radius: 5px;
-    color: #F0D9A8;
-    padding: 10px 14px;
-    font-family: 'Special Elite', serif;
-    font-size: 14px;
+    padding: 10px 12px;
+    border: 0;
+    background: transparent;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 15px;
+    color: ${INK};
     outline: none;
-    transition: border-color .2s, box-shadow .2s, background .2s;
   }
-  .lr-input:focus {
-    border-color: #40E0D0;
-    background: rgba(255,245,200,0.1);
-    box-shadow: 0 0 0 2px rgba(64,224,208,0.15), 0 0 12px rgba(64,224,208,0.3);
-  }
-  .lr-input::placeholder { color: rgba(190,145,70,0.32); }
-
-  .lr-label {
-    display: block;
-    font-family: 'Bungee', sans-serif;
-    font-size: 9px;
-    letter-spacing: 0.18em;
-    color: rgba(210,170,90,0.8);
-    margin-bottom: 5px;
-  }
-
-  .lr-mode-btn {
-    flex: 1; padding: 8px 6px;
-    font-family: 'Bungee', sans-serif;
-    font-size: 11px; letter-spacing: 0.1em;
-    border: none; cursor: pointer;
-    transition: background .2s, color .2s;
-  }
-
-  .lr-google-btn {
-    display: flex; align-items: center; justify-content: center; gap: 9px;
-    width: 100%;
-    background: #F5F5DC; color: #1A1B2E;
-    border: none; border-radius: 6px;
-    padding: 11px 14px; cursor: pointer;
-    font-family: 'Special Elite', serif; font-size: 14px;
-    transition: background .2s, box-shadow .2s;
-  }
-  .lr-google-btn:hover:not(:disabled) {
-    background: #fff;
-    box-shadow: 0 0 16px rgba(245,245,220,0.4);
-  }
-  .lr-google-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-  .lr-divider {
-    display: flex; align-items: center; gap: 10px;
-    color: rgba(200,155,70,0.35);
-    font-family: 'Bungee', sans-serif;
-    font-size: 9px; letter-spacing: 0.12em;
-  }
-  .lr-divider::before, .lr-divider::after {
-    content: '';
-    flex: 1;
-    border-top: 1px solid rgba(200,155,70,0.2);
-  }
-
-  /* Mobile — prevent iOS zoom on input focus */
+  .lr-field-input::placeholder { color: #b8a070; opacity: 0.6; }
+  /* iOS zoom prevention */
   @media (max-width: 767px) {
-    .lr-input { font-size: 16px !important; }
+    .lr-field-input { font-size: 16px !important; }
   }
 `;
 
+// ── Environment components ────────────────────────────────────────────────────
+function StarrySky({ density = 70, seed = 3 }) {
+  const rng = (n) => {
+    const x = Math.sin(n * 9301 + seed * 49297) * 233280;
+    return x - Math.floor(x);
+  };
+  const stars = Array.from({ length: density }, (_, i) => ({
+    x: rng(i + 1) * 100,
+    y: rng(i + 100) * 100,
+    s: 0.5 + rng(i + 200) * 1.8,
+    o: 0.35 + rng(i + 300) * 0.6,
+    tw: 2 + rng(i + 400) * 4,
+  }));
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{
+      position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none',
+    }}>
+      <defs>
+        <radialGradient id="lr-skyGrad" cx="50%" cy="35%" r="80%">
+          <stop offset="0%" stopColor="#1a1f44" />
+          <stop offset="55%" stopColor="#0c1030" />
+          <stop offset="100%" stopColor="#05071a" />
+        </radialGradient>
+      </defs>
+      <rect x="0" y="0" width="100" height="100" fill="url(#lr-skyGrad)" />
+      {stars.map((s, i) => (
+        <circle key={i} cx={s.x} cy={s.y} r={s.s * 0.15} fill="#fff" opacity={s.o}>
+          <animate attributeName="opacity" values={`${s.o};${s.o * 0.3};${s.o}`} dur={`${s.tw}s`} repeatCount="indefinite" />
+        </circle>
+      ))}
+      {[[18, 22, NEON_CYAN], [82, 14, NEON_PINK], [12, 78, NEON_PINK], [88, 72, NEON_CYAN]].map(([x, y, c], i) => (
+        <g key={'g' + i}>
+          <circle cx={x} cy={y} r="0.4" fill={c} opacity="0.9">
+            <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3.2s" repeatCount="indefinite" />
+          </circle>
+          <circle cx={x} cy={y} r="1.2" fill={c} opacity="0.18" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+function NeonHorizon({ color = NEON_CYAN, y = 82, opacity = 0.7 }) {
+  const id = `lr-hg-${color.replace('#', '')}`;
+  return (
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{
+      position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity,
+    }}>
+      <defs>
+        <linearGradient id={id} x1="0" x2="1">
+          <stop offset="0" stopColor={color} stopOpacity="0" />
+          <stop offset="0.5" stopColor={color} stopOpacity="1" />
+          <stop offset="1" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <g stroke={color} strokeOpacity="0.18" strokeWidth="0.08">
+        {Array.from({ length: 11 }, (_, i) => (
+          <line key={i} x1={50} y1={y} x2={i * 10} y2={100} />
+        ))}
+      </g>
+      <g stroke={color} strokeOpacity="0.12" strokeWidth="0.08">
+        {[2, 4, 7, 11, 16, 22].map((d, i) => (
+          <line key={i} x1={0} y1={y + d} x2={100} y2={y + d} />
+        ))}
+      </g>
+      <line x1="0" y1={y} x2="100" y2={y} stroke={`url(#${id})`} strokeWidth="0.5" />
+    </svg>
+  );
+}
+
+function CompassStar({ size = 48, color = NEON_PINK }) {
+  return (
+    <svg width={size} height={size} viewBox="-50 -50 100 100" style={{
+      filter: `drop-shadow(0 0 6px ${color}) drop-shadow(0 0 14px ${color}80)`,
+      flexShrink: 0,
+    }}>
+      <polygon points="0,-44 6,-6 44,0 6,6 0,44 -6,6 -44,0 -6,-6" fill="none" stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
+      <polygon points="0,-44 6,-6 44,0 6,6 0,44 -6,6 -44,0 -6,-6" fill={color} fillOpacity="0.15" />
+      <g stroke={color} strokeWidth="0.8" strokeOpacity="0.7">
+        <line x1="-30" y1="-30" x2="30" y2="30" />
+        <line x1="30" y1="-30" x2="-30" y2="30" />
+      </g>
+      <circle r="3" fill={color} />
+    </svg>
+  );
+}
+
+function StitchSeam({ length = 360 }) {
+  const dashes = Array.from({ length: Math.floor(length / 10) }, (_, i) => i);
+  return (
+    <div style={{
+      position: 'absolute', top: 14, bottom: 14, width: 1,
+      display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center',
+    }}>
+      {dashes.map(i => (
+        <span key={i} style={{
+          width: 1, height: 6,
+          background: GOLD, opacity: 0.55,
+          boxShadow: `0 0 2px ${GOLD}`,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ── Form sub-components ────────────────────────────────────────────────────────
+function Field({ label, type = 'text', value, onChange, placeholder, autoFocus }) {
+  const [focus, setFocus] = useState(false);
+  return (
+    <label style={{ display: 'block', position: 'relative' }}>
+      <div style={{
+        fontFamily: '"IM Fell English SC", serif',
+        fontSize: 11, letterSpacing: '0.2em', color: '#5a4220',
+        textTransform: 'uppercase', marginBottom: 4,
+      }}>{label}</div>
+      <div style={{
+        position: 'relative',
+        background: 'rgba(255, 250, 230, 0.6)',
+        border: `1px solid ${focus ? NEON_PINK : '#b8a070'}`,
+        borderRadius: 6,
+        boxShadow: focus
+          ? `0 0 0 2px ${NEON_PINK}33, inset 0 1px 0 rgba(255,255,255,0.6)`
+          : 'inset 0 1px 0 rgba(255,255,255,0.6)',
+        transition: 'all 0.15s',
+      }}>
+        <input
+          className="lr-field-input"
+          type={type}
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+          onFocus={() => setFocus(true)}
+          onBlur={() => setFocus(false)}
+        />
+      </div>
+    </label>
+  );
+}
+
+function GoogleButton({ onClick, disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{
+      flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      padding: '9px 10px',
+      border: '1px solid #b8a070', borderRadius: 999,
+      background: 'rgba(255, 250, 230, 0.7)',
+      color: INK,
+      fontFamily: '"IM Fell English SC", serif',
+      fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.6 : 1,
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
+    }}>
+      <svg width="14" height="14" viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6c1.9-5.6 7.2-9.7 13.6-9.7z"/>
+        <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.5 2.9-2.2 5.4-4.7 7l7.6 5.9c4.4-4.1 6.9-10.1 6.9-17.4z"/>
+        <path fill="#FBBC05" d="M10.4 28.8c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.8-6C.9 16.8 0 20.3 0 24s.9 7.2 2.6 10.4l7.8-5.6z"/>
+        <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.4 0-11.7-4.1-13.6-9.7l-7.8 6C6.5 42.6 14.6 48 24 48z"/>
+      </svg>
+      Google
+    </button>
+  );
+}
+
+function MemberBadge() {
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center', gap: 8,
+      padding: '5px 12px',
+      border: `1px solid ${INK}`,
+      borderRadius: 4,
+      background: INK, color: PAPER,
+      fontFamily: '"IM Fell English SC", serif',
+      fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase',
+      boxShadow: `0 0 0 2px ${PAPER}, 0 0 0 3px ${INK}`,
+    }}>
+      <svg width="10" height="10" viewBox="-50 -50 100 100">
+        <polygon points="0,-44 6,-6 44,0 6,6 0,44 -6,6 -44,0 -6,-6" fill={NEON_CYAN} />
+      </svg>
+      Starlight Circle Member
+      <svg width="10" height="10" viewBox="-50 -50 100 100">
+        <polygon points="0,-44 6,-6 44,0 6,6 0,44 -6,6 -44,0 -6,-6" fill={NEON_PINK} />
+      </svg>
+    </div>
+  );
+}
+
+// ── Journal card — leather outer + aged paper insert ──────────────────────────
+function JournalCard({ width, height, children }) {
+  return (
+    <div style={{
+      position: 'relative', width, height,
+      borderRadius: 18, flexShrink: 0,
+      filter: `drop-shadow(0 0 24px ${NEON_CYAN}55) drop-shadow(0 0 60px ${NEON_PINK}30)`,
+    }}>
+      {/* Outer leather */}
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 18,
+        background: `
+          radial-gradient(ellipse 120% 80% at 30% 20%, ${LEATHER_HI}99 0%, transparent 55%),
+          radial-gradient(ellipse 100% 100% at 70% 90%, ${LEATHER_2} 0%, transparent 60%),
+          linear-gradient(160deg, ${LEATHER_1} 0%, ${LEATHER_2} 100%)
+        `,
+        boxShadow: `inset 0 1px 0 ${LEATHER_HI}aa, inset 0 -2px 8px ${LEATHER_2}`,
+        overflow: 'hidden',
+      }}>
+        {/* Leather grain */}
+        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.18, mixBlendMode: 'overlay' }}>
+          <filter id="lr-grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" />
+            <feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.5 0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#lr-grain)" />
+        </svg>
+        {/* Embossed inner border */}
+        <div style={{
+          position: 'absolute', inset: 14, borderRadius: 12,
+          border: `1px solid ${LEATHER_HI}66`,
+          boxShadow: `inset 0 0 0 1px ${LEATHER_2}, inset 0 2px 6px rgba(0,0,0,0.35)`,
+        }} />
+        {/* Gold stitched seams */}
+        <div style={{ position: 'absolute', top: 0, bottom: 0, left: 22, width: 1 }}>
+          <StitchSeam length={height - 28} />
+        </div>
+        <div style={{ position: 'absolute', top: 0, bottom: 0, right: 22, width: 1 }}>
+          <StitchSeam length={height - 28} />
+        </div>
+        {/* Corner clasps */}
+        {[{ top: 10, left: 10 }, { top: 10, right: 10 }, { bottom: 10, left: 10 }, { bottom: 10, right: 10 }].map((pos, i) => (
+          <div key={i} style={{
+            position: 'absolute', ...pos,
+            width: 14, height: 14, borderRadius: 3,
+            background: `linear-gradient(135deg, ${GOLD} 0%, #8a6a2d 100%)`,
+            boxShadow: '0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+          }} />
+        ))}
+      </div>
+
+      {/* Aged paper insert */}
+      <div style={{
+        position: 'absolute',
+        top: 28, bottom: 28, left: 38, right: 38,
+        borderRadius: 6,
+        background: `radial-gradient(ellipse 120% 80% at 50% 0%, ${PAPER} 0%, ${PAPER} 60%, #E2D2A8 100%)`,
+        boxShadow: `inset 0 0 0 1px #c8b58a, inset 0 0 24px rgba(120,80,30,0.18), 0 6px 16px rgba(0,0,0,0.45)`,
+        overflow: 'hidden',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Paper texture */}
+        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.22, pointerEvents: 'none' }}>
+          <filter id="lr-paperNoise">
+            <feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="2" />
+            <feColorMatrix values="0 0 0 0 0.4  0 0 0 0 0.3  0 0 0 0 0.15  0 0 0 0.35 0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#lr-paperNoise)" />
+        </svg>
+        {/* Coffee stain */}
+        <svg style={{ position: 'absolute', top: -24, right: -10, width: 90, height: 90, opacity: 0.12 }} viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="#7a4a1a" />
+          <circle cx="50" cy="50" r="36" fill="#a06028" />
+        </svg>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── Main Login component ───────────────────────────────────────────────────────
 export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onShowPrivacy, onShowEthics }) {
   const { signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
   const [mode,        setMode]        = useState('login'); // 'login' | 'register' | 'forgot'
@@ -111,14 +325,13 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
   const [displayName, setDisplayName] = useState('');
   const [error,       setError]       = useState('');
   const [loading,     setLoading]     = useState(false);
+  const [remember,    setRemember]    = useState(true);
 
-  // Forgot password state
   const [resetEmail,    setResetEmail]    = useState('');
-  const [resetStatus,   setResetStatus]   = useState('idle'); // 'idle' | 'sent' | 'error'
+  const [resetStatus,   setResetStatus]   = useState('idle');
   const [resetError,    setResetError]    = useState('');
   const [resetCooldown, setResetCooldown] = useState(0);
 
-  // Countdown timer — decrements resetCooldown every second
   useEffect(() => {
     if (resetCooldown <= 0) return;
     const t = setTimeout(() => setResetCooldown(c => c - 1), 1000);
@@ -126,7 +339,6 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
   }, [resetCooldown]);
 
   const switchMode = (m) => { setMode(m); setError(''); setResetError(''); setResetStatus('idle'); };
-
   const isReg = mode === 'register';
 
   const handleErr = (err) => {
@@ -172,313 +384,296 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
     } finally { setLoading(false); }
   };
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 600;
+  const cardW = isMobile ? 310 : 420;
+  const cardH = isMobile ? 620 : 720;
+  const padX = isMobile ? 18 : 32;
+  const titleFs = isMobile ? 22 : 28;
+  const compassSize = isMobile ? 48 : 64;
+  const density = isMobile ? 70 : 160;
+
   return (
     <div style={{
-      minHeight: '100vh',
-      backgroundImage: 'url(/images/traveler-log-mockup.png)',
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px 16px',
-      position: 'relative',
+      width: '100vw', height: '100vh', position: 'relative',
+      background: INK_2, overflow: 'hidden',
     }}>
       <style>{CSS}</style>
 
-      {/* ── Dark overlay ── */}
+      {/* Starfield */}
+      <StarrySky density={density} seed={3} />
+      <NeonHorizon color={NEON_CYAN} y={isMobile ? 84 : 82} opacity={0.7} />
+
+      {/* Radial halo behind journal */}
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" style={{
+        position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none',
+      }}>
+        <defs>
+          <radialGradient id="lr-halo" cx="50%" cy="48%" r="38%">
+            <stop offset="0" stopColor={NEON_CYAN} stopOpacity="0" />
+            <stop offset="0.45" stopColor={NEON_CYAN} stopOpacity="0.14" />
+            <stop offset="0.5" stopColor={NEON_CYAN} stopOpacity="0.42" />
+            <stop offset="0.55" stopColor={NEON_CYAN} stopOpacity="0.14" />
+            <stop offset="1" stopColor={NEON_CYAN} stopOpacity="0" />
+          </radialGradient>
+        </defs>
+        <ellipse cx="50" cy="50" rx="36" ry="44" fill="url(#lr-halo)" />
+      </svg>
+
+      {/* Scrollable content column */}
       <div style={{
-        position: 'fixed', inset: 0,
-        background: 'rgba(0,0,0,0.42)',
-        backdropFilter: 'brightness(0.85)',
-      }} />
-
-      {/* ── Neon title ── */}
-      <h1
-        className="lr-title font-bungee"
-        style={{
-          position: 'relative', zIndex: 1,
-          color: '#40E0D0',
-          fontSize: 'clamp(1.5rem, 5vw, 3rem)',
-          letterSpacing: '0.07em',
-          textAlign: 'center',
-          marginBottom: '20px',
-          lineHeight: 1.1,
-        }}
-      >
-        THE TRAVELER'S LOG
-      </h1>
-
-      {/* ── Card ── */}
-      <div
-        className="lr-card"
-        style={{
-          position: 'relative', zIndex: 1,
-          width: '100%', maxWidth: '400px',
-          background: 'rgba(8, 9, 24, 0.78)',
-          backdropFilter: 'blur(18px)',
-          WebkitBackdropFilter: 'blur(18px)',
-          border: '1.5px solid #40E0D0',
-          borderRadius: '16px',
-          padding: '28px 28px 24px',
-        }}
-      >
-        {/* Corner bolts */}
-        {[{ top: 7, left: 7 }, { top: 7, right: 7 }, { bottom: 7, left: 7 }, { bottom: 7, right: 7 }].map((pos, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            top: pos.top, left: pos.left, bottom: pos.bottom, right: pos.right,
-            width: 9, height: 9, borderRadius: '50%',
-            background: 'radial-gradient(circle at 30% 30%, #E0E0E0 0%, #888 60%, #555 100%)',
-            boxShadow: '0 0 4px rgba(192,192,192,0.5)',
-          }} />
-        ))}
-
-        {/* Mode toggle */}
+        position: 'absolute', inset: 0, overflowY: 'auto', zIndex: 5,
+      }}>
         <div style={{
-          display: 'flex',
-          border: '1px solid rgba(140,105,50,0.45)',
-          borderRadius: '6px', overflow: 'hidden',
-          marginBottom: '22px',
+          minHeight: '100%',
+          display: 'flex', flexDirection: 'column', alignItems: 'center',
+          justifyContent: 'center', padding: '20px 16px', gap: 0,
         }}>
-          {[['login', 'LOG IN'], ['register', 'REGISTER']].map(([m, lbl], i) => (
-            <button key={m} className="lr-mode-btn"
-              onClick={() => switchMode(m)}
-              style={{
-                background: (mode === m || (mode === 'forgot' && m === 'login')) ? '#FF4E00' : 'transparent',
-                color: (mode === m || (mode === 'forgot' && m === 'login')) ? '#1A1B2E' : 'rgba(200,155,70,0.6)',
-                borderLeft: i > 0 ? '1px solid rgba(140,105,50,0.45)' : 'none',
-              }}
-            >{lbl}</button>
-          ))}
-        </div>
+          {/* Compass star above journal */}
+          <div style={{ marginBottom: isMobile ? 10 : 14 }}>
+            <CompassStar size={compassSize} color={NEON_PINK} />
+          </div>
 
-        {/* ── Forgot password view ── */}
-        {mode === 'forgot' ? (
-          <div>
-            {resetStatus === 'sent' ? (
-              <p style={{ fontFamily: 'Special Elite, serif', fontSize: '13px', color: '#F0D9A8', lineHeight: 1.65, textAlign: 'center', margin: '4px 0 20px' }}>
-                Check your inbox. If that email is registered with Literary Roads, a reset link is on its way.
-              </p>
-            ) : (
-              <form onSubmit={handleResetSubmit}>
-                <div>
-                  <label className="lr-label">EMAIL</label>
-                  <input
-                    className="lr-input"
-                    type="email"
-                    required
-                    autoFocus
-                    value={resetEmail}
-                    onChange={(e) => setResetEmail(e.target.value)}
-                    placeholder="traveler@roads.com"
-                  />
+          {/* Journal */}
+          <JournalCard width={cardW} height={cardH}>
+            <div style={{
+              display: 'flex', flexDirection: 'column',
+              padding: `24px ${padX}px 18px`,
+              height: '100%', boxSizing: 'border-box',
+              position: 'relative', zIndex: 2,
+              overflow: 'hidden',
+            }}>
+
+              {/* Title */}
+              <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                <h1 style={{
+                  fontFamily: '"DM Serif Display", "Fraunces", Georgia, serif',
+                  fontSize: titleFs, fontWeight: 400,
+                  lineHeight: 1.05, margin: 0,
+                  color: INK, letterSpacing: '-0.01em',
+                }}>The Traveler's Log</h1>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'center', marginTop: 6 }}>
+                  <span style={{ flex: 1, height: 1, background: '#c8b58a' }} />
+                  <span style={{
+                    fontFamily: '"IM Fell English SC", serif',
+                    fontSize: 9, letterSpacing: '0.18em', color: '#7a5a2a',
+                  }}>KEEPER OF MILES &amp; STORIES</span>
+                  <span style={{ flex: 1, height: 1, background: '#c8b58a' }} />
+                </div>
+              </div>
+
+              {/* Tab toggle — login / register (hidden in forgot mode) */}
+              {mode !== 'forgot' && (
+                <div style={{
+                  marginTop: 16, flexShrink: 0,
+                  display: 'flex',
+                  background: '#E2D2A8',
+                  border: '1px solid #c8b58a',
+                  borderRadius: 999, padding: 3,
+                }}>
+                  {['login', 'register'].map(m => {
+                    const active = mode === m;
+                    return (
+                      <button key={m} onClick={() => switchMode(m)} style={{
+                        flex: 1, padding: '7px 0',
+                        border: 0, cursor: 'pointer', borderRadius: 999,
+                        background: active ? INK : 'transparent',
+                        color: active ? PAPER : '#5a4220',
+                        fontFamily: '"IM Fell English SC", serif',
+                        fontSize: 11, letterSpacing: '0.18em', textTransform: 'uppercase',
+                        boxShadow: active ? `inset 0 0 0 1px ${GOLD}` : 'none',
+                        transition: 'all 0.2s',
+                      }}>{m === 'login' ? 'Log In' : 'Register'}</button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* ── Forgot password view ── */}
+              {mode === 'forgot' ? (
+                <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+                  <div style={{
+                    fontFamily: '"DM Serif Display", Georgia, serif',
+                    fontSize: 18, color: INK, textAlign: 'center', marginBottom: 4,
+                  }}>Reset Your Route</div>
+
+                  {resetStatus === 'sent' ? (
+                    <p style={{
+                      fontFamily: 'Georgia, serif', fontSize: 13, color: '#5a4220',
+                      lineHeight: 1.65, textAlign: 'center', margin: '8px 0',
+                    }}>
+                      Check your inbox. If that address is registered with Literary Roads, a reset link is on its way.
+                    </p>
+                  ) : (
+                    <form onSubmit={handleResetSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <Field
+                        label="Email" type="email"
+                        value={resetEmail} onChange={setResetEmail}
+                        placeholder="traveler@theroad.co"
+                        autoFocus
+                      />
+                      {resetStatus === 'error' && (
+                        <p style={{ margin: 0, color: '#cc2a2a', fontFamily: 'Georgia, serif', fontSize: 12, textAlign: 'center' }}>
+                          {resetError}
+                        </p>
+                      )}
+                      <button type="submit" disabled={loading || resetCooldown > 0} style={{
+                        marginTop: 4, padding: '12px 18px',
+                        border: `1.5px solid ${INK}`, borderRadius: 999,
+                        background: (loading || resetCooldown > 0) ? '#c8b58a' : INK,
+                        color: (loading || resetCooldown > 0) ? '#5a4220' : PAPER,
+                        fontFamily: '"IM Fell English SC", serif',
+                        fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase',
+                        cursor: (loading || resetCooldown > 0) ? 'not-allowed' : 'pointer',
+                        boxShadow: `0 0 0 2px ${PAPER}, 0 0 0 3.5px ${INK}`,
+                      }}>
+                        {loading ? 'Sending…' : resetCooldown > 0 ? `Resend in ${resetCooldown}s` : 'Send Reset Link →'}
+                      </button>
+                    </form>
+                  )}
+
+                  <button onClick={() => switchMode('login')} style={{
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    fontFamily: '"IM Fell English SC", serif', fontSize: 11,
+                    letterSpacing: '0.18em', color: '#7a5a2a',
+                    textDecoration: 'underline', textDecorationColor: '#a8895a',
+                    textUnderlineOffset: 3, padding: '4px 0',
+                  }}>Back to Log In</button>
                 </div>
 
-                {resetStatus === 'error' && (
-                  <p style={{ marginTop: '10px', marginBottom: 0, color: '#FF4E00', textAlign: 'center', fontFamily: 'Special Elite, serif', fontSize: '12px' }}>
-                    {resetError}
-                  </p>
+              ) : (
+              /* ── Login / Register form ── */
+              <form onSubmit={handleSubmit} style={{
+                marginTop: 14, display: 'flex', flexDirection: 'column',
+                gap: isReg ? 9 : 10, flex: 1, overflow: 'hidden',
+              }}>
+                {isReg && (
+                  <Field
+                    label="Display Name (optional)" type="text"
+                    value={displayName} onChange={setDisplayName}
+                    placeholder="Literary Traveler"
+                  />
+                )}
+                <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="traveler@theroad.co" />
+                <div>
+                  <Field label="Password" type="password" value={password} onChange={setPassword}
+                    placeholder={isReg ? 'Choose a passphrase' : 'Your secret route'} />
+                  {!isReg && (
+                    <div style={{ textAlign: 'right', marginTop: 5 }}>
+                      <button type="button"
+                        onClick={() => { setResetEmail(email); switchMode('forgot'); }}
+                        style={{
+                          background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                          fontFamily: '"IM Fell English SC", serif', fontSize: 11,
+                          letterSpacing: '0.18em', color: '#7a5a2a',
+                          textDecoration: 'underline', textDecorationColor: '#a8895a',
+                          textUnderlineOffset: 3,
+                        }}>Forgot my password?</button>
+                    </div>
+                  )}
+                </div>
+                {isReg && (
+                  <Field label="Confirm Password" type="password" value={confirmPw} onChange={setConfirmPw}
+                    placeholder="Confirm passphrase" />
                 )}
 
-                <button
-                  type="submit"
-                  disabled={loading || resetCooldown > 0}
-                  className={resetCooldown > 0 ? undefined : 'lr-submit'}
-                  style={{
-                    width: '100%', marginTop: '16px',
-                    padding: '12px',
-                    background: (loading || resetCooldown > 0) ? 'rgba(80,80,80,0.6)' : '#FF4E00',
-                    color: '#1A1B2E',
-                    border: 'none', borderRadius: '7px',
-                    fontFamily: 'Bungee, sans-serif',
-                    fontSize: '13px', letterSpacing: '0.12em',
-                    cursor: (loading || resetCooldown > 0) ? 'not-allowed' : 'pointer',
-                    transition: 'background .2s',
-                  }}
-                >
-                  {loading ? 'SENDING…' : resetCooldown > 0 ? `RESEND IN ${resetCooldown}S…` : 'SEND RESET LINK'}
+                {!isReg && (
+                  <label style={{
+                    display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                    fontFamily: '"IM Fell English SC", serif', fontSize: 10,
+                    letterSpacing: '0.16em', color: '#5a4220',
+                  }}>
+                    <span style={{
+                      width: 16, height: 16, border: `1.5px solid ${INK}`, borderRadius: 3,
+                      background: remember ? INK : 'transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.15s', flexShrink: 0,
+                    }}>
+                      {remember && <span style={{ color: GOLD, fontSize: 11, lineHeight: 1 }}>✓</span>}
+                    </span>
+                    <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)}
+                      style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }} />
+                    REMEMBER ME ON THIS ROAD
+                  </label>
+                )}
+
+                {isReg && (
+                  <div style={{
+                    fontFamily: 'Georgia, serif', fontSize: 10, fontStyle: 'italic',
+                    color: '#5a4220', lineHeight: 1.4,
+                  }}>
+                    By registering you agree to our{' '}
+                    <button type="button" onClick={onShowPrivacy} style={{ background: 'none', border: 'none', padding: 0, color: '#7a5a2a', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}>Privacy Policy</button>
+                    {' '}and{' '}
+                    <button type="button" onClick={onShowEthics} style={{ background: 'none', border: 'none', padding: 0, color: '#7a5a2a', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}>Code of Ethics</button>.
+                  </div>
+                )}
+
+                {error && (
+                  <p style={{ margin: 0, color: '#cc2a2a', fontFamily: 'Georgia, serif', fontSize: 12, textAlign: 'center' }}>{error}</p>
+                )}
+
+                {/* Primary CTA */}
+                <button type="submit" disabled={loading} style={{
+                  marginTop: 2, position: 'relative',
+                  padding: '11px 18px',
+                  border: `1.5px solid ${INK}`, borderRadius: 999,
+                  background: loading ? '#c8b58a' : INK,
+                  color: loading ? '#5a4220' : PAPER,
+                  fontFamily: '"IM Fell English SC", serif',
+                  fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  boxShadow: `0 0 0 2px ${PAPER}, 0 0 0 3.5px ${INK}, 0 0 14px ${NEON_CYAN}55`,
+                }}>
+                  {loading ? 'One moment…' : isReg ? 'Begin the Log →' : 'Log In →'}
                 </button>
+
+                {/* OR divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 2 }}>
+                  <span style={{ flex: 1, height: 1, background: '#c8b58a' }} />
+                  <span style={{
+                    fontFamily: '"IM Fell English SC", serif', fontSize: 10,
+                    letterSpacing: '0.22em', color: '#7a5a2a',
+                  }}>OR</span>
+                  <span style={{ flex: 1, height: 1, background: '#c8b58a' }} />
+                </div>
+
+                {/* Social */}
+                <GoogleButton onClick={handleGoogle} disabled={loading} />
+
+                {/* Guest */}
+                <button type="button" onClick={onContinueAsGuest} style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  fontFamily: '"IM Fell English SC", serif', fontSize: 10,
+                  letterSpacing: '0.22em', color: '#5a4220', textTransform: 'uppercase',
+                  textDecoration: 'underline', textDecorationColor: '#a8895a',
+                  textUnderlineOffset: 4, padding: '2px 0',
+                }}>Continue as Guest →</button>
+
+                {/* Member badge */}
+                {!isReg && (
+                  <div style={{ marginTop: 'auto', paddingTop: 10, display: 'flex', justifyContent: 'center' }}>
+                    <MemberBadge />
+                  </div>
+                )}
               </form>
-            )}
-
-            {/* Back to login */}
-            <button
-              onClick={() => switchMode('login')}
-              style={{
-                display: 'block', width: '100%', marginTop: '14px',
-                background: 'transparent', border: 'none',
-                color: 'rgba(64,224,208,0.6)',
-                fontFamily: 'Special Elite, serif', fontSize: '12px',
-                cursor: 'pointer', transition: 'color .2s',
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#40E0D0'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(64,224,208,0.6)'}
-            >
-              Back to login
-            </button>
-          </div>
-        ) : (
-        /* ── Login / Register form ── */
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-
-            {isReg && (
-              <div>
-                <label className="lr-label">
-                  DISPLAY NAME{' '}
-                  <span style={{ color: 'rgba(200,155,70,0.4)', fontFamily: 'Special Elite, serif', letterSpacing: '0.04em', fontSize: '9px' }}>
-                    (optional)
-                  </span>
-                </label>
-                <input className="lr-input" type="text"
-                  value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder="Literary Traveler" maxLength={40} />
-              </div>
-            )}
-
-            <div>
-              <label className="lr-label">EMAIL</label>
-              <input className="lr-input" type="email" required
-                value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="traveler@roads.com" />
-            </div>
-
-            <div>
-              <label className="lr-label">PASSWORD</label>
-              <input className="lr-input" type="password" required
-                value={password} onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••" />
-              {!isReg && (
-                <button
-                  type="button"
-                  onClick={() => { setResetEmail(email); switchMode('forgot'); }}
-                  style={{
-                    display: 'block', marginTop: '6px', marginLeft: 'auto',
-                    background: 'transparent', border: 'none', padding: 0,
-                    color: 'rgba(192,192,192,0.45)',
-                    fontFamily: 'Special Elite, serif', fontSize: '11px',
-                    cursor: 'pointer', transition: 'color .2s',
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(192,192,192,0.75)'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(192,192,192,0.45)'}
-                >
-                  Forgot password?
-                </button>
               )}
             </div>
+          </JournalCard>
 
-            {isReg && (
-              <div>
-                <label className="lr-label">CONFIRM PASSWORD</label>
-                <input className="lr-input" type="password" required
-                  value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)}
-                  placeholder="••••••••" />
-              </div>
-            )}
-
-          </div>
-
-          {error && (
-            <p style={{
-              marginTop: '12px', marginBottom: 0,
-              color: '#FF4E00', textAlign: 'center',
-              fontFamily: 'Special Elite, serif', fontSize: '12px',
-            }}>{error}</p>
-          )}
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="lr-submit font-bungee"
-            style={{
-              width: '100%', marginTop: '18px',
-              padding: '12px',
-              background: loading ? 'rgba(80,80,80,0.6)' : '#FF4E00',
-              color: '#1A1B2E',
-              border: 'none', borderRadius: '7px',
-              fontSize: '14px', letterSpacing: '0.12em',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background .2s',
-            }}
-          >
-            {loading ? 'LOADING…' : isReg ? 'CREATE ACCOUNT' : 'LOG IN'}
-          </button>
-
-          {/* Terms notice — only shown on register */}
-          {isReg && (
-            <p style={{
-              fontFamily: 'Special Elite, serif',
-              fontSize: '11px',
-              color: 'rgba(192,192,192,0.45)',
-              textAlign: 'center',
-              lineHeight: 1.6,
-              marginTop: '12px',
-            }}>
-              By signing up, you agree to our{' '}
-              <button onClick={onShowPrivacy} style={{ background: 'none', border: 'none', padding: 0, color: '#40E0D0', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}>
-                Privacy Policy
-              </button>
-              {' '}and{' '}
-              <button onClick={onShowEthics} style={{ background: 'none', border: 'none', padding: 0, color: '#40E0D0', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', textDecoration: 'underline' }}>
-                Code of Ethics
-              </button>.
-            </p>
-          )}
-        </form>
-        )}
-
-        {/* Divider + Google + Guest — hidden in forgot view */}
-        {mode !== 'forgot' && (<>
-        <div className="lr-divider" style={{ margin: '18px 0' }}>OR</div>
-
-        <button className="lr-google-btn" onClick={handleGoogle} disabled={loading}>
-          <svg width="18" height="18" viewBox="0 0 18 18">
-            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
-            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/>
-            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
-            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
-          </svg>
-          Sign in with Google
-        </button>
-
-        <button
-          onClick={onContinueAsGuest}
-          style={{
-            display: 'block', width: '100%', marginTop: '12px',
-            background: 'transparent', border: 'none',
-            color: 'rgba(64,224,208,0.6)',
-            fontFamily: 'Bungee, sans-serif', fontSize: '10px',
-            letterSpacing: '0.1em', cursor: 'pointer',
-            transition: 'color .2s',
+          {/* Back link */}
+          <button onClick={onBack} style={{
+            marginTop: 18, background: 'transparent', border: 'none', cursor: 'pointer',
+            fontFamily: '"IM Fell English SC", serif', fontSize: 11,
+            letterSpacing: '0.18em', color: `${NEON_CYAN}80`,
+            textTransform: 'uppercase', textDecoration: 'underline',
+            textDecorationColor: `${NEON_CYAN}40`, textUnderlineOffset: 4,
+            transition: 'color 0.2s',
           }}
-          onMouseEnter={(e) => e.currentTarget.style.color = '#40E0D0'}
-          onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(64,224,208,0.6)'}
-        >
-          CONTINUE AS GUEST →
-        </button>
-        </>)}
-
-      </div>{/* end card */}
-
-      {/* Back */}
-      <button
-        onClick={onBack}
-        style={{
-          position: 'relative', zIndex: 1, marginTop: '16px',
-          background: 'transparent', border: 'none',
-          cursor: 'pointer', opacity: '0.5', transition: 'opacity .2s',
-          display: 'flex', alignItems: 'center',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
-        onMouseLeave={(e) => e.currentTarget.style.opacity = '0.5'}
-      >
-        <BackArrowIcon size={24} />
-      </button>
-
+            onMouseEnter={e => e.currentTarget.style.color = NEON_CYAN}
+            onMouseLeave={e => e.currentTarget.style.color = `${NEON_CYAN}80`}
+          >← Back</button>
+        </div>
+      </div>
     </div>
   );
 }

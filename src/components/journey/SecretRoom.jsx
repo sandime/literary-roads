@@ -173,16 +173,9 @@ export default function SecretRoom({ onClose }) {
         }
         @media (max-width: 640px) {
           .secret-gallery {
-            display: flex;
-            flex-direction: row;
-            overflow-x: auto;
+            grid-template-columns: repeat(2, 1fr);
             gap: 14px;
-            padding-bottom: 10px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
           }
-          .secret-gallery::-webkit-scrollbar { display: none; }
-          .secret-gallery-item { flex: 0 0 155px; }
         }
       `}</style>
 
