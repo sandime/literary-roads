@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from '../config/firebase';
 import { BackArrowIcon } from '../components/Icons';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -102,13 +104,28 @@ const CSS = `
 
 export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onShowPrivacy, onShowEthics }) {
   const { signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
-  const [mode,        setMode]        = useState('login');
+  const [mode,        setMode]        = useState('login'); // 'login' | 'register' | 'forgot'
   const [email,       setEmail]       = useState('');
   const [password,    setPassword]    = useState('');
   const [confirmPw,   setConfirmPw]   = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error,       setError]       = useState('');
   const [loading,     setLoading]     = useState(false);
+
+  // Forgot password state
+  const [resetEmail,    setResetEmail]    = useState('');
+  const [resetStatus,   setResetStatus]   = useState('idle'); // 'idle' | 'sent' | 'error'
+  const [resetError,    setResetError]    = useState('');
+  const [resetCooldown, setResetCooldown] = useState(0);
+
+  // Countdown timer — decrements resetCooldown every second
+  useEffect(() => {
+    if (resetCooldown <= 0) return;
+    const t = setTimeout(() => setResetCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resetCooldown]);
+
+  const switchMode = (m) => { setMode(m); setError(''); setResetError(''); setResetStatus('idle'); };
 
   const isReg = mode === 'register';
 
@@ -134,6 +151,25 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
       onLoginSuccess();
     } catch (e) { handleErr(e); }
     finally { setLoading(false); }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setResetError(''); setResetStatus('idle'); setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetStatus('sent');
+      setResetCooldown(60);
+    } catch (err) {
+      setResetStatus('error');
+      if (err.code === 'auth/invalid-email') {
+        setResetError('Please enter a valid email address.');
+      } else if (err.code === 'auth/too-many-requests') {
+        setResetError('Too many attempts. Please wait a few minutes and try again.');
+      } else {
+        setResetError('Something went wrong. Please try again.');
+      }
+    } finally { setLoading(false); }
   };
 
   return (
@@ -209,17 +245,83 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
         }}>
           {[['login', 'LOG IN'], ['register', 'REGISTER']].map(([m, lbl], i) => (
             <button key={m} className="lr-mode-btn"
-              onClick={() => { setMode(m); setError(''); }}
+              onClick={() => switchMode(m)}
               style={{
-                background: mode === m ? '#FF4E00' : 'transparent',
-                color: mode === m ? '#1A1B2E' : 'rgba(200,155,70,0.6)',
+                background: (mode === m || (mode === 'forgot' && m === 'login')) ? '#FF4E00' : 'transparent',
+                color: (mode === m || (mode === 'forgot' && m === 'login')) ? '#1A1B2E' : 'rgba(200,155,70,0.6)',
                 borderLeft: i > 0 ? '1px solid rgba(140,105,50,0.45)' : 'none',
               }}
             >{lbl}</button>
           ))}
         </div>
 
-        {/* Form */}
+        {/* ── Forgot password view ── */}
+        {mode === 'forgot' ? (
+          <div>
+            {resetStatus === 'sent' ? (
+              <p style={{ fontFamily: 'Special Elite, serif', fontSize: '13px', color: '#F0D9A8', lineHeight: 1.65, textAlign: 'center', margin: '4px 0 20px' }}>
+                Check your inbox. If that email is registered with Literary Roads, a reset link is on its way.
+              </p>
+            ) : (
+              <form onSubmit={handleResetSubmit}>
+                <div>
+                  <label className="lr-label">EMAIL</label>
+                  <input
+                    className="lr-input"
+                    type="email"
+                    required
+                    autoFocus
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    placeholder="traveler@roads.com"
+                  />
+                </div>
+
+                {resetStatus === 'error' && (
+                  <p style={{ marginTop: '10px', marginBottom: 0, color: '#FF4E00', textAlign: 'center', fontFamily: 'Special Elite, serif', fontSize: '12px' }}>
+                    {resetError}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || resetCooldown > 0}
+                  className={resetCooldown > 0 ? undefined : 'lr-submit'}
+                  style={{
+                    width: '100%', marginTop: '16px',
+                    padding: '12px',
+                    background: (loading || resetCooldown > 0) ? 'rgba(80,80,80,0.6)' : '#FF4E00',
+                    color: '#1A1B2E',
+                    border: 'none', borderRadius: '7px',
+                    fontFamily: 'Bungee, sans-serif',
+                    fontSize: '13px', letterSpacing: '0.12em',
+                    cursor: (loading || resetCooldown > 0) ? 'not-allowed' : 'pointer',
+                    transition: 'background .2s',
+                  }}
+                >
+                  {loading ? 'SENDING…' : resetCooldown > 0 ? `RESEND IN ${resetCooldown}S…` : 'SEND RESET LINK'}
+                </button>
+              </form>
+            )}
+
+            {/* Back to login */}
+            <button
+              onClick={() => switchMode('login')}
+              style={{
+                display: 'block', width: '100%', marginTop: '14px',
+                background: 'transparent', border: 'none',
+                color: 'rgba(64,224,208,0.6)',
+                fontFamily: 'Special Elite, serif', fontSize: '12px',
+                cursor: 'pointer', transition: 'color .2s',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#40E0D0'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(64,224,208,0.6)'}
+            >
+              Back to login
+            </button>
+          </div>
+        ) : (
+        /* ── Login / Register form ── */
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
@@ -249,6 +351,23 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
               <input className="lr-input" type="password" required
                 value={password} onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••" />
+              {!isReg && (
+                <button
+                  type="button"
+                  onClick={() => { setResetEmail(email); switchMode('forgot'); }}
+                  style={{
+                    display: 'block', marginTop: '6px', marginLeft: 'auto',
+                    background: 'transparent', border: 'none', padding: 0,
+                    color: 'rgba(192,192,192,0.45)',
+                    fontFamily: 'Special Elite, serif', fontSize: '11px',
+                    cursor: 'pointer', transition: 'color .2s',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(192,192,192,0.75)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(192,192,192,0.45)'}
+                >
+                  Forgot password?
+                </button>
+              )}
             </div>
 
             {isReg && (
@@ -310,11 +429,12 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
             </p>
           )}
         </form>
+        )}
 
-        {/* Divider */}
+        {/* Divider + Google + Guest — hidden in forgot view */}
+        {mode !== 'forgot' && (<>
         <div className="lr-divider" style={{ margin: '18px 0' }}>OR</div>
 
-        {/* Google */}
         <button className="lr-google-btn" onClick={handleGoogle} disabled={loading}>
           <svg width="18" height="18" viewBox="0 0 18 18">
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
@@ -325,7 +445,6 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
           Sign in with Google
         </button>
 
-        {/* Guest */}
         <button
           onClick={onContinueAsGuest}
           style={{
@@ -341,6 +460,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
         >
           CONTINUE AS GUEST →
         </button>
+        </>)}
 
       </div>{/* end card */}
 
