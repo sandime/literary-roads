@@ -108,11 +108,11 @@ function MeetForm({ initial, onSave, onCancel }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         <div>
           <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.muted, letterSpacing: '0.08em', display: 'block', marginBottom: 5 }}>LATITUDE *</label>
-          <input style={inputStyle} type="number" step="0.0001" value={form.lat} onChange={e => set('lat', e.target.value)} placeholder="35.5951" />
+          <input style={inputStyle} type="text" inputMode="decimal" value={form.lat} onChange={e => set('lat', e.target.value)} placeholder="35.5951" />
         </div>
         <div>
           <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.muted, letterSpacing: '0.08em', display: 'block', marginBottom: 5 }}>LONGITUDE *</label>
-          <input style={inputStyle} type="number" step="0.0001" value={form.lng} onChange={e => set('lng', e.target.value)} placeholder="-82.5515" />
+          <input style={inputStyle} type="text" inputMode="decimal" value={form.lng} onChange={e => set('lng', e.target.value)} placeholder="-82.5515" />
         </div>
       </div>
       <div>
@@ -324,9 +324,7 @@ export default function SwapMeetAdminTab({ showToast }) {
                     {meet.status === 'active' && (
                       <button onClick={e => { e.stopPropagation(); handleManualStatus(meet, 'closed'); }} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 4, border: `1px solid rgba(255,78,0,0.5)`, background: 'transparent', color: C.orange, cursor: 'pointer' }}>CLOSE NOW</button>
                     )}
-                    {meet.status !== 'active' && (
-                      <button onClick={e => { e.stopPropagation(); setEditMeet(meet); }} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 4, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer' }}>EDIT</button>
-                    )}
+                    <button onClick={e => { e.stopPropagation(); setEditMeet(meet); setExpanded(null); }} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 4, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer' }}>EDIT</button>
                     <button
                       onClick={e => { e.stopPropagation(); handleDelete(meet); }}
                       disabled={deleting === meet.id}
