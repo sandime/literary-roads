@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { doc, setDoc, updateDoc, onSnapshot, collection } from 'firebase/firestore';
+import { subscribeToCurrentMeet } from '../utils/swapMeet';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
@@ -543,8 +544,10 @@ function QuestHistoryModal({ history, onClose }) {
 export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedStates = [] }) {
   const { user } = useAuth();
 
-  const [privacyOn, setPrivacyOn] = useState(() => localStorage.getItem('lr-privacy') === 'true');
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [privacyOn, setPrivacyOn]             = useState(() => localStorage.getItem('lr-privacy') === 'true');
+  const [soundEnabled, setSoundEnabled]       = useState(true);
+  const [swapMeetReminder, setSwapMeetReminder] = useState(true);
+  const [currentSwapMeet, setCurrentSwapMeet]   = useState(undefined);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
@@ -582,6 +585,7 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
         setVisitedCount((data.visitedStates || []).length);
         setSelectedCar(data.selectedCar || null);
         setSoundEnabled(data.soundEnabled !== false); // default true
+        setSwapMeetReminder(data.swapMeetReminder !== false); // default true
         setActiveCheckIn(data.activeCheckIn || null);
       },
       (err) => console.error('[Profile] snapshot:', err),
@@ -751,6 +755,16 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
     setSoundEnabled(next);
     await setDoc(doc(db, 'users', user.uid), { soundEnabled: next }, { merge: true });
   };
+
+  const handleSwapMeetReminderToggle = async () => {
+    if (!user) return;
+    const next = !swapMeetReminder;
+    setSwapMeetReminder(next);
+    await setDoc(doc(db, 'users', user.uid), { swapMeetReminder: next }, { merge: true });
+  };
+
+  // Current swap meet for the profile card
+  useEffect(() => subscribeToCurrentMeet(setCurrentSwapMeet), []);
 
   const displayName = user?.displayName || 'Literary Traveler';
   const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -1162,6 +1176,40 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
         )}
       </div>
 
+      {/* ── Swap Meet Card ── */}
+      {currentSwapMeet !== undefined && (
+        <div className="w-full max-w-lg rounded-xl p-4 mb-5"
+          style={{ background: '#1a2e1a', border: '1px solid #3a4e3a' }}>
+          <h2 className="font-bungee text-sm mb-1" style={{ color: '#7bc67e' }}>SWAP MEET TABLE</h2>
+          {currentSwapMeet === null ? (
+            <p className="font-special-elite text-xs" style={{ color: '#8aaa8a' }}>No swap meet scheduled yet — check back soon.</p>
+          ) : (
+            <>
+              <p className="font-special-elite text-xs mb-3" style={{ color: '#8aaa8a', lineHeight: 1.5 }}>
+                {currentSwapMeet.status === 'upcoming'
+                  ? `Next meet: ${currentSwapMeet.hostCity}, ${currentSwapMeet.hostState}`
+                  : currentSwapMeet.status === 'active'
+                  ? `OPEN NOW — ${currentSwapMeet.hostCity}, ${currentSwapMeet.hostState}`
+                  : `Last meet: ${currentSwapMeet.hostCity}, ${currentSwapMeet.hostState} (closed)`}
+              </p>
+              <a
+                href="#/swap-meet"
+                onClick={e => { e.preventDefault(); window.location.hash = '/swap-meet'; }}
+                className="font-bungee text-xs px-4 py-2 rounded-lg inline-block"
+                style={{
+                  background: currentSwapMeet.status === 'active' ? '#FF4E00' : 'transparent',
+                  border: `1px solid ${currentSwapMeet.status === 'active' ? '#FF4E00' : '#3a4e3a'}`,
+                  color: currentSwapMeet.status === 'active' ? '#FFF8E7' : '#7bc67e',
+                  textDecoration: 'none',
+                }}
+              >
+                {currentSwapMeet.status === 'active' ? 'OPEN NOW →' : 'EDIT YOUR TABLE →'}
+              </a>
+            </>
+          )}
+        </div>
+      )}
+
       {/* ── Preferences ── */}
       <div className="w-full max-w-lg rounded-xl mb-5 overflow-hidden"
         style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
@@ -1196,6 +1244,19 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
             style={{ background: privacyOn ? '#40E0D0' : '#3A3B55' }}>
             <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
               style={{ left: privacyOn ? '22px' : '2px' }} />
+          </button>
+        </div>
+
+        {/* Swap Meet reminder toggle */}
+        <div className="p-4 flex items-center justify-between">
+          <div>
+            <p className="font-bungee text-paper-white text-xs">SWAP MEET REMINDER</p>
+            <p className="font-special-elite text-chrome-silver text-xs mt-0.5">Weekly reminder Saturday morning before the meet</p>
+          </div>
+          <button onClick={handleSwapMeetReminderToggle} className="w-11 h-6 rounded-full relative transition-all flex-shrink-0"
+            style={{ background: swapMeetReminder ? '#7bc67e' : '#3A3B55' }}>
+            <span className="absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all"
+              style={{ left: swapMeetReminder ? '22px' : '2px' }} />
           </button>
         </div>
       </div>

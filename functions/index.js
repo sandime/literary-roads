@@ -394,6 +394,142 @@ exports.gazetteRSSFetch = functions
     console.log(`[gazetteRSSFetch] ===== DONE — total created: ${totalCreated}, total skipped: ${totalSkipped} =====`);
   });
 
+// ── Swap Meet: open — Sunday noon ET ─────────────────────────────────────────
+exports.swapMeetOpen = functions
+  .runWith({ memory: "256MB", timeoutSeconds: 60 })
+  .pubsub.schedule("0 12 * * 0")
+  .timeZone("America/New_York")
+  .onRun(async () => {
+    const snap = await db.collection("swapMeets")
+      .where("status", "==", "upcoming")
+      .orderBy("openAt", "asc")
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      console.log("[swapMeetOpen] No upcoming swap meet found.");
+      return;
+    }
+
+    const meetDoc = snap.docs[0];
+    await meetDoc.ref.update({
+      status:    "active",
+      openedAt:  admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const data = meetDoc.data();
+    console.log(`[swapMeetOpen] Opened: ${data.hostCity}, ${data.hostState} (${meetDoc.id})`);
+
+    // Count tables that are public (started preparing ahead of time)
+    const tablesSnap = await meetDoc.ref.collection("tables")
+      .where("isPublic", "==", true).get();
+    console.log(`[swapMeetOpen] ${tablesSnap.size} public tables ready at open.`);
+  });
+
+// ── Swap Meet: close — Monday noon ET ────────────────────────────────────────
+exports.swapMeetClose = functions
+  .runWith({ memory: "512MB", timeoutSeconds: 120 })
+  .pubsub.schedule("0 12 * * 1")
+  .timeZone("America/New_York")
+  .onRun(async () => {
+    const snap = await db.collection("swapMeets")
+      .where("status", "==", "active")
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      console.log("[swapMeetClose] No active swap meet found.");
+      return;
+    }
+
+    const meetDoc = snap.docs[0];
+    const meetId  = meetDoc.id;
+
+    // Tally top books from public tables
+    const tablesSnap = await meetDoc.ref.collection("tables")
+      .where("isPublic", "==", true).get();
+
+    const bookCounts = {};
+    tablesSnap.docs.forEach(d => {
+      const table = d.data();
+      const allBooks = [table.featuredBook, ...(table.books || [])].filter(Boolean);
+      allBooks.forEach(book => {
+        if (!book?.title) return;
+        const key = book.title.toLowerCase().trim();
+        if (!bookCounts[key]) bookCounts[key] = { title: book.title, author: book.author || "", count: 0, coverId: book.coverId || null };
+        bookCounts[key].count++;
+      });
+    });
+
+    const topBooks = Object.values(bookCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Save recap
+    await meetDoc.ref.collection("recap").doc("summary").set({
+      participantCount: tablesSnap.size,
+      topBooks,
+      hostCity:  meetDoc.data().hostCity,
+      hostState: meetDoc.data().hostState,
+      closedAt:  admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Close the meet
+    await meetDoc.ref.update({
+      status:     "closed",
+      topBooks,
+      participantCount: tablesSnap.size,
+      closedAt:   admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt:  admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Delete town square messages
+    const tsSnap = await meetDoc.ref.collection("townSquare").get();
+    const batch  = db.batch();
+    tsSnap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+
+    console.log(`[swapMeetClose] Closed ${meetId}. ${tablesSnap.size} participants. Top book: ${topBooks[0]?.title || "none"}.`);
+    console.log(`[swapMeetClose] Deleted ${tsSnap.size} town square messages.`);
+  });
+
+// ── Swap Meet: Saturday reminder — 9 AM ET ───────────────────────────────────
+exports.swapMeetReminder = functions
+  .runWith({ memory: "256MB", timeoutSeconds: 120 })
+  .pubsub.schedule("0 9 * * 6")
+  .timeZone("America/New_York")
+  .onRun(async () => {
+    // Find next upcoming meet
+    const snap = await db.collection("swapMeets")
+      .where("status", "==", "upcoming")
+      .orderBy("openAt", "asc")
+      .limit(1)
+      .get();
+
+    if (snap.empty) {
+      console.log("[swapMeetReminder] No upcoming swap meet — skipping reminder.");
+      return;
+    }
+
+    const meet   = snap.docs[0].data();
+    const banner = `Book Swap Meet is tomorrow — ${meet.hostCity}, ${meet.hostState}${meet.theme ? ` · Theme: ${meet.theme}` : ""}. Get your table ready!`;
+
+    // Write in-app banner to every user who has swapMeetReminder enabled (default true)
+    const usersSnap = await db.collection("users").get();
+    let notified = 0;
+
+    for (const userDoc of usersSnap.docs) {
+      const data = userDoc.data();
+      if (data.swapMeetReminder === false) continue; // default true
+      await userDoc.ref.update({ swapMeetBanner: banner }).catch(() => {});
+      notified++;
+    }
+
+    console.log(`[swapMeetReminder] Sent banner to ${notified} users for ${meet.hostCity} meet.`);
+    // TODO: send email via Mailgun/SendGrid when email service is configured.
+  });
+
 // ── Store: fetch product from Printful ───────────────────────────────────────
 exports.storeGetProduct = functions
   .runWith({ secrets: [PRINTFUL_API_KEY] })

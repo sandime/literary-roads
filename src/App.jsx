@@ -29,6 +29,7 @@ import GazetteNewspaper from './screens/GazetteNewspaper';
 import Store from './screens/Store';
 import AuthorPage from './screens/AuthorPage';
 import JourneysPage from './screens/JourneysPage';
+import SwapMeetScreen from './screens/SwapMeetScreen';
 import './App.css';
 
 // window flags: survive HMR module re-evaluation (unlike module-level lets) but reset on
@@ -248,6 +249,7 @@ function AppInner() {
           onShowFestivalTrip={() => navigate('/festivaltrip')}
           onShowJourneys={() => navigate('/journeys')}
           onShowBadges={() => navigate('/badges')}
+          onShowSwapMeet={() => navigate('/swap-meet')}
           onShowPrivacy={() => navigate('/privacy')}
           routeStateRef={routeStateRef}
           onBackToPlanner={fromPlanner ? () => navigate(-1) : undefined}
@@ -294,6 +296,12 @@ function AppInner() {
                 onShowDayTrip={() => navigate('/daytrip')}
                 onShowFestivalTrip={() => navigate('/festivaltrip')}
                 onLoadCuratedRoute={handleLoadCuratedRoute}
+                onShowLogin={handleShowLogin}
+              />
+            } />
+            <Route path="/swap-meet" element={
+              <SwapMeetScreen
+                onBack={() => navigate(-1)}
                 onShowLogin={handleShowLogin}
               />
             } />

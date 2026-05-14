@@ -40,6 +40,7 @@ import { AUTHOR_TIDBITS, pickAuthorForState } from '../data/authorTidbits';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { doc, getDoc, setDoc, onSnapshot, arrayUnion } from 'firebase/firestore';
+import { subscribeToActiveSwapMeet } from '../utils/swapMeet';
 
 // Fix for default marker icons in React-Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -781,15 +782,43 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false, label = ''
         </g>
       </svg>
     `,
+
+    // SWAP MEET SIGN — vintage roadside sign post (Sage Green)
+    swapMeet: `
+      <svg width="56" height="64" viewBox="0 0 56 64" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-green-swap-${uid}" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-green-swap-${uid})" transform="rotate(-4 28 32)">
+          <!-- Sign board -->
+          <rect x="3" y="2" width="50" height="36" rx="4" fill="#2a3e2a" stroke="#7bc67e" stroke-width="2"/>
+          <!-- Sign text lines -->
+          <text x="28" y="15" text-anchor="middle" font-family="Bungee,sans-serif" font-size="7.5" fill="#7bc67e" letter-spacing="0.5">BOOK SWAP</text>
+          <text x="28" y="26" text-anchor="middle" font-family="Bungee,sans-serif" font-size="7.5" fill="#FF4E00" letter-spacing="0.5">MEET</text>
+          <!-- Small book icon -->
+          <path d="M 22 30 L 22 34 Q 28 33 28 33 Q 28 33 34 34 L 34 30 Q 28 31 28 31 Q 28 31 22 30" fill="none" stroke="#FFF8E7" stroke-width="1.2" stroke-linejoin="round"/>
+          <line x1="28" y1="30" x2="28" y2="34" stroke="#FFF8E7" stroke-width="0.8"/>
+          <!-- Sign post -->
+          <line x1="28" y1="38" x2="28" y2="62" stroke="#c8a96e" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </svg>
+    `,
   };
 
-  const isSearch = type === 'search';
+  const isSearch   = type === 'search';
+  const isSwapMeet = type === 'swapMeet';
   const icon = L.divIcon({
     html: `<div style="position:relative;display:inline-block;${glowBoost}"${a11y}>${icons[type] || icons.cafe}${starburstOverlay}${inTripOverlay}</div>`,
-    className: 'custom-googie-marker',
-    iconSize: isSearch ? [32, 40] : [40, 40],
-    iconAnchor: isSearch ? [16, 40] : [20, 40],
-    popupAnchor: [0, -40],
+    className: isSwapMeet ? 'swap-meet-marker' : 'custom-googie-marker',
+    iconSize:   isSearch ? [32, 40] : isSwapMeet ? [56, 64] : [40, 40],
+    iconAnchor: isSearch ? [16, 40] : isSwapMeet ? [28, 64] : [20, 40],
+    popupAnchor: [0, isSwapMeet ? -64 : -40],
   });
   // Tag the icon so cluster functions can identify the marker's category
   icon._locationType = type;
@@ -1325,7 +1354,7 @@ const PlaceSearch = ({ onSelect, mapCenter }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, routeStateRef, onBackToPlanner, mapResetKey }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, onShowSwapMeet, routeStateRef, onBackToPlanner, mapResetKey }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   // Initialize from saved ref so route survives navigating away and back
@@ -1394,6 +1423,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInError, setCheckInError] = useState('');
   const [newBadges, setNewBadges]           = useState([]);
+  const [activeSwapMeet, setActiveSwapMeet] = useState(null);
   const [earnedBadgeData, setEarnedBadgeData] = useState([]);
   const [honkingLocationId, setHonkingLocationId] = useState(null);
   const [honkToast, setHonkToast] = useState(null);   // { fromName, locationName }
@@ -1784,6 +1814,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     if (!user) { setSavedStops([]); return; }
     return subscribeSavedStops(user.uid, setSavedStops);
   }, [user]);
+
+  // Active swap meet — show pulsing map marker when open
+  useEffect(() => subscribeToActiveSwapMeet(setActiveSwapMeet), []);
 
   // Incoming honk notifications
   useEffect(() => {
@@ -3152,6 +3185,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               color="#40E0D0"
               weight={4}
               opacity={0.8}
+            />
+          )}
+
+          {/* Swap Meet marker — always visible regardless of explore/stateSelect mode */}
+          {activeSwapMeet && (
+            <Marker
+              key="swap-meet"
+              position={[activeSwapMeet.lat, activeSwapMeet.lng]}
+              icon={createCustomIcon('swapMeet', false, false, `Book Swap Meet — ${activeSwapMeet.hostCity}, ${activeSwapMeet.hostState}`)}
+              eventHandlers={{ click: () => onShowSwapMeet?.() }}
             />
           )}
 
