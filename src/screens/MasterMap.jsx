@@ -4217,7 +4217,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 key={selectedLocation.id}
                 locationId={selectedLocation.id}
                 locationName={selectedLocation.name}
-                onOpenModal={() => setShowTaleModal(true)}
+                user={user}
+                onShowLogin={onShowLogin}
               />
             )}
 
