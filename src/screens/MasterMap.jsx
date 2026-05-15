@@ -1550,6 +1550,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             setSelectedLocation(landmark);
             setFitTarget({ center: [landmark.lat, landmark.lng], zoom: 14 });
             setUiMode('explore');
+            setShowPlanner(false);
           }
         } catch (e) {
           console.error('[MasterMap] pendingLandmark fetch failed', e);
@@ -1986,6 +1987,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       );
       setItineraryRoute({ ...savedRoute, stops: normalizedStops });
       setShowRoadTrip(false);
+      setUiMode('explore');
+      setShowPlanner(false);
       return;
     }
 
@@ -2133,6 +2136,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSelectedLocation(item);
     setSearchTarget({ center: [item.lat, item.lng], zoom: 15 });
     setShowPlanner(false);
+    setUiMode('explore');
   };
 
   const handleDeleteRoute = (routeId) => {

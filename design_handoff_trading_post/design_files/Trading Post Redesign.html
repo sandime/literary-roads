@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Trading Post — Redesign · Literary Roads</title>
+<link rel="icon" href="assets/star-cat-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=IM+Fell+English+SC&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; }
+  * { box-sizing: border-box; }
+  /* hide horizontal scrollbars inside the iOS frame's display cases */
+  ::-webkit-scrollbar { display: none; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="trading_post/components.jsx"></script>
+<script type="text/babel" src="trading_post/shop.jsx"></script>
+<script type="text/babel" src="trading_post/product.jsx"></script>
+<script type="text/babel" src="trading_post/checkout.jsx"></script>
+
+<script type="text/babel">
+function Frame({ children, label }) {
+  return (
+    <IOSDevice width={390} height={844} dark={false}>
+      <div style={{ width: '100%', height: '100%', background: '#F5EBD6', paddingTop: 54 }}
+        data-screen-label={label}>
+        {children}
+      </div>
+    </IOSDevice>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas
+      title="The Trading Post — Redesign"
+      subtitle="A wood-and-paper general store. Wooden signs, luggage tags, postcards, mileage-marker prices, horizontal display cases.">
+
+      <DCSection id="screens" title="The three core screens"
+        subtitle="Shop · Product · Checkout. Paper-mode brand on a single iOS canvas.">
+        <DCArtboard id="shop" label="01 · Shop — the display cases" width={390} height={844}>
+          <Frame label="01 Trading Post — Shop"><TradingPostShop /></Frame>
+        </DCArtboard>
+        <DCArtboard id="product" label="02 · Product — bookmark detail" width={390} height={844}>
+          <Frame label="02 Trading Post — Product"><TradingPostProduct /></Frame>
+        </DCArtboard>
+        <DCArtboard id="checkout" label="03 · Checkout — the till" width={390} height={844}>
+          <Frame label="03 Trading Post — Checkout"><TradingPostCheckout /></Frame>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="building-blocks" title="Building blocks"
+        subtitle="The pattern library powering the store — distinct from the rest of the brand system.">
+        <DCArtboard id="signs" label="Wooden signs · burnt-edge lettering" width={520} height={420}>
+          <div style={{ width: '100%', height: '100%', background: '#F5EBD6', padding: 28,
+            display: 'flex', flexDirection: 'column', gap: 24, alignItems: 'stretch' }}>
+            <WoodenSign sub="✦ HAND-CUT & STRUNG ✦" rope>Bookmarks</WoodenSign>
+            <WoodenSign sub="✦ FOR LOGGING THE MILES ✦" tilt={1.2}>Journals</WoodenSign>
+            <WoodenSign sub="✦ POSTAGE-PAID PACKS ✦" tilt={-1.4}>Stickers</WoodenSign>
+          </div>
+        </DCArtboard>
+
+        <DCArtboard id="mileage" label="Mileage markers · pricing" width={520} height={300}>
+          <div style={{ width: '100%', height: '100%', background: '#F5EBD6', padding: 28,
+            display: 'flex', gap: 22, alignItems: 'center', flexWrap: 'wrap' }}>
+            <MileageMarker price="$6"  scale={1.0} label="STICKERS" tilt={-3} />
+            <MileageMarker price="$12" scale={1.0} label="BOOKMARKS" />
+            <MileageMarker price="$28" scale={1.0} label="JOURNALS" tilt={2} />
+            <DiamondMarker text={"FREE\nSHIP\n$35+"} scale={1.0} />
+            <MileageMarker price="$3"  scale={0.7}  label="MI · $" tilt={-6} />
+          </div>
+        </DCArtboard>
+
+        <DCArtboard id="products" label="Product cards · luggage tag + postcard" width={620} height={360}>
+          <div style={{ width: '100%', height: '100%', background: '#F5EBD6', padding: 28,
+            display: 'flex', gap: 26, alignItems: 'center' }}>
+            <div style={{ paddingTop: 18 }}>
+              <LuggageTag title="Mister Ollie" subtitle="leather · braided tassel" price="$9"  kind="bookmark" accent="#B96A3E" tilt={-2} />
+            </div>
+            <Postcard title="The Mile Marker Journal" kind="journal" price="$28" accent="#2F5A3E" stamp="A1" tilt={1.2} />
+            <Postcard title="Star-Cat Decal Pack"     kind="sticker" price="$4"  accent="#C99820" stamp="1¢" stampColor="#2F5A3E" tilt={-1.5} />
+          </div>
+        </DCArtboard>
+
+        <DCArtboard id="stamps" label="Stamps, chips & ornaments" width={520} height={220}>
+          <div style={{ width: '100%', height: '100%', background: '#F5EBD6', padding: 28,
+            display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Stamp tilt={-4}>OPEN DAILY</Stamp>
+            <Stamp tilt={3} color="#34B7AE">FREE SHIPPING · $35+</Stamp>
+            <Stamp tilt={-2} color="#2F5A3E"><span style={{color:'#FFF8E6'}}>✦ IN STOCK</span></Stamp>
+            <Stamp tilt={4} color="#B5483A"><span style={{color:'#FFF8E6'}}>NEW · MAY '26</span></Stamp>
+            <span style={{ display:'inline-flex', alignItems:'center', gap: 6 }}>
+              <StarOrn /><Squiggle width={80} /><StarOrn />
+            </span>
+          </div>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
