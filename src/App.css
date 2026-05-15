@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display&family=IM+Fell+English+SC:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=IM+Fell+English+SC:ital@0;1&family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400..700&display=swap');
 
 @tailwind base;
 @tailwind components;
