@@ -37,8 +37,8 @@ const BOOK_POSITIONS = [
   { x: 326, y: 74, w: 28, h: 38 },   // right outer
 ];
 
-function BookOnTable({ coverId, title, x, y, w, h, featured, onClick }) {
-  const url = coverId ? coverUrl(coverId, 'S') : null;
+function BookOnTable({ coverId, coverURL, title, x, y, w, h, featured, onClick }) {
+  const url = coverURL || (coverId ? coverUrl(coverId, 'S') : null);
   const [loaded, setLoaded] = useState(false);
 
   return (
@@ -103,6 +103,7 @@ function Boomerang({ books = [], featuredBook, size = 'card', onBookClick }) {
             <BookOnTable
               key={i}
               coverId={book.coverId}
+              coverURL={book.coverURL}
               title={book.title}
               x={pos.x} y={pos.y}
               w={pos.w} h={pos.h}
@@ -204,17 +205,21 @@ function BookSearchModal({ onSelect, onClose }) {
         {loading && <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: P.muted, marginTop: 10, fontStyle: 'italic' }}>Searching…</p>}
         <div style={{ marginTop: 12 }}>
           {results.map(book => {
-            const cid = book.coverUrl?.match(/\/id\/(\d+)/)?.[1] || null;
+            const olMatch = book.coverURL?.match(/\/id\/(\d+)/)?.[1] || null;
+            const coverSrc = book.coverURL || null;
+            const coverId  = olMatch || null;
             return (
-              <div key={book.id} onClick={() => onSelect({ title: book.title, author: book.author, coverId: cid })}
-                style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: `1px solid ${P.border}`, cursor: 'pointer' }}>
-                {cid
-                  ? <img src={coverUrl(cid, 'S')} alt="" style={{ width: 36, height: 50, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />
-                  : <div style={{ width: 36, height: 50, background: '#4A2E18', borderRadius: 2, flexShrink: 0 }} />
+              <div key={book.id} onClick={() => onSelect({ title: book.title, author: book.author, coverId, coverURL: coverSrc })}
+                style={{ display: 'flex', gap: 12, padding: '10px 0', borderBottom: `1px solid ${P.border}`, cursor: 'pointer', alignItems: 'center' }}>
+                {coverSrc
+                  ? <img src={coverSrc} alt="" style={{ width: 48, height: 68, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '2px 2px 6px rgba(0,0,0,0.4)' }} />
+                  : <div style={{ width: 48, height: 68, background: '#4A2E18', borderRadius: 3, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: 'rgba(255,248,231,0.3)', textAlign: 'center', padding: '0 4px' }}>NO COVER</span>
+                    </div>
                 }
                 <div>
-                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.cream, lineHeight: 1.3 }}>{book.title}</div>
-                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted }}>{book.author}</div>
+                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: P.cream, lineHeight: 1.3 }}>{book.title}</div>
+                  <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: P.muted }}>{book.author}</div>
                 </div>
               </div>
             );
@@ -350,8 +355,8 @@ function TableModal({ table, meet, onClose, onReadNext, user, onSayHello }) {
           <div style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 10, padding: 16, marginTop: 20 }}>
             <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: P.orange, letterSpacing: '0.1em', marginBottom: 8 }}>FEATURED PICK</div>
             <div style={{ display: 'flex', gap: 12 }}>
-              {table.featuredBook.coverId && (
-                <img src={coverUrl(table.featuredBook.coverId)} alt="" style={{ width: 50, height: 70, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }} />
+              {(table.featuredBook.coverURL || table.featuredBook.coverId) && (
+                <img src={table.featuredBook.coverURL || coverUrl(table.featuredBook.coverId)} alt="" style={{ width: 50, height: 70, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '2px 2px 6px rgba(0,0,0,0.4)' }} />
               )}
               <div>
                 <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: P.cream, lineHeight: 1.3, marginBottom: 3 }}>{table.featuredBook.title}</div>
@@ -369,7 +374,7 @@ function TableModal({ table, meet, onClose, onReadNext, user, onSayHello }) {
         {/* Other books */}
         {(table.books || []).map((book, i) => (
           <div key={i} style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 10, padding: 14, marginTop: 10, display: 'flex', gap: 12 }}>
-            {book.coverId && <img src={coverUrl(book.coverId)} alt="" style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />}
+            {(book.coverURL || book.coverId) && <img src={book.coverURL || coverUrl(book.coverId)} alt="" style={{ width: 48, height: 68, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '2px 2px 6px rgba(0,0,0,0.4)' }} />}
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.cream, lineHeight: 1.3 }}>{book.title}</div>
               <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, marginBottom: book.note ? 6 : 0 }}>{book.author}</div>
@@ -772,7 +777,7 @@ function MyTableContent({ meet, user }) {
         {featuredBook ? (
           <div style={{ background: P.surface, border: `1px solid ${P.border}`, borderRadius: 10, padding: 14 }}>
             <div style={{ display: 'flex', gap: 12, marginBottom: 10 }}>
-              {featuredBook.coverId && <img src={coverUrl(featuredBook.coverId)} alt="" style={{ width: 40, height: 56, objectFit: 'cover', borderRadius: 2, flexShrink: 0 }} />}
+              {(featuredBook.coverURL || featuredBook.coverId) && <img src={featuredBook.coverURL || coverUrl(featuredBook.coverId)} alt="" style={{ width: 48, height: 68, objectFit: 'cover', borderRadius: 3, flexShrink: 0, boxShadow: '2px 2px 6px rgba(0,0,0,0.4)' }} />}
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.cream }}>{featuredBook.title}</div>
                 <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted }}>{featuredBook.author}</div>
