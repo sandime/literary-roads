@@ -1,8 +1,9 @@
 // src/screens/GuidesAdminTab.jsx
 // Admin tab for managing Literary Roads Bookstore Guides
 import { useState, useEffect, useCallback } from 'react';
+import { collection, query, where, getDocs, addDoc, limit, serverTimestamp } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '../config/firebase';
+import { db, storage } from '../config/firebase';
 import {
   fetchGuides, createGuide, updateGuide, deleteGuide,
   fetchGuideStores, addGuideStore, updateGuideStore, deleteGuideStore,
@@ -274,6 +275,8 @@ export default function GuidesAdminTab({ showToast }) {
   const [storeModal, setStoreModal]     = useState(null); // null | 'create' | store
   const [guideSaving, setGuideSaving]   = useState(false);
   const [storeSaving, setStoreSaving]   = useState(false);
+  const [addingToDb, setAddingToDb]     = useState(new Set()); // store IDs currently being added
+  const [inDb, setInDb]                 = useState(new Set()); // store IDs confirmed in bookstores collection
 
   const loadGuides = useCallback(async () => {
     setLoading(true);
@@ -351,6 +354,63 @@ export default function GuidesAdminTab({ showToast }) {
       loadGuides();
     } catch { showToast('Save failed', 'error'); }
     finally { setStoreSaving(false); }
+  };
+
+  const handleAddToMapDb = async (store) => {
+    if (addingToDb.has(store.id)) return;
+    setAddingToDb(prev => new Set(prev).add(store.id));
+    try {
+      // 1. Exact name + city check
+      const exactSnap = await getDocs(
+        query(collection(db, 'bookstores'), where('name', '==', store.name), limit(20))
+      );
+      if (exactSnap.docs.some(d => d.data().city === store.city)) {
+        showToast(`${store.name} is already in the map database`);
+        setInDb(prev => new Set(prev).add(store.id));
+        return;
+      }
+
+      // 2. Coordinate proximity check (~200m) — catches name-mismatched duplicates
+      // (e.g. "WILD RUMPUS" vs "Wild Rumpus Books")
+      let nearbyNote = '';
+      if (store.lat != null && store.lng != null) {
+        const DELTA = 0.002;
+        const nearbySnap = await getDocs(
+          query(collection(db, 'bookstores'),
+            where('lat', '>=', store.lat - DELTA),
+            where('lat', '<=', store.lat + DELTA),
+            limit(20))
+        );
+        const nearby = nearbySnap.docs
+          .map(d => d.data())
+          .filter(b => b.lng != null && Math.abs(b.lng - store.lng) < DELTA);
+        if (nearby.length > 0) {
+          nearbyNote = `\n\nFound at the same location: "${nearby.map(b => b.name).join('", "')}"\nThis may already be in the database.`;
+        }
+      }
+
+      // 3. Always confirm before writing
+      if (!window.confirm(`Add "${store.name}" (${store.city}) to the map database?${nearbyNote}`)) return;
+
+      await addDoc(collection(db, 'bookstores'), {
+        name:           store.name,
+        city:           store.city    || '',
+        state:          store.state   || '',
+        address:        store.address || '',
+        phone:          store.phone   || '',
+        website:        store.website || '',
+        lat:            store.lat  ?? null,
+        lng:            store.lng  ?? null,
+        addedFromGuide: true,
+        createdAt:      serverTimestamp(),
+      });
+      showToast(`${store.name} added to map database`);
+      setInDb(prev => new Set(prev).add(store.id));
+    } catch {
+      showToast('Failed to add to map database', 'error');
+    } finally {
+      setAddingToDb(prev => { const s = new Set(prev); s.delete(store.id); return s; });
+    }
   };
 
   const handleDeleteStore = async (store) => {
@@ -499,6 +559,21 @@ export default function GuidesAdminTab({ showToast }) {
                 <button onClick={() => setStoreModal(store)}
                   style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid ${C.teal}`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
                   EDIT
+                </button>
+                <button
+                  onClick={() => handleAddToMapDb(store)}
+                  disabled={addingToDb.has(store.id) || inDb.has(store.id) || store.lat == null || store.lng == null}
+                  title={store.lat == null ? 'Add coordinates first' : inDb.has(store.id) ? 'Already in map database' : 'Add to map database'}
+                  style={{
+                    fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6,
+                    border: `1px solid ${inDb.has(store.id) ? 'rgba(64,224,208,0.2)' : 'rgba(255,78,0,0.5)'}`,
+                    background: 'transparent',
+                    color: inDb.has(store.id) ? C.muted : (store.lat == null ? C.muted : C.orange),
+                    cursor: (addingToDb.has(store.id) || inDb.has(store.id) || store.lat == null) ? 'not-allowed' : 'pointer',
+                    letterSpacing: '0.04em',
+                    opacity: (store.lat == null || inDb.has(store.id)) ? 0.5 : 1,
+                  }}>
+                  {addingToDb.has(store.id) ? 'ADDING...' : inDb.has(store.id) ? 'IN DB' : 'ADD TO MAP'}
                 </button>
                 <button onClick={() => handleDeleteStore(store)}
                   style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
