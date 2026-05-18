@@ -15,6 +15,7 @@ import { formatIssueDate } from '../components/GazetteContent';
 import { generateNewsletterHTML, generateSubstackText } from '../utils/newsletterGenerator';
 import CuratedRoutesTab from './CuratedRoutesTab';
 import SwapMeetAdminTab from './SwapMeetAdminTab';
+import GuidesAdminTab from './GuidesAdminTab';
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 // Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
@@ -1612,6 +1613,13 @@ export default function AdminPanel() {
         >
           SWAP MEET
         </button>
+        {/* Guides tab */}
+        <button
+          onClick={() => setActiveTab('guides')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'guides' ? `2px solid ${C.teal}` : '2px solid transparent', color: activeTab === 'guides' ? C.teal : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+        >
+          GUIDES
+        </button>
         {/* RSS tab — always last */}
         <button
           onClick={() => setActiveTab('rss')}
@@ -1634,6 +1642,9 @@ export default function AdminPanel() {
         )}
         {activeTab === 'swapMeet' && (
           <SwapMeetAdminTab showToast={showToast} />
+        )}
+        {activeTab === 'guides' && (
+          <GuidesAdminTab showToast={showToast} />
         )}
         {activeTab === 'rss' && (
           <RSSTab showToast={showToast} />

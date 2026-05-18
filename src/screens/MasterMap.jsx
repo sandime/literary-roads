@@ -1557,6 +1557,54 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         }
       })();
     }
+    // Open a bookstore shelf when navigated here via ?bookstoreId=id (e.g. from a Guide)
+    if (routeStateRef?.current?.pendingBookstore) {
+      const bookstoreId = routeStateRef.current.pendingBookstore;
+      routeStateRef.current.pendingBookstore = null;
+      (async () => {
+        try {
+          const snap = await getDoc(doc(db, 'bookstores', bookstoreId));
+          if (snap.exists()) {
+            const bookstore = { id: snap.id, ...snap.data(), type: 'bookstore' };
+            setVisibleLocations(prev =>
+              prev.some(l => l.id === bookstore.id) ? prev : [...prev, bookstore]
+            );
+            setSelectedLocation(bookstore);
+            setFitTarget({ center: [bookstore.lat, bookstore.lng], zoom: 16 });
+            setUiMode('explore');
+            setShowPlanner(false);
+          }
+        } catch (e) {
+          console.error('[MasterMap] pendingBookstore fetch failed', e);
+        }
+      })();
+    }
+    // Fly to coordinates when navigated here via ?center=lat,lng (e.g. from admin guide editor or guide fallback)
+    if (routeStateRef?.current?.pendingCenter) {
+      const [lat, lng] = routeStateRef.current.pendingCenter;
+      routeStateRef.current.pendingCenter = null;
+      const pin = routeStateRef.current.pendingPin ?? null;
+      routeStateRef.current.pendingPin = null;
+      if (pin?.name) {
+        const syntheticLoc = {
+          id: `guide-${lat.toFixed(4)}-${lng.toFixed(4)}`,
+          type: pin.type || 'bookstore',
+          name: pin.name,
+          city: pin.city || '',
+          state: pin.state || '',
+          lat,
+          lng,
+          website: pin.website || '',
+        };
+        setVisibleLocations(prev =>
+          prev.some(l => l.id === syntheticLoc.id) ? prev : [...prev, syntheticLoc]
+        );
+        setSelectedLocation(syntheticLoc);
+      }
+      setFitTarget({ center: [lat, lng], zoom: 16 });
+      setUiMode('explore');
+      setShowPlanner(false);
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset shelf tab and transient state whenever a new location is opened

@@ -258,6 +258,19 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Bookstore Guides ──────────────────────────────────────────────────────────
+    // Guides are publicly readable; only admin can create/edit/delete.
+    // The stores subcollection follows the same pattern.
+    match /bookstoreGuides/{guideId} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /stores/{storeId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
     // ── Book Swap Meet ────────────────────────────────────────────────────────────
     match /swapMeets/{meetId} {
       allow read: if true;

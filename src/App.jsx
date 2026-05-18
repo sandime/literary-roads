@@ -27,6 +27,7 @@ import GazetteArchive from './screens/GazetteArchive';
 import GazetteIssue from './screens/GazetteIssue';
 import GazetteNewspaper from './screens/GazetteNewspaper';
 import Store from './screens/Store';
+import GuideScreen from './screens/GuideScreen';
 import AuthorPage from './screens/AuthorPage';
 import JourneysPage from './screens/JourneysPage';
 import SwapMeetScreen from './screens/SwapMeetScreen';
@@ -50,7 +51,7 @@ function AppInner() {
     const hash = window.location.hash.slice(1) || '/';
     const [hashPath, hashQuery] = hash.split('?');
     const p = new URLSearchParams(hashQuery || '');
-    const shouldShow = hashPath === '/' && !p.get('back') && !p.get('landmark');
+    const shouldShow = hashPath === '/' && !p.get('back') && !p.get('landmark') && !p.get('center') && !p.get('bookstoreId');
     // Mark done immediately if we're skipping — so remounts and page reloads never re-trigger
     if (!shouldShow) sessionStorage.setItem('lr_odometer_done', '1');
     return shouldShow;
@@ -81,11 +82,32 @@ function AppInner() {
     }).catch(() => {});
   }, [user]);
 
-  // Capture ?landmark=id on load so MasterMap can open it on mount
-  useEffect(() => {
+  // Populate routeStateRef synchronously during render so MasterMap's mount effect sees
+  // these values. useEffect fires after child effects, so writing there is too late —
+  // MasterMap (a child) runs its mount effect before AppInner's effect.
+  const urlInitRef = useRef(false);
+  if (!urlInitRef.current) {
+    urlInitRef.current = true;
     const landmarkId = searchParams.get('landmark');
     if (landmarkId) routeStateRef.current.pendingLandmark = landmarkId;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const center = searchParams.get('center');
+    if (center) {
+      const [lat, lng] = center.split(',').map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) routeStateRef.current.pendingCenter = [lat, lng];
+    }
+    const bookstoreId = searchParams.get('bookstoreId');
+    if (bookstoreId) routeStateRef.current.pendingBookstore = bookstoreId;
+    const pinName = searchParams.get('pinName');
+    if (pinName) {
+      routeStateRef.current.pendingPin = {
+        name: pinName,
+        city:    searchParams.get('pinCity')    || '',
+        state:   searchParams.get('pinState')   || '',
+        type:    searchParams.get('pinType')    || 'bookstore',
+        website: searchParams.get('pinWebsite') || '',
+      };
+    }
+  }
 
   // Keep pathname ref current so popstate handler sees latest value
   useEffect(() => {
@@ -353,6 +375,7 @@ function App() {
         <Route path="/newspaper/archive" element={<GazetteArchive />} />
         <Route path="/newspaper/:slug" element={<GazetteIssue />} />
         <Route path="/store" element={<Store onBack={() => window.history.back()} />} />
+        <Route path="/guide/:guideId" element={<GuideScreen />} />
         <Route path="/author" element={<AuthorPage />} />
         {/* Main app — AppInner handles map + overlay screens */}
         <Route path="/*" element={<AppInner />} />

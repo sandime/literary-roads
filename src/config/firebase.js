@@ -2,6 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFunctions } from 'firebase/functions';
+import { getStorage } from 'firebase/storage';
 
 // TODO: Replace with your actual Firebase config
 // Get this from Firebase Console > Project Settings > General
@@ -24,6 +25,7 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 export const functions = getFunctions(app);
+export const storage = getStorage(app);
 console.log('[Firebase] Auth instance:', auth);
 console.log('[Firebase] Auth currentUser on init:', auth.currentUser);
 console.log('[Firebase] Auth app name:', auth.app.name);

@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc, setDoc, onSnapshot, collection, getDocs, server
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { SparkleIcon } from '../components/Icons';
+import { fetchPublishedGuides } from '../utils/bookstoreGuides';
 
 const MAX_FAVORITES = 5;
 
@@ -593,6 +594,14 @@ export default function Resources({ onBack }) {
   const [favIds,    setFavIds]    = useState([]);   // string[]
   const [toast,     setToast]     = useState(null); // string | null
   const [saving,    setSaving]    = useState(false);
+  const [guides,    setGuides]    = useState([]);
+
+  // Fetch published guides for newsstand
+  useEffect(() => {
+    fetchPublishedGuides()
+      .then(setGuides)
+      .catch(err => console.error('[Resources] Failed to load guides:', err));
+  }, []);
 
   // Fetch podcasts from Firestore literary_podcasts collection
   useEffect(() => {
@@ -755,10 +764,10 @@ export default function Resources({ onBack }) {
         {/* ── SURPRISE ME ── */}
         <SurpriseMe user={user} />
 
-        {/* ── NEWSPAPER ── */}
+        {/* ── NEWSSTAND ── */}
         <section style={{ marginBottom: '44px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-            <svg width="22" height="22" viewBox="0 0 30 30" aria-hidden="true" style={{ flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+            <svg width="20" height="20" viewBox="0 0 30 30" aria-hidden="true" style={{ flexShrink: 0 }}>
               <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#FF4E00"/>
             </svg>
             <h2 style={{
@@ -766,38 +775,134 @@ export default function Resources({ onBack }) {
               color: '#FF4E00', letterSpacing: '0.08em', margin: 0,
               textShadow: '0 0 12px rgba(255,78,0,0.5)', whiteSpace: 'nowrap',
             }}>
-              NEWSPAPER
+              NEWSSTAND
             </h2>
             <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(255,78,0,0.4), transparent)' }} />
           </div>
-          <div style={{
-            background: 'rgba(255,78,0,0.04)',
-            border: '1px solid rgba(255,78,0,0.25)',
-            borderRadius: '12px',
-            padding: '20px',
-          }}>
-            <p style={{
-              fontFamily: 'Special Elite, serif', fontSize: '13px',
-              color: 'rgba(245,241,235,0.85)', lineHeight: '1.75',
-              marginBottom: '16px',
-            }}>
-              Read the Literary Roads Gazette — a weekly literary newspaper for readers who love the road.
-              Trending books, indie picks, debut authors, festivals, and road trip routes — every Sunday.
-            </p>
+
+          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'stretch' }}>
+
+            {/* Gazette card — always first */}
             <a
               href="#/newspaper/current"
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                display: 'inline-block',
-                fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.08em',
-                color: '#1A1B2E', background: '#FF4E00',
-                padding: '10px 22px', borderRadius: '4px', textDecoration: 'none',
-                transition: 'background 0.15s',
+                flex: '1 1 200px', minWidth: '180px', maxWidth: '240px',
+                background: 'rgba(255,78,0,0.06)',
+                border: '1px solid rgba(255,78,0,0.3)',
+                borderRadius: '12px',
+                padding: '20px 18px',
+                textDecoration: 'none',
+                display: 'flex', flexDirection: 'column', gap: '10px',
+                transition: 'border-color 0.15s, background 0.15s',
               }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,78,0,0.6)'; e.currentTarget.style.background = 'rgba(255,78,0,0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,78,0,0.3)'; e.currentTarget.style.background = 'rgba(255,78,0,0.06)'; }}
             >
-              READ THE GAZETTE
+              <svg width="28" height="28" viewBox="0 0 30 30" style={{ flexShrink: 0 }}>
+                <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#FF4E00" opacity="0.9"/>
+              </svg>
+              <div>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '13px', color: '#F5F5DC', letterSpacing: '0.05em', marginBottom: '6px' }}>
+                  THE GAZETTE
+                </div>
+                <p style={{ fontFamily: 'Special Elite, serif', fontSize: '12px', color: 'rgba(245,241,235,0.65)', lineHeight: '1.6', margin: 0 }}>
+                  Weekly literary newspaper — indie picks, festivals, debut authors, road trip routes.
+                </p>
+              </div>
+              <div style={{ marginTop: 'auto', fontFamily: 'Bungee, sans-serif', fontSize: '10px', letterSpacing: '0.07em', color: '#FF4E00' }}>
+                READ THE GAZETTE →
+              </div>
             </a>
+
+            {/* Published guide cards */}
+            {guides.filter(g => g.published).map(guide => (
+              <a
+                key={guide.id}
+                href={`#/guide/${guide.id}`}
+                style={{
+                  flex: '1 1 160px', minWidth: '150px', maxWidth: '210px',
+                  background: 'rgba(64,224,208,0.04)',
+                  border: '1px solid rgba(64,224,208,0.2)',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  textDecoration: 'none',
+                  display: 'flex', flexDirection: 'column',
+                  transition: 'border-color 0.15s, background 0.15s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.45)'; e.currentTarget.style.background = 'rgba(64,224,208,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.2)'; e.currentTarget.style.background = 'rgba(64,224,208,0.04)'; }}
+              >
+                {guide.coverImageUrl ? (
+                  <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', height: '110px', objectFit: 'cover', display: 'block' }} />
+                ) : (
+                  <div style={{ width: '100%', height: '110px', background: 'rgba(64,224,208,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <svg width="28" height="28" fill="none" stroke="rgba(64,224,208,0.4)" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                )}
+                <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {guide.state && (
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '8px', letterSpacing: '0.1em', color: '#FF4E00' }}>
+                      {guide.state.toUpperCase()}
+                    </span>
+                  )}
+                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '12px', color: '#F5F5DC', lineHeight: 1.25 }}>
+                    {guide.title}
+                  </div>
+                  {guide.subtitle && (
+                    <div style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: 'rgba(245,245,220,0.5)', lineHeight: 1.4 }}>
+                      {guide.subtitle}
+                    </div>
+                  )}
+                  <div style={{ marginTop: 'auto', fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.07em', color: '#40E0D0', paddingTop: '8px' }}>
+                    READ GUIDE →
+                  </div>
+                </div>
+              </a>
+            ))}
+
+            {/* Coming soon guide cards */}
+            {guides.filter(g => g.comingSoon && !g.published).map(guide => (
+              <div
+                key={guide.id}
+                style={{
+                  flex: '1 1 160px', minWidth: '150px', maxWidth: '210px',
+                  background: 'rgba(192,192,192,0.03)',
+                  border: '1px dashed rgba(192,192,192,0.2)',
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  display: 'flex', flexDirection: 'column',
+                  opacity: 0.65,
+                  cursor: 'default',
+                }}
+              >
+                {guide.coverImageUrl ? (
+                  <div style={{ position: 'relative' }}>
+                    <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', height: '110px', objectFit: 'cover', display: 'block', filter: 'grayscale(60%) brightness(0.7)' }} />
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: '#C0C0C0', background: 'rgba(0,0,0,0.55)', padding: '4px 10px', borderRadius: '4px' }}>COMING SOON</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ width: '100%', height: '110px', background: 'rgba(192,192,192,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: 'rgba(192,192,192,0.5)' }}>COMING SOON</span>
+                  </div>
+                )}
+                <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {guide.state && (
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '8px', letterSpacing: '0.1em', color: 'rgba(192,192,192,0.5)' }}>
+                      {guide.state.toUpperCase()}
+                    </span>
+                  )}
+                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '12px', color: 'rgba(245,245,220,0.55)', lineHeight: 1.25 }}>
+                    {guide.title}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
