@@ -72,7 +72,7 @@ const btnOutlineTurq = { background: 'transparent', border: '2px solid #40E0D0',
 const btnOutlineGray = { background: 'transparent', border: '1.5px solid rgba(192,192,192,0.3)', color: 'rgba(192,192,192,0.6)', cursor: 'pointer' };
 
 // ── main component ────────────────────────────────────────────────────────────
-export default function PostcardStudio({ location }) {
+export default function RoadShotStudio({ location }) {
   // phases: 'pick' | 'capture' | 'webcam' | 'adjust' | 'processing' | 'preview'
   const [phase, setPhase] = useState('pick');
   const [orientation, setOrientation] = useState('portrait');
@@ -276,8 +276,8 @@ export default function PostcardStudio({ location }) {
         setPhase('preview');
       }, 'image/png');
     } catch (e) {
-      console.error('[PostcardStudio] composite error:', e);
-      setErr('Could not create postcard. Please try again.');
+      console.error('[RoadShotStudio] composite error:', e);
+      setErr('Could not create road shot. Please try again.');
       setPhase('adjust');
     }
   };
@@ -302,20 +302,20 @@ export default function PostcardStudio({ location }) {
     setSharing(true); setShareMsg('');
     try {
       const blob = await fetch(compositeUrl).then(r => r.blob());
-      const file = new File([blob], 'literary-roads-postcard.png', { type: 'image/png' });
+      const file = new File([blob], 'literary-roads-road-shot.png', { type: 'image/png' });
       const text = shareCaption(location.name || 'this amazing spot');
       if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'My Literary Roads Postcard', text });
+        await navigator.share({ files: [file], title: 'My Literary Road Shot', text });
         setShareSuccess(true);
       } else {
         const a = document.createElement('a');
-        a.href = compositeUrl; a.download = 'literary-roads-postcard.png'; a.click();
+        a.href = compositeUrl; a.download = 'literary-roads-road-shot.png'; a.click();
         setShareSuccess(true);
       }
     } catch (e) {
       if (e.name !== 'AbortError') {
         const a = document.createElement('a');
-        a.href = compositeUrl; a.download = 'literary-roads-postcard.png'; a.click();
+        a.href = compositeUrl; a.download = 'literary-roads-road-shot.png'; a.click();
         setShareSuccess(true);
       }
     } finally { setSharing(false); }
@@ -345,7 +345,7 @@ export default function PostcardStudio({ location }) {
 
         {/* Step 1 — Orientation */}
         <p className="font-bungee" style={{ fontSize: '10px', color: 'rgba(0,217,255,0.7)', letterSpacing: '0.08em', marginBottom: '8px' }}>
-          CHOOSE POSTCARD SIZE
+          CHOOSE ROAD SHOT SIZE
         </p>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '18px' }}>
           {ORIENTATIONS.map(({ key, label, ratio, ar }) => {
@@ -420,7 +420,7 @@ export default function PostcardStudio({ location }) {
           className="font-bungee w-full py-3 rounded-xl"
           style={{ ...btnPrimary, fontSize: '13px', letterSpacing: '0.06em' }}
         >
-          {photoUrl ? 'APPLY FRAME →' : 'CREATE POSTCARD →'}
+          {photoUrl ? 'APPLY FRAME →' : 'CREATE ROAD SHOT →'}
         </button>
       </div>
     );
@@ -610,7 +610,7 @@ export default function PostcardStudio({ location }) {
       <div style={{ padding: '24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
         <div style={{ width: '36px', height: '36px', border: '3px solid #40E0D0', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
         <p className="font-bungee text-starlight-turquoise text-xs" style={{ letterSpacing: '0.08em' }}>
-          CREATING YOUR POSTCARD...
+          CREATING YOUR ROAD SHOT...
         </p>
       </div>
     );
@@ -619,7 +619,7 @@ export default function PostcardStudio({ location }) {
   // ── PREVIEW phase ─────────────────────────────────────────────────────────
   return (
     <div style={{ padding: '8px 0' }}>
-      {/* Postcard thumbnail */}
+      {/* Road shot thumbnail */}
       <div style={{
         position: 'relative', width: '100%', paddingBottom: previewPadding,
         borderRadius: '12px', overflow: 'hidden',
@@ -628,7 +628,7 @@ export default function PostcardStudio({ location }) {
         marginBottom: '12px', transition: 'border-color 0.3s, box-shadow 0.3s',
       }}>
         {compositeUrl && (
-          <img src={compositeUrl} alt="Postcard preview"
+          <img src={compositeUrl} alt="Road shot preview"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
         )}
       </div>
@@ -644,7 +644,7 @@ export default function PostcardStudio({ location }) {
           }}>
             <span style={{ fontSize: '16px' }}>✓</span>
             <p className="font-bungee" style={{ fontSize: '11px', color: '#39FF14', letterSpacing: '0.06em' }}>
-              POSTCARD SHARED!
+              ROAD SHOT SHARED!
             </p>
           </div>
 

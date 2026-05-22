@@ -23,7 +23,7 @@ const SECTIONS = [
           'Locations you check in at (bookstores, cafes, landmarks, festivals)',
           'Books you log and rate',
           'Guestbook entries and Hitchhiker\'s Tale contributions you write',
-          'Postcards you share',
+          'Road shots you share',
           'Routes and stops you share publicly',
         ],
       },
@@ -73,7 +73,7 @@ const SECTIONS = [
       'Guestbook book recommendations you post',
       "Hitchhiker's Tale sentences you contribute",
       'Routes you explicitly choose to share',
-      'Postcard selfies you share on social media',
+      'Road shots you share on social media',
     ],
     privateItems: [
       'Your email address',

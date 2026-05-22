@@ -12,7 +12,7 @@ export const FEATURES = {
   SHOW_RATINGS: false,
   
   // Phase 3 - Googie Experience (Turn on later)
-  SHOW_POSTCARD_STUDIO: false,
+  SHOW_ROAD_SHOT_STUDIO: false,
   SHOW_TRIVIA: false,
   SHOW_HITCHHIKER_FLEET: false,
   

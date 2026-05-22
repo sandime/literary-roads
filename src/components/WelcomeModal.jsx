@@ -176,7 +176,7 @@ export default function WelcomeModal({ onDismiss, onSignIn }) {
           </Bullet>
 
           <Bullet color={C.orange}>
-            Check in your car, contribute to the Hitchhiker&rsquo;s Tales community story, and send a postcard selfie from a newly discovered bookstore.
+            Check in your car, contribute to the Hitchhiker&rsquo;s Tales community story, and snap a road shot from a newly discovered bookstore.
           </Bullet>
 
           <Bullet color={C.teal}>

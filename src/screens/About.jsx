@@ -344,7 +344,7 @@ export default function About({ onBack }) {
           <p className="font-special-elite" style={{
             fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, margin: 0,
           }}>
-            <Highlight color="#FF69B4">MAKE YOUR JOURNEY PLAYFUL.</Highlight> Choose a retro car, truck, or motorcycle, then "park" it on the map when you arrive at coffee shops and bookstores. You might spot other travelers — tap their car to honk and flash your headlights! They'll get a friendly hello. Snap a selfie and frame it with a Literary Roads postcard filter to share on social media. Start a <Highlight color="#FF69B4">HITCHHIKER'S TALE</Highlight> by writing a sentence or two and giving it a title — other travelers can continue the story. Leave book recommendations in location guestbooks for fellow readers to discover.
+            <Highlight color="#FF69B4">MAKE YOUR JOURNEY PLAYFUL.</Highlight> Choose a retro car, truck, or motorcycle, then "park" it on the map when you arrive at coffee shops and bookstores. You might spot other travelers — tap their car to honk and flash your headlights! They'll get a friendly hello. Snap a selfie and frame it as a Literary Roads road shot to share on social media. Start a <Highlight color="#FF69B4">HITCHHIKER'S TALE</Highlight> by writing a sentence or two and giving it a title — other travelers can continue the story. Leave book recommendations in location guestbooks for fellow readers to discover.
           </p>
         </div>
 

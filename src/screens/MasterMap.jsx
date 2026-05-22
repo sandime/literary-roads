@@ -28,7 +28,7 @@ import SaveRouteModal from '../components/SaveRouteModal';
 import ShareRouteModal from '../components/ShareRouteModal';
 import Guestbook from '../components/Guestbook';
 import HitchhikerTale from '../components/HitchhikerTale';
-import PostcardStudio from '../components/PostcardStudio';
+import RoadShotStudio from '../components/RoadShotStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
 import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon, LibraryIcon } from '../components/Icons';
@@ -1392,7 +1392,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [selectedLocation, setSelectedLocation] = useState(
     saved.pendingLocation ?? saved.persistedLocation ?? null
   );
-  const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale' | 'postcard'
+  const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale' | 'roadshot'
   const [showTaleModal, setShowTaleModal] = useState(false);
   const [starburstIds, setStarburstIds] = useState(new Set());
   const [tripItems, setTripItems] = useState([]);
@@ -4102,7 +4102,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   { id: 'info', label: 'INFO' },
                   { id: 'guestbook', label: 'GUESTBOOK' },
                   { id: 'tale', label: "HITCHHIKER'S TALE" },
-                  { id: 'postcard', label: 'POSTCARD', icon: <CameraIcon size={11} /> },
+                  { id: 'roadshot', label: 'ROAD SHOT', icon: <CameraIcon size={11} /> },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -4274,9 +4274,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               />
             )}
 
-            {/* Tab: Postcard Studio */}
-            {shelfTab === 'postcard' && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
-              <PostcardStudio
+            {/* Tab: Road Shot Studio */}
+            {shelfTab === 'roadshot' && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
+              <RoadShotStudio
                 key={selectedLocation.id}
                 location={selectedLocation}
               />
