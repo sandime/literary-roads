@@ -26,7 +26,7 @@ const SPINE_LABELS = ['ROAD','NOVEL','JOURNEY','STORY','VERSE',
 
 const SHELVES = [
   { key: 'bookLog',   label: 'BOOK LOG',      sub: 'Your reading journey',     spines: [0,1,2,3,4,5,6,7,8] },
-  { key: 'postcards', label: 'POSTCARD BOOKS', sub: 'Books sent from the road', spines: [3,6,1,8,4,0,7,2,5] },
+  { key: 'postcards', label: 'POSTCARD BOOKS', sub: 'Share a postcard of the book you\'re reading', spines: [3,6,1,8,4,0,7,2,5] },
   { key: 'myRecs',    label: 'MY RECS',        sub: 'Recommended at pit stops', spines: [7,2,5,0,8,3,1,6,4] },
   { key: 'readNext',  label: 'READ NEXT',      sub: 'Your literary wish list',  spines: [5,8,0,4,2,7,3,1,6] },
 ];
