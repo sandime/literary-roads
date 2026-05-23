@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { SparkleIcon } from '../components/Icons';
 import { fetchPublishedGuides } from '../utils/bookstoreGuides';
+import { getRandomFortune } from '../data/literaryFortunes.js';
 
 const MAX_FAVORITES = 5;
 
@@ -89,6 +90,7 @@ async function fetchSurpriseBook(genre, usedIds) {
 function SurpriseMe({ user }) {
   const [status, setStatus]         = useState('idle'); // idle | loading | result | error
   const [book, setBook]             = useState(null);
+  const [fortune, setFortune]       = useState(null);
   const [saveStatus, setSaveStatus] = useState('idle'); // idle | saving | saved | duplicate | error
 
   // Session-level tracking: shuffled genre deck + seen book IDs
@@ -106,11 +108,13 @@ function SurpriseMe({ user }) {
   const handleSurprise = async () => {
     setStatus('loading');
     setBook(null);
+    setFortune(null);
     setSaveStatus('idle');
     try {
       const result = await fetchSurpriseBook(pickNextGenre(), usedIdsRef.current);
       usedIdsRef.current.add(result.id);
       setBook(result);
+      setFortune(getRandomFortune());
       setStatus('result');
     } catch {
       // Retry once with a different genre
@@ -118,6 +122,7 @@ function SurpriseMe({ user }) {
         const result = await fetchSurpriseBook(pickNextGenre(), usedIdsRef.current);
         usedIdsRef.current.add(result.id);
         setBook(result);
+        setFortune(getRandomFortune());
         setStatus('result');
       } catch {
         setStatus('error');
@@ -249,6 +254,60 @@ function SurpriseMe({ user }) {
           borderRadius: '16px', overflow: 'hidden',
           boxShadow: '0 0 28px rgba(255,78,0,0.12)',
         }}>
+
+          {/* ── Fortune ticket top ─────────────────────────────────────── */}
+          {fortune && (
+            <div style={{
+              background: 'rgba(255,78,0,0.06)',
+              padding: '20px 22px',
+              textAlign: 'center',
+            }}>
+              <p style={{
+                fontFamily: 'Bungee, sans-serif', fontSize: '10px',
+                color: 'rgba(255,78,0,0.7)', letterSpacing: '0.14em',
+                marginBottom: '12px',
+              }}>
+                ✦ YOUR LITERARY FORTUNE ✦
+              </p>
+              <p style={{
+                fontFamily: 'Special Elite, serif', fontSize: '14px',
+                color: '#F5F5DC', lineHeight: 1.65,
+                fontStyle: 'italic', margin: 0,
+              }}>
+                {fortune.fortune}
+              </p>
+            </div>
+          )}
+
+          {/* ── Perforated tear line ───────────────────────────────────── */}
+          {fortune && (
+            <div style={{
+              position: 'relative',
+              height: '1px',
+              margin: '0 -1px',
+              borderTop: '2px dashed rgba(255,78,0,0.3)',
+            }}>
+              {/* Left notch */}
+              <div style={{
+                position: 'absolute', left: '-10px', top: '50%',
+                transform: 'translateY(-50%)',
+                width: '18px', height: '18px', borderRadius: '50%',
+                background: '#1A1B2E',
+                border: '1.5px solid rgba(255,78,0,0.35)',
+              }} />
+              {/* Right notch */}
+              <div style={{
+                position: 'absolute', right: '-10px', top: '50%',
+                transform: 'translateY(-50%)',
+                width: '18px', height: '18px', borderRadius: '50%',
+                background: '#1A1B2E',
+                border: '1.5px solid rgba(255,78,0,0.35)',
+              }} />
+            </div>
+          )}
+
+          {/* ── Book result bottom ─────────────────────────────────────── */}
+
           {/* Genre badge */}
           <div style={{
             background: 'rgba(255,78,0,0.12)',
@@ -261,7 +320,7 @@ function SurpriseMe({ user }) {
               fontFamily: 'Bungee, sans-serif', fontSize: '10px',
               color: '#FF4E00', letterSpacing: '0.1em',
             }}>
-              YOUR SURPRISE BOOK! &nbsp;·&nbsp; Genre: {book.genre}
+              YOUR ROAD TRIP READ &nbsp;·&nbsp; Genre: {book.genre}
             </span>
           </div>
 
@@ -318,7 +377,6 @@ function SurpriseMe({ user }) {
 
           {/* Action buttons */}
           <div style={{ padding: '12px 20px 20px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-            {/* Save for Later */}
             {saveStatus === 'saved' ? (
               <span style={{
                 fontFamily: 'Bungee, sans-serif', fontSize: '11px', letterSpacing: '0.06em',
@@ -367,7 +425,6 @@ function SurpriseMe({ user }) {
               </span>
             )}
 
-            {/* Surprise Me Again */}
             <button onClick={handleSurprise}
               style={{
                 fontFamily: 'Bungee, sans-serif', fontSize: '11px', letterSpacing: '0.06em',
