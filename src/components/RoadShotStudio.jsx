@@ -1,21 +1,99 @@
 import { useState, useRef, useEffect } from 'react';
 
 // ── Frame / orientation config ────────────────────────────────────────────────
+// locationText: draws dynamic city/state over the baked-in placeholder text.
+//   coverRect: paints frame background color over the placeholder before drawing,
+//              so the old "Marfa, Texas" pixels are erased cleanly.
+//   lines[]:   multi-line mode — each entry is an independent text draw call.
+//              Use { text } for static strings, { format } for dynamic city/state.
+//   (flat props): single-line mode — same options, no lines array.
+const BASE = import.meta.env.BASE_URL;
 const FRAMES = {
-  square: [
-    { id: 'sq1', label: 'Design 1', src: '/literary-roads/images/postcard-frame.png' },
-    { id: 'sq2', label: 'Design 2', src: '/literary-roads/images/postcard-square-2.png' },
-    { id: 'sq3', label: 'Design 3', src: '/literary-roads/images/postcard-square-3.png' },
-    { id: 'sq4', label: 'Cats',     src: '/literary-roads/images/postcard-square-cats.png' },
-  ],
   portrait: [
-    { id: 'pt1', label: 'Design 1', src: '/literary-roads/images/postcard-portrait.png' },
-    { id: 'pt2', label: 'Design 2', src: '/literary-roads/images/postcard-portrait-2.png' },
-    { id: 'pt3', label: 'Design 3', src: '/literary-roads/images/postcard-portrait-3.png' },
+    {
+      id: 'pt-starburst', label: 'Atomic Starburst',
+      src: `${BASE}images/road-shot-frames/road-shot-portrait-starburst.png`,
+      locationText: {
+        lines: [
+          { text: 'Greetings from', x: 0.04, y: 0.055, align: 'left', color: '#1A1B2E', fontScale: 0.028, fontFamily: 'Special Elite', italic: true },
+          { format: 'city-state',   x: 0.04, y: 0.115, align: 'left', color: '#1A1B2E', fontScale: 0.040, fontFamily: 'Special Elite', italic: true, maxWidth: 0.48 },
+        ],
+        coverRect: { x1: 0.01, y1: 0.02, x2: 0.54, y2: 0.16, fill: '#EAE0CA' },
+      },
+    },
+    {
+      id: 'pt-drivein', label: 'Drive-In Night',
+      src: `${BASE}images/road-shot-frames/road-shot-portrait-drivein.png`,
+      locationText: {
+        format: 'city-state', x: 0.5, y: 0.073, align: 'center',
+        color: '#F5F5DC', fontScale: 0.032, fontFamily: 'Special Elite', italic: true, maxWidth: 0.85,
+        coverRect: { x1: 0.05, y1: 0.048, x2: 0.95, y2: 0.10, fill: '#0C151F' },
+      },
+    },
+    {
+      id: 'pt-boomerang', label: 'Boomerang Block',
+      src: `${BASE}images/road-shot-frames/road-shot-portrait-boomerang.png`,
+    },
+  ],
+  square: [
+    {
+      id: 'sq-stamp', label: 'Postage Stamp',
+      src: `${BASE}images/road-shot-frames/road-shot-square-stamp.png`,
+      locationText: {
+        format: 'city-state', x: 0.15, y: 0.82, align: 'left',
+        color: '#1A1B2E', fontScale: 0.052, fontFamily: 'Special Elite', maxWidth: 0.54,
+        coverRect: { x1: 0.10, y1: 0.74, x2: 0.68, y2: 0.93, fill: '#EAE0CA' },
+      },
+    },
+    {
+      id: 'sq-atomic', label: 'Atomic Tile',
+      src: `${BASE}images/road-shot-frames/road-shot-square-atomic.png`,
+      locationText: {
+        format: 'city-state', x: 0.5, y: 0.81, align: 'center',
+        color: '#1A1B2E', fontScale: 0.040, fontFamily: 'Special Elite', maxWidth: 0.50,
+        coverRect: { x1: 0.22, y1: 0.73, x2: 0.78, y2: 0.89, fill: '#EFE9D2' },
+      },
+    },
+    {
+      id: 'sq-vinyl', label: 'Vinyl B-Side',
+      src: `${BASE}images/road-shot-frames/road-shot-square-vinyl.png`,
+      locationText: {
+        format: 'city-state', x: 0.08, y: 0.79, align: 'left',
+        color: '#1A1B2E', fontScale: 0.068, fontFamily: 'Special Elite', maxWidth: 0.62,
+        coverRect: { x1: 0.04, y1: 0.72, x2: 0.73, y2: 0.88, fill: '#F0EAD4' },
+      },
+    },
   ],
   landscape: [
-    { id: 'ls1', label: 'Design 1', src: '/literary-roads/images/postcard-landscape.png' },
-    { id: 'ls2', label: 'Design 2', src: '/literary-roads/images/postcard-landscape-2.png' },
+    {
+      id: 'ls-greetings', label: 'Greetings From',
+      src: `${BASE}images/road-shot-frames/road-shot-landscape-greetings.png`,
+      locationText: {
+        lines: [
+          { text: 'Greetings from', x: 0.04, y: 0.18, align: 'left', color: '#1A1B2E', fontScale: 0.030, fontFamily: 'Special Elite', italic: true },
+          { format: 'city-state',   x: 0.03, y: 0.54, align: 'left', color: '#1A1B2E', fontScale: 0.088, fontFamily: 'Bungee', maxWidth: 0.44 },
+        ],
+        coverRect: { x1: 0.01, y1: 0.08, x2: 0.52, y2: 0.88, fill: '#EAE0CA' },
+      },
+    },
+    {
+      id: 'ls-cinemascope', label: 'Cinemascope',
+      src: `${BASE}images/road-shot-frames/road-shot-landscape-cinemascope.png`,
+      locationText: {
+        format: 'city-state', x: 0.97, y: 0.905, align: 'right',
+        color: '#FF4E00', fontScale: 0.028, fontFamily: 'Bungee', uppercase: true, maxWidth: 0.50,
+        coverRect: { x1: 0.44, y1: 0.878, x2: 0.99, y2: 0.952, fill: '#0C0D1C' },
+      },
+    },
+    {
+      id: 'ls-marquee', label: 'Motel Marquee',
+      src: `${BASE}images/road-shot-frames/road-shot-landscape-marquee.png`,
+      locationText: {
+        format: 'city', x: 0.13, y: 0.72, align: 'center',
+        color: '#1A1B2E', fontScale: 0.036, fontFamily: 'Bungee', maxWidth: 0.18,
+        coverRect: { x1: 0.03, y1: 0.61, x2: 0.24, y2: 0.84, fill: '#3CC8BC' },
+      },
+    },
   ],
 };
 
@@ -76,7 +154,7 @@ export default function RoadShotStudio({ location }) {
   // phases: 'pick' | 'capture' | 'webcam' | 'adjust' | 'processing' | 'preview'
   const [phase, setPhase] = useState('pick');
   const [orientation, setOrientation] = useState('portrait');
-  const [frameId, setFrameId] = useState('pt1');
+  const [frameId, setFrameId] = useState('pt-starburst');
   const [photoUrl, setPhotoUrl] = useState(null);
   const [compositeUrl, setCompositeUrl] = useState(null);
   const [sharing, setSharing] = useState(false);
@@ -239,6 +317,49 @@ export default function RoadShotStudio({ location }) {
         ctx.drawImage(frameImg, 0, 0, w, h);
       } catch { /* missing frame — continue */ }
 
+      // 2b. Frame-specific dynamic location text
+      if (frame.locationText) {
+        const lt = frame.locationText;
+
+        // Erase the baked-in placeholder text from the PNG
+        if (lt.coverRect) {
+          const { x1, y1, x2, y2, fill } = lt.coverRect;
+          ctx.fillStyle = fill;
+          ctx.fillRect(Math.round(w * x1), Math.round(h * y1),
+                       Math.round(w * (x2 - x1)), Math.round(h * (y2 - y1)));
+        }
+
+        const getLocStr = (fmt) => fmt === 'city'
+          ? (location.city || location.state || '')
+          : [location.city, location.state].filter(Boolean).join(', ');
+
+        const drawLine = (cfg) => {
+          const raw = cfg.format ? getLocStr(cfg.format) : (cfg.text || '');
+          if (!raw) return;
+          const fSize = Math.round(base * (cfg.fontScale || 0.035));
+          ctx.font = `${cfg.italic ? 'italic ' : ''}${fSize}px "${cfg.fontFamily || 'Bungee'}", sans-serif`;
+          ctx.fillStyle = cfg.color || '#F5F5DC';
+          ctx.textAlign = cfg.align || 'center';
+          ctx.textBaseline = 'middle';
+          if (cfg.shadowColor) { ctx.shadowColor = cfg.shadowColor; ctx.shadowBlur = Math.round(base * 0.018); }
+          const textX = Math.round(w * (cfg.x ?? 0.5));
+          const textY = Math.round(h * (cfg.y ?? 0.5));
+          const maxW  = Math.round(w * (cfg.maxWidth || 0.78));
+          const out0  = (cfg.prefix || '') + (cfg.uppercase ? raw.toUpperCase() : raw);
+          let out = out0;
+          while (ctx.measureText(out).width > maxW && out.length > 4) out = out.slice(0, -1);
+          if (out.length < out0.length) out += '…';
+          ctx.fillText(out, textX, textY);
+          ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+        };
+
+        if (lt.lines) {
+          lt.lines.forEach(drawLine);
+        } else {
+          drawLine(lt);
+        }
+      }
+
       // 3. Text bar at bottom
       const barH   = Math.round(base * 0.088);
       const barY   = h - barH;
@@ -251,16 +372,18 @@ export default function RoadShotStudio({ location }) {
       ctx.fillStyle = grad;
       ctx.fillRect(0, barY - accentH, w, accentH);
 
-      const city = location.address
-        ? ' • ' + location.address.split(',').slice(-2).join(',').trim() : '';
-      let text = (location.name || 'Literary Stop') + city;
+      const locationLine =
+        [location.city, location.state].filter(Boolean).join(', ') ||
+        (location.address ? location.address.split(',').slice(-2).join(',').trim() : '');
+      let text = (location.name || 'Literary Stop') + (locationLine ? ' • ' + locationLine : '');
       const fontSize = Math.round(base * 0.024);
       ctx.font = `${fontSize}px Bungee, sans-serif`;
       ctx.fillStyle = '#40E0D0';
       ctx.shadowColor = 'rgba(64,224,208,0.85)'; ctx.shadowBlur = 16;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const fullText = text;
       while (ctx.measureText(text).width > w * 0.88 && text.length > 6) text = text.slice(0, -1);
-      if (text.length < ((location.name || '') + city).length) text += '…';
+      if (text.length < fullText.length) text += '…';
       ctx.fillText(text, w / 2, barY + barH / 2);
       ctx.shadowBlur = 0;
 
