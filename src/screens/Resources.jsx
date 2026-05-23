@@ -446,12 +446,6 @@ function SurpriseMe({ user }) {
 
 
 // ── Coming-soon sections ───────────────────────────────────────────────────
-const COMING_SOON = [
-  { label: 'Literary Trivia',       desc: 'Test your knowledge of authors, novels, and hidden history.' },
-  { label: 'Reading Challenges',    desc: 'Road-trip themed reading lists and trackable challenges.' },
-  { label: 'Author Hometown Tours', desc: 'Self-guided walking tours of literary cities.' },
-  { label: 'Bookshop Guides',       desc: 'Curated independent bookshop picks by state.' },
-];
 
 // ── Star icon ──────────────────────────────────────────────────────────────
 function StarIcon({ filled }) {
@@ -1032,54 +1026,6 @@ export default function Resources({ onBack }) {
               )}
             </div>
           )}
-        </section>
-
-        {/* ── COMING SOON ── */}
-        <section>
-          <SectionHeader
-            label="COMING SOON"
-            color="#40E0D0"
-            glowColor="rgba(64,224,208,0.5)"
-          />
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-            gap: '12px',
-          }}>
-            {COMING_SOON.map(({ label, desc }) => (
-              <div key={label} style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px dashed rgba(64,224,208,0.2)',
-                borderRadius: '12px',
-                padding: '16px',
-                display: 'flex', flexDirection: 'column', gap: '8px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{
-                    fontFamily: 'Bungee, sans-serif', fontSize: '11px',
-                    color: 'rgba(245,245,220,0.6)', letterSpacing: '0.06em',
-                  }}>
-                    {label}
-                  </span>
-                  <span style={{
-                    fontFamily: 'Bungee, sans-serif', fontSize: '7px',
-                    color: '#FF4E00', letterSpacing: '0.1em',
-                    border: '1px solid rgba(255,78,0,0.4)',
-                    borderRadius: '3px', padding: '1px 5px',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    SOON
-                  </span>
-                </div>
-                <p style={{
-                  fontFamily: 'Special Elite, serif', fontSize: '11px',
-                  color: 'rgba(200,155,70,0.5)', margin: 0, lineHeight: 1.5,
-                }}>
-                  {desc}
-                </p>
-              </div>
-            ))}
-          </div>
         </section>
 
         {/* ── Library Finder road sign ── */}
