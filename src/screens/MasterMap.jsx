@@ -3183,6 +3183,34 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         NEAR ME
       </button>
 
+      {/* Library Finder toggle */}
+      <button
+        onClick={() => navigate('/library-finder')}
+        style={{
+          position: 'fixed',
+          bottom: '5rem',
+          right: '1rem',
+          zIndex: 1001,
+          background: '#006B6B',
+          color: '#F5F5DC',
+          border: 'none',
+          borderRadius: 9999,
+          padding: '8px 14px',
+          fontFamily: 'Bungee, sans-serif',
+          fontSize: 12,
+          letterSpacing: '0.05em',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 7,
+          boxShadow: '0 2px 12px rgba(0,107,107,0.45)',
+        }}
+        title="Library Finder"
+      >
+        <LibraryIcon size={15} />
+        LIBRARY FINDER
+      </button>
+
             {/* Map */}
       <div id="main-content" className={`h-full ${showSearch ? 'pt-[88px] md:pt-[128px]' : 'pt-11 md:pt-20'}`}>
         <MapContainer

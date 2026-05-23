@@ -31,6 +31,7 @@ import GuideScreen from './screens/GuideScreen';
 import AuthorPage from './screens/AuthorPage';
 import JourneysPage from './screens/JourneysPage';
 import SwapMeetScreen from './screens/SwapMeetScreen';
+import LibraryFinderScreen from './screens/LibraryFinderScreen';
 import './App.css';
 
 // window flags: survive HMR module re-evaluation (unlike module-level lets) but reset on
@@ -376,6 +377,7 @@ function App() {
         <Route path="/newspaper/:slug" element={<GazetteIssue />} />
         <Route path="/store" element={<Store onBack={() => window.history.back()} />} />
         <Route path="/guide/:guideId" element={<GuideScreen />} />
+        <Route path="/library-finder" element={<LibraryFinderScreen />} />
         <Route path="/author" element={<AuthorPage />} />
         {/* Main app — AppInner handles map + overlay screens */}
         <Route path="/*" element={<AppInner />} />

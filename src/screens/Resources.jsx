@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { doc, getDoc, updateDoc, setDoc, onSnapshot, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { SparkleIcon } from '../components/Icons';
+import { SparkleIcon, LibraryIcon } from '../components/Icons';
 import { fetchPublishedGuides } from '../utils/bookstoreGuides';
 import { getRandomFortune } from '../data/literaryFortunes.js';
 
@@ -646,6 +647,7 @@ function Toast({ message, onDismiss }) {
 // ── Main component ─────────────────────────────────────────────────────────
 export default function Resources({ onBack }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [podcasts,  setPodcasts]  = useState([]);
   const [podLoading, setPodLoading] = useState(true);
   const [favIds,    setFavIds]    = useState([]);   // string[]
@@ -1080,11 +1082,94 @@ export default function Resources({ onBack }) {
           </div>
         </section>
 
+        {/* ── Library Finder road sign ── */}
+        <LibraryFinderSignSection navigate={navigate} />
+
       </div>
 
       {/* ── Toast ── */}
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
 
     </div>
+  );
+}
+
+// ── Library Finder road sign entry point ──────────────────────────────────
+function LibraryFinderSignSection({ navigate }) {
+  const [libSearch, setLibSearch] = useState('');
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!libSearch.trim()) return;
+    navigate(`/library-finder?q=${encodeURIComponent(libSearch.trim())}`);
+  };
+
+  return (
+    <section style={{ marginBottom: '44px' }}>
+      {/* Road sign */}
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: '10px',
+        background: '#1A4D1A',
+        border: '3px solid #fff',
+        borderRadius: '6px',
+        padding: '10px 18px',
+        marginBottom: '14px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+      }}>
+        <div style={{ color: '#fff', flexShrink: 0 }}><LibraryIcon size={22} /></div>
+        <div>
+          <p style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: '16px',
+            color: '#fff', letterSpacing: '0.08em', margin: 0, lineHeight: 1.1,
+          }}>
+            LIBRARY FINDER
+          </p>
+          <p style={{
+            fontFamily: 'Special Elite, serif', fontSize: '11px',
+            color: 'rgba(255,255,255,0.75)', margin: '2px 0 0', lineHeight: 1,
+          }}>
+            Find a library near you
+          </p>
+        </div>
+      </div>
+
+      {/* Search input */}
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '8px' }}>
+        <input
+          type="text"
+          value={libSearch}
+          onChange={e => setLibSearch(e.target.value)}
+          placeholder="City, state or address..."
+          style={{
+            flex: 1,
+            background: '#F5F5DC',
+            border: '1.5px solid rgba(26,77,26,0.4)',
+            borderRadius: '10px',
+            color: '#1A1B2E',
+            fontFamily: 'Special Elite, serif',
+            fontSize: '14px',
+            padding: '10px 14px',
+            outline: 'none',
+          }}
+        />
+        <button
+          type="submit"
+          disabled={!libSearch.trim()}
+          style={{
+            background: libSearch.trim() ? '#FF4E00' : 'rgba(255,78,0,0.35)',
+            color: '#fff',
+            border: 'none', borderRadius: '10px',
+            fontFamily: 'Bungee, sans-serif', fontSize: '12px', letterSpacing: '0.06em',
+            padding: '10px 18px',
+            cursor: libSearch.trim() ? 'pointer' : 'default',
+            whiteSpace: 'nowrap', flexShrink: 0,
+            boxShadow: libSearch.trim() ? '0 0 16px rgba(255,78,0,0.4)' : 'none',
+            transition: 'background .15s, box-shadow .15s',
+          }}
+        >
+          SEARCH →
+        </button>
+      </form>
+    </section>
   );
 }
