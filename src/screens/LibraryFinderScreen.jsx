@@ -19,24 +19,34 @@ const haversine = (lat1, lng1, lat2, lng2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-// ── Library map pin ────────────────────────────────────────────────────────
+// ── Library map pin (matches the library icon in MasterMap's createCustomIcon) ──
 const createLibraryPin = () => L.divIcon({
   html: `
-    <div style="position:relative;width:30px;height:38px;">
-      <svg width="30" height="38" viewBox="0 0 30 38" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M15 0C6.716 0 0 6.716 0 15C0 23.284 15 38 15 38C15 38 30 23.284 30 15C30 6.716 23.284 0 15 0Z" fill="#006B6B"/>
-        <line x1="7" y1="22" x2="23" y2="22" stroke="white" stroke-width="1.4"/>
-        <rect x="7" y="10" width="3" height="12" rx="0.5" fill="white" fill-opacity="0.95"/>
-        <rect x="11.5" y="13" width="2.5" height="9" rx="0.5" fill="rgba(255,255,255,0.65)"/>
-        <rect x="15.5" y="8" width="3" height="14" rx="0.5" fill="white" fill-opacity="0.95"/>
-        <rect x="20" y="11" width="3" height="11" rx="0.5" fill="rgba(255,255,255,0.75)"/>
+    <div style="position:relative;display:inline-block;">
+      <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-yg-lf">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-yg-lf)">
+          <path d="M10 32 L10 20 Q10 10 20 10 Q30 10 30 20 L30 32" fill="none" stroke="#AEEA00" stroke-width="2" stroke-linecap="round"/>
+          <line x1="7" y1="32" x2="33" y2="32" stroke="#AEEA00" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 25 L14 20 Q20 22 20 22 Q20 22 26 20 L26 25 Q20 27 20 27 Q20 27 14 25" fill="none" stroke="#AEEA00" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <line x1="20" y1="20.5" x2="20" y2="26.5" stroke="#AEEA00" stroke-width="1"/>
+        </g>
       </svg>
     </div>
   `,
-  className: '',
-  iconSize: [30, 38],
-  iconAnchor: [15, 38],
-  popupAnchor: [0, -42],
+  className: 'custom-googie-marker',
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
+  popupAnchor: [0, -40],
 });
 
 // ── Firestore bounding-box query ──────────────────────────────────────────
