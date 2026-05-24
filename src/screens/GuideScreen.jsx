@@ -90,6 +90,8 @@ export default function GuideScreen() {
     else navigate('/resources');
   };
 
+  const handlePrint = () => window.print();
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#1A1B2E', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -113,8 +115,59 @@ export default function GuideScreen() {
   return (
     <div style={{ minHeight: '100vh', background: '#1A1B2E', color: '#F5F5DC', fontFamily: 'Special Elite, serif' }}>
 
+      <style>{`
+        @media print {
+          @page { margin: 1in; size: letter; }
+          body, #root {
+            background: white !important;
+            color: black !important;
+            overflow: auto !important;
+            height: auto !important;
+          }
+          .guide-no-print { display: none !important; }
+          .guide-print-only { display: block !important; }
+          .guide-hero-image { display: none !important; }
+          .guide-store-card {
+            background: white !important;
+            border: none !important;
+            border-bottom: 1pt solid #ccc !important;
+            border-radius: 0 !important;
+            overflow: visible !important;
+            page-break-inside: avoid;
+          }
+          .guide-store-card img { display: none !important; }
+          .guide-store-actions { display: none !important; }
+          .guide-print-page-footer {
+            display: block !important;
+            position: fixed;
+            bottom: 0.5in;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-family: Georgia, serif;
+            font-size: 9pt;
+            color: #aaa;
+            border-top: 0.5pt solid #ddd;
+            padding-top: 6pt;
+          }
+          h1, h2, h3 {
+            font-family: Georgia, serif !important;
+            color: black !important;
+            text-shadow: none !important;
+          }
+          p, span, div {
+            color: black !important;
+            font-family: Georgia, serif !important;
+            text-shadow: none !important;
+          }
+          a { color: black !important; text-decoration: underline !important; }
+        }
+        .guide-print-only { display: none; }
+        .guide-print-page-footer { display: none; }
+      `}</style>
+
       {/* ── Header ── */}
-      <div style={{ background: '#0D0E1A', borderBottom: '1px solid rgba(64,224,208,0.2)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 10 }}>
+      <div className="guide-no-print" style={{ background: '#0D0E1A', borderBottom: '1px solid rgba(64,224,208,0.2)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 14, position: 'sticky', top: 0, zIndex: 10 }}>
         <button onClick={handleBack}
           style={{ display: 'flex', alignItems: 'center', gap: 6, fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.08em', padding: '6px 12px', borderRadius: 6, border: '1px solid rgba(64,224,208,0.3)', background: 'transparent', color: '#40E0D0', cursor: 'pointer', flexShrink: 0 }}>
           <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,12 +180,21 @@ export default function GuideScreen() {
             LITERARY ROADS GUIDE
           </span>
         </div>
-        <div style={{ width: 80, flexShrink: 0 }} />
+        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+          <button onClick={handlePrint}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.07em', padding: '6px 11px', borderRadius: 6, border: '1px solid rgba(245,245,220,0.2)', background: 'transparent', color: 'rgba(245,245,220,0.55)', cursor: 'pointer' }}>
+            PRINT
+          </button>
+          <button onClick={handlePrint}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.07em', padding: '6px 11px', borderRadius: 6, border: '1px solid rgba(245,245,220,0.2)', background: 'transparent', color: 'rgba(245,245,220,0.55)', cursor: 'pointer' }}>
+            PDF
+          </button>
+        </div>
       </div>
 
       {/* ── Hero image ── */}
       {guide.coverImageUrl && (
-        <div style={{ width: '100%', maxHeight: 300, overflow: 'hidden' }}>
+        <div className="guide-hero-image" style={{ width: '100%', maxHeight: 300, overflow: 'hidden' }}>
           <img src={guide.coverImageUrl} alt={guide.title}
             style={{ width: '100%', height: 300, objectFit: 'cover', display: 'block' }} />
         </div>
@@ -174,7 +236,7 @@ export default function GuideScreen() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               {stores.map((store, idx) => (
-                <div key={store.id} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(64,224,208,0.12)', borderRadius: 12, overflow: 'hidden' }}>
+                <div key={store.id} className="guide-store-card" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(64,224,208,0.12)', borderRadius: 12, overflow: 'hidden' }}>
                   {store.photoUrl && (
                     <img src={store.photoUrl} alt={store.name} style={{ width: '100%', height: 180, objectFit: 'cover', display: 'block' }} />
                   )}
@@ -201,7 +263,7 @@ export default function GuideScreen() {
                       </p>
                     )}
 
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div className="guide-store-actions" style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                       {store.website && (
                         <a href={store.website} target="_blank" rel="noopener noreferrer"
                           style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em', color: '#40E0D0', textDecoration: 'none', border: '1px solid rgba(64,224,208,0.35)', borderRadius: 5, padding: '6px 14px', display: 'inline-block' }}>
@@ -229,6 +291,11 @@ export default function GuideScreen() {
                             : 'FIND ON MAP'}
                       </button>
                     </div>
+                    {store.website && (
+                      <span className="guide-print-only" style={{ fontFamily: 'Georgia, serif', fontSize: 11, color: '#555' }}>
+                        {store.website}
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -243,6 +310,11 @@ export default function GuideScreen() {
             LITERARY ROADS
           </a>
         </div>
+      </div>
+
+      {/* Print-only page footer — fixed so it appears on every printed page */}
+      <div className="guide-print-page-footer">
+        theliteraryroads.com
       </div>
     </div>
   );
