@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "OUR PERFECT STORM",
-      "author": "Carley Fortune",
+      "title": "A PARADE OF HORRIBLES",
+      "author": "Matt Dinniman",
       "weeksOnList": 1,
-      "isbn13": "9780593953242",
-      "description": "After her fiancé leaves her, Frankie goes on her planned honeymoon trip with her best friend from childhood, George.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593953242.jpg"
+      "isbn13": "9798217190065",
+      "description": "The eighth book in the “Dungeon Crawler Carl” series. A sense of normalcy might be a set-up that spells danger for Carl and Donut.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217190065.jpg"
     },
     {
       "rank": 2,
-      "title": "FURY BOUND",
-      "author": "Sable Sorensen",
-      "weeksOnList": 1,
-      "isbn13": "9780316601412",
-      "description": "The second book in the Wolves of Ruin series. Meryn Cooper faces dangers to her kingdom and her heart.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316601412.jpg"
-    },
-    {
-      "rank": 3,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 5,
+      "weeksOnList": 6,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
-      "rank": 4,
-      "title": "THE CALAMITY CLUB",
-      "author": "Kathryn Stockett",
+      "rank": 3,
+      "title": "BROKEN DOVE",
+      "author": "Dani Francis",
       "weeksOnList": 1,
-      "isbn13": "9781954118812",
-      "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
+      "isbn13": "9780593875490",
+      "description": "The second book in the “Silver Elite” series. As the war between the Mods and Primes escalates, issues of trust come to the fore.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593875490.jpg"
+    },
+    {
+      "rank": 4,
+      "title": "THE FOURTH OPTION",
+      "author": "Jack Carr and M.P. Woodward",
+      "weeksOnList": 1,
+      "isbn13": "9781668072011",
+      "description": "The former Navy SEAL and C.I.A. ground branch operative Chris Walker doles out vigilante justice.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668072011.jpg"
     },
     {
       "rank": 5,
-      "title": "26 BEAUTIES",
-      "author": "James Patterson",
-      "weeksOnList": 1,
-      "isbn13": "9780316569804",
-      "description": "The 26th book in the Women's Murder Club series. The deaths of two women are investigated, and a father seeks help in finding his missing daughter.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316569804.jpg"
+      "title": "OUR PERFECT STORM",
+      "author": "Carley Fortune",
+      "weeksOnList": 2,
+      "isbn13": "9780593953242",
+      "description": "After her fiancé leaves her, Frankie goes on her planned honeymoon trip with her best friend from childhood, George.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593953242.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "THE CASE FOR AMERICA",
-      "author": "Bret Baier",
+      "title": "SUICIDAL EMPATHY",
+      "author": "Gad Saad",
       "weeksOnList": 1,
-      "isbn13": "9780063360808",
-      "description": "The chief political anchor for Fox News shares his perspectives on our national character during divisive times.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063360808.jpg"
+      "isbn13": "9780063446533",
+      "description": "The host of the podcast “The Saad Truth” argues that what he considers misguided compassion is having a negative impact on society.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063446533.jpg"
     },
     {
       "rank": 2,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 16,
+      "weeksOnList": 17,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 3,
-      "title": "THE U.S. CONSTITUTION",
-      "author": "Melissa Murray",
+      "title": "TAKE ME TO YOUR LEADER",
+      "author": "Neil deGrasse Tyson",
       "weeksOnList": 1,
-      "isbn13": "9781668221938",
-      "description": "The co-author of “The Trump Indictments” gives historical context for each of the amendments in the Constitution.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668221938.jpg"
+      "isbn13": "9781668249970",
+      "description": "The astrophysicist depicts what potential encounters with aliens from outer space might be like.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668249970.jpg"
     },
     {
       "rank": 4,
-      "title": "FAMESICK",
-      "author": "Lena Dunham",
-      "weeksOnList": 4,
-      "isbn13": "9780593129326",
-      "description": "The author of “Not That Kind of Girl” evaluates the effects that pursuing her creative endeavors had on her.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593129326.jpg"
+      "title": "THE CASE FOR AMERICA",
+      "author": "Bret Baier",
+      "weeksOnList": 2,
+      "isbn13": "9780063360808",
+      "description": "The chief political anchor for Fox News shares his perspectives on our national character during divisive times.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063360808.jpg"
     },
     {
       "rank": 5,
-      "title": "TRUE CRIME",
-      "author": "Patricia Cornwell",
-      "weeksOnList": 1,
-      "isbn13": "9781538778449",
-      "description": "The author, known for her Kay Scarpetta thrillers, shares moments from her life that shaped her writing career.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538778449.jpg"
+      "title": "DOGS, BOYS, AND OTHER THINGS I'VE CRIED ABOUT",
+      "author": "Isabel Klee",
+      "weeksOnList": 3,
+      "isbn13": "9780063451070",
+      "description": "Klee helps foster dogs overcome challenges while she faces her own complications.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063451070.jpg"
     }
   ],
-  "issueDate": "Sunday, May 17, 2026",
-  "issueNumber": 72,
-  "updatedAt": "2026-05-17T10:58:43.152Z"
+  "issueDate": "Sunday, May 24, 2026",
+  "issueNumber": 73,
+  "updatedAt": "2026-05-24T11:07:09.832Z"
 }
