@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+
+  <defs>
+    <!-- Base shadow: subtle darkening where curves emerge -->
+    <radialGradient id="baseGlow" cx="50%" cy="100%" r="60%">
+      <stop offset="0%" stop-color="#0D2828" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#0D2828" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Subtle top highlight — like light through steam -->
+    <radialGradient id="topGlow" cx="50%" cy="0%" r="60%">
+      <stop offset="0%" stop-color="#F4E9D8" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#F4E9D8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="400" height="560" fill="#2A8A8C"/>
+
+  <!-- Subtle top highlight -->
+  <rect x="0" y="0" width="400" height="370" fill="url(#topGlow)"/>
+
+  <!-- ══════════════════════════════════════════
+       ABSTRACT ILLUSTRATION — upper two-thirds
+       Steam curves emerging from lower center,
+       fanning upward like rising vapor / turning pages.
+       Turquoise (secondary) painted first = behind pink.
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Turquoise — wide left sweep -->
+  <path d="M 196 352 C 148 298 78 242 94 178 C 110 114 158 96 146 46"
+        fill="none" stroke="#4EC7C4" stroke-width="10" stroke-linecap="round" opacity="0.72"/>
+
+  <!-- Turquoise — wide right sweep -->
+  <path d="M 208 352 C 258 296 318 238 308 174 C 298 110 260 94 272 46"
+        fill="none" stroke="#4EC7C4" stroke-width="8" stroke-linecap="round" opacity="0.68"/>
+
+  <!-- Turquoise — thin far-left wisp -->
+  <path d="M 185 350 C 125 290 55 225 70 158 C 85 91 132 78 118 33"
+        fill="none" stroke="#4EC7C4" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+
+  <!-- Turquoise — thin far-right wisp -->
+  <path d="M 220 348 C 282 285 342 218 328 153 C 314 88 274 78 292 34"
+        fill="none" stroke="#4EC7C4" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- Pink — bold center S-curve (hero stroke) -->
+  <path d="M 200 355 C 180 300 220 240 205 178 C 190 116 222 88 210 38"
+        fill="none" stroke="#E889A8" stroke-width="14" stroke-linecap="round" opacity="0.92"/>
+
+  <!-- Pink — medium left sweep -->
+  <path d="M 192 352 C 154 294 138 232 150 172 C 162 112 190 87 178 40"
+        fill="none" stroke="#E889A8" stroke-width="9" stroke-linecap="round" opacity="0.86"/>
+
+  <!-- Pink — medium right sweep -->
+  <path d="M 212 350 C 250 292 264 230 252 170 C 240 110 220 87 234 42"
+        fill="none" stroke="#E889A8" stroke-width="7" stroke-linecap="round" opacity="0.84"/>
+
+  <!-- Pink — thin far-left curl -->
+  <path d="M 182 348 C 134 287 97 222 108 160 C 119 98 150 80 138 36"
+        fill="none" stroke="#E889A8" stroke-width="3" stroke-linecap="round" opacity="0.68"/>
+
+  <!-- Pink — thin far-right curl -->
+  <path d="M 225 346 C 273 283 307 218 296 156 C 285 94 258 80 272 36"
+        fill="none" stroke="#E889A8" stroke-width="2.5" stroke-linecap="round" opacity="0.62"/>
+
+  <!-- Base shadow grounding the curves -->
+  <ellipse cx="200" cy="360" rx="145" ry="48" fill="url(#baseGlow)"/>
+
+  <!-- ── Atomic Gold accent dots ── -->
+  <circle cx="136" cy="193" r="3.5" fill="#D9B15F" opacity="0.9"/>
+  <circle cx="266" cy="188" r="3"   fill="#D9B15F" opacity="0.85"/>
+  <circle cx="174" cy="127" r="2.5" fill="#D9B15F" opacity="0.85"/>
+  <circle cx="232" cy="131" r="2.5" fill="#D9B15F" opacity="0.8"/>
+  <circle cx="96"  cy="253" r="2"   fill="#D9B15F" opacity="0.72"/>
+  <circle cx="307" cy="246" r="2.5" fill="#D9B15F" opacity="0.7"/>
+  <circle cx="83"  cy="155" r="1.8" fill="#D9B15F" opacity="0.65"/>
+  <circle cx="320" cy="150" r="1.8" fill="#D9B15F" opacity="0.65"/>
+  <circle cx="202" cy="108" r="2"   fill="#D9B15F" opacity="0.72"/>
+  <circle cx="156" cy="72"  r="1.5" fill="#D9B15F" opacity="0.6"/>
+  <circle cx="248" cy="68"  r="1.5" fill="#D9B15F" opacity="0.6"/>
+
+  <!-- ── Gold starbursts (8-ray: 4 axis + 4 diagonal) ── -->
+
+  <!-- Starburst — upper center, largest -->
+  <g transform="translate(200, 68)" opacity="0.9">
+    <line x1="-9" y1="0"   x2="9"  y2="0"   stroke="#D9B15F" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="0"  y1="-9"  x2="0"  y2="9"   stroke="#D9B15F" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="-6" y1="-6"  x2="6"  y2="6"   stroke="#D9B15F" stroke-width="1"   stroke-linecap="round"/>
+    <line x1="6"  y1="-6"  x2="-6" y2="6"   stroke="#D9B15F" stroke-width="1"   stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="2.2" fill="#D9B15F"/>
+  </g>
+
+  <!-- Starburst — mid left -->
+  <g transform="translate(124, 190)" opacity="0.87">
+    <line x1="-7" y1="0"   x2="7"  y2="0"   stroke="#D9B15F" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="0"  y1="-7"  x2="0"  y2="7"   stroke="#D9B15F" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="-5" y1="-5"  x2="5"  y2="5"   stroke="#D9B15F" stroke-width="0.9" stroke-linecap="round"/>
+    <line x1="5"  y1="-5"  x2="-5" y2="5"   stroke="#D9B15F" stroke-width="0.9" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="1.8" fill="#D9B15F"/>
+  </g>
+
+  <!-- Starburst — mid right -->
+  <g transform="translate(278, 184)" opacity="0.84">
+    <line x1="-7" y1="0"   x2="7"  y2="0"   stroke="#D9B15F" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="0"  y1="-7"  x2="0"  y2="7"   stroke="#D9B15F" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="-5" y1="-5"  x2="5"  y2="5"   stroke="#D9B15F" stroke-width="0.9" stroke-linecap="round"/>
+    <line x1="5"  y1="-5"  x2="-5" y2="5"   stroke="#D9B15F" stroke-width="0.9" stroke-linecap="round"/>
+    <circle cx="0" cy="0" r="1.8" fill="#D9B15F"/>
+  </g>
+
+  <!-- Starburst — small, lower left -->
+  <g transform="translate(92, 250)" opacity="0.75">
+    <line x1="-5" y1="0"   x2="5"  y2="0"   stroke="#D9B15F" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="0"  y1="-5"  x2="0"  y2="5"   stroke="#D9B15F" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="-3.5" y1="-3.5" x2="3.5" y2="3.5" stroke="#D9B15F" stroke-width="0.8" stroke-linecap="round"/>
+    <line x1="3.5"  y1="-3.5" x2="-3.5" y2="3.5" stroke="#D9B15F" stroke-width="0.8" stroke-linecap="round"/>
+  </g>
+
+  <!-- Horizon line — subtle table/countertop suggestion -->
+  <line x1="80" y1="344" x2="320" y2="344"
+        stroke="#F4E9D8" stroke-opacity="0.35" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- ══════════════════════════════════════════
+       TYPOGRAPHY — bottom third
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Gold separator rule — illustration / typography boundary -->
+  <line x1="24" y1="374" x2="376" y2="374"
+        stroke="#D9B15F" stroke-opacity="0.5" stroke-width="0.75"/>
+
+  <!-- Masthead -->
+  <text x="200" y="393"
+        text-anchor="middle"
+        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        font-size="11"
+        font-weight="900"
+        fill="#D9B15F"
+        letter-spacing="3">LITERARY ROADS GUIDE</text>
+
+  <!-- Thin gold rule beneath masthead -->
+  <line x1="60" y1="403" x2="340" y2="403"
+        stroke="#D9B15F" stroke-opacity="0.5" stroke-width="0.75"/>
+
+  <!-- Title: COFFEE AND -->
+  <text x="200" y="450"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="38"
+        fill="#F4E9D8">COFFEE AND</text>
+
+  <!-- Title: BOOKSHOPS -->
+  <text x="200" y="494"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="38"
+        fill="#F4E9D8">BOOKSHOPS</text>
+
+  <!-- Tagline -->
+  <text x="200" y="520"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="13"
+        font-style="italic"
+        fill="#F4E9D8"
+        fill-opacity="0.7">Places that take both seriously</text>
+
+  <!-- Bottom decorative gold dots -->
+  <circle cx="200" cy="542" r="2"   fill="#D9B15F" opacity="0.45"/>
+  <circle cx="188" cy="542" r="1.5" fill="#D9B15F" opacity="0.3"/>
+  <circle cx="212" cy="542" r="1.5" fill="#D9B15F" opacity="0.3"/>
+
+</svg>
