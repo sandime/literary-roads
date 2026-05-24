@@ -201,13 +201,13 @@ function StoreModal({ store, onSave, onClose, saving }) {
           </div>
         ))}
 
-        {/* Description — 600 chars */}
+        {/* Description — 800 chars */}
         <div style={{ marginBottom: 18 }}>
           <label style={labelStyle}>DESCRIPTION</label>
           <textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-            rows={4} maxLength={600}
+            rows={4} maxLength={800}
             style={{ ...inputStyle, resize: 'vertical', lineHeight: 1.55 }} />
-          <div style={{ textAlign: 'right', fontSize: 9, color: C.muted, marginTop: 2 }}>{form.description.length}/600</div>
+          <div style={{ textAlign: 'right', fontSize: 9, color: C.muted, marginTop: 2 }}>{form.description.length}/800</div>
         </div>
 
         {/* Coordinates + map preview button */}
