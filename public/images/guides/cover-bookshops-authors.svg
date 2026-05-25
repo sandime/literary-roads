@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+
+  <defs>
+    <!-- Subtle nebula glow behind the orbital system -->
+    <radialGradient id="nebulaGlow" cx="50%" cy="33%" r="45%">
+      <stop offset="0%" stop-color="#2A7080" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#2A7080" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Gold corona glow at center -->
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D9B15F" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#D9B15F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="400" height="560" fill="#1F4F59"/>
+  <!-- Nebula wash over illustration area -->
+  <rect x="0" y="0" width="400" height="373" fill="url(#nebulaGlow)"/>
+
+  <!-- ══════════════════════════════════════════
+       STAR FIELD — scattered dots, avoiding center composition
+  ═══════════════════════════════════════════════ -->
+  <circle cx="35"  cy="42"  r="1.5" fill="#BFE7D9" opacity="0.50"/>
+  <circle cx="362" cy="28"  r="1"   fill="#BFE7D9" opacity="0.40"/>
+  <circle cx="88"  cy="72"  r="1.2" fill="#BFE7D9" opacity="0.35"/>
+  <circle cx="318" cy="58"  r="1.5" fill="#BFE7D9" opacity="0.45"/>
+  <circle cx="22"  cy="148" r="1"   fill="#BFE7D9" opacity="0.30"/>
+  <circle cx="385" cy="115" r="1.2" fill="#BFE7D9" opacity="0.40"/>
+  <circle cx="370" cy="210" r="1"   fill="#BFE7D9" opacity="0.25"/>
+  <circle cx="18"  cy="258" r="1.5" fill="#BFE7D9" opacity="0.50"/>
+  <circle cx="390" cy="302" r="1"   fill="#BFE7D9" opacity="0.35"/>
+  <circle cx="72"  cy="318" r="1.2" fill="#BFE7D9" opacity="0.40"/>
+  <circle cx="352" cy="335" r="1.5" fill="#BFE7D9" opacity="0.30"/>
+  <circle cx="105" cy="38"  r="1"   fill="#BFE7D9" opacity="0.45"/>
+  <circle cx="322" cy="295" r="1.2" fill="#BFE7D9" opacity="0.35"/>
+  <circle cx="45"  cy="355" r="1"   fill="#BFE7D9" opacity="0.30"/>
+
+  <!-- ══════════════════════════════════════════
+       ORBITAL ELLIPSES
+       Center: (200, 186) — mid-point of upper 2/3
+       All: stroke only, #BFE7D9 at 35% opacity, 0.75px
+  ═══════════════════════════════════════════════ -->
+  <!-- Inner — tight, no tilt -->
+  <ellipse cx="200" cy="186" rx="38" ry="24"
+           fill="none" stroke="#BFE7D9" stroke-width="0.75" opacity="0.35"/>
+  <!-- Middle — medium, tilted 15° -->
+  <ellipse cx="200" cy="186" rx="88" ry="55"
+           fill="none" stroke="#BFE7D9" stroke-width="0.75" opacity="0.35"
+           transform="rotate(15, 200, 186)"/>
+  <!-- Outer — large, tilted 30° -->
+  <ellipse cx="200" cy="186" rx="158" ry="98"
+           fill="none" stroke="#BFE7D9" stroke-width="0.75" opacity="0.35"
+           transform="rotate(30, 200, 186)"/>
+
+  <!-- ══════════════════════════════════════════
+       CONSTELLATION LINES — thin, teal at 20% opacity
+       Connecting naturally nearby shapes across orbits
+  ═══════════════════════════════════════════════ -->
+  <!-- Inner hexagon (238,186) → middle circle (256,238) -->
+  <line x1="238" y1="186" x2="256" y2="238"
+        stroke="#4EC7C4" stroke-width="0.5" opacity="0.2"/>
+  <!-- Middle circle (256,238) → outer pink circle (312,289) -->
+  <line x1="256" y1="238" x2="312" y2="289"
+        stroke="#4EC7C4" stroke-width="0.5" opacity="0.2"/>
+  <!-- Inner diamond (164,178) → middle gold square (119,154) -->
+  <line x1="164" y1="178" x2="119" y2="154"
+        stroke="#4EC7C4" stroke-width="0.5" opacity="0.2"/>
+  <!-- Middle gold square (119,154) → outer teal diamond (55,132) -->
+  <line x1="119" y1="154" x2="55" y2="132"
+        stroke="#4EC7C4" stroke-width="0.5" opacity="0.2"/>
+
+  <!-- ══════════════════════════════════════════
+       ORBITING SHAPES — painted before central element
+  ═══════════════════════════════════════════════ -->
+
+  <!-- INNER ORBIT -->
+  <!-- Teal hexagon at (238,186) — θ=0° on inner ellipse -->
+  <polygon points="245,186 241.5,192.06 234.5,192.06 231,186 234.5,179.94 241.5,179.94"
+           fill="#4EC7C4"/>
+  <!-- Pink diamond at (164,178) — θ=200° on inner ellipse -->
+  <polygon points="164,171 170,178 164,185 158,178" fill="#E889A8"/>
+
+  <!-- MIDDLE ORBIT -->
+  <!-- Teal circle at (256,238) — θ=40° on middle ellipse (tilted 15°) -->
+  <circle cx="256" cy="238" r="9" fill="#4EC7C4"/>
+  <!-- Gold square (45°) at (119,154) — θ=190° on middle ellipse -->
+  <polygon points="119,146 127,154 119,162 111,154" fill="#D9B15F"/>
+  <!-- Coral hexagon at (249,148) — θ=295° on middle ellipse (the one coral accent) -->
+  <polygon points="255,148 252,153.2 246,153.2 243,148 246,142.8 252,142.8" fill="#D46F6A"/>
+
+  <!-- OUTER ORBIT -->
+  <!-- Pink circle at (312,289) — θ=20° on outer ellipse (tilted 30°) -->
+  <circle cx="312" cy="289" r="11" fill="#E889A8"/>
+  <!-- Teal diamond at (55,132) — θ=165° on outer ellipse -->
+  <polygon points="55,122 64,132 55,142 46,132" fill="#4EC7C4"/>
+  <!-- Gold 6-point starburst at (150,70) — θ=230° on outer ellipse -->
+  <polygon points="157,70 153.03,71.75 153.5,76.06 150,73.5 146.5,76.06 146.97,71.75 143,70 146.97,68.25 146.5,63.94 150,66.5 153.5,63.94 153.03,68.25"
+           fill="#D9B15F"/>
+
+  <!-- ══════════════════════════════════════════
+       CENTRAL ELEMENT — gold starburst + corona
+  ═══════════════════════════════════════════════ -->
+  <!-- Broad glow -->
+  <circle cx="200" cy="186" r="40" fill="url(#centerGlow)"/>
+  <!-- Corona ring -->
+  <circle cx="200" cy="186" r="8" fill="#D9B15F" opacity="0.4"/>
+  <!-- 8-point starburst, outer r=12, inner r=5 -->
+  <polygon points="212,186 204.62,187.91 208.49,194.49 201.91,190.62 200,198 198.09,190.62 191.51,194.49 195.38,187.91 188,186 195.38,184.09 191.51,177.51 198.09,181.38 200,174 201.91,181.38 208.49,177.51 204.62,184.09"
+           fill="#D9B15F"/>
+
+  <!-- ══════════════════════════════════════════
+       TYPOGRAPHY — bottom third (y 374–560)
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Full separator rule — illustration / type boundary -->
+  <line x1="24" y1="374" x2="376" y2="374"
+        stroke="#D9B15F" stroke-opacity="0.4" stroke-width="0.75"/>
+
+  <!-- Masthead -->
+  <text x="200" y="392"
+        text-anchor="middle"
+        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        font-size="11" font-weight="900"
+        fill="#D9B15F" letter-spacing="3">LITERARY ROADS GUIDE</text>
+
+  <!-- Thin rule below masthead -->
+  <line x1="80" y1="401" x2="320" y2="401"
+        stroke="#D9B15F" stroke-opacity="0.4" stroke-width="0.75"/>
+
+  <!-- Thin rule above title block -->
+  <line x1="100" y1="432" x2="300" y2="432"
+        stroke="#D9B15F" stroke-opacity="0.4" stroke-width="0.75"/>
+
+  <!-- Title line 1: BOOKSHOPS AND -->
+  <text x="200" y="467"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="36" fill="#F4E9D8">BOOKSHOPS AND</text>
+
+  <!-- Title line 2: AUTHORS -->
+  <text x="200" y="504"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="36" fill="#F4E9D8">AUTHORS</text>
+
+  <!-- Tagline -->
+  <text x="200" y="526"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="13" font-style="italic"
+        fill="#BFE7D9" fill-opacity="0.7">Where authors come to read</text>
+
+  <!-- Bottom decorative gold dots -->
+  <circle cx="200" cy="546" r="2"   fill="#D9B15F" opacity="0.45"/>
+  <circle cx="188" cy="546" r="1.5" fill="#D9B15F" opacity="0.30"/>
+  <circle cx="212" cy="546" r="1.5" fill="#D9B15F" opacity="0.30"/>
+
+</svg>

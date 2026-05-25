@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" width="400" height="560">
+
+  <defs>
+    <linearGradient id="paperBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EDE0CC"/>
+      <stop offset="100%" stop-color="#F4E9D8"/>
+    </linearGradient>
+    <radialGradient id="warmGlow" cx="50%" cy="55%" r="55%">
+      <stop offset="0%" stop-color="#D9B15F" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#D9B15F" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background: cream paper -->
+  <rect width="400" height="560" fill="url(#paperBg)"/>
+  <rect x="0" y="0" width="400" height="373" fill="url(#warmGlow)"/>
+
+  <!-- ══════════════════════════════════════════
+       GEOMETRIC HEARTS — scattered composition
+       12-point polygon heart at (cx,cy) size s
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Heart A: (72, 108) s=9, pink -->
+  <polygon points="67.5,103.5 63,107.1 63,110.7 67.5,113.4 72,117 76.5,113.4 81,110.7 81,107.1 76.5,103.5 73.35,101.7 72,104.4 70.65,101.7"
+           fill="#E889A8"/>
+
+  <!-- Heart B: (152, 82) s=7, turquoise -->
+  <polygon points="148.5,78.5 145,81.3 145,84.1 148.5,86.2 152,89 155.5,86.2 159,84.1 159,81.3 155.5,78.5 153.05,77.1 152,79.2 150.95,77.1"
+           fill="#4EC7C4"/>
+
+  <!-- Heart C: (216, 66) s=12, gold — largest, top-center -->
+  <polygon points="210,60 204,64.8 204,69.6 210,73.2 216,78 222,73.2 228,69.6 228,64.8 222,60 217.8,57.6 216,61.2 214.2,57.6"
+           fill="#D9B15F"/>
+
+  <!-- Heart D: (298, 98) s=8, pink -->
+  <polygon points="294,94 290,97.2 290,100.4 294,102.8 298,106 302,102.8 306,100.4 306,97.2 302,94 299.2,92.4 298,94.8 296.8,92.4"
+           fill="#E889A8"/>
+
+  <!-- Heart E: (344, 76) s=6, coral -->
+  <polygon points="341,73 338,75.4 338,77.8 341,79.6 344,82 347,79.6 350,77.8 350,75.4 347,73 344.9,71.8 344,73.6 343.1,71.8"
+           fill="#D46F6A"/>
+
+  <!-- Heart F: (25, 186) s=7, turquoise — left side -->
+  <polygon points="21.5,182.5 18,185.3 18,188.1 21.5,190.2 25,193 28.5,190.2 32,188.1 32,185.3 28.5,182.5 26.05,181.1 25,183.2 23.95,181.1"
+           fill="#4EC7C4"/>
+
+  <!-- Heart G: (376, 162) s=6, coral — right side -->
+  <polygon points="373,159 370,161.4 370,163.8 373,165.6 376,168 379,165.6 382,163.8 382,161.4 379,159 376.9,157.8 376,159.6 375.1,157.8"
+           fill="#D46F6A"/>
+
+  <!-- Heart H: (36, 290) s=5, pink small — lower left -->
+  <polygon points="33.5,287.5 31,289.5 31,291.5 33.5,293 36,295 38.5,293 41,291.5 41,289.5 38.5,287.5 36.75,286.5 36,288 35.25,286.5"
+           fill="#E889A8" opacity="0.75"/>
+
+  <!-- Heart I: (364, 293) s=5, turquoise small — lower right -->
+  <polygon points="361.5,290.5 359,292.5 359,294.5 361.5,296 364,298 366.5,296 369,294.5 369,292.5 366.5,290.5 364.75,289.5 364,291 363.25,289.5"
+           fill="#4EC7C4" opacity="0.75"/>
+
+  <!-- ══════════════════════════════════════════
+       GOLD SPARKLE DOTS
+  ═══════════════════════════════════════════════ -->
+  <circle cx="108" cy="130" r="1.5" fill="#D9B15F" opacity="0.50"/>
+  <circle cx="168" cy="118" r="1"   fill="#D9B15F" opacity="0.40"/>
+  <circle cx="248" cy="142" r="1.5" fill="#D9B15F" opacity="0.45"/>
+  <circle cx="330" cy="125" r="1"   fill="#D9B15F" opacity="0.35"/>
+  <circle cx="58"  cy="148" r="1"   fill="#D9B15F" opacity="0.30"/>
+  <circle cx="342" cy="195" r="1.5" fill="#D9B15F" opacity="0.40"/>
+  <circle cx="60"  cy="260" r="1"   fill="#D9B15F" opacity="0.25"/>
+  <circle cx="342" cy="258" r="1"   fill="#D9B15F" opacity="0.25"/>
+
+  <!-- ══════════════════════════════════════════
+       OPEN BOOKS ACCORDION
+       Center arch: taller in middle, shorter at edges
+       baseY=322, heights: 78, 100, 122, 145, 122, 100, 78
+       Centers: 55, 100, 148, 200, 252, 300, 345
+       Each book: left half + right half + gold page lines + spine
+       Pages fan 4px wider at top than base
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Book 1: cx=55, topY=244, w=20, left=#4EC7C4, right=#2A8A8C -->
+  <polygon points="55,322 35,322 31,244 55,244" fill="#4EC7C4"/>
+  <polygon points="55,322 75,322 79,244 55,244" fill="#2A8A8C"/>
+  <line x1="55" y1="248" x2="41" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="55" y1="248" x2="36" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="55" y1="248" x2="69" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="55" y1="248" x2="74" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="31" y1="244" x2="79" y2="244" stroke="#F4E9D8" stroke-width="1.5" opacity="0.55"/>
+  <line x1="55" y1="322" x2="55" y2="244" stroke="#1F4F59" stroke-width="0.85"/>
+
+  <!-- Book 2: cx=100, topY=222, w=21, left=#1F4F59, right=#2A8A8C -->
+  <polygon points="100,322 79,322 75,222 100,222" fill="#1F4F59"/>
+  <polygon points="100,322 121,322 125,222 100,222" fill="#2A8A8C"/>
+  <line x1="100" y1="226" x2="85" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="100" y1="226" x2="80" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="100" y1="226" x2="115" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="100" y1="226" x2="120" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="75" y1="222" x2="125" y2="222" stroke="#F4E9D8" stroke-width="1.5" opacity="0.55"/>
+  <line x1="100" y1="322" x2="100" y2="222" stroke="#1F4F59" stroke-width="0.85"/>
+
+  <!-- Book 3: cx=148, topY=200, w=22, left=#2A8A8C, right=#4EC7C4 -->
+  <polygon points="148,322 126,322 122,200 148,200" fill="#2A8A8C"/>
+  <polygon points="148,322 170,322 174,200 148,200" fill="#4EC7C4"/>
+  <line x1="148" y1="204" x2="132" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="148" y1="204" x2="127" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="148" y1="204" x2="164" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="148" y1="204" x2="169" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="122" y1="200" x2="174" y2="200" stroke="#F4E9D8" stroke-width="1.5" opacity="0.55"/>
+  <line x1="148" y1="322" x2="148" y2="200" stroke="#1F4F59" stroke-width="0.85"/>
+
+  <!-- Book 4 (center): cx=200, topY=177, w=23, left=#1F4F59, right=#2A8A8C -->
+  <polygon points="200,322 177,322 172,177 200,177" fill="#1F4F59"/>
+  <polygon points="200,322 223,322 228,177 200,177" fill="#2A8A8C"/>
+  <line x1="200" y1="181" x2="182" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.60"/>
+  <line x1="200" y1="181" x2="177" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.60"/>
+  <line x1="200" y1="181" x2="218" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.60"/>
+  <line x1="200" y1="181" x2="222" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.60"/>
+  <line x1="200" y1="181" x2="200" y2="318" stroke="#D9B15F" stroke-width="0.5" opacity="0.35"/>
+  <line x1="172" y1="177" x2="228" y2="177" stroke="#F4E9D8" stroke-width="2" opacity="0.60"/>
+  <line x1="200" y1="322" x2="200" y2="177" stroke="#1F4F59" stroke-width="1"/>
+
+  <!-- Book 5: cx=252, topY=200, w=22, left=#4EC7C4, right=#1F4F59 -->
+  <polygon points="252,322 230,322 226,200 252,200" fill="#4EC7C4"/>
+  <polygon points="252,322 274,322 278,200 252,200" fill="#1F4F59"/>
+  <line x1="252" y1="204" x2="236" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="252" y1="204" x2="231" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="252" y1="204" x2="268" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="252" y1="204" x2="273" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="226" y1="200" x2="278" y2="200" stroke="#F4E9D8" stroke-width="1.5" opacity="0.55"/>
+  <line x1="252" y1="322" x2="252" y2="200" stroke="#1F4F59" stroke-width="0.85"/>
+
+  <!-- Book 6: cx=300, topY=222, w=21, left=#2A8A8C, right=#1F4F59 -->
+  <polygon points="300,322 279,322 275,222 300,222" fill="#2A8A8C"/>
+  <polygon points="300,322 321,322 325,222 300,222" fill="#1F4F59"/>
+  <line x1="300" y1="226" x2="285" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="300" y1="226" x2="280" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="300" y1="226" x2="315" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="300" y1="226" x2="320" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="275" y1="222" x2="325" y2="222" stroke="#F4E9D8" stroke-width="1.5" opacity="0.55"/>
+  <line x1="300" y1="322" x2="300" y2="222" stroke="#1F4F59" stroke-width="0.85"/>
+
+  <!-- Book 7: cx=345, topY=244, w=20, left=#2A8A8C, right=#4EC7C4 -->
+  <polygon points="345,322 325,322 321,244 345,244" fill="#2A8A8C"/>
+  <polygon points="345,322 365,322 369,244 345,244" fill="#4EC7C4"/>
+  <line x1="345" y1="248" x2="331" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="345" y1="248" x2="326" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="345" y1="248" x2="359" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="345" y1="248" x2="364" y2="318" stroke="#D9B15F" stroke-width="0.7" opacity="0.55"/>
+  <line x1="321" y1="244" x2="369" y2="244" stroke="#F4E9D8" stroke-width="1.5" opacity="0.55"/>
+  <line x1="345" y1="322" x2="345" y2="244" stroke="#1F4F59" stroke-width="0.85"/>
+
+  <!-- Shelf shadow beneath books -->
+  <rect x="22" y="322" width="356" height="4" fill="#1F4F59" opacity="0.12" rx="1"/>
+
+  <!-- Subtle negative-space heart between center books — 15% pink overlay -->
+  <polygon points="193,273 186,278.6 186,284.2 193,288.4 200,294 207,288.4 214,284.2 214,278.6 207,273 202.1,270.2 200,274.4 197.9,270.2"
+           fill="#E889A8" opacity="0.15"/>
+
+  <!-- ══════════════════════════════════════════
+       TYPOGRAPHY — bottom third (y 374–560)
+  ═══════════════════════════════════════════════ -->
+
+  <!-- Full separator rule -->
+  <line x1="24" y1="374" x2="376" y2="374"
+        stroke="#D9B15F" stroke-opacity="0.5" stroke-width="0.75"/>
+
+  <!-- Masthead -->
+  <text x="200" y="392"
+        text-anchor="middle"
+        font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+        font-size="11" font-weight="900"
+        fill="#D9B15F" letter-spacing="3">LITERARY ROADS GUIDE</text>
+
+  <!-- Thin rule below masthead -->
+  <line x1="80" y1="401" x2="320" y2="401"
+        stroke="#D9B15F" stroke-opacity="0.4" stroke-width="0.75"/>
+
+  <!-- Thin rule above title block -->
+  <line x1="100" y1="430" x2="300" y2="430"
+        stroke="#D9B15F" stroke-opacity="0.4" stroke-width="0.75"/>
+
+  <!-- Author name: Ann Patchett -->
+  <text x="200" y="455"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="18" font-style="italic"
+        fill="#D46F6A">Ann Patchett</text>
+
+  <!-- Title line 1: BOOKSTORE -->
+  <text x="200" y="492"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="34" font-weight="bold"
+        fill="#2A8A8C">BOOKSTORE</text>
+
+  <!-- Title line 2: LOVERS' GUIDE -->
+  <text x="200" y="516"
+        text-anchor="middle"
+        font-family="Georgia, 'Palatino Linotype', Palatino, 'Times New Roman', serif"
+        font-size="22"
+        fill="#2A8A8C">LOVERS' GUIDE</text>
+
+  <!-- Tagline -->
+  <text x="200" y="537"
+        text-anchor="middle"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="11" font-style="italic"
+        fill="#1F4F59" fill-opacity="0.6">Inspired by her New York Times essay</text>
+
+  <!-- Bottom decorative gold dots -->
+  <circle cx="200" cy="551" r="2"   fill="#D9B15F" opacity="0.45"/>
+  <circle cx="188" cy="551" r="1.5" fill="#D9B15F" opacity="0.30"/>
+  <circle cx="212" cy="551" r="1.5" fill="#D9B15F" opacity="0.30"/>
+
+</svg>
