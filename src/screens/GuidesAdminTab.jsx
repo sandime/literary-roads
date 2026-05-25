@@ -52,6 +52,7 @@ function GuideModal({ guide, onSave, onClose, saving }) {
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
       setForm(f => ({ ...f, coverImageUrl: url }));
+      await updateGuide(guide.id, { coverImageUrl: url });
     } catch (err) {
       console.error('[guide cover upload]', err);
     } finally {
@@ -323,7 +324,16 @@ export default function GuidesAdminTab({ showToast }) {
   };
 
   const handleDeleteGuide = async (guide) => {
-    if (!window.confirm(`Delete "${guide.title}"? This cannot be undone.`)) return;
+    const storeCount = guide.storeCount ?? 0;
+    const warning = storeCount > 0
+      ? `This guide has ${storeCount} stop${storeCount !== 1 ? 's' : ''}.\n\nType the guide title to confirm deletion:`
+      : `Type the guide title to confirm deletion:`;
+    const input = window.prompt(`Delete "${guide.title}"? This cannot be undone.\n\n${warning}`);
+    if (input === null) return; // cancelled
+    if (input.trim().toLowerCase() !== guide.title.trim().toLowerCase()) {
+      showToast('Title did not match — guide not deleted', 'error');
+      return;
+    }
     try {
       await deleteGuide(guide.id);
       showToast('Guide deleted');
