@@ -649,12 +649,29 @@ export default function Resources({ onBack }) {
   const [saving,    setSaving]    = useState(false);
   const [guides,    setGuides]    = useState([]);
 
+  const carouselRef = useRef(null);
+  const [carouselHovered, setCarouselHovered] = useState(false);
+  const [canScrollLeft,   setCanScrollLeft]   = useState(false);
+  const [canScrollRight,  setCanScrollRight]  = useState(false);
+  const [sliderIndex,     setSliderIndex]     = useState(0);
+
   // Fetch published guides for newsstand
   useEffect(() => {
     fetchPublishedGuides()
       .then(setGuides)
       .catch(err => console.error('[Resources] Failed to load guides:', err));
   }, []);
+
+  // Re-check carousel overflow and reset slider when guides load
+  useEffect(() => {
+    setSliderIndex(0);
+    const el = carouselRef.current;
+    if (!el) return;
+    const t = setTimeout(() => {
+      setCanScrollRight(el.scrollWidth > el.clientWidth + 4);
+    }, 150);
+    return () => clearTimeout(t);
+  }, [guides]);
 
   // Fetch podcasts from Firestore literary_podcasts collection
   useEffect(() => {
@@ -721,6 +738,26 @@ export default function Resources({ onBack }) {
     setFavIds(updated);   // optimistic update
     persist(updated);
   };
+
+  const handleCarouselScroll = () => {
+    const el = carouselRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 4);
+    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+  };
+
+  const scrollCarousel = (dir) => {
+    if (!carouselRef.current) return;
+    carouselRef.current.scrollBy({ left: dir === 'left' ? -172 : 172, behavior: 'smooth' });
+  };
+
+  const publishedGuides  = guides.filter(g => g.published);
+  const comingSoonGuides = guides.filter(g => g.comingSoon && !g.published);
+  const totalCards       = 1 + publishedGuides.length + comingSoonGuides.length;
+  const DESKTOP_PER_VIEW = 3;
+  const maxSliderIndex   = Math.max(0, totalCards - DESKTOP_PER_VIEW);
+  const prevSlide = () => setSliderIndex(i => Math.max(0, i - 1));
+  const nextSlide = () => setSliderIndex(i => Math.min(maxSliderIndex, i + 1));
 
   const favPodcasts   = podcasts.filter((p) => favIds.includes(p.id));
   const otherPodcasts = podcasts.filter((p) => !favIds.includes(p.id));
@@ -819,6 +856,16 @@ export default function Resources({ onBack }) {
 
         {/* ── NEWSSTAND ── */}
         <section style={{ marginBottom: '44px' }}>
+          <style>{`
+            .lr-carousel::-webkit-scrollbar{display:none}
+            .lr-ns-mobile{display:flex!important}
+            .lr-ns-desktop{display:none!important}
+            @media(min-width:640px){
+              .lr-ns-mobile{display:none!important}
+              .lr-ns-desktop{display:flex!important}
+            }
+          `}</style>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
             <svg width="20" height="20" viewBox="0 0 30 30" aria-hidden="true" style={{ flexShrink: 0 }}>
               <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#FF4E00"/>
@@ -833,132 +880,150 @@ export default function Resources({ onBack }) {
             <div style={{ flex: 1, height: '1px', background: 'linear-gradient(to right, rgba(255,78,0,0.4), transparent)' }} />
           </div>
 
-          <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap', alignItems: 'stretch' }}>
-
-            {/* Gazette card — always first */}
-            <a
-              href="#/newspaper/current"
-              target="_blank"
-              rel="noopener noreferrer"
+          {/* ── MOBILE: touch-scroll carousel, bleeds to screen edges ── */}
+          <div className="lr-ns-mobile" style={{ marginLeft: '-16px', marginRight: '-16px' }}>
+            <div
+              ref={carouselRef}
+              className="lr-carousel"
+              onScroll={handleCarouselScroll}
               style={{
-                flex: '1 1 160px', minWidth: '150px', maxWidth: '210px',
-                background: 'rgba(255,78,0,0.06)',
-                border: '1px solid rgba(255,78,0,0.3)',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                textDecoration: 'none',
-                display: 'flex', flexDirection: 'column',
-                transition: 'border-color 0.15s, background 0.15s',
+                display: 'flex', gap: '12px',
+                overflowX: 'scroll', WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none', paddingLeft: '16px', paddingRight: '16px',
+                scrollSnapType: 'x mandatory',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,78,0,0.6)'; e.currentTarget.style.background = 'rgba(255,78,0,0.1)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,78,0,0.3)'; e.currentTarget.style.background = 'rgba(255,78,0,0.06)'; }}
             >
-              <img
-                src={`${import.meta.env.BASE_URL}images/newspaper-cat.png`}
-                alt="The Gazette"
-                style={{ width: '100%', aspectRatio: '5/7', objectFit: 'contain', display: 'block', background: '#0D0E1A' }}
-              />
-              <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '12px', color: '#F5F5DC', lineHeight: 1.25 }}>
-                  THE GAZETTE
-                </div>
-                <div style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: 'rgba(245,245,220,0.5)', lineHeight: 1.4 }}>
-                  Weekly literary newspaper
-                </div>
-                <div style={{ marginTop: 'auto', fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.07em', color: '#FF4E00', paddingTop: '8px' }}>
-                  READ THE GAZETTE →
-                </div>
-              </div>
-            </a>
-
-            {/* Published guide cards */}
-            {guides.filter(g => g.published).map(guide => (
-              <a
-                key={guide.id}
-                href={`#/guide/${guide.id}`}
-                style={{
-                  flex: '1 1 160px', minWidth: '150px', maxWidth: '210px',
-                  background: 'rgba(64,224,208,0.04)',
-                  border: '1px solid rgba(64,224,208,0.2)',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  textDecoration: 'none',
-                  display: 'flex', flexDirection: 'column',
-                  transition: 'border-color 0.15s, background 0.15s',
-                }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.45)'; e.currentTarget.style.background = 'rgba(64,224,208,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.2)'; e.currentTarget.style.background = 'rgba(64,224,208,0.04)'; }}
+              {/* Gazette */}
+              <a href="#/newspaper/current" target="_blank" rel="noopener noreferrer"
+                style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', display:'block', textDecoration:'none', scrollSnapAlign:'start', border:'1px solid rgba(255,78,0,0.3)', boxShadow:'0 4px 16px rgba(0,0,0,0.35)', transition:'border-color .15s' }}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,78,0,0.65)'}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,78,0,0.3)'}}
               >
-                {guide.coverImageUrl ? (
-                  <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', aspectRatio: '5/7', objectFit: 'contain', display: 'block', background: '#0D0E1A' }} />
-                ) : (
-                  <div style={{ width: '100%', aspectRatio: '5/7', background: 'rgba(64,224,208,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="28" height="28" fill="none" stroke="rgba(64,224,208,0.4)" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                  </div>
-                )}
-                <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {guide.state && (
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '8px', letterSpacing: '0.1em', color: '#FF4E00' }}>
-                      {guide.state.toUpperCase()}
-                    </span>
-                  )}
-                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '12px', color: '#F5F5DC', lineHeight: 1.25 }}>
-                    {guide.title}
-                  </div>
-                  {guide.subtitle && (
-                    <div style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: 'rgba(245,245,220,0.5)', lineHeight: 1.4 }}>
-                      {guide.subtitle}
-                    </div>
-                  )}
-                  <div style={{ marginTop: 'auto', fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.07em', color: '#40E0D0', paddingTop: '8px' }}>
-                    READ GUIDE →
-                  </div>
+                <img src={`${import.meta.env.BASE_URL}images/newspaper-cat.png`} alt="The Gazette" style={{width:'100%',height:'100%',objectFit:'contain',background:'#0D0E1A',display:'block'}}/>
+                <div style={{position:'absolute',bottom:0,left:0,right:0,background:'linear-gradient(to top,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0) 60%)',padding:'18px 10px 8px'}}>
+                  <div style={{fontFamily:'Bungee, sans-serif',fontSize:'11px',color:'#F5F5DC',lineHeight:1.2,marginBottom:'3px'}}>THE GAZETTE</div>
+                  <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#FF4E00'}}>READ NOW →</div>
                 </div>
               </a>
-            ))}
 
-            {/* Coming soon guide cards */}
-            {guides.filter(g => g.comingSoon && !g.published).map(guide => (
-              <div
-                key={guide.id}
-                style={{
-                  flex: '1 1 160px', minWidth: '150px', maxWidth: '210px',
-                  background: 'rgba(192,192,192,0.03)',
-                  border: '1px dashed rgba(192,192,192,0.2)',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  display: 'flex', flexDirection: 'column',
-                  opacity: 0.65,
-                  cursor: 'default',
-                }}
-              >
-                {guide.coverImageUrl ? (
-                  <div style={{ position: 'relative' }}>
-                    <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', aspectRatio: '5/7', objectFit: 'contain', display: 'block', background: '#0D0E1A', filter: 'grayscale(60%) brightness(0.7)' }} />
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: '#C0C0C0', background: 'rgba(0,0,0,0.55)', padding: '4px 10px', borderRadius: '4px' }}>COMING SOON</span>
-                    </div>
+              {publishedGuides.map(guide => (
+                <a key={guide.id} href={`#/guide/${guide.id}`}
+                  style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', display:'block', textDecoration:'none', scrollSnapAlign:'start', border:'1px solid rgba(64,224,208,0.2)', boxShadow:'0 4px 16px rgba(0,0,0,0.35)', transition:'border-color .15s' }}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(64,224,208,0.55)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(64,224,208,0.2)'}}
+                >
+                  {guide.coverImageUrl
+                    ? <img src={guide.coverImageUrl} alt={guide.title} style={{width:'100%',height:'100%',objectFit:'contain',background:'#0D0E1A',display:'block'}}/>
+                    : <div style={{width:'100%',height:'100%',background:'rgba(64,224,208,0.06)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                        <svg width="32" height="32" fill="none" stroke="rgba(64,224,208,0.4)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                      </div>
+                  }
+                  <div style={{position:'absolute',bottom:0,left:0,right:0,background:'linear-gradient(to top,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0) 40%)',padding:'12px 10px 7px',display:'flex',justifyContent:'flex-end'}}>
+                    <span style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#40E0D0'}}>READ GUIDE →</span>
                   </div>
-                ) : (
-                  <div style={{ width: '100%', aspectRatio: '5/7', background: 'rgba(192,192,192,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: 'rgba(192,192,192,0.5)' }}>COMING SOON</span>
-                  </div>
-                )}
-                <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {guide.state && (
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '8px', letterSpacing: '0.1em', color: 'rgba(192,192,192,0.5)' }}>
-                      {guide.state.toUpperCase()}
-                    </span>
-                  )}
-                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '12px', color: 'rgba(245,245,220,0.55)', lineHeight: 1.25 }}>
-                    {guide.title}
+                </a>
+              ))}
+
+              {comingSoonGuides.map(guide => (
+                <div key={guide.id}
+                  style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', scrollSnapAlign:'start', border:'1px dashed rgba(192,192,192,0.2)', opacity:0.6, cursor:'default' }}
+                >
+                  {guide.coverImageUrl
+                    ? <img src={guide.coverImageUrl} alt={guide.title} style={{width:'100%',height:'100%',objectFit:'contain',background:'#0D0E1A',display:'block',filter:'grayscale(70%) brightness(0.6)'}}/>
+                    : <div style={{width:'100%',height:'100%',background:'rgba(192,192,192,0.04)'}}/>
+                  }
+                  <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'8px',background:guide.coverImageUrl?'rgba(0,0,0,0.4)':'transparent'}}>
+                    <div style={{fontFamily:'Bungee, sans-serif',fontSize:'9px',letterSpacing:'0.1em',color:'rgba(192,192,192,0.75)',background:'rgba(0,0,0,0.5)',padding:'4px 10px',borderRadius:'4px'}}>COMING SOON</div>
+                    {guide.title && <div style={{fontFamily:'Special Elite, serif',fontSize:'11px',color:'rgba(192,192,192,0.55)',textAlign:'center',padding:'0 10px',lineHeight:1.3}}>{guide.title}</div>}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+
+          {/* ── DESKTOP: controlled prev/next slider ── */}
+          <div className="lr-ns-desktop" style={{ alignItems: 'center', gap: '10px' }}>
+            {/* Prev */}
+            <button onClick={prevSlide} disabled={sliderIndex === 0}
+              style={{ flexShrink:0, width:'36px', height:'36px', borderRadius:'50%', background: sliderIndex===0?'rgba(255,78,0,0.18)':'#FF4E00', border:'none', cursor:sliderIndex===0?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:sliderIndex===0?'none':'0 2px 12px rgba(255,78,0,0.5)', transition:'background .2s,box-shadow .2s' }}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+
+            {/* Clipping window */}
+            <div style={{ flex:1, overflow:'hidden' }}>
+              <div style={{ display:'flex', gap:'12px', transform:`translateX(-${sliderIndex*172}px)`, transition:'transform 0.35s cubic-bezier(0.25,0.46,0.45,0.94)' }}>
+
+                {/* Gazette */}
+                <a href="#/newspaper/current" target="_blank" rel="noopener noreferrer"
+                  style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', display:'block', textDecoration:'none', border:'1px solid rgba(255,78,0,0.3)', boxShadow:'0 4px 16px rgba(0,0,0,0.35)', transition:'border-color .15s' }}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(255,78,0,0.65)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,78,0,0.3)'}}
+                >
+                  <img src={`${import.meta.env.BASE_URL}images/newspaper-cat.png`} alt="The Gazette" style={{width:'100%',height:'100%',objectFit:'contain',background:'#0D0E1A',display:'block'}}/>
+                  <div style={{position:'absolute',bottom:0,left:0,right:0,background:'linear-gradient(to top,rgba(0,0,0,0.82) 0%,rgba(0,0,0,0) 60%)',padding:'18px 10px 8px'}}>
+                    <div style={{fontFamily:'Bungee, sans-serif',fontSize:'11px',color:'#F5F5DC',lineHeight:1.2,marginBottom:'3px'}}>THE GAZETTE</div>
+                    <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#FF4E00'}}>READ NOW →</div>
+                  </div>
+                </a>
+
+                {publishedGuides.map(guide => (
+                  <a key={guide.id} href={`#/guide/${guide.id}`}
+                    style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', display:'block', textDecoration:'none', border:'1px solid rgba(64,224,208,0.2)', boxShadow:'0 4px 16px rgba(0,0,0,0.35)', transition:'border-color .15s' }}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(64,224,208,0.55)'}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(64,224,208,0.2)'}}
+                  >
+                    {guide.coverImageUrl
+                      ? <img src={guide.coverImageUrl} alt={guide.title} style={{width:'100%',height:'100%',objectFit:'contain',background:'#0D0E1A',display:'block'}}/>
+                      : <div style={{width:'100%',height:'100%',background:'rgba(64,224,208,0.06)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                          <svg width="32" height="32" fill="none" stroke="rgba(64,224,208,0.4)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        </div>
+                    }
+                    <div style={{position:'absolute',bottom:0,left:0,right:0,background:'linear-gradient(to top,rgba(0,0,0,0.7) 0%,rgba(0,0,0,0) 40%)',padding:'12px 10px 7px',display:'flex',justifyContent:'flex-end'}}>
+                      <span style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#40E0D0'}}>READ GUIDE →</span>
+                    </div>
+                  </a>
+                ))}
+
+                {comingSoonGuides.map(guide => (
+                  <div key={guide.id}
+                    style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', border:'1px dashed rgba(192,192,192,0.2)', opacity:0.6, cursor:'default' }}
+                  >
+                    {guide.coverImageUrl
+                      ? <img src={guide.coverImageUrl} alt={guide.title} style={{width:'100%',height:'100%',objectFit:'contain',background:'#0D0E1A',display:'block',filter:'grayscale(70%) brightness(0.6)'}}/>
+                      : <div style={{width:'100%',height:'100%',background:'rgba(192,192,192,0.04)'}}/>
+                    }
+                    <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'8px',background:guide.coverImageUrl?'rgba(0,0,0,0.4)':'transparent'}}>
+                      <div style={{fontFamily:'Bungee, sans-serif',fontSize:'9px',letterSpacing:'0.1em',color:'rgba(192,192,192,0.75)',background:'rgba(0,0,0,0.5)',padding:'4px 10px',borderRadius:'4px'}}>COMING SOON</div>
+                      {guide.title && <div style={{fontFamily:'Special Elite, serif',fontSize:'11px',color:'rgba(192,192,192,0.55)',textAlign:'center',padding:'0 10px',lineHeight:1.3}}>{guide.title}</div>}
+                    </div>
+                  </div>
+                ))}
+
+              </div>
+            </div>
+
+            {/* Next */}
+            <button onClick={nextSlide} disabled={sliderIndex >= maxSliderIndex}
+              style={{ flexShrink:0, width:'36px', height:'36px', borderRadius:'50%', background:sliderIndex>=maxSliderIndex?'rgba(255,78,0,0.18)':'#FF4E00', border:'none', cursor:sliderIndex>=maxSliderIndex?'default':'pointer', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:sliderIndex>=maxSliderIndex?'none':'0 2px 12px rgba(255,78,0,0.5)', transition:'background .2s,box-shadow .2s' }}
+            >
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+
+          {/* Dot indicators — desktop only, when cards outnumber the view */}
+          {totalCards > DESKTOP_PER_VIEW && (
+            <div className="lr-ns-desktop" style={{ justifyContent:'center', gap:'6px', marginTop:'10px' }}>
+              {Array.from({ length: maxSliderIndex + 1 }, (_, i) => (
+                <button key={i} onClick={() => setSliderIndex(i)} style={{
+                  width: i===sliderIndex?'16px':'6px', height:'6px', borderRadius:'3px',
+                  background: i===sliderIndex?'#FF4E00':'rgba(255,78,0,0.3)',
+                  border:'none', cursor:'pointer', padding:0,
+                  transition:'width 0.2s,background 0.2s',
+                }}/>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ── YOUR FAVORITES ── */}
