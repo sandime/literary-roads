@@ -26,3 +26,4 @@ __pycache__/
 coffeeshops-state-geojson
 bookshops-geojson
 RESTAURANTS-GEOJSON
+cors.json

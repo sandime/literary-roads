@@ -841,31 +841,33 @@ export default function Resources({ onBack }) {
               target="_blank"
               rel="noopener noreferrer"
               style={{
-                flex: '1 1 200px', minWidth: '180px', maxWidth: '240px',
+                flex: '1 1 160px', minWidth: '150px', maxWidth: '210px',
                 background: 'rgba(255,78,0,0.06)',
                 border: '1px solid rgba(255,78,0,0.3)',
                 borderRadius: '12px',
-                padding: '20px 18px',
+                overflow: 'hidden',
                 textDecoration: 'none',
-                display: 'flex', flexDirection: 'column', gap: '10px',
+                display: 'flex', flexDirection: 'column',
                 transition: 'border-color 0.15s, background 0.15s',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,78,0,0.6)'; e.currentTarget.style.background = 'rgba(255,78,0,0.1)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,78,0,0.3)'; e.currentTarget.style.background = 'rgba(255,78,0,0.06)'; }}
             >
-              <svg width="28" height="28" viewBox="0 0 30 30" style={{ flexShrink: 0 }}>
-                <polygon points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10" fill="#FF4E00" opacity="0.9"/>
-              </svg>
-              <div>
-                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '13px', color: '#F5F5DC', letterSpacing: '0.05em', marginBottom: '6px' }}>
+              <img
+                src={`${import.meta.env.BASE_URL}images/newspaper-cat.png`}
+                alt="The Gazette"
+                style={{ width: '100%', aspectRatio: '5/7', objectFit: 'contain', display: 'block', background: '#0D0E1A' }}
+              />
+              <div style={{ padding: '12px 14px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: '12px', color: '#F5F5DC', lineHeight: 1.25 }}>
                   THE GAZETTE
                 </div>
-                <p style={{ fontFamily: 'Special Elite, serif', fontSize: '12px', color: 'rgba(245,241,235,0.65)', lineHeight: '1.6', margin: 0 }}>
-                  Weekly literary newspaper — indie picks, festivals, debut authors, road trip routes.
-                </p>
-              </div>
-              <div style={{ marginTop: 'auto', fontFamily: 'Bungee, sans-serif', fontSize: '10px', letterSpacing: '0.07em', color: '#FF4E00' }}>
-                READ THE GAZETTE →
+                <div style={{ fontFamily: 'Special Elite, serif', fontSize: '11px', color: 'rgba(245,245,220,0.5)', lineHeight: 1.4 }}>
+                  Weekly literary newspaper
+                </div>
+                <div style={{ marginTop: 'auto', fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.07em', color: '#FF4E00', paddingTop: '8px' }}>
+                  READ THE GAZETTE →
+                </div>
               </div>
             </a>
 
@@ -888,9 +890,9 @@ export default function Resources({ onBack }) {
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.2)'; e.currentTarget.style.background = 'rgba(64,224,208,0.04)'; }}
               >
                 {guide.coverImageUrl ? (
-                  <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', height: '110px', objectFit: 'cover', display: 'block' }} />
+                  <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', aspectRatio: '5/7', objectFit: 'contain', display: 'block', background: '#0D0E1A' }} />
                 ) : (
-                  <div style={{ width: '100%', height: '110px', background: 'rgba(64,224,208,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '100%', aspectRatio: '5/7', background: 'rgba(64,224,208,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <svg width="28" height="28" fill="none" stroke="rgba(64,224,208,0.4)" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
@@ -934,13 +936,13 @@ export default function Resources({ onBack }) {
               >
                 {guide.coverImageUrl ? (
                   <div style={{ position: 'relative' }}>
-                    <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', height: '110px', objectFit: 'cover', display: 'block', filter: 'grayscale(60%) brightness(0.7)' }} />
+                    <img src={guide.coverImageUrl} alt={guide.title} style={{ width: '100%', aspectRatio: '5/7', objectFit: 'contain', display: 'block', background: '#0D0E1A', filter: 'grayscale(60%) brightness(0.7)' }} />
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: '#C0C0C0', background: 'rgba(0,0,0,0.55)', padding: '4px 10px', borderRadius: '4px' }}>COMING SOON</span>
                     </div>
                   </div>
                 ) : (
-                  <div style={{ width: '100%', height: '110px', background: 'rgba(192,192,192,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '100%', aspectRatio: '5/7', background: 'rgba(192,192,192,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: '9px', letterSpacing: '0.1em', color: 'rgba(192,192,192,0.5)' }}>COMING SOON</span>
                   </div>
                 )}
