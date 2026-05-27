@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
@@ -30,10 +30,51 @@ function haversine(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// ── Cover load helpers (Open Library 1×1 GIF guard) ──────────────────────────
-const FALLBACK_COVER = 'https://covers.openlibrary.org/b/id/0-M.jpg';
-const onCoverLoad  = e => { if (e.target.naturalWidth <= 1) e.target.src = FALLBACK_COVER; };
-const onCoverError = e => { e.target.onerror = null; e.target.src = FALLBACK_COVER; };
+// ── Module-level cover cache (survives remounts within session) ───────────────
+const coversCache = {};
+
+// ── SkeletonCard ──────────────────────────────────────────────────────────────
+function SkeletonCard() {
+  return (
+    <div style={{ flexShrink: 0, width: 90, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div style={{ width: 90, height: 130, borderRadius: 3, background: 'rgba(44,24,16,0.1)', animation: 'lr-pulse 1.4s ease-in-out infinite' }}/>
+      <div style={{ height: 9, borderRadius: 2, background: 'rgba(44,24,16,0.07)', animation: 'lr-pulse 1.4s ease-in-out 0.15s infinite' }}/>
+      <div style={{ height: 9, width: '70%', borderRadius: 2, background: 'rgba(44,24,16,0.07)', animation: 'lr-pulse 1.4s ease-in-out 0.3s infinite' }}/>
+      <div style={{ height: 44 }}/>
+    </div>
+  );
+}
+
+// ── BookCard ──────────────────────────────────────────────────────────────────
+function BookCard({ title, coverUrl, added, user, onAddReadNext }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showPlaceholder = !coverUrl || imgFailed;
+  return (
+    <div style={{ flexShrink: 0, width: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <div style={{ width: 90, height: 130, borderRadius: 3, overflow: 'hidden', boxShadow: '0 2px 8px rgba(44,24,16,0.2)', background: '#FFF8E7' }}>
+        <img
+          src={showPlaceholder ? `${import.meta.env.BASE_URL}images/author-cat.png` : coverUrl}
+          alt={title}
+          style={{ width: '100%', height: '100%', objectFit: showPlaceholder ? 'contain' : 'cover', display: 'block' }}
+          onError={() => setImgFailed(true)}
+          onLoad={e => { if (!showPlaceholder && e.currentTarget.naturalWidth <= 1) setImgFailed(true); }}
+        />
+      </div>
+      <p style={{ fontFamily: 'Georgia, serif', fontSize: 11, color: '#2C1810', textAlign: 'center', margin: 0, lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', width: '100%' }}>
+        {title}
+      </p>
+      {user && (
+        <button
+          onClick={onAddReadNext}
+          disabled={added}
+          style={{ width: '100%', minHeight: 44, marginTop: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10, color: added ? '#9B7B6B' : '#fff', background: added ? 'transparent' : '#FF4E00', border: added ? '1px solid rgba(155,123,107,0.4)' : 'none', borderRadius: 20, padding: '6px 4px', cursor: added ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          {added ? '✓ In List' : '+ Read Next'}
+        </button>
+      )}
+    </div>
+  );
+}
 
 // ── AuthorPage ────────────────────────────────────────────────────────────────
 export default function AuthorPage() {
@@ -48,8 +89,9 @@ export default function AuthorPage() {
     : (authorList[0] || null);
   const discoveredAuthors = useDiscoveredAuthors(user?.uid);
 
-  const [works,      setWorks]      = useState([]);
-  const [landmarks,  setLandmarks]  = useState([]);
+  const [covers,        setCovers]        = useState({});
+  const [coversLoading, setCoversLoading] = useState(true);
+  const [landmarks,     setLandmarks]     = useState([]);
   const [saving,     setSaving]     = useState(false);
   const [saved,      setSaved]      = useState(false);
   const [readNextAdded, setReadNextAdded] = useState(new Set());
@@ -59,23 +101,31 @@ export default function AuthorPage() {
     if (author && discoveredAuthors.some(a => a.state === stateName && a.name === author.name)) setSaved(true);
   }, [discoveredAuthors, stateName, author]);
 
-  // Fetch Open Library data in the background — used only for cover URL lookup when adding to Read Next.
-  // Not displayed directly; author.books is the authoritative display list.
+  // Fetch per-title covers from Open Library in parallel
   useEffect(() => {
-    if (!author) return;
-    fetch(`https://openlibrary.org/search.json?author=${encodeURIComponent(author.name)}&limit=12&fields=title,cover_i,key`)
-      .then(r => r.json())
-      .then(data => {
-        const results = (data.docs || [])
-          .filter(b => b.cover_i)
-          .map(b => ({
-            key:      b.key,
-            title:    b.title,
-            coverUrl: `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg`,
-          }));
-        setWorks(results);
-      })
-      .catch(() => {});
+    if (!author?.books?.length) { setCoversLoading(false); return; }
+    if (coversCache[author.name]) {
+      setCovers(coversCache[author.name]);
+      setCoversLoading(false);
+      return;
+    }
+    setCoversLoading(true);
+    Promise.all(
+      author.books.map(title =>
+        fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author.name)}&limit=1&fields=cover_i`)
+          .then(r => r.json())
+          .then(data => {
+            const coverId = data.docs?.[0]?.cover_i;
+            return [title, coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null];
+          })
+          .catch(() => [title, null])
+      )
+    ).then(entries => {
+      const map = Object.fromEntries(entries);
+      coversCache[author.name] = map;
+      setCovers(map);
+      setCoversLoading(false);
+    });
   }, [author]);
 
   // Fetch nearby literary landmarks
@@ -115,25 +165,25 @@ export default function AuthorPage() {
     }
   };
 
-  const handleAddReadNext = async (work) => {
-    if (!user || !work) return;
-    const bookId = work.key?.replace(/\//g, '_') || work.title.replace(/\s/g, '_');
+  const handleAddReadNext = async (title, coverUrl) => {
+    if (!user || !title) return;
+    const bookId = title.replace(/\s+/g, '_');
     try {
       await setDoc(
         doc(db, 'users', user.uid, 'libraryReadNext', bookId),
         {
-          title:          work.title,
+          title,
           author:         author.name,
-          coverUrl:       work.coverUrl,
+          coverUrl:       coverUrl || null,
           recommendedBy:  `Author Page: ${author.name}`,
           placeName:      `${author.name}'s ${stateName}`,
           state:          stateName,
           date:           serverTimestamp(),
-          whoWhatWhere:   [work.title, author.name, stateName].join(' · '),
+          whoWhatWhere:   [title, author.name, stateName].join(' · '),
         },
         { merge: true }
       );
-      setReadNextAdded(prev => new Set([...prev, bookId]));
+      setReadNextAdded(prev => new Set([...prev, title]));
     } catch (e) {
       console.error('[AuthorPage] readNext error', e);
     }
@@ -157,6 +207,11 @@ export default function AuthorPage() {
 
   return (
     <div style={styles.page}>
+      <style>{`
+        .lr-book-scroll::-webkit-scrollbar{display:none}
+        .lr-book-scroll{scrollbar-width:none}
+        @keyframes lr-pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+      `}</style>
 
       {/* ── Nav bar ─────────────────────────────────────────────────────────── */}
       <nav style={styles.nav}>
@@ -204,46 +259,32 @@ export default function AuthorPage() {
           </p>
         </section>
 
-        {/* Notable Works — driven by author.books (authoritative curated list).
-             Open Library results (works) used only for cover URL lookup when adding to Read Next. */}
+        {/* Notable Works — horizontal scroll row with Open Library covers */}
         {author.books && author.books.length > 0 && (
           <section style={styles.section}>
             <h2 style={styles.sectionHeading}>Notable Works</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {author.books.map((title, i) => {
-                // Look up cover URL from background Open Library fetch — matched by title (case-insensitive)
-                const olMatch = works.find(w => w.title.toLowerCase() === title.toLowerCase());
-                const bookId  = olMatch?.key?.replace(/\//g, '_') || title.replace(/\s+/g, '_');
-                const added   = readNextAdded.has(bookId);
-                const work    = { title, coverUrl: olMatch?.coverUrl || null, key: olMatch?.key || null };
-                return (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    gap: 12, padding: '8px 12px',
-                    background: C.cardBg,
-                    border: `1px solid ${C.divider}`,
-                    borderLeft: `3px solid ${C.coral}`,
-                    borderRadius: 4,
-                  }}>
-                    <p style={{
-                      fontFamily: 'Special Elite, serif', fontSize: 14,
-                      color: C.darkBrown, fontStyle: 'italic',
-                      margin: 0, flex: 1,
-                    }}>
-                      {title}
-                    </p>
-                    {user && (
-                      <button
-                        onClick={() => handleAddReadNext(work)}
-                        disabled={added}
-                        style={{ ...styles.readNextBtn, flexShrink: 0, opacity: added ? 0.55 : 1, cursor: added ? 'default' : 'pointer' }}
-                      >
-                        {added ? 'Added' : '+ Read next'}
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+            <div
+              className="lr-book-scroll"
+              style={{
+                display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 8,
+                marginLeft: '-20px', marginRight: '-20px',
+                paddingLeft: '20px', paddingRight: '20px',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
+              {coversLoading
+                ? author.books.map((_, i) => <SkeletonCard key={i} />)
+                : author.books.map((title, i) => (
+                    <BookCard
+                      key={i}
+                      title={title}
+                      coverUrl={covers[title] || null}
+                      added={readNextAdded.has(title)}
+                      user={user}
+                      onAddReadNext={() => handleAddReadNext(title, covers[title] || null)}
+                    />
+                  ))
+              }
             </div>
           </section>
         )}
