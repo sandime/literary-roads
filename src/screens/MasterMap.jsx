@@ -4176,9 +4176,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     </svg>
                     <span>
                       {selectedLocation.address && <span>{selectedLocation.address}<br /></span>}
-                      {selectedLocation.city && selectedLocation.state
-                        ? `${selectedLocation.city}, ${selectedLocation.state}`
-                        : selectedLocation.city || selectedLocation.state || ''}
+                      {/* Ghost towns omit state here — their description already includes it */}
+                      {selectedLocation.type === 'ghostTown' || selectedLocation.type === 'ufoLocation'
+                        ? selectedLocation.city || ''
+                        : selectedLocation.city && selectedLocation.state
+                          ? `${selectedLocation.city}, ${selectedLocation.state}`
+                          : selectedLocation.city || selectedLocation.state || ''}
                     </span>
                   </div>
                 )}
