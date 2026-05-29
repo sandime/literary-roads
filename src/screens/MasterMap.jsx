@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
@@ -1242,7 +1242,7 @@ const PlaceSearch = ({ onSelect, mapCenter }) => {
       {showResults && (hasAnyResults || loadingGp) && createPortal(
         <div
           ref={dropdownRef}
-          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 1001 }}
           className="bg-midnight-navy border-2 border-starlight-turquoise rounded-lg overflow-hidden shadow-[0_0_20px_rgba(64,224,208,0.3)]"
         >
           {/* ── Tier 1: Firestore results ── */}
@@ -1357,6 +1357,7 @@ const PlaceSearch = ({ onSelect, mapCenter }) => {
 const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, onShowSwapMeet, routeStateRef, onBackToPlanner, mapResetKey }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   // Initialize from saved ref so route survives navigating away and back
   const saved = routeStateRef?.current ?? {};
   // Determine initial UI mode — go to explore if there's existing route/state data
@@ -1606,6 +1607,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setShowPlanner(false);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close search bar whenever the route changes (navigating to Library, Journeys, etc.)
+  useEffect(() => { setShowSearch(false); }, [location.pathname]);
 
   // Reset shelf tab and transient state whenever a new location is opened
   useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); }, [selectedLocation?.id]);
@@ -3084,6 +3088,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <PlaceSearch onSelect={handleSearchSelect} mapCenter={mapCenter} />
         )}
       </div>
+
+      {/* Transparent backdrop — closes search bar when tapping map outside the panel */}
+      {showSearch && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 999 }}
+          aria-hidden="true"
+          onClick={() => setShowSearch(false)}
+        />
+      )}
 
       {/* ══════════════════════════════════════════════
            MOBILE HAMBURGER DRAWER (mobile only)
