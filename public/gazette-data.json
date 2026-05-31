@@ -2,45 +2,45 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "A PARADE OF HORRIBLES",
-      "author": "Matt Dinniman",
+      "title": "THE BALLAD OF FALLING DRAGONS",
+      "author": "Sarah A. Parker",
       "weeksOnList": 1,
-      "isbn13": "9798217190065",
-      "description": "The eighth book in the “Dungeon Crawler Carl” series. A sense of normalcy might be a set-up that spells danger for Carl and Donut.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217190065.jpg"
+      "isbn13": "9780063415898",
+      "description": "The second book in the Moonfall series. As a calamitous moonfall approaches, Raeve must make life-or-death decisions.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063415898.jpg"
     },
     {
       "rank": 2,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 6,
+      "weeksOnList": 7,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
       "rank": 3,
-      "title": "BROKEN DOVE",
-      "author": "Dani Francis",
+      "title": "IRONWOOD",
+      "author": "Michael Connelly",
       "weeksOnList": 1,
-      "isbn13": "9780593875490",
-      "description": "The second book in the “Silver Elite” series. As the war between the Mods and Primes escalates, issues of trust come to the fore.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593875490.jpg"
+      "isbn13": "9780316595384",
+      "description": "The second book in the Catalina series. A deadly drug drop and a missing person case fuel Stillwell’s sense of duty.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316595384.jpg"
     },
     {
       "rank": 4,
-      "title": "THE FOURTH OPTION",
-      "author": "Jack Carr and M.P. Woodward",
-      "weeksOnList": 1,
-      "isbn13": "9781668072011",
-      "description": "The former Navy SEAL and C.I.A. ground branch operative Chris Walker doles out vigilante justice.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668072011.jpg"
+      "title": "A PARADE OF HORRIBLES",
+      "author": "Matt Dinniman",
+      "weeksOnList": 2,
+      "isbn13": "9798217190065",
+      "description": "The eighth book in the “Dungeon Crawler Carl” series. A sense of normalcy might be a set-up that spells danger for Carl and Donut.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217190065.jpg"
     },
     {
       "rank": 5,
       "title": "OUR PERFECT STORM",
       "author": "Carley Fortune",
-      "weeksOnList": 2,
+      "weeksOnList": 3,
       "isbn13": "9780593953242",
       "description": "After her fiancé leaves her, Frankie goes on her planned honeymoon trip with her best friend from childhood, George.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593953242.jpg"
@@ -49,51 +49,51 @@
   "nonfiction": [
     {
       "rank": 1,
-      "title": "SUICIDAL EMPATHY",
-      "author": "Gad Saad",
+      "title": "LIAR'S KINGDOM",
+      "author": "Andrew Weissmann",
       "weeksOnList": 1,
-      "isbn13": "9780063446533",
-      "description": "The host of the podcast “The Saad Truth” argues that what he considers misguided compassion is having a negative impact on society.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063446533.jpg"
+      "isbn13": "9780316601306",
+      "description": "The author of “Where Law Ends” argues that a flaw in America’s legal system allows for deceit in our politics.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316601306.jpg"
     },
     {
       "rank": 2,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 17,
+      "weeksOnList": 18,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 3,
-      "title": "TAKE ME TO YOUR LEADER",
-      "author": "Neil deGrasse Tyson",
+      "title": "ALL AMERICAN PATRIOTISM",
+      "author": "Rachel Campos-Duffy",
       "weeksOnList": 1,
-      "isbn13": "9781668249970",
-      "description": "The astrophysicist depicts what potential encounters with aliens from outer space might be like.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668249970.jpg"
+      "isbn13": "9780063515277",
+      "description": "The co-host of “Fox & Friends Weekend” brings together songs, stories and photographs to celebrate America.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063515277.jpg"
     },
     {
       "rank": 4,
-      "title": "THE CASE FOR AMERICA",
-      "author": "Bret Baier",
+      "title": "SUICIDAL EMPATHY",
+      "author": "Gad Saad",
       "weeksOnList": 2,
-      "isbn13": "9780063360808",
-      "description": "The chief political anchor for Fox News shares his perspectives on our national character during divisive times.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063360808.jpg"
+      "isbn13": "9780063446533",
+      "description": "The host of the podcast “The Saad Truth” argues that what he considers misguided compassion is having a negative impact on society.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063446533.jpg"
     },
     {
       "rank": 5,
-      "title": "DOGS, BOYS, AND OTHER THINGS I'VE CRIED ABOUT",
-      "author": "Isabel Klee",
-      "weeksOnList": 3,
-      "isbn13": "9780063451070",
-      "description": "Klee helps foster dogs overcome challenges while she faces her own complications.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063451070.jpg"
+      "title": "THIS IS ME",
+      "author": "Hayden Panettiere",
+      "weeksOnList": 1,
+      "isbn13": "9781538773420",
+      "description": "The Golden Globe-nominated actress describes how she contended with fame and handled difficulties in her life.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773420.jpg"
     }
   ],
-  "issueDate": "Sunday, May 24, 2026",
-  "issueNumber": 73,
-  "updatedAt": "2026-05-24T11:07:09.832Z"
+  "issueDate": "Sunday, May 31, 2026",
+  "issueNumber": 74,
+  "updatedAt": "2026-05-31T11:26:56.667Z"
 }
