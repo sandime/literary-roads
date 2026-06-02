@@ -17,6 +17,7 @@ import SaveRouteButton from '../components/journey/SaveRouteButton';
 import JourneyGenerating from '../components/journey/JourneyGenerating';
 import JourneySteps from '../components/journey/JourneySteps';
 import Starburst from '../components/journey/Starburst';
+import { GoogieStarburst, BistroLights, TentAwning, MarqueeStrip, PylonSign } from '../components/journey/GoogieKit';
 import { CATEGORY_GROUPS, ALL_CATEGORIES, TYPE_ICON } from '../components/journey/constants';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -33,6 +34,7 @@ const SIZE_BADGES = {
   regional: { label: 'REGIONAL', bg: 'bg-starlight-turquoise/20 border-starlight-turquoise/60', text: 'text-starlight-turquoise' },
   specialty:{ label: 'SPECIALTY',bg: 'bg-chrome-silver/20 border-chrome-silver/40',     text: 'text-chrome-silver' },
 };
+const SIZE_COLOR = { major: '#FF4E00', regional: '#40E0D0', specialty: '#C0C0C0' };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const haversine = (lat1, lng1, lat2, lng2) => {
@@ -601,67 +603,88 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
 
         {/* ══ STEP 1: FILTER ══════════════════════════════════════════════════ */}
         {step === 'filter' && (
-          <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade" style={{ paddingBottom: 160 }}>
+          <>
+            {/* Tent marquee decoration */}
+            <BistroLights count={11} color="#FFB347"/>
+            <TentAwning colorA="#B044FB" colorB="#FFF8E7" scallops={9}/>
 
-            {/* Festival type */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-3">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                FESTIVAL TYPE
-              </label>
-              <div className="space-y-2">
-                {Object.entries(TYPE_LABELS).map(([key, { label, color }]) => (
-                  <label key={key}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      filterTypes.has(key)
-                        ? 'border-starlight-turquoise/60 bg-starlight-turquoise/5'
-                        : 'border-starlight-turquoise/10 opacity-60'
-                    }`}
-                  >
-                    <input type="checkbox" checked={filterTypes.has(key)} onChange={() => toggleType(key)}
-                      className="accent-starlight-turquoise flex-shrink-0" />
-                    <span className="text-paper-white font-special-elite text-sm">{label}</span>
-                    <div className="ml-auto w-3 h-3 rounded-full flex-shrink-0" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
-                  </label>
-                ))}
+            <div className="max-w-lg mx-auto px-4 py-5 lr-fade" style={{ paddingBottom: 160 }}>
+
+              {/* Festival type — 2×2 tile grid */}
+              <PylonSign label="FESTIVAL TYPE" accent="#B044FB"
+                sub="Pick the readings you're chasing"
+                style={{ marginBottom: 14, minHeight: 56 }}/>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 9, marginBottom: 24 }}>
+                {Object.entries(TYPE_LABELS).map(([key, { label, color }]) => {
+                  const on = filterTypes.has(key);
+                  return (
+                    <button key={key} onClick={() => toggleType(key)} style={{
+                      position: 'relative', textAlign: 'left', cursor: 'pointer',
+                      background: on ? `${color}22` : 'rgba(0,0,0,0.25)',
+                      border: `2px solid ${on ? color : color + '30'}`,
+                      borderRadius: 12, padding: '12px 12px 12px 13px',
+                      boxShadow: on ? `0 0 14px ${color}44, inset 0 0 12px ${color}11` : 'none',
+                      opacity: on ? 1 : 0.6, transition: 'all .15s', overflow: 'hidden' }}>
+                      <div style={{ width: 9, height: 9, borderRadius: '50%',
+                        background: color, boxShadow: `0 0 7px ${color}`, marginBottom: 8 }}/>
+                      <div style={{ fontFamily: '"Bungee", system-ui, sans-serif',
+                        fontSize: 11, color: '#FFF8E7', lineHeight: 1.2 }}>{label}</div>
+                      {on && <GoogieStarburst size={20} color={color} points={8}
+                        style={{ position: 'absolute', top: 8, right: 8, opacity: 0.5 }}/>}
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Month + State */}
+              <PylonSign label="WHEN & WHERE" accent="#40E0D0"
+                sub="Narrow by travel window"
+                style={{ marginBottom: 14, minHeight: 56 }}/>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Travel month */}
+                <div>
+                  <div style={{ fontFamily: '"Bungee", system-ui, sans-serif', fontSize: 9,
+                    letterSpacing: '0.14em', color: '#C0C0C0', marginBottom: 5 }}>
+                    TRAVEL MONTH
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
+                      style={{ width: '100%', appearance: 'none', background: 'rgba(0,0,0,0.4)',
+                        border: '2px solid rgba(64,224,208,0.5)', borderRadius: 10, color: '#FFF8E7',
+                        fontFamily: '"Special Elite", Georgia, serif', fontSize: 13,
+                        padding: '10px 34px 10px 13px', outline: 'none' }}>
+                      <option value="Any" style={{ background: '#12131F' }}>Any month</option>
+                      {MONTHS.map(m => <option key={m} value={m} style={{ background: '#12131F' }}>{m}</option>)}
+                    </select>
+                    <span style={{ position: 'absolute', right: 13, top: '50%',
+                      transform: 'translateY(-50%)', color: '#40E0D0',
+                      pointerEvents: 'none', fontSize: 11 }}>▼</span>
+                  </div>
+                </div>
+                {/* State */}
+                <div>
+                  <div style={{ fontFamily: '"Bungee", system-ui, sans-serif', fontSize: 9,
+                    letterSpacing: '0.14em', color: '#C0C0C0', marginBottom: 5 }}>
+                    STATE / TERRITORY
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <select value={filterState} onChange={e => setFilterState(e.target.value)}
+                      style={{ width: '100%', appearance: 'none', background: 'rgba(0,0,0,0.4)',
+                        border: '2px solid rgba(64,224,208,0.5)', borderRadius: 10, color: '#FFF8E7',
+                        fontFamily: '"Special Elite", Georgia, serif', fontSize: 13,
+                        padding: '10px 34px 10px 13px', outline: 'none' }}>
+                      <option value="Any" style={{ background: '#12131F' }}>Any state or territory</option>
+                      {ALL_STATES.map(s => <option key={s} value={s} style={{ background: '#12131F' }}>{s}</option>)}
+                    </select>
+                    <span style={{ position: 'absolute', right: 13, top: '50%',
+                      transform: 'translateY(-50%)', color: '#40E0D0',
+                      pointerEvents: 'none', fontSize: 11 }}>▼</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
-
-            {/* Neon divider */}
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(176,68,251,0.3), rgba(64,224,208,0.2), transparent)', boxShadow: '0 0 4px rgba(176,68,251,0.15)' }} />
-
-            {/* Month */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                TRAVEL MONTH
-              </label>
-              <select value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2.5 rounded-lg focus:outline-none focus:border-starlight-turquoise"
-              >
-                <option value="Any">Any month</option>
-                {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-
-            {/* Neon divider */}
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.3), rgba(176,68,251,0.2), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
-
-            {/* State/Territory */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-                STATE/TERRITORY
-              </label>
-              <select value={filterState} onChange={e => setFilterState(e.target.value)}
-                className="w-full bg-black/50 border-2 border-starlight-turquoise/60 text-paper-white font-special-elite px-3 py-2.5 rounded-lg focus:outline-none focus:border-starlight-turquoise"
-              >
-                <option value="Any">Any state or territory</option>
-                {ALL_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-
-          </div>
+          </>
         )}
 
         {/* ══ STEP 2: SELECT ══════════════════════════════════════════════════ */}
@@ -916,28 +939,60 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
         {step === 'itinerary' && itinerary && (
           <div className="lr-fade pb-4">
 
-            {/* Festival anchor cards */}
-            <div className="px-4 pt-4 flex gap-3 overflow-x-auto pb-1">
-              {itinerary.festivals.map(f => (
-                <div key={f.id} className="flex-shrink-0 bg-[#B044FB]/10 border border-[#B044FB]/40 rounded-xl px-4 py-2.5 min-w-[180px]">
-                  <p className="text-[#B044FB] font-bungee text-xs">FESTIVAL</p>
-                  <p className="text-paper-white font-bungee text-sm leading-tight mt-0.5">{f.name}</p>
-                  <p className="text-chrome-silver/60 font-special-elite text-xs mt-0.5">{f.city}, {f.state} · {f.typicalMonth}</p>
-                </div>
-              ))}
+            {/* Festival anchor cards — marquee ticket */}
+            <div style={{ padding: '14px 16px 6px' }}>
+              {itinerary.festivals.map(f => {
+                const sizeColor = SIZE_COLOR[f.size] || '#40E0D0';
+                const sizeMeta  = SIZE_BADGES[f.size] || SIZE_BADGES.regional;
+                return (
+                  <div key={f.id} style={{ borderRadius: 14, overflow: 'hidden', marginBottom: 8,
+                    border: '2px solid rgba(176,68,251,0.4)',
+                    boxShadow: '0 0 16px rgba(176,68,251,0.2)' }}>
+                    <MarqueeStrip accent="#B044FB" bulbs={13} height={30}>NOW PLAYING</MarqueeStrip>
+                    <div style={{ background: 'rgba(176,68,251,0.06)', padding: '12px 14px',
+                      display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <GoogieStarburst size={34} color="#B044FB" points={12} glow/>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: '"Bungee", system-ui, sans-serif',
+                          fontSize: 14, color: '#FFF8E7' }}>{f.name}</div>
+                        <div style={{ fontFamily: '"Special Elite", Georgia, serif',
+                          fontSize: 11, color: '#C0C0C0', marginTop: 2 }}>
+                          {f.city}, {f.state} · {f.typicalMonth}
+                        </div>
+                      </div>
+                      <span style={{ fontFamily: '"Bungee", system-ui, sans-serif',
+                        fontSize: 8, color: sizeColor, border: `1px solid ${sizeColor}`,
+                        borderRadius: 4, padding: '3px 6px', flexShrink: 0 }}>
+                        {sizeMeta.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Day-by-day itinerary */}
             <div className="px-4 pt-4 space-y-4">
-              {itinerary.days.map(day => (
-                <div key={day.dayNum} className="bg-black/30 border border-starlight-turquoise/15 rounded-xl overflow-hidden">
-                  {/* Day header */}
-                  <div className="bg-starlight-turquoise/10 border-b border-starlight-turquoise/20 px-4 py-2.5 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-starlight-turquoise/20 border border-starlight-turquoise/60 flex items-center justify-center font-bungee text-starlight-turquoise text-xs flex-shrink-0">
-                      {day.dayNum}
-                    </div>
-                    <p className="text-paper-white font-bungee text-sm">{day.label}</p>
-                  </div>
+              {itinerary.days.map(day => {
+                const hasFestStop = day.stops.some(s => s.isFestival);
+                const dayAccent = hasFestStop ? '#B044FB' : '#40E0D0';
+                return (
+                <div key={day.dayNum} style={{ borderRadius: 14, overflow: 'hidden',
+                  border: `1px solid ${hasFestStop ? 'rgba(176,68,251,0.3)' : 'rgba(64,224,208,0.15)'}`,
+                  background: 'rgba(0,0,0,0.28)' }}>
+                  {/* Day header — marquee strip */}
+                  <MarqueeStrip accent={dayAccent} bulbs={12} height={32}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ position: 'relative', width: 20, height: 20, display: 'inline-flex' }}>
+                        <GoogieStarburst size={20} color={dayAccent} points={10}
+                          style={{ position: 'absolute', inset: 0 }}/>
+                        <span style={{ position: 'absolute', inset: 0, display: 'flex',
+                          alignItems: 'center', justifyContent: 'center',
+                          fontSize: 9, color: '#1A1B2E' }}>{day.dayNum}</span>
+                      </span>
+                      {day.label.toUpperCase()}
+                    </span>
+                  </MarqueeStrip>
                   {/* Stops */}
                   <div className="divide-y divide-starlight-turquoise/10">
                     {day.stops.map((stop, idx) => {
@@ -988,7 +1043,8 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
                     })}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             {/* Action buttons */}

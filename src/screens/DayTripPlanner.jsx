@@ -9,6 +9,7 @@ import WaypointsSheet from '../components/journey/WaypointsSheet';
 import SaveRouteButton from '../components/journey/SaveRouteButton';
 import JourneyGenerating from '../components/journey/JourneyGenerating';
 import Starburst from '../components/journey/Starburst';
+import { GoogieStarburst, Boomerang, AtomicOrbit, SundialPicker, SunArc, NeonField } from '../components/journey/GoogieKit';
 import { CATEGORY_GROUPS, CATEGORY_OPTIONS, ALL_CATEGORIES, TYPE_ICON } from '../components/journey/constants';
 
 // ── Navigation URL builders ───────────────────────────────────────────────────
@@ -281,9 +282,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
   };
 
   const DURATION_OPTIONS = [
-    { key: 'quick',   label: 'Quick',    sub: '30 min – 1 hr',  stops: '2–3',  radius: 20  },
-    { key: 'halfDay', label: 'Half Day', sub: '1–3 hours',      stops: '4–6',  radius: 60  },
-    { key: 'fullDay', label: 'Full Day', sub: '3–5 hours',      stops: '7–10', radius: 120 },
+    { key: 'quick',   label: 'Quick',    sub: '30 min – 1 hr',  detail: '2–3 stops · 20 mi',   stops: '2–3',  radius: 20  },
+    { key: 'halfDay', label: 'Half Day', sub: '1–3 hours',      detail: '4–6 stops · 60 mi',   stops: '4–6',  radius: 60  },
+    { key: 'fullDay', label: 'Full Day', sub: '3–5 hours',      detail: '7–10 stops · 120 mi', stops: '7–10', radius: 120 },
   ];
 
   const formatDuration = (mins) => {
@@ -356,12 +357,9 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
         {step === 'input' && (
           <div className="max-w-lg mx-auto px-4 py-6 space-y-6 lr-fade pb-28">
 
-            {/* Starting location — combined input */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                STARTING FROM
-              </label>
+            {/* Starting location */}
+            <NeonField label="STARTING FROM"
+              icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C0C0C0" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>}>
               <AddressInput
                 value={startText}
                 onChange={(v) => { setStartText(v); setStartCoords(null); setLocationMode('address'); }}
@@ -375,81 +373,60 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               {gpsError && (
                 <p className="text-atomic-orange font-special-elite text-xs mt-1.5 px-1">{gpsError}</p>
               )}
-            </div>
+            </NeonField>
 
-            {/* Neon divider */}
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(255,78,0,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
-
-            {/* Time available */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                TIME AVAILABLE
-              </label>
-              <div className="space-y-2">
-                {DURATION_OPTIONS.map(opt => (
-                  <label key={opt.key}
-                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                      duration === opt.key
-                        ? 'border-starlight-turquoise bg-starlight-turquoise/10'
-                        : 'border-starlight-turquoise/20 hover:border-starlight-turquoise/50'
-                    }`}
-                  >
-                    <input type="radio" name="duration" value={opt.key}
-                      checked={duration === opt.key}
-                      onChange={() => setDuration(opt.key)}
-                      className="accent-starlight-turquoise"
-                    />
-                    <div className="flex-1">
-                      <span className="text-paper-white font-bungee text-sm">{opt.label}</span>
-                      <span className="text-chrome-silver/60 font-special-elite text-xs ml-2">{opt.sub}</span>
-                    </div>
-                    <span className="text-chrome-silver/40 font-special-elite text-xs">
-                      {opt.stops} stops · {opt.radius} mi
-                    </span>
-                  </label>
-                ))}
+            {/* Sundial time picker — the hero control */}
+            <NeonField label="TIME AVAILABLE"
+              icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C0C0C0" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>}>
+              <div style={{ position: 'relative', background: 'rgba(0,0,0,0.25)',
+                border: '1px solid rgba(64,224,208,0.18)', borderRadius: 16,
+                padding: '18px 8px 14px', overflow: 'hidden' }}>
+                <Boomerang size={48} color="#40E0D0" rotate={20}
+                  style={{ position: 'absolute', top: -10, right: -8, opacity: 0.18, pointerEvents: 'none' }}/>
+                <Boomerang size={36} color="#FF4E00" rotate={200}
+                  style={{ position: 'absolute', bottom: -6, left: -6, opacity: 0.18, pointerEvents: 'none' }}/>
+                <SundialPicker
+                  value={duration}
+                  options={DURATION_OPTIONS}
+                  onChange={setDuration}
+                  accent="#FF4E00"
+                />
               </div>
-            </div>
-
-            {/* Neon divider */}
-            <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(64,224,208,0.35), rgba(255,78,0,0.15), transparent)', boxShadow: '0 0 4px rgba(64,224,208,0.15)' }} />
+            </NeonField>
 
             {/* Waypoints */}
-            <div>
-              <label className="text-chrome-silver font-bungee text-xs tracking-widest flex items-center gap-1.5 mb-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} style={{ flexShrink: 0 }}><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                WAYPOINTS
-              </label>
+            <NeonField label="WAYPOINTS"
+              icon={<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C0C0C0" strokeWidth="2.5"><circle cx="6" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 19h6a3 3 0 003-3V8"/></svg>}>
               <button
                 type="button"
                 onClick={() => setShowWaypoints(true)}
-                className="w-full flex items-center gap-3 px-4 py-4 rounded-xl border border-starlight-turquoise/30 bg-starlight-turquoise/5 hover:border-starlight-turquoise/60 active:bg-starlight-turquoise/10 transition-all text-left"
-                style={{ minHeight: 60 }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                  background: 'rgba(64,224,208,0.05)', border: '1.5px solid rgba(64,224,208,0.33)',
+                  borderRadius: 12, padding: '14px 16px', cursor: 'pointer', textAlign: 'left',
+                  minHeight: 60 }}
               >
-                <div className="flex-1 min-w-0">
-                  <p className="text-paper-white font-special-elite text-sm truncate">
-                    {(() => {
-                      const count = categories.size;
-                      if (count === 0) return 'No stops selected';
-                      if (count === ALL_CATEGORIES.size) return 'All stop types';
-                      const selected = CATEGORY_OPTIONS.filter(c => categories.has(c.key));
-                      const names = selected.map(c => c.label);
-                      if (names.length <= 2) return names.join(', ');
-                      return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
-                    })()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="bg-starlight-turquoise text-midnight-navy font-bungee text-xs px-2.5 py-0.5 rounded-full">
-                    {categories.size}
-                  </span>
-                  <svg className="w-4 h-4 text-starlight-turquoise/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
+                <AtomicOrbit size={30} color="#40E0D0"/>
+                <span style={{ flex: 1, fontFamily: '"Special Elite", Georgia, serif',
+                  fontSize: 13, color: '#FFF8E7', minWidth: 0, overflow: 'hidden',
+                  textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {(() => {
+                    const count = categories.size;
+                    if (count === 0) return 'No stops selected';
+                    if (count === ALL_CATEGORIES.size) return 'All stop types';
+                    const selected = CATEGORY_OPTIONS.filter(c => categories.has(c.key));
+                    const names = selected.map(c => c.label);
+                    if (names.length <= 2) return names.join(', ');
+                    return `${names.slice(0, 2).join(', ')} +${names.length - 2} more`;
+                  })()}
+                </span>
+                <span style={{ background: '#40E0D0', color: '#1A1B2E',
+                  fontFamily: '"Bungee", system-ui, sans-serif', fontSize: 11,
+                  padding: '2px 9px', borderRadius: 99, flexShrink: 0 }}>
+                  {categories.size}
+                </span>
+                <span style={{ color: 'rgba(64,224,208,0.6)', fontSize: 16, flexShrink: 0 }}>›</span>
               </button>
-            </div>
+            </NeonField>
 
           </div>
         )}
@@ -494,6 +471,18 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
               </div>
             )}
 
+            {/* Sun-arc day panel */}
+            <div style={{ margin: '8px 16px 0', background: 'rgba(0,0,0,0.25)',
+              border: '1px solid rgba(64,224,208,0.18)', borderRadius: 16,
+              padding: '8px 8px 4px', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 8, left: 14,
+                fontFamily: '"Bungee", system-ui, sans-serif',
+                fontSize: 9, letterSpacing: '0.12em', color: '#F5A623' }}>
+                YOUR DAY, SUN-UP TO SUN-DOWN
+              </div>
+              <SunArc/>
+            </div>
+
             {/* Hint: tap to include/exclude stops */}
             <div className="px-4 pt-3 pb-1">
               <p className="text-chrome-silver/50 font-special-elite text-xs">
@@ -537,11 +526,13 @@ const DayTripPlanner = ({ onBack, onLoadTrip, onShowLogin }) => {
                       {checked && <span className="text-midnight-navy text-[10px] font-bold">✓</span>}
                     </div>
 
-                    {/* Stop number badge */}
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bungee text-midnight-navy text-xs flex-shrink-0 ${
-                      checked ? 'bg-atomic-orange' : 'bg-chrome-silver/30'
-                    }`}>
-                      {i + 1}
+                    {/* Stop number badge — googie starburst chip */}
+                    <div style={{ position: 'relative', width: 28, height: 28, flexShrink: 0 }}>
+                      <GoogieStarburst size={28} color={checked ? '#FF4E00' : '#7E89A8'} points={10} inner={0.5}
+                        style={{ position: 'absolute', inset: 0 }}/>
+                      <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+                        justifyContent: 'center', fontFamily: '"Bungee", system-ui, sans-serif',
+                        fontSize: 10, color: '#1A1B2E' }}>{i + 1}</span>
                     </div>
 
                     {/* Stop details */}
