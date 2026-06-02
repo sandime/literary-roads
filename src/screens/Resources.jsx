@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { SparkleIcon, LibraryIcon } from '../components/Icons';
 import { fetchPublishedGuides } from '../utils/bookstoreGuides';
+import { subscribeToActiveSalon } from '../utils/salon';
 import { getRandomFortune } from '../data/literaryFortunes.js';
 
 const MAX_FAVORITES = 5;
@@ -648,6 +649,7 @@ export default function Resources({ onBack }) {
   const [toast,     setToast]     = useState(null); // string | null
   const [saving,    setSaving]    = useState(false);
   const [guides,    setGuides]    = useState([]);
+  const [activeSalon, setActiveSalon] = useState(null);
 
   const carouselRef = useRef(null);
   const [carouselHovered, setCarouselHovered] = useState(false);
@@ -661,6 +663,9 @@ export default function Resources({ onBack }) {
       .then(setGuides)
       .catch(err => console.error('[Resources] Failed to load guides:', err));
   }, []);
+
+  // Active salon period for newsstand card
+  useEffect(() => subscribeToActiveSalon(setActiveSalon), []);
 
   // Re-check carousel overflow and reset slider when guides load
   useEffect(() => {
@@ -906,6 +911,31 @@ export default function Resources({ onBack }) {
                 </div>
               </a>
 
+              {/* The Salon card — shown when a period is active */}
+              {activeSalon && (
+                <a href="#/salon"
+                  onClick={e => { e.preventDefault(); navigate('/salon'); }}
+                  style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px',
+                    overflow:'hidden', position:'relative', display:'block', textDecoration:'none',
+                    scrollSnapAlign:'start',
+                    border:'2px solid #C9A84C',
+                    boxShadow:'0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(201,168,76,0.14)',
+                    background:'#2A1A1F', cursor:'pointer' }}
+                >
+                  {activeSalon.coverURL
+                    ? <img src={activeSalon.coverURL} alt={activeSalon.bookTitle}
+                        style={{width:'100%',height:'60%',objectFit:'cover',display:'block'}}/>
+                    : <div style={{width:'100%',height:'60%',background:'linear-gradient(150deg,#3B5A47,#20120f)'}}/>
+                  }
+                  <div style={{padding:'8px 10px 10px'}}>
+                    <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.10em',color:'#C9A84C',marginBottom:4}}>THE SALON</div>
+                    <div style={{fontFamily:'Georgia,serif',fontWeight:700,fontSize:'11px',color:'#FFF8E7',lineHeight:1.2,marginBottom:2,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{activeSalon.bookTitle}</div>
+                    <div style={{fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:'10px',color:'#E5D9C2',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{activeSalon.bookAuthor}</div>
+                    <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#FF4E00',marginTop:6}}>JOIN NOW →</div>
+                  </div>
+                </a>
+              )}
+
               {publishedGuides.map(guide => (
                 <a key={guide.id} href={`#/guide/${guide.id}`}
                   style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px', overflow:'hidden', position:'relative', display:'block', textDecoration:'none', scrollSnapAlign:'start', border:'1px solid rgba(64,224,208,0.2)', boxShadow:'0 4px 16px rgba(0,0,0,0.35)', transition:'border-color .15s' }}
@@ -966,6 +996,30 @@ export default function Resources({ onBack }) {
                     <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#FF4E00'}}>READ NOW →</div>
                   </div>
                 </a>
+
+                {/* The Salon card (desktop) */}
+                {activeSalon && (
+                  <a href="#/salon"
+                    onClick={e => { e.preventDefault(); navigate('/salon'); }}
+                    style={{ flexShrink:0, width:'160px', height:'224px', borderRadius:'12px',
+                      overflow:'hidden', position:'relative', display:'block', textDecoration:'none',
+                      border:'2px solid #C9A84C',
+                      boxShadow:'0 4px 16px rgba(0,0,0,0.35), 0 0 24px rgba(201,168,76,0.14)',
+                      background:'#2A1A1F', cursor:'pointer' }}
+                  >
+                    {activeSalon.coverURL
+                      ? <img src={activeSalon.coverURL} alt={activeSalon.bookTitle}
+                          style={{width:'100%',height:'60%',objectFit:'cover',display:'block'}}/>
+                      : <div style={{width:'100%',height:'60%',background:'linear-gradient(150deg,#3B5A47,#20120f)'}}/>
+                    }
+                    <div style={{padding:'8px 10px 10px'}}>
+                      <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.10em',color:'#C9A84C',marginBottom:4}}>THE SALON</div>
+                      <div style={{fontFamily:'Georgia,serif',fontWeight:700,fontSize:'11px',color:'#FFF8E7',lineHeight:1.2,marginBottom:2,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>{activeSalon.bookTitle}</div>
+                      <div style={{fontFamily:'Georgia,serif',fontStyle:'italic',fontSize:'10px',color:'#E5D9C2',overflow:'hidden',whiteSpace:'nowrap',textOverflow:'ellipsis'}}>{activeSalon.bookAuthor}</div>
+                      <div style={{fontFamily:'Bungee, sans-serif',fontSize:'8px',letterSpacing:'0.06em',color:'#FF4E00',marginTop:6}}>JOIN NOW →</div>
+                    </div>
+                  </a>
+                )}
 
                 {publishedGuides.map(guide => (
                   <a key={guide.id} href={`#/guide/${guide.id}`}

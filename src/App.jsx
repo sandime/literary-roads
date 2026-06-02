@@ -32,6 +32,7 @@ import AuthorPage from './screens/AuthorPage';
 import JourneysPage from './screens/JourneysPage';
 import SwapMeetScreen from './screens/SwapMeetScreen';
 import LibraryFinderScreen from './screens/LibraryFinderScreen';
+import SalonScreen from './screens/SalonScreen';
 import './App.css';
 
 // window flags: survive HMR module re-evaluation (unlike module-level lets) but reset on
@@ -379,6 +380,7 @@ function App() {
         <Route path="/guide/:guideId" element={<GuideScreen />} />
         <Route path="/library-finder" element={<LibraryFinderScreen />} />
         <Route path="/author" element={<AuthorPage />} />
+        <Route path="/salon" element={<SalonScreen />} />
         {/* Main app — AppInner handles map + overlay screens */}
         <Route path="/*" element={<AppInner />} />
       </Routes>

@@ -12,6 +12,8 @@ import { BADGE_COUNT } from '../utils/badgeDefinitions';
 import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { deleteAccount } from '../utils/deleteAccount';
 import { BackArrowIcon } from '../components/Icons';
+import SalonProfileCard from '../components/salon/SalonProfileCard';
+import { subscribeToActiveSalon } from '../utils/salon';
 import {
   QUEST_PRESETS,
   computeQuestStats,
@@ -548,6 +550,8 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
   const [soundEnabled, setSoundEnabled]       = useState(true);
   const [swapMeetReminder, setSwapMeetReminder] = useState(true);
   const [currentSwapMeet, setCurrentSwapMeet]   = useState(undefined);
+  const [activeSalon, setActiveSalon]           = useState(undefined);
+  const [salonEnrolled, setSalonEnrolled]       = useState(false);
   const [favoriteBooks, setFavoriteBooks] = useState([]);
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
@@ -765,6 +769,18 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
 
   // Current swap meet for the profile card
   useEffect(() => subscribeToCurrentMeet(setCurrentSwapMeet), []);
+
+  // Active salon period
+  useEffect(() => subscribeToActiveSalon(setActiveSalon), []);
+
+  // Salon enrollment check
+  useEffect(() => {
+    if (!user || !activeSalon?.id) return;
+    const ref = doc(db, 'users', user.uid);
+    return onSnapshot(ref, snap => {
+      setSalonEnrolled(!!(snap.data()?.salonEnrollments?.[activeSalon.id]));
+    }, () => setSalonEnrolled(false));
+  }, [user, activeSalon?.id]);
 
   const displayName = user?.displayName || 'Literary Traveler';
   const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -1121,6 +1137,13 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
           </div>
         );
       })()}
+
+      {/* ── The Salon card ── */}
+      {activeSalon && (
+        <div className="w-full max-w-lg">
+          <SalonProfileCard period={activeSalon} user={user} enrolled={salonEnrolled}/>
+        </div>
+      )}
 
       {/* ── Favorite Books ── (above stops so it's always visible on mobile) */}
       <div className="w-full max-w-lg rounded-xl p-5 mb-5" style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>

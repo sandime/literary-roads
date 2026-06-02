@@ -16,6 +16,7 @@ import { generateNewsletterHTML, generateSubstackText } from '../utils/newslette
 import CuratedRoutesTab from './CuratedRoutesTab';
 import SwapMeetAdminTab from './SwapMeetAdminTab';
 import GuidesAdminTab from './GuidesAdminTab';
+import SalonAdminTab from './SalonAdminTab';
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 // Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
@@ -1620,6 +1621,13 @@ export default function AdminPanel() {
         >
           GUIDES
         </button>
+        {/* Salon tab */}
+        <button
+          onClick={() => setActiveTab('salon')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'salon' ? '2px solid #C9A84C' : '2px solid transparent', color: activeTab === 'salon' ? '#C9A84C' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+        >
+          THE SALON
+        </button>
         {/* RSS tab — always last */}
         <button
           onClick={() => setActiveTab('rss')}
@@ -1645,6 +1653,9 @@ export default function AdminPanel() {
         )}
         {activeTab === 'guides' && (
           <GuidesAdminTab showToast={showToast} />
+        )}
+        {activeTab === 'salon' && (
+          <SalonAdminTab showToast={showToast} />
         )}
         {activeTab === 'rss' && (
           <RSSTab showToast={showToast} />
