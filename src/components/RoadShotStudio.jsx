@@ -1,99 +1,27 @@
 import { useState, useRef, useEffect } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import {
+  SquareFrame1, SquareFrame2, SquareFrame3,
+  LandscapeFrame1, LandscapeFrame2, LandscapeFrame3,
+  VerticalFrame1, VerticalFrame2, VerticalFrame3,
+} from './RoadShotFrames';
 
 // ── Frame / orientation config ────────────────────────────────────────────────
-// locationText: draws dynamic city/state over the baked-in placeholder text.
-//   coverRect: paints frame background color over the placeholder before drawing,
-//              so the old "Marfa, Texas" pixels are erased cleanly.
-//   lines[]:   multi-line mode — each entry is an independent text draw call.
-//              Use { text } for static strings, { format } for dynamic city/state.
-//   (flat props): single-line mode — same options, no lines array.
-const BASE = import.meta.env.BASE_URL;
 const FRAMES = {
   portrait: [
-    {
-      id: 'pt-starburst', label: 'Atomic Starburst',
-      src: `${BASE}images/road-shot-frames/road-shot-portrait-starburst.png`,
-      locationText: {
-        lines: [
-          { text: 'Greetings from', x: 0.04, y: 0.055, align: 'left', color: '#1A1B2E', fontScale: 0.028, fontFamily: 'Special Elite', italic: true },
-          { format: 'city-state',   x: 0.04, y: 0.115, align: 'left', color: '#1A1B2E', fontScale: 0.040, fontFamily: 'Special Elite', italic: true, maxWidth: 0.48 },
-        ],
-        coverRect: { x1: 0.01, y1: 0.02, x2: 0.54, y2: 0.16, fill: '#EAE0CA' },
-      },
-    },
-    {
-      id: 'pt-drivein', label: 'Drive-In Night',
-      src: `${BASE}images/road-shot-frames/road-shot-portrait-drivein.png`,
-      locationText: {
-        format: 'city-state', x: 0.5, y: 0.073, align: 'center',
-        color: '#F5F5DC', fontScale: 0.032, fontFamily: 'Special Elite', italic: true, maxWidth: 0.85,
-        coverRect: { x1: 0.05, y1: 0.048, x2: 0.95, y2: 0.10, fill: '#0C151F' },
-      },
-    },
-    {
-      id: 'pt-boomerang', label: 'Boomerang Block',
-      src: `${BASE}images/road-shot-frames/road-shot-portrait-boomerang.png`,
-    },
+    { id: 'v1', label: 'Story Rail',     component: VerticalFrame1 },
+    { id: 'v2', label: 'Neon Columns',   component: VerticalFrame2 },
+    { id: 'v3', label: 'Top Burst',      component: VerticalFrame3 },
   ],
   square: [
-    {
-      id: 'sq-stamp', label: 'Postage Stamp',
-      src: `${BASE}images/road-shot-frames/road-shot-square-stamp.png`,
-      locationText: {
-        format: 'city-state', x: 0.15, y: 0.82, align: 'left',
-        color: '#1A1B2E', fontScale: 0.052, fontFamily: 'Special Elite', maxWidth: 0.54,
-        coverRect: { x1: 0.10, y1: 0.74, x2: 0.68, y2: 0.93, fill: '#EAE0CA' },
-      },
-    },
-    {
-      id: 'sq-atomic', label: 'Atomic Tile',
-      src: `${BASE}images/road-shot-frames/road-shot-square-atomic.png`,
-      locationText: {
-        format: 'city-state', x: 0.5, y: 0.81, align: 'center',
-        color: '#1A1B2E', fontScale: 0.040, fontFamily: 'Special Elite', maxWidth: 0.50,
-        coverRect: { x1: 0.22, y1: 0.73, x2: 0.78, y2: 0.89, fill: '#EFE9D2' },
-      },
-    },
-    {
-      id: 'sq-vinyl', label: 'Vinyl B-Side',
-      src: `${BASE}images/road-shot-frames/road-shot-square-vinyl.png`,
-      locationText: {
-        format: 'city-state', x: 0.08, y: 0.79, align: 'left',
-        color: '#1A1B2E', fontScale: 0.068, fontFamily: 'Special Elite', maxWidth: 0.62,
-        coverRect: { x1: 0.04, y1: 0.72, x2: 0.73, y2: 0.88, fill: '#F0EAD4' },
-      },
-    },
+    { id: 'sq1', label: 'Atomic Corner',   component: SquareFrame1 },
+    { id: 'sq2', label: 'Full Tube Box',   component: SquareFrame2 },
+    { id: 'sq3', label: 'Starburst Badge', component: SquareFrame3 },
   ],
   landscape: [
-    {
-      id: 'ls-greetings', label: 'Greetings From',
-      src: `${BASE}images/road-shot-frames/road-shot-landscape-greetings.png`,
-      locationText: {
-        lines: [
-          { text: 'Greetings from', x: 0.04, y: 0.18, align: 'left', color: '#1A1B2E', fontScale: 0.030, fontFamily: 'Special Elite', italic: true },
-          { format: 'city-state',   x: 0.03, y: 0.54, align: 'left', color: '#1A1B2E', fontScale: 0.088, fontFamily: 'Bungee', maxWidth: 0.44 },
-        ],
-        coverRect: { x1: 0.01, y1: 0.08, x2: 0.52, y2: 0.88, fill: '#EAE0CA' },
-      },
-    },
-    {
-      id: 'ls-cinemascope', label: 'Cinemascope',
-      src: `${BASE}images/road-shot-frames/road-shot-landscape-cinemascope.png`,
-      locationText: {
-        format: 'city-state', x: 0.97, y: 0.905, align: 'right',
-        color: '#FF4E00', fontScale: 0.028, fontFamily: 'Bungee', uppercase: true, maxWidth: 0.50,
-        coverRect: { x1: 0.44, y1: 0.878, x2: 0.99, y2: 0.952, fill: '#0C0D1C' },
-      },
-    },
-    {
-      id: 'ls-marquee', label: 'Motel Marquee',
-      src: `${BASE}images/road-shot-frames/road-shot-landscape-marquee.png`,
-      locationText: {
-        format: 'city', x: 0.13, y: 0.72, align: 'center',
-        color: '#1A1B2E', fontScale: 0.036, fontFamily: 'Bungee', maxWidth: 0.18,
-        coverRect: { x1: 0.03, y1: 0.61, x2: 0.24, y2: 0.84, fill: '#3CC8BC' },
-      },
-    },
+    { id: 'ls1', label: 'Drive-In Marquee', component: LandscapeFrame1 },
+    { id: 'ls2', label: 'Corner Cabling',   component: LandscapeFrame2 },
+    { id: 'ls3', label: 'Twin Star',        component: LandscapeFrame3 },
   ],
 };
 
@@ -110,7 +38,7 @@ const ORIENTATIONS = [
 ];
 
 const shareCaption = (name) =>
-  `📚 Stopped at ${name} on my literary road trip! 🚗 Plan yours at theliteraryroads.com #LiteraryRoads #BookTok #Bookstagram`;
+  `Stopped at ${name} on my literary road trip. Plan yours at theliteraryroads.com #LiteraryRoads #BookTok #Bookstagram`;
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const isMobileDevice = () =>
@@ -145,7 +73,7 @@ const drawPhotoAdjusted = (ctx, photo, w, h, { scale, x, y, rotate, cW, cH }) =>
 };
 
 // Inline button style helpers
-const btnPrimary   = { background: 'linear-gradient(135deg,#FF4E00,#FF6B2B)', color: '#1A1B2E', border: 'none', cursor: 'pointer', boxShadow: '0 0 16px rgba(255,78,0,0.45)' };
+const btnPrimary     = { background: 'linear-gradient(135deg,#FF4E00,#FF6B2B)', color: '#1A1B2E', border: 'none', cursor: 'pointer', boxShadow: '0 0 16px rgba(255,78,0,0.45)' };
 const btnOutlineTurq = { background: 'transparent', border: '2px solid #40E0D0', color: '#40E0D0', cursor: 'pointer' };
 const btnOutlineGray = { background: 'transparent', border: '1.5px solid rgba(192,192,192,0.3)', color: 'rgba(192,192,192,0.6)', cursor: 'pointer' };
 
@@ -154,7 +82,7 @@ export default function RoadShotStudio({ location }) {
   // phases: 'pick' | 'capture' | 'webcam' | 'adjust' | 'processing' | 'preview'
   const [phase, setPhase] = useState('pick');
   const [orientation, setOrientation] = useState('portrait');
-  const [frameId, setFrameId] = useState('pt-starburst');
+  const [frameId, setFrameId] = useState('v1');
   const [photoUrl, setPhotoUrl] = useState(null);
   const [compositeUrl, setCompositeUrl] = useState(null);
   const [sharing, setSharing] = useState(false);
@@ -298,6 +226,7 @@ export default function RoadShotStudio({ location }) {
   const buildComposite = async (src, orient, frame, adjusts) => {
     setPhase('processing');
     setErr('');
+    let svgUrl = null;
     try {
       await document.fonts.ready;
       const { w, h } = OUTPUT_DIMS[orient];
@@ -311,88 +240,36 @@ export default function RoadShotStudio({ location }) {
       const photo = await loadImage(src);
       drawPhotoAdjusted(ctx, photo, w, h, adjusts);
 
-      // 2. Frame overlay
+      // 2. SVG frame overlay — serialize React component → Blob URL → canvas
       try {
-        const frameImg = await loadImage(frame.src);
+        const Comp = frame.component;
+        const locationName = location?.name || 'Literary Stop';
+        let markup = renderToStaticMarkup(
+          <Comp locationName={locationName} appTag="Literary Roads"/>
+        );
+        // renderToStaticMarkup omits xmlns (HTML context); standalone SVG blob needs it
+        markup = markup.replace(/(<svg\b)(?![^>]*\bxmlns=)/, '$1 xmlns="http://www.w3.org/2000/svg"');
+        // Replace % dimensions with absolute pixels so canvas renders at full resolution
+        markup = markup
+          .replace(/(<svg\b[^>]*)\bwidth="100%"/, `$1width="${w}"`)
+          .replace(/(<svg\b[^>]*)\bheight="100%"/, `$1height="${h}"`);
+        const blob = new Blob([markup], { type: 'image/svg+xml;charset=utf-8' });
+        svgUrl = URL.createObjectURL(blob);
+        const frameImg = await loadImage(svgUrl);
         ctx.drawImage(frameImg, 0, 0, w, h);
-      } catch { /* missing frame — continue */ }
-
-      // 2b. Frame-specific dynamic location text
-      if (frame.locationText) {
-        const lt = frame.locationText;
-
-        // Erase the baked-in placeholder text from the PNG
-        if (lt.coverRect) {
-          const { x1, y1, x2, y2, fill } = lt.coverRect;
-          ctx.fillStyle = fill;
-          ctx.fillRect(Math.round(w * x1), Math.round(h * y1),
-                       Math.round(w * (x2 - x1)), Math.round(h * (y2 - y1)));
-        }
-
-        const getLocStr = (fmt) => fmt === 'city'
-          ? (location.city || location.state || '')
-          : [location.city, location.state].filter(Boolean).join(', ');
-
-        const drawLine = (cfg) => {
-          const raw = cfg.format ? getLocStr(cfg.format) : (cfg.text || '');
-          if (!raw) return;
-          const fSize = Math.round(base * (cfg.fontScale || 0.035));
-          ctx.font = `${cfg.italic ? 'italic ' : ''}${fSize}px "${cfg.fontFamily || 'Bungee'}", sans-serif`;
-          ctx.fillStyle = cfg.color || '#F5F5DC';
-          ctx.textAlign = cfg.align || 'center';
-          ctx.textBaseline = 'middle';
-          if (cfg.shadowColor) { ctx.shadowColor = cfg.shadowColor; ctx.shadowBlur = Math.round(base * 0.018); }
-          const textX = Math.round(w * (cfg.x ?? 0.5));
-          const textY = Math.round(h * (cfg.y ?? 0.5));
-          const maxW  = Math.round(w * (cfg.maxWidth || 0.78));
-          const out0  = (cfg.prefix || '') + (cfg.uppercase ? raw.toUpperCase() : raw);
-          let out = out0;
-          while (ctx.measureText(out).width > maxW && out.length > 4) out = out.slice(0, -1);
-          if (out.length < out0.length) out += '…';
-          ctx.fillText(out, textX, textY);
-          ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
-        };
-
-        if (lt.lines) {
-          lt.lines.forEach(drawLine);
-        } else {
-          drawLine(lt);
-        }
+      } catch (fe) {
+        console.warn('[RoadShotStudio] frame render skipped:', fe);
+      } finally {
+        if (svgUrl) { URL.revokeObjectURL(svgUrl); svgUrl = null; }
       }
 
-      // 3. Text bar at bottom
-      const barH   = Math.round(base * 0.088);
-      const barY   = h - barH;
-      ctx.fillStyle = 'rgba(13,14,26,0.84)';
-      ctx.fillRect(0, barY, w, barH);
-
-      const accentH = Math.round(base * 0.006);
-      const grad = ctx.createLinearGradient(0, 0, w, 0);
-      grad.addColorStop(0, '#FF4E00'); grad.addColorStop(0.5, '#40E0D0'); grad.addColorStop(1, '#FF4E00');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, barY - accentH, w, accentH);
-
-      const locationLine =
-        [location.city, location.state].filter(Boolean).join(', ') ||
-        (location.address ? location.address.split(',').slice(-2).join(',').trim() : '');
-      let text = (location.name || 'Literary Stop') + (locationLine ? ' • ' + locationLine : '');
-      const fontSize = Math.round(base * 0.024);
-      ctx.font = `${fontSize}px Bungee, sans-serif`;
-      ctx.fillStyle = '#40E0D0';
-      ctx.shadowColor = 'rgba(64,224,208,0.85)'; ctx.shadowBlur = 16;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const fullText = text;
-      while (ctx.measureText(text).width > w * 0.88 && text.length > 6) text = text.slice(0, -1);
-      if (text.length < fullText.length) text += '…';
-      ctx.fillText(text, w / 2, barY + barH / 2);
-      ctx.shadowBlur = 0;
-
-      // 4. Watermark
-      const wSize = Math.round(base * 0.022);
+      // 3. Subtle corner watermark
+      const wSize = Math.round(base * 0.020);
       ctx.font = `${wSize}px Bungee, sans-serif`;
-      ctx.fillStyle = 'rgba(64,224,208,0.45)';
-      ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-      ctx.fillText('theliteraryroads.com', w - Math.round(base * 0.015), barY - accentH - Math.round(base * 0.012));
+      ctx.fillStyle = 'rgba(64,224,208,0.35)';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('theliteraryroads.com', w - Math.round(base * 0.018), h - Math.round(base * 0.018));
 
       canvas.toBlob(blob => {
         setCompositeUrl(URL.createObjectURL(blob));
@@ -426,7 +303,7 @@ export default function RoadShotStudio({ location }) {
     try {
       const blob = await fetch(compositeUrl).then(r => r.blob());
       const file = new File([blob], 'literary-roads-road-shot.png', { type: 'image/png' });
-      const text = shareCaption(location.name || 'this amazing spot');
+      const text = shareCaption(location?.name || 'this amazing spot');
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: 'My Literary Road Shot', text });
         setShareSuccess(true);
@@ -460,6 +337,7 @@ export default function RoadShotStudio({ location }) {
   };
 
   const mobile = isMobileDevice();
+  const locationName = location?.name || 'Literary Stop';
 
   // ── PICK phase ────────────────────────────────────────────────────────────
   if (phase === 'pick') {
@@ -506,6 +384,7 @@ export default function RoadShotStudio({ location }) {
             const sel = frameId === f.id;
             const thumbW = 72;
             const thumbH = Math.round(thumbW * outH / outW);
+            const Comp = f.component;
             return (
               <button key={f.id} onClick={() => setFrameId(f.id)} style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '8px',
@@ -514,8 +393,14 @@ export default function RoadShotStudio({ location }) {
                 borderRadius: '10px', cursor: 'pointer', transition: 'all 0.15s',
                 boxShadow: sel ? '0 0 10px rgba(64,224,208,0.25)' : 'none',
               }}>
-                <div style={{ width: `${thumbW}px`, height: `${thumbH}px`, borderRadius: '5px', overflow: 'hidden', flexShrink: 0, border: `1.5px solid ${sel ? '#40E0D0' : 'rgba(192,192,192,0.2)'}`, background: '#1A1B2E' }}>
-                  <img src={f.src} alt={f.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{
+                  position: 'relative', width: `${thumbW}px`, height: `${thumbH}px`,
+                  borderRadius: '5px', overflow: 'hidden', flexShrink: 0,
+                  border: `1.5px solid ${sel ? '#40E0D0' : 'rgba(192,192,192,0.2)'}`,
+                  background: '#0D0E1A',
+                }}>
+                  <Comp locationName={locationName} appTag="Literary Roads"
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}/>
                 </div>
                 <p className="font-bungee" style={{ fontSize: '9px', color: sel ? '#40E0D0' : 'rgba(192,192,192,0.55)', letterSpacing: '0.05em' }}>{f.label}</p>
               </button>
@@ -623,6 +508,7 @@ export default function RoadShotStudio({ location }) {
   // ── ADJUST phase ──────────────────────────────────────────────────────────
   if (phase === 'adjust') {
     const pct = Math.round(adjScale * 100);
+    const FrameComp = currentFrame.component;
     return (
       <div style={{ padding: '8px 0' }}>
         {fileInputs}
@@ -638,7 +524,7 @@ export default function RoadShotStudio({ location }) {
             borderRadius: '12px', overflow: 'hidden',
             border: '2px solid rgba(64,224,208,0.4)',
             marginBottom: '12px', cursor: 'grab', touchAction: 'none',
-            userSelect: 'none',
+            userSelect: 'none', background: '#0D0E1A',
           }}
           onMouseDown={onAdjMouseDown}
           onMouseMove={onAdjMouseMove}
@@ -662,12 +548,11 @@ export default function RoadShotStudio({ location }) {
               }}
             />
           )}
-          {/* Frame overlay */}
-          <img
-            src={currentFrame.src}
-            alt=""
-            draggable={false}
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+          {/* SVG frame overlay */}
+          <FrameComp
+            locationName={locationName}
+            appTag="Literary Roads"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
           />
         </div>
 
@@ -815,7 +700,7 @@ export default function RoadShotStudio({ location }) {
 
           <div style={{ marginTop: '8px', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px' }}>
             <p className="font-special-elite text-chrome-silver/50" style={{ fontSize: '10px', lineHeight: 1.5 }}>
-              {shareCaption(location.name || 'this stop')}
+              {shareCaption(location?.name || 'this stop')}
             </p>
           </div>
         </>
