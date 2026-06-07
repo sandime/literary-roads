@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "THE BALLAD OF FALLING DRAGONS",
-      "author": "Sarah A. Parker",
-      "weeksOnList": 1,
-      "isbn13": "9780063415898",
-      "description": "The second book in the Moonfall series. As a calamitous moonfall approaches, Raeve must make life-or-death decisions.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063415898.jpg"
-    },
-    {
-      "rank": 2,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 7,
+      "weeksOnList": 8,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
-      "rank": 3,
-      "title": "IRONWOOD",
-      "author": "Michael Connelly",
+      "rank": 2,
+      "title": "PHOEBE BERMAN'S GONNA LOSE IT",
+      "author": "Brooke Averick",
       "weeksOnList": 1,
-      "isbn13": "9780316595384",
-      "description": "The second book in the Catalina series. A deadly drug drop and a missing person case fuel Stillwell’s sense of duty.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316595384.jpg"
+      "isbn13": "9798217088263",
+      "description": "As her 30th birthday approaches, Phoebe Berman goes from no dating life to juggling several prospects.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217088263.jpg"
+    },
+    {
+      "rank": 3,
+      "title": "THE FINAL TARGET",
+      "author": "Nora Roberts",
+      "weeksOnList": 1,
+      "isbn13": "9781250413581",
+      "description": "A fan fixates on the introverted author Arden Bowie, who tries to set up a new life for herself in a small town in Oregon.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250413581.jpg"
     },
     {
       "rank": 4,
-      "title": "A PARADE OF HORRIBLES",
-      "author": "Matt Dinniman",
-      "weeksOnList": 2,
-      "isbn13": "9798217190065",
-      "description": "The eighth book in the “Dungeon Crawler Carl” series. A sense of normalcy might be a set-up that spells danger for Carl and Donut.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217190065.jpg"
+      "title": "THE MIDNIGHT TRAIN",
+      "author": "Matt Haig",
+      "weeksOnList": 1,
+      "isbn13": "9780593833377",
+      "description": "The second book in the Midnight World series. Wilbur wants to go back in time to see how he might have lived differently.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593833377.jpg"
     },
     {
       "rank": 5,
-      "title": "OUR PERFECT STORM",
-      "author": "Carley Fortune",
-      "weeksOnList": 3,
-      "isbn13": "9780593953242",
-      "description": "After her fiancé leaves her, Frankie goes on her planned honeymoon trip with her best friend from childhood, George.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593953242.jpg"
+      "title": "THE BALLAD OF FALLING DRAGONS",
+      "author": "Sarah A. Parker",
+      "weeksOnList": 2,
+      "isbn13": "9780063415898",
+      "description": "The second book in the Moonfall series. As a calamitous moonfall approaches, Raeve must make life-or-death decisions.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063415898.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "LIAR'S KINGDOM",
-      "author": "Andrew Weissmann",
+      "title": "THE LAND AND ITS PEOPLE",
+      "author": "David Sedaris",
       "weeksOnList": 1,
-      "isbn13": "9780316601306",
-      "description": "The author of “Where Law Ends” argues that a flaw in America’s legal system allows for deceit in our politics.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316601306.jpg"
+      "isbn13": "9780316264839",
+      "description": "Essays on the passage of time, complicated relationships and some unexpected delights life has to offer.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316264839.jpg"
     },
     {
       "rank": 2,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 18,
+      "weeksOnList": 19,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 3,
-      "title": "ALL AMERICAN PATRIOTISM",
-      "author": "Rachel Campos-Duffy",
+      "title": "THE HERO NEXT DOOR",
+      "author": "Martha Raddatz",
       "weeksOnList": 1,
-      "isbn13": "9780063515277",
-      "description": "The co-host of “Fox & Friends Weekend” brings together songs, stories and photographs to celebrate America.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063515277.jpg"
+      "isbn13": "9781668093801",
+      "description": "The Emmy Award–winning ABC News anchor profiles members of our military who served in the wake of 9/11.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668093801.jpg"
     },
     {
       "rank": 4,
-      "title": "SUICIDAL EMPATHY",
-      "author": "Gad Saad",
-      "weeksOnList": 2,
-      "isbn13": "9780063446533",
-      "description": "The host of the podcast “The Saad Truth” argues that what he considers misguided compassion is having a negative impact on society.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063446533.jpg"
+      "title": "CRISIS OF THE COMMON GOOD",
+      "author": "Chris Murphy",
+      "weeksOnList": 1,
+      "isbn13": "9780374621117",
+      "description": "The Democratic senator from Connecticut re-examines one of our country’s organizing principles.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780374621117.jpg"
     },
     {
       "rank": 5,
-      "title": "THIS IS ME",
-      "author": "Hayden Panettiere",
+      "title": "ALL WE SAY",
+      "author": "Ben Rhodes",
       "weeksOnList": 1,
-      "isbn13": "9781538773420",
-      "description": "The Golden Globe-nominated actress describes how she contended with fame and handled difficulties in her life.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773420.jpg"
+      "isbn13": "9780593595121",
+      "description": "The former speechwriter for President Obama explicates what it means to be American through this collection of 15 speeches.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593595121.jpg"
     }
   ],
-  "issueDate": "Sunday, May 31, 2026",
-  "issueNumber": 74,
-  "updatedAt": "2026-05-31T11:26:56.667Z"
+  "issueDate": "Sunday, June 7, 2026",
+  "issueNumber": 75,
+  "updatedAt": "2026-06-07T11:42:26.252Z"
 }
