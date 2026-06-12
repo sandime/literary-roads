@@ -1,5 +1,4 @@
 // src/screens/SalonAdminTab.jsx
-// Admin tab for managing The Salon bimonthly reading periods.
 import { useState, useEffect } from 'react';
 import {
   collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot,
@@ -13,6 +12,8 @@ const C = {
   border:  'rgba(201,168,76,0.2)',
   gold:    '#C9A84C',
   orange:  '#FF4E00',
+  pink:    '#f66483',
+  teal:    '#30b8b2',
   white:   '#F5F5DC',
   silver:  '#C0C0C0',
   muted:   'rgba(192,192,192,0.45)',
@@ -29,104 +30,169 @@ const lbl = {
 };
 
 const EMPTY_FORM = {
-  bookTitle: '', bookAuthor: '', coverURL: '',
-  startDate: '', endDate: '', nextBookAnnounceDate: '',
-  status: 'open', gazetteReviewURL: '', published: false,
+  bookTitle: '', bookAuthor: '',
+  coverImage: '', openLibraryCoverId: '',
+  editorialNote: '',
+  startDate: '', endDate: '', nextBookDate: '',
+  status: 'upcoming',
+  gazetteIssueId: '',
+  pullQuote: '', pullQuoteVisible: false,
 };
 
 function SalonForm({ period, onSave, onClose, saving }) {
   const isEdit = !!period?.id;
+
   const toInputDate = (ts) => {
     if (!ts) return '';
     const d = ts?.toDate?.() ?? new Date(ts);
     return d.toISOString().slice(0, 10);
   };
+
   const [form, setForm] = useState(() => isEdit ? {
-    bookTitle:             period.bookTitle             || '',
-    bookAuthor:            period.bookAuthor            || '',
-    coverURL:              period.coverURL              || '',
-    startDate:             toInputDate(period.startDate),
-    endDate:               toInputDate(period.endDate),
-    nextBookAnnounceDate:  toInputDate(period.nextBookAnnounceDate),
-    status:                period.status               || 'open',
-    gazetteReviewURL:      period.gazetteReviewURL      || '',
-    published:             period.published             ?? false,
+    bookTitle:          period.bookTitle              || '',
+    bookAuthor:         period.bookAuthor             || '',
+    coverImage:         period.coverImage             || period.coverURL || '',
+    openLibraryCoverId: period.openLibraryCoverId     || '',
+    editorialNote:      period.editorialNote          || '',
+    startDate:          toInputDate(period.startDate),
+    endDate:            toInputDate(period.endDate),
+    nextBookDate:       toInputDate(period.nextBookDate || period.nextBookAnnounceDate),
+    status:             period.status                 || 'upcoming',
+    gazetteIssueId:     period.gazetteIssueId         || '',
+    pullQuote:          period.pullQuote              || '',
+    pullQuoteVisible:   period.pullQuoteVisible       ?? false,
   } : { ...EMPTY_FORM });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-  const toTimestamp = (s) => s ? Timestamp.fromDate(new Date(s)) : null;
+  const toTimestamp = s => s ? Timestamp.fromDate(new Date(s)) : null;
 
   const handleSave = () => {
     onSave({
-      bookTitle:            form.bookTitle.trim(),
-      bookAuthor:           form.bookAuthor.trim(),
-      coverURL:             form.coverURL.trim(),
-      startDate:            toTimestamp(form.startDate),
-      endDate:              toTimestamp(form.endDate),
-      nextBookAnnounceDate: toTimestamp(form.nextBookAnnounceDate),
-      status:               form.status,
-      gazetteReviewURL:     form.gazetteReviewURL.trim(),
-      published:            form.published,
+      bookTitle:          form.bookTitle.trim(),
+      bookAuthor:         form.bookAuthor.trim(),
+      coverImage:         form.coverImage.trim(),
+      openLibraryCoverId: form.openLibraryCoverId.trim(),
+      editorialNote:      form.editorialNote.trim(),
+      startDate:          toTimestamp(form.startDate),
+      endDate:            toTimestamp(form.endDate),
+      nextBookDate:       toTimestamp(form.nextBookDate),
+      status:             form.status,
+      gazetteIssueId:     form.gazetteIssueId.trim(),
+      pullQuote:          form.pullQuote.trim(),
+      pullQuoteVisible:   form.pullQuoteVisible,
     });
   };
+
+  const previewSrc = form.coverImage ||
+    (form.openLibraryCoverId
+      ? `https://covers.openlibrary.org/b/id/${form.openLibraryCoverId}-M.jpg`
+      : null);
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 50,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
       <div style={{ background: C.surface, borderRadius: 12, padding: 24, width: '100%',
-        maxWidth: 520, border: `1px solid ${C.border}`, maxHeight: '90vh', overflowY: 'auto' }}>
+        maxWidth: 560, border: `1px solid ${C.border}`, maxHeight: '90vh', overflowY: 'auto' }}>
+
         <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.gold,
           letterSpacing: '0.06em', marginBottom: 20 }}>
           {isEdit ? 'EDIT SALON PERIOD' : 'NEW SALON PERIOD'}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <div>
-            <label style={lbl}>BOOK TITLE</label>
-            <input style={inp} value={form.bookTitle} onChange={e => set('bookTitle', e.target.value)} placeholder="e.g. Demon Copperhead"/>
-          </div>
-          <div>
-            <label style={lbl}>AUTHOR</label>
-            <input style={inp} value={form.bookAuthor} onChange={e => set('bookAuthor', e.target.value)} placeholder="e.g. Barbara Kingsolver"/>
-          </div>
-          <div>
-            <label style={lbl}>COVER IMAGE URL</label>
-            <input style={inp} value={form.coverURL} onChange={e => set('coverURL', e.target.value)} placeholder="https://…"/>
-            {form.coverURL && (
-              <img src={form.coverURL} alt="" style={{ marginTop: 6, height: 80, borderRadius: 3, objectFit: 'cover' }}/>
-            )}
-          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
+              <label style={lbl}>BOOK TITLE</label>
+              <input style={inp} value={form.bookTitle}
+                onChange={e => set('bookTitle', e.target.value)} placeholder="e.g. Demon Copperhead"/>
+            </div>
+            <div>
+              <label style={lbl}>AUTHOR</label>
+              <input style={inp} value={form.bookAuthor}
+                onChange={e => set('bookAuthor', e.target.value)} placeholder="e.g. Barbara Kingsolver"/>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl}>COVER IMAGE URL</label>
+              <input style={inp} value={form.coverImage}
+                onChange={e => set('coverImage', e.target.value)} placeholder="https://…"/>
+            </div>
+            <div>
+              <label style={lbl}>OPEN LIBRARY COVER ID (fallback)</label>
+              <input style={inp} value={form.openLibraryCoverId}
+                onChange={e => set('openLibraryCoverId', e.target.value)} placeholder="e.g. 12345678"/>
+            </div>
+          </div>
+
+          {previewSrc && (
+            <img src={previewSrc} alt="" onError={e => { e.target.style.display = 'none'; }}
+              style={{ height: 90, borderRadius: 3, objectFit: 'cover', marginTop: -6 }}/>
+          )}
+
+          <div>
+            <label style={lbl}>EDITORIAL NOTE (300 chars)</label>
+            <textarea style={{ ...inp, resize: 'vertical' }} rows={3}
+              value={form.editorialNote} maxLength={300}
+              onChange={e => set('editorialNote', e.target.value)}
+              placeholder="2–3 sentences introducing the selection…"/>
+            <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted,
+              marginTop: 3, textAlign: 'right' }}>
+              {form.editorialNote.length}/300
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+            <div>
               <label style={lbl}>START DATE</label>
-              <input type="date" style={inp} value={form.startDate} onChange={e => set('startDate', e.target.value)}/>
+              <input type="date" style={inp} value={form.startDate}
+                onChange={e => set('startDate', e.target.value)}/>
             </div>
             <div>
               <label style={lbl}>END DATE</label>
-              <input type="date" style={inp} value={form.endDate} onChange={e => set('endDate', e.target.value)}/>
+              <input type="date" style={inp} value={form.endDate}
+                onChange={e => set('endDate', e.target.value)}/>
+            </div>
+            <div>
+              <label style={lbl}>NEXT BOOK ANNOUNCE DATE</label>
+              <input type="date" style={inp} value={form.nextBookDate}
+                onChange={e => set('nextBookDate', e.target.value)}/>
             </div>
           </div>
-          <div>
-            <label style={lbl}>NEXT BOOK ANNOUNCE DATE</label>
-            <input type="date" style={inp} value={form.nextBookAnnounceDate} onChange={e => set('nextBookAnnounceDate', e.target.value)}/>
-          </div>
+
           <div>
             <label style={lbl}>STATUS</label>
             <select style={inp} value={form.status} onChange={e => set('status', e.target.value)}>
-              <option value="open">Open — accepting cards</option>
-              <option value="review">Community Review — closed, gazette published</option>
+              <option value="upcoming">Upcoming — announced, not yet started</option>
+              <option value="active">Active — reading period open</option>
+              <option value="closed">Closed — reading period ended</option>
             </select>
           </div>
+
           <div>
-            <label style={lbl}>GAZETTE REVIEW URL (when status=review)</label>
-            <input style={inp} value={form.gazetteReviewURL} onChange={e => set('gazetteReviewURL', e.target.value)} placeholder="https://…"/>
+            <label style={lbl}>GAZETTE ISSUE ID (when closed)</label>
+            <input style={inp} value={form.gazetteIssueId}
+              onChange={e => set('gazetteIssueId', e.target.value)}
+              placeholder="e.g. spring-2026 — the slug used in /newspaper/:slug"/>
           </div>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-            fontFamily: 'Special Elite, serif', fontSize: 13, color: C.white }}>
-            <input type="checkbox" checked={form.published} onChange={e => set('published', e.target.checked)}
-              style={{ accentColor: C.gold, width: 16, height: 16 }}/>
-            Published (visible to users)
-          </label>
+
+          <div>
+            <label style={lbl}>PULL QUOTE (200 chars, optional)</label>
+            <textarea style={{ ...inp, resize: 'vertical' }} rows={2}
+              value={form.pullQuote} maxLength={200}
+              onChange={e => set('pullQuote', e.target.value)}
+              placeholder="A standout reader quote to feature…"/>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 8 }}>
+              <input type="checkbox" id="pqvis" checked={form.pullQuoteVisible}
+                onChange={e => set('pullQuoteVisible', e.target.checked)}
+                style={{ accentColor: C.gold, width: 14, height: 14 }}/>
+              <label htmlFor="pqvis" style={{ fontFamily: 'Special Elite, serif', fontSize: 12,
+                color: C.white, cursor: 'pointer' }}>
+                Show pull quote on card
+              </label>
+            </div>
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
@@ -148,11 +214,129 @@ function SalonForm({ period, onSave, onClose, saving }) {
   );
 }
 
+// ── Reviews panel for a single salon period ────────────────────────────────────
+function ReviewsPanel({ salonId }) {
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'salon', salonId, 'reviews'),
+      orderBy('submittedAt', 'desc'),
+    );
+    return onSnapshot(q, snap => {
+      setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    }, () => setLoading(false));
+  }, [salonId]);
+
+  const toggleFeatured = async (reviewId, current) => {
+    await updateDoc(doc(db, 'salon', salonId, 'reviews', reviewId), { isFeatured: !current });
+  };
+
+  const setPullQuote = async (review) => {
+    await updateDoc(doc(db, 'salon', salonId), {
+      pullQuote: review.oneSentence,
+      pullQuoteVisible: true,
+    });
+  };
+
+  const handleDelete = async (reviewId) => {
+    if (!window.confirm('Delete this review?')) return;
+    await deleteDoc(doc(db, 'salon', salonId, 'reviews', reviewId));
+  };
+
+  const fmtDate = ts => {
+    if (!ts) return '';
+    const d = ts?.toDate?.() ?? new Date(ts);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const stars = n => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+  if (loading) return (
+    <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted, padding: '12px 0' }}>
+      Loading reviews…
+    </div>
+  );
+
+  if (reviews.length === 0) return (
+    <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted,
+      padding: '12px 0', fontStyle: 'italic' }}>
+      No reviews yet.
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 10 }}>
+      {reviews.map(r => (
+        <div key={r.id} style={{ background: C.bg, border: `1px solid ${C.border}`,
+          borderRadius: 8, padding: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 6 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10,
+                  color: C.white, letterSpacing: '0.04em' }}>{r.username}</span>
+                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11,
+                  color: C.gold }}>{stars(r.rating || 0)}</span>
+                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10,
+                  color: C.muted, marginLeft: 'auto' }}>{fmtDate(r.submittedAt)}</span>
+              </div>
+              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#E5D9C2',
+                fontStyle: 'italic', lineHeight: 1.4, marginBottom: 4 }}>
+                "{r.oneSentence}"
+              </div>
+              {r.fullResponse && (
+                <div style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.silver,
+                  lineHeight: 1.4 }}>
+                  {r.fullResponse}
+                </div>
+              )}
+            </div>
+            {r.isFeatured && (
+              <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8,
+                color: C.gold, border: `1px solid rgba(201,168,76,0.4)`,
+                borderRadius: 4, padding: '2px 6px', flexShrink: 0 }}>
+                FEATURED
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => toggleFeatured(r.id, r.isFeatured)}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.05em',
+                padding: '4px 10px', borderRadius: 5, cursor: 'pointer',
+                background: r.isFeatured ? 'rgba(201,168,76,0.15)' : 'transparent',
+                color: C.gold, border: `1px solid rgba(201,168,76,0.35)` }}>
+              {r.isFeatured ? 'UNFEATURE' : 'FEATURE'}
+            </button>
+            <button onClick={() => setPullQuote(r)}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.05em',
+                padding: '4px 10px', borderRadius: 5, cursor: 'pointer',
+                background: 'transparent', color: C.silver,
+                border: '1px solid rgba(192,192,192,0.25)' }}>
+              SET AS PULL QUOTE
+            </button>
+            <button onClick={() => handleDelete(r.id)}
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.05em',
+                padding: '4px 10px', borderRadius: 5, cursor: 'pointer',
+                background: 'transparent', color: 'rgba(220,38,38,0.7)',
+                border: '1px solid rgba(220,38,38,0.3)', marginLeft: 'auto' }}>
+              DELETE
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Main admin tab ─────────────────────────────────────────────────────────────
 export default function SalonAdminTab({ showToast }) {
-  const [periods, setPeriods] = useState([]);
-  const [editing, setEditing]   = useState(null);  // null = closed, {} = new, {id,…} = edit
-  const [saving, setSaving]     = useState(false);
-  const [deleting, setDeleting] = useState(null);
+  const [periods, setPeriods]       = useState([]);
+  const [editing, setEditing]       = useState(null);
+  const [saving, setSaving]         = useState(false);
+  const [deleting, setDeleting]     = useState(null);
+  const [expandedReviews, setExpandedReviews] = useState(null);
 
   useEffect(() => {
     const q = query(collection(db, 'salon'), orderBy('startDate', 'desc'));
@@ -170,9 +354,8 @@ export default function SalonAdminTab({ showToast }) {
       } else {
         await addDoc(collection(db, 'salon'), {
           ...data,
-          memberCount: 0,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
+          participantCount: 0, reviewCount: 0,
+          createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
         });
         showToast('Salon period created.');
       }
@@ -185,11 +368,12 @@ export default function SalonAdminTab({ showToast }) {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Delete this salon period? Cards and replies will remain.')) return;
+    if (!window.confirm('Delete this salon period?')) return;
     setDeleting(id);
     try {
       await deleteDoc(doc(db, 'salon', id));
       showToast('Period deleted.');
+      if (expandedReviews === id) setExpandedReviews(null);
     } catch (err) {
       showToast('Error deleting: ' + err.message, 'error');
     } finally {
@@ -197,20 +381,26 @@ export default function SalonAdminTab({ showToast }) {
     }
   };
 
-  const fmtDate = (ts) => {
+  const fmtDate = ts => {
     if (!ts) return '—';
     const d = ts?.toDate?.() ?? new Date(ts);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const statusColor = s => s === 'active' || s === 'open' ? '#7bc67e'
+    : s === 'upcoming' ? C.teal : C.muted;
+
+  const statusLabel = s => s === 'active' || s === 'open' ? 'ACTIVE'
+    : s === 'upcoming' ? 'UPCOMING' : s === 'closed' || s === 'review' ? 'CLOSED' : s.toUpperCase();
+
   return (
-    <div style={{ padding: '24px 20px', maxWidth: 720 }}>
+    <div style={{ padding: '24px 20px', maxWidth: 760 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 14, color: C.gold,
             letterSpacing: '0.06em', margin: 0 }}>THE SALON</h2>
           <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted,
-            margin: '4px 0 0' }}>Bimonthly reading periods</p>
+            margin: '4px 0 0' }}>Bimonthly reading selections</p>
         </div>
         <button onClick={() => setEditing({})}
           style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em',
@@ -228,52 +418,84 @@ export default function SalonAdminTab({ showToast }) {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {periods.map(p => (
-          <div key={p.id} style={{ background: C.surface, border: `1px solid ${C.border}`,
-            borderRadius: 10, padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
-            {p.coverURL && (
-              <img src={p.coverURL} alt={p.bookTitle}
-                style={{ width: 44, height: 66, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }}/>
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.white,
-                letterSpacing: '0.04em' }}>{p.bookTitle || '(untitled)'}</div>
-              <div style={{ fontFamily: 'Special Elite, serif', fontStyle: 'italic', fontSize: 12,
-                color: C.silver, marginTop: 2 }}>{p.bookAuthor}</div>
-              <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.gold,
-                marginTop: 4 }}>{fmtDate(p.startDate)} – {fmtDate(p.endDate)}</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
-                  padding: '2px 8px', borderRadius: 4,
-                  background: p.published ? 'rgba(201,168,76,0.15)' : 'rgba(192,192,192,0.1)',
-                  color: p.published ? C.gold : C.muted,
-                  border: `1px solid ${p.published ? 'rgba(201,168,76,0.4)' : 'rgba(192,192,192,0.2)'}` }}>
-                  {p.published ? 'PUBLISHED' : 'DRAFT'}
-                </span>
-                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
-                  padding: '2px 8px', borderRadius: 4, background: 'rgba(192,192,192,0.08)',
-                  color: p.status === 'open' ? '#7bc67e' : C.muted,
-                  border: `1px solid ${p.status === 'open' ? 'rgba(123,198,126,0.3)' : 'rgba(192,192,192,0.2)'}` }}>
-                  {p.status === 'open' ? 'OPEN' : 'REVIEW'}
-                </span>
-                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted }}>
-                  {p.memberCount ?? 0} members
-                </span>
+          <div key={p.id}>
+            <div style={{ background: C.surface, border: `1px solid ${C.border}`,
+              borderRadius: 10, padding: 16, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+
+              {/* Cover */}
+              {(p.coverImage || p.coverURL) && (
+                <img src={p.coverImage || p.coverURL} alt={p.bookTitle}
+                  onError={e => { e.target.style.display = 'none'; }}
+                  style={{ width: 44, height: 66, objectFit: 'cover', borderRadius: 3, flexShrink: 0 }}/>
+              )}
+
+              {/* Info */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.white,
+                  letterSpacing: '0.04em' }}>{p.bookTitle || '(untitled)'}</div>
+                <div style={{ fontFamily: 'Special Elite, serif', fontStyle: 'italic', fontSize: 12,
+                  color: C.silver, marginTop: 2 }}>{p.bookAuthor}</div>
+                <div style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.gold,
+                  marginTop: 4 }}>{fmtDate(p.startDate)} – {fmtDate(p.endDate)}</div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
+                    padding: '2px 8px', borderRadius: 4, background: 'rgba(192,192,192,0.08)',
+                    color: statusColor(p.status), border: `1px solid ${statusColor(p.status)}40` }}>
+                    {statusLabel(p.status)}
+                  </span>
+                  <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted }}>
+                    {p.participantCount ?? p.memberCount ?? 0} readers
+                  </span>
+                  {p.reviewCount > 0 && (
+                    <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.muted }}>
+                      · {p.reviewCount} reviews
+                    </span>
+                  )}
+                  {p.gazetteIssueId && (
+                    <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.teal }}>
+                      gazette: {p.gazetteIssueId}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                <button onClick={() => setEditing(p)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
+                    padding: '6px 12px', borderRadius: 6, background: 'transparent',
+                    color: C.gold, border: `1px solid rgba(201,168,76,0.4)`, cursor: 'pointer' }}>
+                  EDIT
+                </button>
+                <button
+                  onClick={() => setExpandedReviews(expandedReviews === p.id ? null : p.id)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
+                    padding: '6px 12px', borderRadius: 6, background: 'transparent',
+                    color: expandedReviews === p.id ? C.teal : C.silver,
+                    border: `1px solid ${expandedReviews === p.id ? C.teal : 'rgba(192,192,192,0.25)'}`,
+                    cursor: 'pointer' }}>
+                  REVIEWS
+                </button>
+                <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
+                    padding: '6px 12px', borderRadius: 6, background: 'transparent',
+                    color: C.muted, border: '1px solid rgba(192,192,192,0.2)', cursor: 'pointer' }}>
+                  {deleting === p.id ? '…' : 'DELETE'}
+                </button>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 0 }}>
-              <button onClick={() => setEditing(p)}
-                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
-                  padding: '6px 12px', borderRadius: 6, background: 'transparent',
-                  color: C.gold, border: `1px solid rgba(201,168,76,0.4)`, cursor: 'pointer' }}>
-                EDIT
-              </button>
-              <button onClick={() => handleDelete(p.id)} disabled={deleting === p.id}
-                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.06em',
-                  padding: '6px 12px', borderRadius: 6, background: 'transparent',
-                  color: C.muted, border: '1px solid rgba(192,192,192,0.2)', cursor: 'pointer' }}>
-                {deleting === p.id ? '…' : 'DELETE'}
-              </button>
-            </div>
+
+            {/* Reviews panel — expands below the period card */}
+            {expandedReviews === p.id && (
+              <div style={{ background: C.surface, border: `1px solid ${C.border}`,
+                borderTop: 'none', borderRadius: '0 0 10px 10px', padding: '0 16px 16px' }}>
+                <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: C.teal,
+                  letterSpacing: '0.06em', padding: '12px 0 0' }}>
+                  READER REVIEWS
+                </div>
+                <ReviewsPanel salonId={p.id}/>
+              </div>
+            )}
           </div>
         ))}
       </div>

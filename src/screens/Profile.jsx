@@ -13,7 +13,7 @@ import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { deleteAccount } from '../utils/deleteAccount';
 import { BackArrowIcon } from '../components/Icons';
 import SalonProfileCard from '../components/salon/SalonProfileCard';
-import { subscribeToActiveSalon } from '../utils/salon';
+import { subscribeToActiveSalon, subscribeToEnrollment } from '../utils/salon';
 import {
   QUEST_PRESETS,
   computeQuestStats,
@@ -773,13 +773,10 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
   // Active salon period
   useEffect(() => subscribeToActiveSalon(setActiveSalon), []);
 
-  // Salon enrollment check
+  // Salon enrollment check — reads from users/{uid}/salonEnrollments/{salonId} subcollection
   useEffect(() => {
     if (!user || !activeSalon?.id) return;
-    const ref = doc(db, 'users', user.uid);
-    return onSnapshot(ref, snap => {
-      setSalonEnrolled(!!(snap.data()?.salonEnrollments?.[activeSalon.id]));
-    }, () => setSalonEnrolled(false));
+    return subscribeToEnrollment(user.uid, activeSalon.id, setSalonEnrolled);
   }, [user, activeSalon?.id]);
 
   const displayName = user?.displayName || 'Literary Traveler';

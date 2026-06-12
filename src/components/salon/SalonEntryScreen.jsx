@@ -181,7 +181,7 @@ export function SalonEntryJoin({ period, user, onEnroll, onEnter, salonCatUrl })
 }
 
 // ── Enrolled welcome-back ─────────────────────────────────────────────────────
-export function SalonEntryEnrolled({ period, recentCards, onEnter }) {
+export function SalonEntryEnrolled({ period, recentCards, onEnter, salonCatUrl }) {
   const { dayOf, totalDays, daysRemaining } = computeEnrollment(period);
   const pct = totalDays > 0 ? Math.min(100, Math.round((dayOf / totalDays) * 100)) : 0;
 
@@ -201,6 +201,15 @@ export function SalonEntryEnrolled({ period, recentCards, onEnter }) {
           Welcome back to the room.
         </div>
       </div>
+
+      {/* Cat */}
+      {salonCatUrl && (
+        <div style={{ textAlign: 'center', margin: '-4px 0 14px' }}>
+          <img src={salonCatUrl} alt="The Salon"
+            style={{ width: 130, height: 130, objectFit: 'contain',
+              filter: 'drop-shadow(0 10px 22px rgba(0,0,0,0.5))' }}/>
+        </div>
+      )}
 
       {/* Progress card */}
       <div style={{ background: S.wine, border: `1px solid ${S.goldSoft}`,
@@ -241,7 +250,7 @@ export function SalonEntryEnrolled({ period, recentCards, onEnter }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6,
             fontFamily: S.type, fontSize: 10, color: S.muted }}>
             <span>Day {dayOf} of {totalDays}</span>
-            <span style={{ color: S.gold }}>{daysRemaining} days remaining</span>
+            <span style={{ color: S.gold }}>{daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining</span>
           </div>
         </div>
       </div>
