@@ -2243,6 +2243,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     Object.values(ssLayersRef.current).forEach(l => l.setStyle(SS_DEFAULT_STYLE));
   };
 
+  const exploreLabel = (sel) => {
+    const hasPR = sel.has('Puerto Rico');
+    const nonPR = hasPR ? sel.size - 1 : sel.size;
+    if (hasPR && nonPR === 0) return 'EXPLORE PUERTO RICO →';
+    if (hasPR) return `EXPLORE ${nonPR} STATE${nonPR > 1 ? 'S' : ''} AND PUERTO RICO →`;
+    return `EXPLORE ${sel.size} STATE${sel.size > 1 ? 'S' : ''} →`;
+  };
+
   const handleExploreStates = () => {
     const statesArray = [...ssSelected];
     setActiveStates(statesArray);
@@ -3651,7 +3659,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <button onClick={handleExploreStates}
                 className="w-full bg-atomic-orange text-midnight-navy font-bungee py-4 rounded-lg hover:bg-starlight-turquoise transition-all shadow-lg text-base"
               >
-                EXPLORE {ssSelected.size} STATE{ssSelected.size > 1 ? 'S' : ''} →
+                {exploreLabel(ssSelected)}
               </button>
             </div>
           </div>
@@ -3675,7 +3683,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <button onClick={handleExploreStates}
                   className="w-full bg-atomic-orange text-midnight-navy font-bungee py-3 rounded-lg hover:bg-starlight-turquoise transition-all"
                 >
-                  EXPLORE {ssSelected.size} STATE{ssSelected.size > 1 ? 'S' : ''} →
+                  {exploreLabel(ssSelected)}
                 </button>
               )}
             </div>
