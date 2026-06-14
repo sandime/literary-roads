@@ -109,6 +109,13 @@ export async function postReview(salonId, { userId, userName, rating, oneSentenc
   });
 }
 
+export async function updateReview(salonId, reviewId, { rating, oneSentence, fullResponse = '' }) {
+  return updateDoc(doc(db, 'salon', salonId, 'reviews', reviewId), {
+    rating, oneSentence, fullResponse,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 // ── Time helpers ──────────────────────────────────────────────────────────────
 export function computeEnrollment(period) {
   if (!period) return { joined: false, daysRemaining: 0, dayOf: 0, totalDays: 0 };

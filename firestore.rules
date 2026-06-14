@@ -287,7 +287,11 @@ service cloud.firestore {
           request.resource.data.userId == request.auth.uid &&
           request.resource.data.oneSentence.size() > 0 &&
           request.resource.data.oneSentence.size() <= 140;
-        allow update, delete: if isAdmin();
+        allow update: if isAdmin() ||
+          (request.auth != null && resource.data.userId == request.auth.uid &&
+           request.resource.data.oneSentence.size() > 0 &&
+           request.resource.data.oneSentence.size() <= 140);
+        allow delete: if isAdmin();
       }
     }
 

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   subscribeToActiveSalon, subscribeToEnrollment, enrollInSalon,
-  subscribeToReviews, postReview,
+  subscribeToReviews, postReview, updateReview,
 } from '../utils/salon';
 import {
   S, SALON_ANIMATIONS_CSS, useWidth,
@@ -342,14 +342,29 @@ function Composer({ wide, period, user, reviews }) {
   const [full, setFull] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [posting, setPosting] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const isClosed = period?.status === 'closed' || period?.status === 'review';
-  const hasReviewed = user ? reviews.some(r => r.userId === user.uid) : false;
+  const myReview = user ? reviews.find(r => r.userId === user.uid) : null;
+  const hasReviewed = !!myReview;
   const ready = rating > 0 && line.trim().length > 0 && !posting;
 
   const wrapStyle = {
     position: 'sticky', bottom: 0, zIndex: 40,
     background: 'rgba(13,48,52,0.97)', backdropFilter: 'blur(14px)',
+  };
+
+  const startEditing = () => {
+    setRating(myReview.rating || 0);
+    setLine(myReview.oneSentence || '');
+    setFull(myReview.fullResponse || '');
+    if (myReview.fullResponse) setExpanded(true);
+    setEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setEditing(false);
+    setRating(0); setLine(''); setFull(''); setExpanded(false);
   };
 
   if (!user) {
@@ -363,19 +378,28 @@ function Composer({ wide, period, user, reviews }) {
     );
   }
 
-  if (hasReviewed) {
+  if (hasReviewed && !editing) {
     return (
       <div style={{ ...wrapStyle, borderTop: `1px solid ${S.line}`,
-        padding: wide ? '16px 32px' : '14px 20px', textAlign: 'center' }}>
+        padding: wide ? '14px 32px' : '12px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <span style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
           fontSize: 15, color: S.creamDim }}>
           You&rsquo;ve given your verdict.
         </span>
+        {!isClosed && (
+          <button onClick={startEditing} style={{ background: 'none', border: 0,
+            cursor: 'pointer', padding: '4px 0', flexShrink: 0,
+            fontFamily: S.fonts.sans, fontSize: 11, letterSpacing: '0.14em',
+            color: S.turq, textTransform: 'uppercase' }}>
+            Edit &#8250;
+          </button>
+        )}
       </div>
     );
   }
 
-  if (isClosed) {
+  if (isClosed && !hasReviewed) {
     return (
       <div style={{ ...wrapStyle, borderTop: `1px solid ${S.line}`,
         padding: wide ? '16px 32px' : '14px 20px', textAlign: 'center' }}>
@@ -391,16 +415,21 @@ function Composer({ wide, period, user, reviews }) {
     if (!ready) return;
     setPosting(true);
     try {
-      await postReview(period.id, {
-        userId: user.uid,
-        userName: user.displayName || 'Literary Roadster',
-        rating,
-        oneSentence: line.trim(),
-        fullResponse: full.trim(),
-      });
+      if (editing && myReview) {
+        await updateReview(period.id, myReview.id, {
+          rating, oneSentence: line.trim(), fullResponse: full.trim(),
+        });
+        setEditing(false);
+      } else {
+        await postReview(period.id, {
+          userId: user.uid,
+          userName: user.displayName || 'Literary Roadster',
+          rating, oneSentence: line.trim(), fullResponse: full.trim(),
+        });
+      }
       setRating(0); setLine(''); setFull(''); setExpanded(false);
     } catch (err) {
-      console.error('[Salon] postReview failed', err);
+      console.error('[Salon] post/update review failed', err);
     } finally {
       setPosting(false);
     }
@@ -410,10 +439,26 @@ function Composer({ wide, period, user, reviews }) {
     <div style={{ ...wrapStyle, borderTop: `1px solid ${S.coral}` }}>
       <div style={{ maxWidth: 880, margin: '0 auto',
         padding: wide ? '16px 32px 18px' : '12px 16px 14px', boxSizing: 'border-box' }}>
+
+        {editing && (
+          <div style={{ display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', marginBottom: 10 }}>
+            <span style={{ fontFamily: S.fonts.sans, fontSize: 10, letterSpacing: '0.2em',
+              color: S.coral, textTransform: 'uppercase' }}>Editing your verdict</span>
+            <button onClick={cancelEditing} style={{ background: 'none', border: 0,
+              cursor: 'pointer', fontFamily: S.fonts.sans, fontSize: 10,
+              letterSpacing: '0.1em', color: S.creamFaint, textTransform: 'uppercase' }}>
+              Cancel
+            </button>
+          </div>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 12,
           flexWrap: 'wrap', marginBottom: 11 }}>
-          <span style={{ fontFamily: S.fonts.sans, fontSize: 10, letterSpacing: '0.2em',
-            color: S.creamDim, textTransform: 'uppercase' }}>Your rating</span>
+          {!editing && (
+            <span style={{ fontFamily: S.fonts.sans, fontSize: 10, letterSpacing: '0.2em',
+              color: S.creamDim, textTransform: 'uppercase' }}>Your rating</span>
+          )}
           <AtomRating value={rating} hover={hover} onHover={setHover} onRate={setRating}
             size={24} gap={5} />
           {rating > 0 && (
@@ -441,7 +486,8 @@ function Composer({ wide, period, user, reviews }) {
                   fontFamily: S.fonts.display, fontSize: 14.5, lineHeight: 1.5 }} />
             ) : (
               <button onClick={() => setExpanded(true)} style={{ alignSelf: 'flex-start',
-                background: 'none', border: 0, cursor: 'pointer', padding: '2px 0',
+                background: 'none', border: `1px solid ${S.lineTurq}`, cursor: 'pointer',
+                padding: '6px 12px', borderRadius: 999,
                 fontFamily: S.fonts.sans, fontSize: 11, letterSpacing: '0.08em', color: S.turq }}>
                 + Add a full response
               </button>
@@ -449,7 +495,7 @@ function Composer({ wide, period, user, reviews }) {
           </div>
           <SalonButton variant="primary" disabled={!ready} onClick={handlePost}
             style={{ minHeight: 48, padding: '0 22px' }}>
-            {posting ? '…' : 'Post  →'}
+            {posting ? '…' : editing ? 'Update  →' : 'Post  →'}
           </SalonButton>
         </div>
 
