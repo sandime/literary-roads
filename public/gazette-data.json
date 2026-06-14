@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
+      "title": "WHISTLER",
+      "author": "Ann Patchett",
+      "weeksOnList": 1,
+      "isbn13": "9780063511637",
+      "description": "Decades after their time together, a woman reconnects with her stepfather and they look back at the directions their lives have taken.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063511637.jpg"
+    },
+    {
+      "rank": 2,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 8,
+      "weeksOnList": 9,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
-      "rank": 2,
-      "title": "PHOEBE BERMAN'S GONNA LOSE IT",
-      "author": "Brooke Averick",
-      "weeksOnList": 1,
-      "isbn13": "9798217088263",
-      "description": "As her 30th birthday approaches, Phoebe Berman goes from no dating life to juggling several prospects.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217088263.jpg"
-    },
-    {
       "rank": 3,
-      "title": "THE FINAL TARGET",
-      "author": "Nora Roberts",
+      "title": "LAND",
+      "author": "Maggie O'Farrell",
       "weeksOnList": 1,
-      "isbn13": "9781250413581",
-      "description": "A fan fixates on the introverted author Arden Bowie, who tries to set up a new life for herself in a small town in Oregon.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250413581.jpg"
+      "isbn13": "9780593320648",
+      "description": "While assisting his father on a project to map all of Ireland in 1865, a boy must work around the ways a disturbing encounter affects his father.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593320648.jpg"
     },
     {
       "rank": 4,
-      "title": "THE MIDNIGHT TRAIN",
-      "author": "Matt Haig",
-      "weeksOnList": 1,
-      "isbn13": "9780593833377",
-      "description": "The second book in the Midnight World series. Wilbur wants to go back in time to see how he might have lived differently.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593833377.jpg"
+      "title": "THE CORRESPONDENT",
+      "author": "Virginia Evans",
+      "weeksOnList": 32,
+      "isbn13": "9780593798430",
+      "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
     },
     {
       "rank": 5,
-      "title": "THE BALLAD OF FALLING DRAGONS",
-      "author": "Sarah A. Parker",
-      "weeksOnList": 2,
-      "isbn13": "9780063415898",
-      "description": "The second book in the Moonfall series. As a calamitous moonfall approaches, Raeve must make life-or-death decisions.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063415898.jpg"
+      "title": "ROAD TRIP",
+      "author": "Mary Kay Andrews",
+      "weeksOnList": 1,
+      "isbn13": "9781250372888",
+      "description": "A pair of sisters travel to Ireland to find out the worth of a painting they inherited and gain new insights into their family.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250372888.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
+      "title": "VIEW FROM THE EAST WING",
+      "author": "Jill Biden",
+      "weeksOnList": 1,
+      "isbn13": "9781668222881",
+      "description": "The former first lady recounts her time in the White House, causes she championed and her simultaneous work as a community college professor.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668222881.jpg"
+    },
+    {
+      "rank": 2,
+      "title": "REVOLUTION",
+      "author": "Eric Metaxas",
+      "weeksOnList": 1,
+      "isbn13": "9781631440885",
+      "description": "The author of “Martin Luther” and “Bonhoeffer” gives an account of the foundation of the United States of America.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781631440885.jpg"
+    },
+    {
+      "rank": 3,
       "title": "THE LAND AND ITS PEOPLE",
       "author": "David Sedaris",
-      "weeksOnList": 1,
+      "weeksOnList": 2,
       "isbn13": "9780316264839",
       "description": "Essays on the passage of time, complicated relationships and some unexpected delights life has to offer.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316264839.jpg"
     },
     {
-      "rank": 2,
+      "rank": 4,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 19,
+      "weeksOnList": 20,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
-      "rank": 3,
-      "title": "THE HERO NEXT DOOR",
-      "author": "Martha Raddatz",
-      "weeksOnList": 1,
-      "isbn13": "9781668093801",
-      "description": "The Emmy Award–winning ABC News anchor profiles members of our military who served in the wake of 9/11.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668093801.jpg"
-    },
-    {
-      "rank": 4,
-      "title": "CRISIS OF THE COMMON GOOD",
-      "author": "Chris Murphy",
-      "weeksOnList": 1,
-      "isbn13": "9780374621117",
-      "description": "The Democratic senator from Connecticut re-examines one of our country’s organizing principles.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780374621117.jpg"
-    },
-    {
       "rank": 5,
-      "title": "ALL WE SAY",
-      "author": "Ben Rhodes",
-      "weeksOnList": 1,
-      "isbn13": "9780593595121",
-      "description": "The former speechwriter for President Obama explicates what it means to be American through this collection of 15 speeches.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593595121.jpg"
+      "title": "TAKE ME TO YOUR LEADER",
+      "author": "Neil deGrasse Tyson",
+      "weeksOnList": 4,
+      "isbn13": "9781668249970",
+      "description": "The astrophysicist depicts what potential encounters with aliens from outer space might be like.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668249970.jpg"
     }
   ],
-  "issueDate": "Sunday, June 7, 2026",
-  "issueNumber": 75,
-  "updatedAt": "2026-06-07T11:42:26.252Z"
+  "issueDate": "Sunday, June 14, 2026",
+  "issueNumber": 76,
+  "updatedAt": "2026-06-14T11:48:40.953Z"
 }
