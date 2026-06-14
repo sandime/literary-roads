@@ -5,12 +5,12 @@ import {
   S, AtomRating, BookCover, SalonButton, StatusDot,
 } from './SalonKit';
 
-const DISMISS_KEY = 'lr_salon_card_dismissed';
-const DISMISS_MS  = 48 * 60 * 60 * 1000;
+const DISMISS_MS = 48 * 60 * 60 * 1000;
+const dismissKey = uid => `lr_salon_card_dismissed_${uid || 'guest'}`;
 
-const getDismissed = () => {
+const getDismissed = uid => {
   try {
-    const ts = localStorage.getItem(DISMISS_KEY);
+    const ts = localStorage.getItem(dismissKey(uid));
     return ts ? Date.now() - parseInt(ts, 10) < DISMISS_MS : false;
   } catch { return false; }
 };
@@ -45,7 +45,7 @@ export default function SalonProfileCard({ period, user, enrolled }) {
   const navigate = useNavigate();
   const [enrolling,     setEnrolling]     = useState(false);
   const [localEnrolled, setLocalEnrolled] = useState(false);
-  const [dismissed,     setDismissed]     = useState(getDismissed);
+  const [dismissed,     setDismissed]     = useState(() => getDismissed(user?.uid));
 
   if (!period || dismissed) return null;
 
@@ -81,7 +81,7 @@ export default function SalonProfileCard({ period, user, enrolled }) {
   };
 
   const handleDismiss = () => {
-    try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch {}
+    try { localStorage.setItem(dismissKey(user?.uid), String(Date.now())); } catch {}
     setDismissed(true);
   };
 

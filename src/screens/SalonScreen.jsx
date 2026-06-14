@@ -102,33 +102,45 @@ function EntryScreen({ book, period, user, enrolled, onEnter }) {
     }
   };
 
-  const hero = (
+  const bookW = wide ? 178 : Math.round(Math.min(w * 0.27, 112));
+  const catW  = wide ? 150 : 90;
+
+  // Wide: book above cat (stacked). Narrow: side by side to halve the vertical height.
+  const hero = wide ? (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-      <LevitatingBook w={wide ? 178 : 148} frameColor={S.coral}
+      <LevitatingBook w={bookW} frameColor={S.coral}
         src={book?.src} title={book?.title} author={book?.author} />
       <img src={SALON_CAT} alt=""
-        style={{ width: wide ? 150 : 122, height: wide ? 150 : 122,
-          objectFit: 'contain', marginTop: 4,
+        style={{ width: catW, height: catW, objectFit: 'contain', marginTop: 4,
           filter: 'drop-shadow(0 12px 24px rgba(0,0,0,0.45))' }} />
+    </div>
+  ) : (
+    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'flex-end',
+      justifyContent: 'center', gap: 12, flexShrink: 0 }}>
+      <LevitatingBook w={bookW} frameColor={S.coral}
+        src={book?.src} title={book?.title} author={book?.author} />
+      <img src={SALON_CAT} alt=""
+        style={{ width: catW, height: catW, objectFit: 'contain', marginBottom: 8,
+          filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.45))' }} />
     </div>
   );
 
   const note = (
     <>
       {editorial ? (
-        <p style={{ fontFamily: S.fonts.display, fontStyle: 'italic', fontSize: 16.5,
-          lineHeight: 1.55, color: S.cream,
-          margin: wide ? '28px 0 0' : '24px 0 0', maxWidth: 420 }}>
+        <p style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
+          fontSize: wide ? 16.5 : 15, lineHeight: 1.5, color: S.cream,
+          margin: wide ? '28px 0 0' : '16px 0 0', maxWidth: 420 }}>
           {editorial}
         </p>
       ) : null}
       {memberCount > 0 && (
         <div style={{ fontFamily: S.fonts.sans, fontSize: 11, letterSpacing: '0.16em',
-          color: S.turq, textTransform: 'uppercase', marginTop: 20, fontWeight: 600 }}>
+          color: S.turq, textTransform: 'uppercase', marginTop: wide ? 20 : 14, fontWeight: 600 }}>
           {memberCount.toLocaleString()} Literary Roadsters reading
         </div>
       )}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 24,
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: wide ? 24 : 16,
         width: '100%', maxWidth: 330,
         alignItems: wide ? 'flex-start' : 'stretch' }}>
         {enrolled ? (
@@ -185,12 +197,12 @@ function EntryScreen({ book, period, user, enrolled, onEnter }) {
         </div>
       ) : (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
+          alignItems: 'center', justifyContent: 'flex-start',
           maxWidth: 460, margin: '0 auto',
-          padding: '12px 24px 30px', width: '100%', boxSizing: 'border-box',
+          padding: '10px 24px 36px', width: '100%', boxSizing: 'border-box',
           textAlign: 'center' }}>
           <Masthead big align="center" titleSize={titleSize} book={book} />
-          <div style={{ margin: '22px 0 0' }}>{hero}</div>
+          <div style={{ margin: '14px 0 0' }}>{hero}</div>
           {note}
         </div>
       )}
