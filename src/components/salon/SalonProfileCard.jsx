@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { enrollInSalon, computeEnrollment } from '../../utils/salon';
+import {
+  S, AtomRating, BookCover, SalonButton, StatusDot,
+} from './SalonKit';
 
-const PINK    = '#f66483';
-const TEAL    = '#30b8b2';
 const DISMISS_KEY = 'lr_salon_card_dismissed';
 const DISMISS_MS  = 48 * 60 * 60 * 1000;
 
@@ -16,34 +17,13 @@ const getDismissed = () => {
 
 const olCoverUrl = id => id ? `https://covers.openlibrary.org/b/id/${id}-M.jpg` : null;
 
-function BookThumb({ period }) {
+function CoverThumb({ period }) {
   const [failed, setFailed] = useState(false);
   const src = !failed
     ? (period.coverImage || olCoverUrl(period.openLibraryCoverId) || period.coverURL || null)
     : null;
-  return (
-    <div style={{ width: 60, height: 90, flexShrink: 0, borderRadius: 3, overflow: 'hidden',
-      boxShadow: '0 4px 14px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.35)' }}>
-      {src ? (
-        <img src={src} alt={period.bookTitle} onError={() => setFailed(true)}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
-      ) : (
-        <div style={{ width: '100%', height: '100%',
-          background: 'linear-gradient(150deg,#3B5A47,#20120f)',
-          display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          padding: 7, boxSizing: 'border-box' }}>
-          <div style={{ width: '40%', height: 2, background: 'rgba(201,168,76,0.7)' }}/>
-          <div>
-            <div style={{ fontFamily: 'Georgia,serif', fontWeight: 700, color: '#FFF8E7',
-              fontSize: 7.5, lineHeight: 1.2 }}>{period.bookTitle}</div>
-            <div style={{ fontFamily: 'Georgia,serif', fontStyle: 'italic', color: '#E5D9C2',
-              fontSize: 6.5, marginTop: 2, opacity: 0.85 }}>{period.bookAuthor}</div>
-          </div>
-          <div style={{ width: '40%', height: 2, background: 'rgba(201,168,76,0.7)', alignSelf: 'flex-end' }}/>
-        </div>
-      )}
-    </div>
-  );
+  return <BookCover w={62} h={93} src={src} title={period.bookTitle} author={period.bookAuthor}
+    onError={() => setFailed(true)} />;
 }
 
 function formatRange(start, end) {
@@ -69,46 +49,30 @@ export default function SalonProfileCard({ period, user, enrolled }) {
 
   if (!period || dismissed) return null;
 
-  const isEnrolled   = localEnrolled || enrolled;
-  const isActive     = period.status === 'active'   || period.status === 'open';
-  const isUpcoming   = period.status === 'upcoming';
-  const isClosed     = period.status === 'closed'   || period.status === 'review';
-  const hasGazette   = !!(period.gazetteIssueId || period.gazetteReviewURL);
+  const isEnrolled = localEnrolled || enrolled;
+  const isActive   = period.status === 'active' || period.status === 'open';
+  const isClosed   = period.status === 'closed' || period.status === 'review';
+  const hasGazette = !!(period.gazetteIssueId || period.gazetteReviewURL);
 
-  // State B: enrolled AND active
-  // State C: closed AND gazette available
-  // State A: everything else (upcoming, active+not enrolled, closed without gazette)
   const cardState =
     isEnrolled && isActive ? 'enrolled' :
     isClosed && hasGazette ? 'review'   : 'join';
 
-  const borderColor =
-    cardState === 'enrolled' ? `rgba(48,184,178,0.30)` :
-    cardState === 'review'   ? 'rgba(192,192,192,0.20)' :
-    `rgba(246,100,131,0.30)`;
-
-  const labelColor =
-    cardState === 'enrolled' ? TEAL   :
-    cardState === 'review'   ? '#A2908C' : PINK;
-
-  const dotColor =
-    cardState === 'enrolled' ? TEAL   : '#A2908C';
-
-  const dotLabel =
-    cardState === 'enrolled' ? 'Reading' : 'Closed';
+  const dotState = cardState === 'enrolled' ? 'reading' : 'closed';
 
   const { daysRemaining, dayOf, totalDays } = computeEnrollment(period);
   const pct = totalDays > 0 ? Math.min(100, Math.round((dayOf / totalDays) * 100)) : 0;
 
-  const dateRange  = formatRange(period.startDate, period.endDate);
-  const nextDate   = fmtDate(period.nextBookDate || period.nextBookAnnounceDate);
+  const dateRange = formatRange(period.startDate, period.endDate);
+  const nextDate  = fmtDate(period.nextBookDate || period.nextBookAnnounceDate);
 
   const handleEnroll = async () => {
-    if (!user || enrolling) return;
+    if (!user) { navigate('/login'); return; }
+    if (enrolling) return;
     setEnrolling(true);
     try {
       await enrollInSalon(period.id, user.uid, period);
-      setLocalEnrolled(true);
+      navigate('/salon');
     } catch (err) {
       console.error('[SalonProfileCard] enroll failed', err);
     } finally {
@@ -122,148 +86,98 @@ export default function SalonProfileCard({ period, user, enrolled }) {
   };
 
   const handleGazette = () => {
-    if (period.gazetteIssueId) {
-      navigate(`/newspaper/${period.gazetteIssueId}`);
-    } else if (period.gazetteReviewURL) {
-      window.open(period.gazetteReviewURL, '_blank', 'noopener');
-    }
+    if (period.gazetteIssueId) navigate(`/newspaper/${period.gazetteIssueId}`);
+    else if (period.gazetteReviewURL) window.open(period.gazetteReviewURL, '_blank', 'noopener');
   };
 
   return (
-    <div style={{
-      width: '100%', background: '#1E1F33',
-      border: `1px solid ${borderColor}`, borderRadius: 14,
-      padding: 16, marginBottom: 20, boxSizing: 'border-box',
-    }}>
+    <div style={{ width: '100%', background: S.teal, border: `1px solid ${S.lineTurq}`,
+      borderRadius: 16, padding: 18, marginBottom: 20, boxSizing: 'border-box',
+      fontFamily: S.fonts.serif, color: S.cream,
+      boxShadow: '0 14px 40px rgba(0,0,0,0.3)' }}>
+
       {/* Label row */}
-      <div style={{ display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', marginBottom: 14 }}>
-        <span style={{ fontFamily: '"Bungee",system-ui,sans-serif', fontSize: 11,
-          letterSpacing: '0.10em', color: labelColor, textTransform: 'uppercase' }}>
-          The Salon
-        </span>
-        {cardState !== 'join' && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: dotColor,
-              boxShadow: `0 0 5px ${dotColor}` }}/>
-            <span style={{ fontFamily: '"Special Elite",Georgia,serif', fontSize: 10,
-              letterSpacing: '0.06em', color: dotColor }}>{dotLabel}</span>
-          </span>
-        )}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        marginBottom: 16 }}>
+        <span style={{ fontFamily: S.fonts.sans, fontSize: 11, letterSpacing: '0.3em',
+          color: S.coral, textTransform: 'uppercase', fontWeight: 600 }}>The Salon</span>
+        {cardState !== 'join' && <StatusDot state={dotState} label />}
       </div>
 
-      {/* Body row */}
-      <div style={{ display: 'flex', gap: 14 }}>
-        <BookThumb period={period}/>
+      {/* Body */}
+      <div style={{ display: 'flex', gap: 16 }}>
+        <CoverThumb period={period} />
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontWeight: 700,
-            fontSize: 15, color: '#FFF8E7', lineHeight: 1.2 }}>
+          <div style={{ fontFamily: S.fonts.display, fontWeight: 600, fontSize: 17,
+            color: S.cream, lineHeight: 1.1, textTransform: 'uppercase',
+            letterSpacing: '-0.01em' }}>
             {period.bookTitle}
           </div>
-          <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontStyle: 'italic',
-            fontSize: 12, color: '#E5D9C2', marginTop: 3 }}>
+          <div style={{ fontFamily: S.fonts.display, fontStyle: 'italic', fontSize: 13,
+            color: S.turq, marginTop: 3 }}>
             {period.bookAuthor}
           </div>
 
           {cardState === 'join' && (
-            <div style={{ marginTop: 8 }}>
+            <div style={{ marginTop: 'auto', paddingTop: 10 }}>
               {dateRange && (
-                <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontSize: 11,
-                  color: 'rgba(192,192,192,0.55)' }}>
-                  {dateRange}
-                </div>
+                <div style={{ fontFamily: S.fonts.sans, fontSize: 10.5, letterSpacing: '0.16em',
+                  color: S.creamDim, textTransform: 'uppercase' }}>{dateRange}</div>
               )}
-              {isUpcoming && nextDate && (
-                <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontSize: 11,
-                  color: PINK, marginTop: 2 }}>
-                  Next book: {nextDate}
-                </div>
+              {nextDate && (
+                <div style={{ fontFamily: S.fonts.sans, fontSize: 10.5, letterSpacing: '0.04em',
+                  color: S.creamFaint, marginTop: 4 }}>Next book: {nextDate}</div>
               )}
             </div>
           )}
 
           {cardState === 'enrolled' && (
-            <div style={{ marginTop: 'auto', paddingTop: 10 }}>
-              <div style={{ height: 4, borderRadius: 3, background: 'rgba(255,255,255,0.07)',
-                overflow: 'hidden' }}>
-                <div style={{ width: `${pct}%`, height: '100%', background: TEAL,
-                  boxShadow: `0 0 6px ${TEAL}`, transition: 'width 0.6s ease-out' }}/>
+            <div style={{ marginTop: 'auto', paddingTop: 12 }}>
+              <div style={{ height: 4, borderRadius: 3, background: S.teal2, overflow: 'hidden' }}>
+                <div style={{ width: `${pct}%`, height: '100%', background: S.turq,
+                  boxShadow: `0 0 7px ${S.turq}`, transition: 'width 0.6s ease-out' }} />
               </div>
-              <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontSize: 11,
-                color: TEAL, marginTop: 5 }}>
+              <div style={{ fontFamily: S.fonts.sans, fontSize: 11, letterSpacing: '0.04em',
+                color: S.turq, marginTop: 7, fontWeight: 600 }}>
                 {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
               </div>
             </div>
           )}
 
           {cardState === 'review' && (
-            <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontStyle: 'italic',
-              fontSize: 13, color: '#A2908C', marginTop: 'auto', paddingTop: 8 }}>
+            <div style={{ fontFamily: S.fonts.display, fontStyle: 'italic', fontSize: 14,
+              color: S.creamDim, marginTop: 'auto', paddingTop: 12 }}>
               See what readers said.
             </div>
           )}
         </div>
       </div>
 
-      {/* Action area */}
-      <div style={{ marginTop: 16 }}>
+      {/* Action */}
+      <div style={{ marginTop: 18 }}>
         {cardState === 'join' && (
-          <>
-            <div style={{ fontFamily: '"Special Elite",Georgia,serif', fontStyle: 'italic',
-              fontSize: 14, color: '#E5D9C2', textAlign: 'center', marginBottom: 10 }}>
-              Are you in?
-            </div>
-            <div style={{ display: 'flex', gap: 10 }}>
-              {user ? (
-                <button onClick={handleEnroll} disabled={enrolling}
-                  style={{ flex: 1, fontFamily: '"Bungee",system-ui,sans-serif', fontSize: 12,
-                    letterSpacing: '0.04em', borderRadius: 10, minHeight: 44,
-                    background: PINK, color: '#fff', border: 'none',
-                    cursor: enrolling ? 'default' : 'pointer',
-                    boxShadow: `0 0 18px rgba(246,100,131,0.4)`,
-                    opacity: enrolling ? 0.7 : 1, transition: 'opacity .15s' }}>
-                  {enrolling ? '…' : 'YES, I\'M IN  →'}
-                </button>
-              ) : (
-                <button onClick={() => navigate('/login')}
-                  style={{ flex: 1, fontFamily: '"Bungee",system-ui,sans-serif', fontSize: 12,
-                    letterSpacing: '0.04em', borderRadius: 10, minHeight: 44,
-                    background: PINK, color: '#fff', border: 'none', cursor: 'pointer',
-                    boxShadow: `0 0 18px rgba(246,100,131,0.4)` }}>
-                  SIGN IN TO JOIN  →
-                </button>
-              )}
-              <button onClick={handleDismiss}
-                style={{ flex: 1, fontFamily: '"Special Elite",Georgia,serif', fontSize: 13,
-                  borderRadius: 10, minHeight: 44,
-                  background: 'transparent', color: 'rgba(192,192,192,0.5)',
-                  border: 'none', cursor: 'pointer' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontFamily: S.fonts.display, fontStyle: 'italic', fontSize: 16,
+              color: S.cream }}>Are you in?</div>
+            <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+              <SalonButton variant="primary" full onClick={handleEnroll} disabled={enrolling}>
+                {enrolling ? '…' : 'Yes  →'}
+              </SalonButton>
+              <SalonButton variant="ghost" full onClick={handleDismiss}>
                 Maybe later
-              </button>
+              </SalonButton>
             </div>
-          </>
+          </div>
         )}
-
         {cardState === 'enrolled' && (
-          <button onClick={() => navigate('/salon')}
-            style={{ width: '100%', fontFamily: '"Bungee",system-ui,sans-serif',
-              fontSize: 12, letterSpacing: '0.04em', borderRadius: 10, minHeight: 44,
-              background: 'transparent', color: TEAL,
-              border: `1.5px solid ${TEAL}`, cursor: 'pointer',
-              boxShadow: `0 0 14px rgba(48,184,178,0.18)`,
-              transition: 'box-shadow .15s' }}>
-            GO TO THE SALON  →
-          </button>
+          <SalonButton variant="turq" full onClick={() => navigate('/salon')}>
+            Go to the Salon  →
+          </SalonButton>
         )}
-
         {cardState === 'review' && (
-          <button onClick={handleGazette}
-            style={{ width: '100%', fontFamily: '"Bungee",system-ui,sans-serif',
-              fontSize: 12, letterSpacing: '0.04em', borderRadius: 10, minHeight: 44,
-              background: 'transparent', color: '#A2908C',
-              border: '1.5px solid rgba(162,144,140,0.5)', cursor: 'pointer' }}>
-            READ THE GAZETTE  →
-          </button>
+          <SalonButton variant="outline" full onClick={handleGazette}>
+            Read the Gazette  →
+          </SalonButton>
         )}
       </div>
     </div>

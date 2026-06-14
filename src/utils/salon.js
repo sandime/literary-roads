@@ -89,6 +89,26 @@ export async function postReply(salonId, cardId, { userId, userName, text }) {
   }).catch(() => {});
 }
 
+// ── Reviews (new magazine-style model) ───────────────────────────────────────
+export function subscribeToReviews(salonId, callback) {
+  if (!salonId) { callback([]); return () => {}; }
+  const q = query(
+    collection(db, 'salon', salonId, 'reviews'),
+    orderBy('submittedAt', 'desc'),
+  );
+  return onSnapshot(q, snap => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  }, () => callback([]));
+}
+
+export async function postReview(salonId, { userId, userName, rating, oneSentence, fullResponse = '' }) {
+  return addDoc(collection(db, 'salon', salonId, 'reviews'), {
+    userId, userName, rating, oneSentence, fullResponse,
+    isFeatured: false,
+    submittedAt: serverTimestamp(),
+  });
+}
+
 // ── Time helpers ──────────────────────────────────────────────────────────────
 export function computeEnrollment(period) {
   if (!period) return { joined: false, daysRemaining: 0, dayOf: 0, totalDays: 0 };
