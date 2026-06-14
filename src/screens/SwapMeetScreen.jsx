@@ -19,7 +19,6 @@ import {
 
 const BASE = import.meta.env.BASE_URL;
 const CAT_SRC = `${BASE}images/swapmeet-cat.png`;
-const WELCOME_KEY = 'lr_swap_welcomed';
 
 // Map Firestore book → SwapBook src prop
 const bookSrc = (b) => b?.coverURL || (b?.coverId ? coverUrl(b.coverId) : null);
@@ -855,12 +854,11 @@ export default function SwapMeetScreen({ onBack, onShowLogin, initialTab = 'tabl
   const { user } = useAuth();
   const [meet, setMeet]           = useState(undefined);
   const [tab, setTab]             = useState(initialTab);
-  const [showWelcome, setWelcome] = useState(() => !sessionStorage.getItem(WELCOME_KEY));
+  const [showWelcome, setWelcome] = useState(true);
 
   useEffect(() => subscribeToCurrentMeet(setMeet), []);
 
   const enterTab = (t) => {
-    sessionStorage.setItem(WELCOME_KEY, '1');
     setWelcome(false);
     setTab(t);
   };
