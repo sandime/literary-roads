@@ -1441,10 +1441,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [showInfoMenu, setShowInfoMenu] = useState(false);
   const infoMenuRef = useRef(null);
   const journeysMenuRef = useRef(null);
-  const [dcPillPos, setDcPillPos] = useState(null); // null = default CSS position
-  const [prPillPos, setPrPillPos] = useState(null); // null = default CSS position
-  const dcDragged = useRef(false);
-  const prDragged = useRef(false);
+  const [explorePillPos, setExplorePillPos] = useState(null); // null = default bottom-right position
+  const exploreDragged = useRef(false);
   const [pendingExploreTidbit, setPendingExploreTidbit] = useState(null); // triggers moveend tidbit
   const [nearMePos, setNearMePos] = useState(null); // null = default header position
   const [listeningMode, setListeningMode] = useState(false);
@@ -3178,7 +3176,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         }}
         style={{
           position: 'fixed',
-          top:   nearMePos ? nearMePos.top  : '0.6rem',
+          top:   nearMePos ? nearMePos.top  : '15rem',
           left:  nearMePos?.left != null ? nearMePos.left : undefined,
           right: nearMePos?.left != null ? undefined : '1rem',
           zIndex: 1001,
@@ -3527,15 +3525,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       ══════════════════════════════════════════════ */}
       {uiMode === 'stateSelect' && (
         <>
-          {/* D.C. button — draggable; too small to reliably click on the map */}
-          <button
-            onClick={() => { if (dcDragged.current) { dcDragged.current = false; return; } handleExploreDC(); }}
+          {/* D.C. + PR — one draggable box, defaults below Library Finder (bottom-right) */}
+          <div
             onMouseDown={(e) => {
               e.preventDefault();
-              dcDragged.current = false;
+              exploreDragged.current = false;
               const rect = e.currentTarget.getBoundingClientRect();
               const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
-              const onMove = (me) => { dcDragged.current = true; setDcPillPos({ top: me.clientY - offY, left: me.clientX - offX }); };
+              const onMove = (me) => {
+                exploreDragged.current = true;
+                setExplorePillPos({ top: me.clientY - offY, left: me.clientX - offX });
+              };
               const onUp = () => {
                 window.removeEventListener('mousemove', onMove);
                 window.removeEventListener('mouseup', onUp);
@@ -3544,11 +3544,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               window.addEventListener('mouseup', onUp);
             }}
             onTouchStart={(e) => {
-              dcDragged.current = false;
+              exploreDragged.current = false;
               const touch = e.touches[0];
               const rect = e.currentTarget.getBoundingClientRect();
               const offX = touch.clientX - rect.left, offY = touch.clientY - rect.top;
-              const onMove = (te) => { dcDragged.current = true; te.preventDefault(); const t = te.touches[0]; setDcPillPos({ top: t.clientY - offY, left: t.clientX - offX }); };
+              const onMove = (te) => {
+                exploreDragged.current = true;
+                te.preventDefault();
+                const t = te.touches[0];
+                setExplorePillPos({ top: t.clientY - offY, left: t.clientX - offX });
+              };
               const onEnd = () => {
                 window.removeEventListener('touchmove', onMove);
                 window.removeEventListener('touchend', onEnd);
@@ -3556,70 +3561,46 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               window.addEventListener('touchmove', onMove, { passive: false });
               window.addEventListener('touchend', onEnd);
             }}
-            className="font-bungee"
             style={{
               position: 'fixed',
-              top:   dcPillPos ? dcPillPos.top  : '4.5rem',
-              left:  dcPillPos ? dcPillPos.left : undefined,
-              right: dcPillPos ? undefined       : '1rem',
+              bottom: explorePillPos ? undefined : '5rem',
+              top:    explorePillPos ? explorePillPos.top  : undefined,
+              left:   explorePillPos ? explorePillPos.left : undefined,
+              right:  explorePillPos ? undefined           : '1rem',
               zIndex: 1002,
-              padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
-              border: '2px solid rgba(64,224,208,0.4)',
-              background: 'rgba(26,27,46,0.92)',
-              color: '#F5F5DC',
-              cursor: 'grab', backdropFilter: 'blur(4px)',
-              userSelect: 'none', touchAction: 'none',
+              display: 'flex', flexDirection: 'column', gap: 6,
+              cursor: 'grab', userSelect: 'none', touchAction: 'none',
             }}
           >
-            EXPLORE D.C.
-          </button>
-
-          {/* Puerto Rico button — draggable; off the main map */}
-          <button
-            onClick={() => { if (prDragged.current) { prDragged.current = false; return; } handleExplorePR(); }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              prDragged.current = false;
-              const rect = e.currentTarget.getBoundingClientRect();
-              const offX = e.clientX - rect.left, offY = e.clientY - rect.top;
-              const onMove = (me) => { prDragged.current = true; setPrPillPos({ top: me.clientY - offY, left: me.clientX - offX }); };
-              const onUp = () => {
-                window.removeEventListener('mousemove', onMove);
-                window.removeEventListener('mouseup', onUp);
-              };
-              window.addEventListener('mousemove', onMove);
-              window.addEventListener('mouseup', onUp);
-            }}
-            onTouchStart={(e) => {
-              prDragged.current = false;
-              const touch = e.touches[0];
-              const rect = e.currentTarget.getBoundingClientRect();
-              const offX = touch.clientX - rect.left, offY = touch.clientY - rect.top;
-              const onMove = (te) => { prDragged.current = true; te.preventDefault(); const t = te.touches[0]; setPrPillPos({ top: t.clientY - offY, left: t.clientX - offX }); };
-              const onEnd = () => {
-                window.removeEventListener('touchmove', onMove);
-                window.removeEventListener('touchend', onEnd);
-              };
-              window.addEventListener('touchmove', onMove, { passive: false });
-              window.addEventListener('touchend', onEnd);
-            }}
-            className="font-bungee"
-            style={{
-              position: 'fixed',
-              top:   prPillPos ? prPillPos.top  : '7rem',
-              left:  prPillPos ? prPillPos.left : undefined,
-              right: prPillPos ? undefined       : '1rem',
-              zIndex: 1002,
-              padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
-              border: '2px solid rgba(64,224,208,0.4)',
-              background: 'rgba(26,27,46,0.92)',
-              color: '#F5F5DC',
-              cursor: 'grab', backdropFilter: 'blur(4px)',
-              userSelect: 'none', touchAction: 'none',
-            }}
-          >
-            EXPLORE PR
-          </button>
+            <button
+              onClick={() => { if (!exploreDragged.current) handleExploreDC(); }}
+              className="font-bungee"
+              style={{
+                padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
+                border: '2px solid rgba(64,224,208,0.4)',
+                background: 'rgba(26,27,46,0.92)',
+                color: '#F5F5DC',
+                cursor: 'inherit', backdropFilter: 'blur(4px)',
+                userSelect: 'none',
+              }}
+            >
+              EXPLORE D.C.
+            </button>
+            <button
+              onClick={() => { if (!exploreDragged.current) handleExplorePR(); }}
+              className="font-bungee"
+              style={{
+                padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
+                border: '2px solid rgba(64,224,208,0.4)',
+                background: 'rgba(26,27,46,0.92)',
+                color: '#F5F5DC',
+                cursor: 'inherit', backdropFilter: 'blur(4px)',
+                userSelect: 'none',
+              }}
+            >
+              EXPLORE PR
+            </button>
+          </div>
 
           {/* Hovered state label */}
           {ssHovered && (

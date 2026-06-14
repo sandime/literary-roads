@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Salon — Full Scale · Literary Roads</title>
+<link rel="icon" href="assets/salon-cat.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; background: #0c2e31; }
+  * { box-sizing: border-box; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: rgba(48,184,178,0.35); border-radius: 6px; }
+  ::selection { background: #f66483; color: #15484C; }
+  input::placeholder, textarea::placeholder { color: rgba(255,248,231,0.4); font-style: italic; }
+  .page { min-height: 100vh; padding: 30px 20px 70px; font-family: "Space Grotesk", system-ui, sans-serif; color: #FFF8E7; }
+  .title { font-family: "Fraunces", serif; font-weight: 600; font-size: 30px; letter-spacing: -0.01em; color: #FFF8E7; text-align: center; margin: 0 0 6px; }
+  .title b { color: #f66483; }
+  .sub { text-align: center; font-size: 12px; letter-spacing: 0.04em; color: rgba(255,248,231,0.55); margin: 0 0 26px; }
+  .toolbar { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; margin: 0 0 32px; }
+  .toolbar button { cursor: pointer; font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; color: #30b8b2; border: 1.5px solid rgba(48,184,178,0.45); border-radius: 999px; padding: 8px 16px; }
+  .toolbar button.active { background: #f66483; color: #15484C; border-color: #f66483; }
+  .toolbar .seg { display: inline-flex; align-items: center; gap: 7px; color: rgba(255,248,231,0.55); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .toolbar input[type=range] { accent-color: #f66483; }
+  .stage { display: flex; flex-wrap: wrap; gap: 46px 34px; justify-content: center; align-items: flex-start; }
+  .card { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  .lbl { font-family: "Space Grotesk", sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 0.16em; color: #30b8b2; text-transform: uppercase; }
+  .phone { position: relative; background: #081f22; border-radius: 46px; padding: 12px; box-shadow: 0 28px 70px rgba(0,0,0,0.55), 0 0 0 1.5px rgba(48,184,178,0.22); flex-shrink: 0; }
+  .phone .screen { width: 390px; height: 844px; border-radius: 36px; overflow: hidden; position: relative; background: #15484C; }
+  .phone .notch { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 118px; height: 26px; background: #081f22; border-radius: 0 0 16px 16px; z-index: 50; }
+  .host { width: 390px; height: 844px; }
+  .cardwrap { background: #0c2e31; border-radius: 20px; padding: 30px; box-shadow: 0 22px 60px rgba(0,0,0,0.5); }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  @keyframes salonFloat { 0%,100%{transform:rotate(3.5deg) translateY(0)} 50%{transform:rotate(3.5deg) translateY(-5px)} }
+  @keyframes salonShadow { 0%,100%{transform:scale(1);opacity:.42} 50%{transform:scale(.82);opacity:.28} }
+  @keyframes salonGlow { 0%,100%{opacity:.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
+  @media (prefers-reduced-motion: reduce) { *{animation:none !important} }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="salon/salon-kit.jsx"></script>
+<script type="text/babel" src="salon/salon-screens.jsx"></script>
+<script type="text/babel" src="salon/salon-cards.jsx"></script>
+<script type="text/babel">
+const { useState } = React;
+const SCREENS = [
+  { id: 'entry',  label: 'Entry · the invitation', Comp: () => <SalonEntry /> },
+  { id: 'review', label: 'Review · the magazine',  Comp: () => <SalonReview /> },
+  { id: 'empty',  label: 'Empty · no reviews yet',  Comp: () => <SalonEmpty /> },
+];
+const CARDS = [
+  { id: 'pc-join',   label: 'Profile · not enrolled', render: () => <ProfileSalonCard state="join" /> },
+  { id: 'pc-enroll', label: 'Profile · enrolled',     render: () => <ProfileSalonCard state="enrolled" /> },
+  { id: 'pc-closed', label: 'Profile · closed',       render: () => <ProfileSalonCard state="closed" /> },
+  { id: 'gz',        label: 'Gazette card',           render: () => <GazetteSalonCard /> },
+];
+function Phone({ label, Comp, scale }) {
+  return (
+    <div className="card">
+      <div className="lbl">{label}</div>
+      <div className="phone" style={{ transform: `scale(${scale})`, transformOrigin: 'top center' }}>
+        <div className="notch"></div>
+        <div className="screen"><div className="host"><Comp /></div></div>
+      </div>
+    </div>
+  );
+}
+function App() {
+  const [filter, setFilter] = useState('all');
+  const [scale, setScale] = useState(0.82);
+  const showScreens = filter === 'all' || filter === 'screen';
+  const showCards = filter === 'all' || filter === 'card';
+  return (
+    <div className="page">
+      <h1 className="title">The <b>Salon</b> — full scale</h1>
+      <p className="sub">390×844 device views · live and interactive — tap to rate, expand a review, type in the composer</p>
+      <div className="toolbar">
+        <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>Everything</button>
+        <button className={filter === 'screen' ? 'active' : ''} onClick={() => setFilter('screen')}>Screens</button>
+        <button className={filter === 'card' ? 'active' : ''} onClick={() => setFilter('card')}>Cards</button>
+        <span className="seg">Zoom
+          <input type="range" min="0.5" max="1.1" step="0.05" value={scale} onChange={e => setScale(+e.target.value)} />
+          {Math.round(scale * 100)}%</span>
+      </div>
+      {showScreens && <div className="stage" style={{ marginBottom: showCards ? 60 : 0 }}>
+        {SCREENS.map(s => <Phone key={s.id} label={s.label} Comp={s.Comp} scale={scale} />)}
+      </div>}
+      {showCards && <div className="stage">
+        {CARDS.map(c => (
+          <div key={c.id} className="card">
+            <div className="lbl">{c.label}</div>
+            <div className="cardwrap" style={{ transform: `scale(${Math.min(1.05, scale + 0.15)})`, transformOrigin: 'top center' }}>{c.render()}</div>
+          </div>
+        ))}
+      </div>}
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
