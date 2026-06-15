@@ -7,6 +7,8 @@ import {
   updateProfile,
   signOut,
   getAdditionalUserInfo,
+  setPersistence,
+  browserLocalPersistence,
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../config/firebase';
@@ -34,6 +36,10 @@ async function assignAccountNumber(userId, extraFields = {}) {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    setPersistence(auth, browserLocalPersistence).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
