@@ -3184,20 +3184,20 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           color: '#1A1B2E',
           border: 'none',
           borderRadius: 9999,
-          padding: '8px 16px',
+          padding: '5px 11px',
           fontFamily: 'Bungee, sans-serif',
-          fontSize: 14,
-          letterSpacing: '0.04em',
+          fontSize: 10,
+          letterSpacing: '0.08em',
           cursor: 'grab',
           display: 'flex',
           alignItems: 'center',
-          gap: 8,
+          gap: 5,
           boxShadow: '0 2px 12px rgba(255,78,0,0.4)',
           userSelect: 'none',
           touchAction: 'none',
         }}
       >
-        <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg style={{ width: 11, height: 11, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
@@ -3216,19 +3216,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           color: '#F5F5DC',
           border: 'none',
           borderRadius: 9999,
-          padding: '8px 14px',
+          padding: '5px 11px',
           fontFamily: 'Bungee, sans-serif',
-          fontSize: 12,
-          letterSpacing: '0.05em',
+          fontSize: 10,
+          letterSpacing: '0.08em',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: 7,
+          gap: 5,
           boxShadow: '0 2px 12px rgba(0,107,107,0.45)',
         }}
         title="Library Finder"
       >
-        <LibraryIcon size={15} />
+        <LibraryIcon size={11} />
         LIBRARY FINDER
       </button>
 
