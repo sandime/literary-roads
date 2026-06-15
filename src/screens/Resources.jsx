@@ -12,7 +12,7 @@ import { subscribeToActiveSalon } from '../utils/salon';
 import { getRandomFortune } from '../data/literaryFortunes.js';
 
 const BASE     = import.meta.env.BASE_URL;
-const HS_KEY   = 'highwaySnacks.open.v1';
+const HS_KEY   = 'highwaySnacks.open.v2';
 const MAX_FAV  = 5;
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -1164,7 +1164,7 @@ export default function Resources({ onBack }) {
       const s = JSON.parse(localStorage.getItem(HS_KEY));
       if (Array.isArray(s)) return new Set(s);
     } catch {}
-    return new Set([1]);
+    return new Set();
   });
   useEffect(() => {
     localStorage.setItem(HS_KEY, JSON.stringify([...open]));
@@ -1275,7 +1275,7 @@ export default function Resources({ onBack }) {
                 filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.5))' }} />
           </div>
 
-          <div style={{ paddingTop: 'clamp(34px, 11vw, 58px)' }}>
+          <div className="hs-radiocat-wrap" style={{ paddingTop: 'clamp(34px, 11vw, 58px)' }}>
             <div style={{ fontFamily: 'var(--hs-mono)', fontSize: 11, letterSpacing: '0.34em', textTransform: 'uppercase', color: HS.cyan, marginBottom: 12, opacity: 0.8 }}>
               ✦ Literary Roads presents
             </div>

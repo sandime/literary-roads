@@ -253,6 +253,26 @@
 .hs-headchip { display: none; }
 @media (min-width: 620px) { .hs-headchip { display: inline-block !important; } }
 
+/* Radio-cat: flows above neon sign on mobile, absolute top-right on desktop */
+.hs-radiocat {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  width: clamp(120px, 45vw, 180px) !important;
+  margin: 0 auto 10px !important;
+}
+.hs-radiocat-wrap { padding-top: 0 !important; }
+@media (min-width: 640px) {
+  .hs-radiocat {
+    position: absolute !important;
+    top: -6px !important;
+    right: -6px !important;
+    width: clamp(108px, 30vw, 176px) !important;
+    margin: 0 !important;
+  }
+  .hs-radiocat-wrap { padding-top: clamp(34px, 11vw, 58px) !important; }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .hs-neon, .hs-neon-word, .hs-float, .hs-spin, .hs-twinkle,
