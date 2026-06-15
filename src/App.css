@@ -259,7 +259,7 @@
   top: auto !important;
   right: auto !important;
   width: clamp(120px, 45vw, 180px) !important;
-  margin: 0 auto 10px !important;
+  margin: 0 0 10px auto !important;
 }
 .hs-radiocat-wrap { padding-top: 0 !important; }
 @media (min-width: 640px) {
