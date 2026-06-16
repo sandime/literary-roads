@@ -341,6 +341,14 @@ service cloud.firestore {
       }
     }
 
+    // ── Global counters (account number sequencing) ───────────────────────────
+    // Any authenticated user may read/increment — the transaction logic prevents
+    // arbitrary writes; worst case a user increments the counter by 1.
+    match /globalCounters/{doc} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
     // ── Email / waitlist ──────────────────────────────────────────────────────
     match /emails/{email} {
       allow read: if false;

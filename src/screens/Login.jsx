@@ -131,7 +131,7 @@ function CapsWarning({ on }) {
 
 // ── Field ─────────────────────────────────────────────────────────────────────
 function Field({ label, type = 'text', value, onChange, placeholder, autoFocus,
-                 rightElement, fieldError, hint, onBlur, onKeyDown }) {
+                 rightElement, fieldError, hint, onBlur, onKeyDown, onKeyUp }) {
   const [focus, setFocus] = useState(false);
   const hasErr = !!fieldError;
   return (
@@ -156,6 +156,7 @@ function Field({ label, type = 'text', value, onChange, placeholder, autoFocus,
           onFocus={() => setFocus(true)}
           onBlur={e => { setFocus(false); onBlur?.(e); }}
           onKeyDown={onKeyDown}
+          onKeyUp={onKeyUp}
           style={rightElement ? { paddingRight: 38 } : undefined}
         />
         {rightElement && (
@@ -680,6 +681,8 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
                     value={password} onChange={setPassword}
                     placeholder={isReg ? 'Choose a passphrase' : 'Your secret route'}
                     onKeyDown={handleCapsKey}
+                    onKeyUp={handleCapsKey}
+                    onBlur={() => setCapsLock(false)}
                     rightElement={<EyeBtn shown={showPw} onToggle={() => setShowPw(s => !s)} />}
                     hint={
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -711,6 +714,8 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
                     value={confirmPw} onChange={setConfirmPw}
                     placeholder="Confirm passphrase"
                     onKeyDown={handleCapsKey}
+                    onKeyUp={handleCapsKey}
+                    onBlur={() => setCapsLock(false)}
                     rightElement={<EyeBtn shown={showConfirmPw} onToggle={() => setShowConfirmPw(s => !s)} />}
                     hint={<MatchIndicator password={password} confirm={confirmPw} />}
                   />

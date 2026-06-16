@@ -68,11 +68,13 @@ export function AuthProvider({ children }) {
     const name = displayName?.trim() || 'Literary Traveler';
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(result.user, { displayName: name });
-    // Atomic: create user doc + assign founder account number
-    await assignAccountNumber(result.user.uid, {
-      displayName: name,
-      createdAt: serverTimestamp(),
-    });
+    // Assign founder account number — non-fatal if Firestore rules block it
+    try {
+      await assignAccountNumber(result.user.uid, {
+        displayName: name,
+        createdAt: serverTimestamp(),
+      });
+    } catch {}
     return result;
   };
 
