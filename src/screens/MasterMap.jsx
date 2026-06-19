@@ -3116,6 +3116,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             onHome={handleGoHome}
             onSearch={() => setShowSearch(v => !v)}
             onNearMe={handleNearMe}
+            onLibraryFinder={() => navigate('/library-finder')}
             onMyTrips={() => setShowRoadTrip(true)}
             onLibrary={onShowLibrary}
             onResources={onShowResources}
@@ -3204,13 +3205,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         NEAR ME
       </button>
 
-      {/* Library Finder toggle */}
+      {/* Library Finder toggle — desktop only (left side); mobile is in hamburger */}
       <button
         onClick={() => navigate('/library-finder')}
+        className="hidden md:flex"
         style={{
           position: 'fixed',
           bottom: '5rem',
-          right: '1rem',
+          left: '1rem',
           zIndex: 1001,
           background: '#006B6B',
           color: '#F5F5DC',
@@ -3221,7 +3223,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           fontSize: 10,
           letterSpacing: '0.08em',
           cursor: 'pointer',
-          display: 'flex',
           alignItems: 'center',
           gap: 5,
           boxShadow: '0 2px 12px rgba(0,107,107,0.45)',

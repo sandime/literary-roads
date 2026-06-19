@@ -26,7 +26,7 @@ import {
 const HamburgerDrawer = ({
   onClose,
   // EXPLORE
-  onHome, onSearch, onNearMe,
+  onHome, onSearch, onNearMe, onLibraryFinder,
   // GLOVE BOX
   onMyTrips, onLibrary, onResources, onBadges,
   tripItems = [],
@@ -112,6 +112,10 @@ const HamburgerDrawer = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>,
             'NEAR ME'
+          )}
+          {onLibraryFinder && navBtn(onLibraryFinder,
+            <LibraryIcon size={20} className="flex-shrink-0" />,
+            'LIBRARY FINDER'
           )}
 
           {/* ── GLOVE BOX ── */}
