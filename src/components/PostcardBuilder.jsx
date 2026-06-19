@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
 import { BackArrowIcon } from './Icons';
+import PostcardCanvas from './PostcardCanvas';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -854,11 +855,7 @@ function Step2({ book, onNext, onBack, onClose }) {
         </button>
         {gpsError && <p className="font-special-elite" style={{ color: '#c0392b', fontSize: 12, marginBottom: 10 }}>{gpsError}</p>}
 
-        {stateCode && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 14 }}>
-            <StampPreview stateCode={stateCode} stateName={selectedState?.name || stateCode} size={80} />
-          </div>
-        )}
+        {stateCode && <div style={{ marginBottom: 14 }} />}
 
         {/* Message */}
         <label className="font-bungee" style={labelStyle}>YOUR MESSAGE</label>
@@ -948,15 +945,32 @@ function Step2({ book, onNext, onBack, onClose }) {
 }
 
 function Step3({ data, onBack, saving, saved, onClose }) {
+  const canvasRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [previewEnlarged, setPreviewEnlarged] = useState(false);
+
+  const canvasData = {
+    direction: data.direction || 'A',
+    state: data.state,
+    code: data.stateCode,
+    nickname: data.nickname || '',
+    title: data.bookTitle,
+    author: data.bookAuthor,
+    message: data.message,
+    sign: data.authorName,
+    vibes: (data.vibeTags || []).map(t => t.toUpperCase()),
+    tags: data.hashtags || [],
+    date: data.dateStr || '',
+    no: String(data.cardNumber || 1).padStart(4, '0'),
+  };
 
   const caption = [data.message, ...(data.hashtags || [])].join(' ');
 
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const canvas = await downloadPostcardImage(data);
+      const canvas = canvasRef.current;
+      if (!canvas) return;
       const link = document.createElement('a');
       link.download = `literary-roads-postcard.png`;
       link.href = canvas.toDataURL('image/png');
@@ -968,7 +982,8 @@ function Step3({ data, onBack, saving, saved, onClose }) {
 
   const handleNativeShare = async () => {
     try {
-      const canvas = await downloadPostcardImage(data);
+      const canvas = canvasRef.current;
+      if (!canvas) { await handleDownload(); return; }
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
       const file = new File([blob], 'literary-roads-postcard.png', { type: 'image/png' });
       if (navigator.canShare?.({ files: [file] })) {
@@ -1019,25 +1034,18 @@ function Step3({ data, onBack, saving, saved, onClose }) {
       <StepHeader step={3} title="PREVIEW & SHARE" onClose={onClose} />
 
       {/* Preview */}
-      <div style={{ width: '100%', marginBottom: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div onClick={() => setPreviewEnlarged(v => !v)}
-          style={{ cursor: 'pointer', overflowX: previewEnlarged ? 'auto' : 'hidden',
-            width: '100%', display: 'flex', justifyContent: 'center',
-            transition: 'height 0.25s ease' }}>
-          <div style={{
-            transform: previewEnlarged ? 'scale(0.85)' : 'scale(0.5)',
-            transformOrigin: 'top center',
-            height: previewEnlarged ? 350 : 200,
-            transition: 'transform 0.25s ease, height 0.25s ease',
-            pointerEvents: 'none',
-          }}>
-            <PostcardFront data={data} scale={1} />
-          </div>
+      <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 4 }}>
+        <div style={previewEnlarged
+          ? { width: '100%', maxHeight: 520, overflow: 'auto', borderRadius: 6, cursor: 'default' }
+          : { width: 360, height: 450, overflow: 'hidden', cursor: 'pointer', borderRadius: 6 }}
+          onClick={previewEnlarged ? undefined : () => setPreviewEnlarged(true)}>
+          <PostcardCanvas ref={canvasRef} data={canvasData}
+            style={{ transformOrigin: 'top left', transform: `scale(${previewEnlarged ? 0.48 : 0.333})`, transition: 'transform 0.25s ease', display: 'block' }}
+          />
         </div>
         <button onClick={() => setPreviewEnlarged(v => !v)} className="font-bungee"
-          style={{ background: 'none', border: 'none', color: PB.muted, fontSize: 9,
-            letterSpacing: '0.08em', cursor: 'pointer', marginBottom: 12, padding: '2px 0' }}>
-          {previewEnlarged ? 'SHRINK PREVIEW' : 'ENLARGE PREVIEW'}
+          style={{ background: 'none', border: 'none', color: PB.muted, fontSize: 9, letterSpacing: '0.08em', cursor: 'pointer', padding: '4px 0' }}>
+          {previewEnlarged ? 'SHRINK' : 'ENLARGE'}
         </button>
       </div>
 
@@ -1179,16 +1187,34 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // A/B alternation persisted across sessions
+  const [direction] = useState(() => {
+    const n = parseInt(localStorage.getItem('lr-postcard-count') || '0', 10);
+    return (isNaN(n) ? 0 : n) % 2 === 0 ? 'A' : 'B';
+  });
+  const directionIncrementedRef = useRef(false);
+  useEffect(() => {
+    if (step === 3 && !directionIncrementedRef.current) {
+      directionIncrementedRef.current = true;
+      const n = parseInt(localStorage.getItem('lr-postcard-count') || '0', 10);
+      localStorage.setItem('lr-postcard-count', String((isNaN(n) ? 0 : n) + 1));
+    }
+  }, [step]);
+
   const postcardData = bookData && stepData ? {
     bookTitle: bookData.title,
     bookAuthor: bookData.author,
     bookCover: bookData.coverURL || null,
     state: stepData.state,
     stateCode: stepData.stateCode,
+    nickname: (() => { const s = STATES.find(x => x.code === stepData.stateCode); return s?.nickname || ''; })(),
     message: stepData.message,
     vibeTags: stepData.vibeTags,
     hashtags: stepData.hashtags,
     authorName: stepData.authorName || 'A Literary Traveler',
+    direction,
+    dateStr: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: '2-digit' }).replace(', ', ' · ').replace(' ', ' · '),
+    cardNumber: Math.floor(Math.random() * 9000) + 1000,
   } : null;
 
   // Save the book entry once all data is ready and step 3 is showing
