@@ -340,11 +340,18 @@ function pill(ctx, x, y, label, mode, color) {
 function pillRow(ctx, x, y, vibes, mode) {
   const cols = [BP.cyan, BP.pink, BP.orange];
   const colsB = [BP.mustard, BP.teal, BP.pink];
-  let cx = x;
-  vibes.slice(0, 3).forEach((v, i) => {
-    const w = pill(ctx, cx, y, v, mode, (mode === 'neon' ? cols : colsB)[i % 3]);
-    cx += w + 14;
+  const palette = mode === 'neon' ? cols : colsB;
+  const maxX = 1056;
+  const gap = 14, rowH = 58;
+  ctx.font = '700 19px "Space Grotesk"';
+  let cx = x, cy = y;
+  vibes.forEach((v, i) => {
+    const pillW = ctx.measureText(v).width + 52;
+    if (cx + pillW > maxX && cx > x) { cx = x; cy += rowH; }
+    pill(ctx, cx, cy, v, mode, palette[i % palette.length]);
+    cx += pillW + gap;
   });
+  return cy + 42; // bottom of last pill row
 }
 
 // ── Stamp ────────────────────────────────────────────────────────────────────────
@@ -458,13 +465,17 @@ function drawCardA(ctx, d, icon) {
   // signature
   my += 18;
   ctx.fillStyle = BP.cream; ctx.font = 'italic 27px Fraunces';
-  const sigPre = '— Yours, between miles, ';
-  ctx.fillText(sigPre, 470, my);
-  const sigX = 470 + ctx.measureText(sigPre).width;
-  ctx.save();
-  ctx.fillStyle = BP.cyan; ctx.shadowColor = BP.cyan; ctx.shadowBlur = 10;
-  ctx.font = '700 30px Fraunces'; ctx.fillText(d.sign, sigX, my + 1);
-  ctx.restore();
+  if (d.signOff) {
+    ctx.fillText('— ' + d.signOff, 470, my);
+  } else {
+    const sigPre = '— Yours, between miles, ';
+    ctx.fillText(sigPre, 470, my);
+    const sigX = 470 + ctx.measureText(sigPre).width;
+    ctx.save();
+    ctx.fillStyle = BP.cyan; ctx.shadowColor = BP.cyan; ctx.shadowBlur = 10;
+    ctx.font = '700 30px Fraunces'; ctx.fillText(d.sign, sigX, my + 1);
+    ctx.restore();
+  }
   // title plate
   ctx.fillStyle = BP.creamHi; ctx.font = '700 40px Fraunces';
   const tl = wrap(ctx, d.title, 360); let tty = 1000;
@@ -472,12 +483,14 @@ function drawCardA(ctx, d, icon) {
   ctx.fillStyle = BP.toast; ctx.font = 'italic 23px Fraunces';
   ctx.fillText('by ' + d.author, 92, tty + 6);
   // pills
-  pillRow(ctx, 470, 978, d.vibes, 'neon');
-  // hashtags
+  const pillsEndA = pillRow(ctx, 470, 978, d.vibes, 'neon');
+  // hashtags — fixed at bottom, below roundel/posted block
   ctx.fillStyle = BP.cyan; ctx.globalAlpha = 0.9;
-  ctx.font = '500 19px "Space Grotesk"';
-  ctx.fillText(d.tags.join('  '), 470, 1090);
-  ctx.globalAlpha = 1;
+  ctx.font = '500 17px "Space Grotesk"';
+  ctx.textAlign = 'center';
+  ctx.fillText(d.tags.join('  '), 540, 1318);
+  ctx.textAlign = 'left'; ctx.globalAlpha = 1;
+  void pillsEndA;
   // roundel
   roundel(ctx, 150, 1212, 66, { disc: BP.navy, ring: BP.cream, mono: BP.cyan, star: BP.pink, glow: BP.cyan });
   // posted block
@@ -532,15 +545,22 @@ function drawCardB(ctx, d, icon) {
   let my = 694;
   for (const ln of ml) { ctx.fillText(ln, 540, my); my += 42; }
   my += 10; ctx.font = 'italic 25px Fraunces';
-  ctx.fillStyle = BP.ink; ctx.fillText('— Yours,', 540, my);
-  ctx.fillStyle = BP.terra; ctx.font = '700 26px Fraunces';
-  ctx.fillText(d.sign, 628, my);
+  if (d.signOff) {
+    ctx.fillStyle = BP.ink; ctx.fillText('— ' + d.signOff, 540, my);
+  } else {
+    ctx.fillStyle = BP.ink; ctx.fillText('— Yours,', 540, my);
+    ctx.fillStyle = BP.terra; ctx.font = '700 26px Fraunces';
+    ctx.fillText(d.sign, 628, my);
+  }
   ctx.restore();
   // pills
-  pillRow(ctx, 506, 968, d.vibes, 'solid');
-  // hashtags
-  ctx.fillStyle = BP.sub; ctx.font = '500 19px "Space Grotesk"';
-  ctx.fillText(d.tags.join('  '), 506, 1066);
+  const pillsEndB = pillRow(ctx, 506, 968, d.vibes, 'solid');
+  // hashtags — fixed at bottom, below roundel/posted block
+  ctx.fillStyle = BP.sub; ctx.font = '500 17px "Space Grotesk"';
+  ctx.textAlign = 'center';
+  ctx.fillText(d.tags.join('  '), 540, 1318);
+  ctx.textAlign = 'left';
+  void pillsEndB;
   // roundel
   roundel(ctx, 152, 1218, 64, { disc: BP.ink, ring: BP.ink, mono: BP.creamHi, star: BP.pink, glow: null });
   // posted

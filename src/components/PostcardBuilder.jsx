@@ -790,6 +790,7 @@ function Step2({ book, onNext, onBack, onClose }) {
   const [gpsError, setGpsError] = useState('');
   const [message, setMessage] = useState('');
   const [authorName, setAuthorName] = useState(user?.displayName || '');
+  const [signOff, setSignOff] = useState('');
   const [vibeTags, setVibeTags] = useState([]);
   const [bookType, setBookType] = useState('fiction');
   const [hashtags, setHashtags] = useState(() => {
@@ -908,9 +909,16 @@ function Step2({ book, onNext, onBack, onClose }) {
         </div>
 
         {/* Signature */}
-        <label className="font-bungee" style={labelStyle}>SIGN YOUR POSTCARD</label>
+        <label className="font-bungee" style={labelStyle}>YOUR NAME</label>
         <input value={authorName} onChange={e => setAuthorName(e.target.value)}
           placeholder="Your name or pen name"
+          style={{ ...inputStyle, marginBottom: 8 }}
+          onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+          onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+        />
+        <label className="font-bungee" style={labelStyle}>CUSTOM SIGN-OFF <span style={{ fontWeight: 400, fontSize: 9, color: PB.muted }}>OPTIONAL</span></label>
+        <input value={signOff} onChange={e => setSignOff(e.target.value)}
+          placeholder="Yours between the miles (default)"
           style={{ ...inputStyle, marginBottom: 14 }}
           onFocus={e => e.currentTarget.style.borderColor = PB.coral}
           onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
@@ -938,6 +946,7 @@ function Step2({ book, onNext, onBack, onClose }) {
           bookType,
           hashtags: hashtags.trim().split(/\s+/).filter(h => h.startsWith('#')),
           authorName: authorName.trim() || 'A Literary Traveler',
+          signOff: signOff.trim(),
         })}
         nextDisabled={!canNext} onClose={onClose} />
     </div>
@@ -958,6 +967,7 @@ function Step3({ data, onBack, saving, saved, onClose }) {
     author: data.bookAuthor,
     message: data.message,
     sign: data.authorName,
+    signOff: data.signOff || '',
     vibes: (data.vibeTags || []).map(t => t.toUpperCase()),
     tags: data.hashtags || [],
     date: data.dateStr || '',
@@ -1212,6 +1222,7 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
     vibeTags: stepData.vibeTags,
     hashtags: stepData.hashtags,
     authorName: stepData.authorName || 'A Literary Traveler',
+    signOff: stepData.signOff || '',
     direction,
     dateStr: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: '2-digit' }).replace(', ', ' · ').replace(' ', ' · '),
     cardNumber: Math.floor(Math.random() * 9000) + 1000,
