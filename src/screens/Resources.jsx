@@ -248,7 +248,7 @@ function Reveal({ open, children }) {
 }
 
 // ── Section ───────────────────────────────────────────────────────────────────
-function Section({ index, label, sub, accent = HS.cyan, icon, open, onToggle, children }) {
+function Section({ index, label, sub, accent = HS.cyan, icon, open, onToggle, onSubClick, children }) {
   const bodyRef = useRef(null);
   const [h, setH] = useState(open ? 'auto' : 0);
 
@@ -294,11 +294,16 @@ function Section({ index, label, sub, accent = HS.cyan, icon, open, onToggle, ch
             fontSize: 20, letterSpacing: '0.04em', color: HS.cream,
             textShadow: `0 0 1px ${accent}`,
           }}>{label}</span>
-          {sub && <span style={{
-            display: 'block', fontFamily: 'var(--hs-mono)', fontSize: 10.5,
-            letterSpacing: '0.16em', textTransform: 'uppercase',
-            color: HS.muted, marginTop: 3,
-          }}>{sub}</span>}
+          {sub && <span
+            onClick={onSubClick ? (e) => { e.stopPropagation(); onSubClick(); } : undefined}
+            style={{
+              display: 'block', fontFamily: 'var(--hs-mono)', fontSize: 10.5,
+              letterSpacing: '0.16em', textTransform: 'uppercase',
+              color: onSubClick ? accent : HS.muted, marginTop: 3,
+              cursor: onSubClick ? 'pointer' : 'default',
+              textDecoration: onSubClick ? 'underline' : 'none',
+              textDecorationColor: onSubClick ? `${accent}66` : undefined,
+            }}>{sub}</span>}
         </span>
 
         {icon}
@@ -417,7 +422,7 @@ function PerforatedTicket({ fortune, book, n }) {
   );
 }
 
-function FortuneBooth({ user }) {
+function FortuneBooth({ user, autoTrigger = 0 }) {
   const [ticket,    setTicket]    = useState(null);
   const [n,         setN]         = useState(1284);
   const [pulling,   setPulling]   = useState(false);
@@ -469,6 +474,10 @@ function FortuneBooth({ user }) {
       setSave('saved');
     } catch { setSave('error'); }
   };
+
+  const pullRef = useRef(pull);
+  pullRef.current = pull;
+  useEffect(() => { if (autoTrigger > 0) pullRef.current(); }, [autoTrigger]);
 
   return (
     <div>
@@ -807,9 +816,13 @@ function Newsstand({ guides, activeSalon, navigate }) {
               {published.length} guide{published.length !== 1 ? 's' : ''} available
             </span>
             {activeSalon && (
-              <span style={{ fontFamily: 'var(--hs-sans)', fontWeight: 700, fontSize: 11, color: '#C9A84C', letterSpacing: '0.04em' }}>
+              <button onClick={() => navigate('/salon')} style={{
+                fontFamily: 'var(--hs-sans)', fontWeight: 700, fontSize: 11, color: '#C9A84C',
+                letterSpacing: '0.04em', background: 'none', border: 'none', cursor: 'pointer',
+                padding: 0, textDecoration: 'underline', textDecorationColor: '#C9A84C66',
+              }}>
                 The Salon is open &rarr;
-              </span>
+              </button>
             )}
           </div>
         </div>
@@ -1174,6 +1187,8 @@ export default function Resources({ onBack }) {
     n.has(i) ? n.delete(i) : n.add(i);
     return n;
   });
+  const openSection = (i) => setOpen(prev => prev.has(i) ? prev : new Set([...prev, i]));
+  const [fortuneTrigger, setFortuneTrigger] = useState(0);
 
   // Data
   const [guides,      setGuides]      = useState([]);
@@ -1270,9 +1285,19 @@ export default function Resources({ onBack }) {
                 Stark knows things. <span style={{ color: HS.pink }}>Allegedly.</span>
               </SpeechBubble>
             </div>
-            <img src={`${BASE}images/radio-cat.png`} alt="Literary Roads Radio cat at the mic"
-              className="hs-float" style={{ width: '100%', height: 'auto', display: 'block',
-                filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.5))' }} />
+            <button onClick={() => navigate('/goodies')} title="DJ Cat's Goodies" style={{
+              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+              display: 'block', width: '100%',
+            }}>
+              <img src={`${BASE}images/radio-cat.png`} alt="DJ Cat — click for Goodies"
+                className="hs-float" style={{ width: '100%', height: 'auto', display: 'block',
+                  filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.5))',
+                  transition: 'filter 0.2s ease',
+                }}
+                onMouseEnter={e => e.currentTarget.style.filter = 'drop-shadow(0 10px 18px rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(244,199,64,0.5))'}
+                onMouseLeave={e => e.currentTarget.style.filter = 'drop-shadow(0 10px 18px rgba(0,0,0,0.5))'}
+              />
+            </button>
           </div>
 
           <div className="hs-radiocat-wrap" style={{ paddingTop: 'clamp(34px, 11vw, 58px)' }}>
@@ -1294,8 +1319,9 @@ export default function Resources({ onBack }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <Section index={1} label="Surprise Me" sub="Stark's fortune booth"
             accent={HS.orange} open={open.has(1)} onToggle={() => toggle(1)}
+            onSubClick={() => { openSection(1); setFortuneTrigger(n => n + 1); }}
             icon={<HeadChip color={HS.orange} label="Press ▸" />}>
-            <FortuneBooth user={user} />
+            <FortuneBooth user={user} autoTrigger={fortuneTrigger} />
           </Section>
 
           <Section index={2} label="Literary Roads Newsstand" sub="The Gazette + guides"
