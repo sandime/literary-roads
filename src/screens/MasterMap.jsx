@@ -12,7 +12,7 @@ import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
 import { searchFirestore, searchMapbox, searchGooglePlaces, getCategoryType } from '../utils/placeSearch';
 import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute, distributeAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
-import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear, getGhostTownsNear, getGhostTownsAlongRoute, getUfoLocationsNear, getUfoLocationsAlongRoute } from '../utils/firebaseLandmarks';
+import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
@@ -1755,7 +1755,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   // Spread co-located markers across types so they don't hide each other.
   // Groups any two markers within ~60 m of each other and fans them out ~30 m apart.
   const spreadMap = useMemo(() => {
-    const TYPES = new Set(['landmark','festival','drivein','ghostTown','ufoLocation','bookstore','cafe']);
+    const TYPES = new Set(['landmark','festival','drivein','bookstore','cafe']);
     const markers = visibleLocations.filter(l => TYPES.has(l.type));
     const THRESHOLD = 0.0006; // ~60 m
     const RADIUS    = 0.00028; // ~30 m
@@ -2286,16 +2286,14 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSearchTarget({ center: [DC_LAT, DC_LNG], zoom: 13 });
     setLoading(true);
     try {
-      const [places, nearFestivals, nearDriveIns, nearCurated, nearGhostTowns, nearUfo] = await Promise.all([
+      const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
         searchNearbyPlaces(DC_LAT, DC_LNG, 10),
         getLiteraryFestivalsNear(DC_LAT, DC_LNG, 10),
         getDriveInsNear(DC_LAT, DC_LNG, 10),
         getCuratedLandmarks([[DC_LAT, DC_LNG]], 10),
-        getGhostTownsNear(DC_LAT, DC_LNG, 75),
-        getUfoLocationsNear(DC_LAT, DC_LNG, 200),
       ]);
       const seenIds = new Set();
-      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearGhostTowns, ...nearUfo]
+      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
       setVisibleLocations(combined);
     } catch (err) {
@@ -2414,18 +2412,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const [places, nearFestivals, nearDriveIns, nearCurated, nearGhostTowns, nearUfo] = await Promise.all([
+        const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 15),
           getLiteraryFestivalsNear(latitude, longitude, 15),
           getDriveInsNear(latitude, longitude, 15),
           getCuratedLandmarks([[latitude, longitude]], 15),
-          getGhostTownsNear(latitude, longitude, 75),
-          getUfoLocationsNear(latitude, longitude, 200),
         ]);
 
         // Deduplicate by id in case any location appears in multiple sources
         const seenIds = new Set();
-        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearGhostTowns, ...nearUfo]
+        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
           .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
         setSearchTarget({ center: [latitude, longitude], zoom: 12 });
@@ -2507,12 +2503,10 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       // ── Phase 1: bookstores, cafes, drive-ins, literary landmarks ──────────
       // Note: no separate destPlaces call — route sampling already covers the endpoint,
       // and distributeAlongRoute guarantees ≥3 bookstores + cafes near the destination.
-      const [places, curatedLandmarks, driveIns, ghostTowns, ufoLocations] = await Promise.all([
+      const [places, curatedLandmarks, driveIns] = await Promise.all([
         searchAlongRoute(routePoints),
         getCuratedLandmarks(allTripPoints, 20),
         getDriveInsAlongRoute(allTripPoints, 20),
-        getGhostTownsAlongRoute(routePoints, 30),
-        getUfoLocationsAlongRoute(routePoints, 75),
       ]);
 
       const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2531,7 +2525,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       const festivals = await getLiteraryFestivalsAlongRoute(allTripPoints, 100);
       const allRaw = [];
-      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...ghostTowns, ...ufoLocations, ...festivals, ...places]);
+      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...festivals, ...places]);
 
       // Apply geographic thinning across all types so pins spread evenly along the
       // route rather than bunching at start/end, then guarantee destination coverage.
@@ -2601,17 +2595,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setShowSearch(false);
 
       const { lat, lng } = place;
-      const [nearby, nearFestivals, nearDriveIns, nearCurated, nearGhostTowns, nearUfo] = await Promise.all([
+      const [nearby, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
         searchNearbyPlacesTiered(lat, lng),
         Promise.resolve(getLiteraryFestivalsNear(lat, lng, 15)),
         getDriveInsNear(lat, lng, 15),
         getCuratedLandmarks([[lat, lng]], 15),
-        getGhostTownsNear(lat, lng, 75),
-        getUfoLocationsNear(lat, lng, 200),
       ]);
 
       const seenIds = new Set();
-      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearGhostTowns, ...nearUfo]
+      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
       setVisibleLocations(combined);
@@ -3402,32 +3394,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             ))
           }
 
-          {/* Ghost town markers — not clustered (sparse by nature) */}
-          {visibleLocations
-            .filter(l => l.type === 'ghostTown')
-            .map(location => (
-              <Marker
-                key={location.id}
-                position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                icon={createCustomIcon('ghostTown', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Ghost Town`)}
-                eventHandlers={{ click: () => setSelectedLocation(location) }}
-              />
-            ))
-          }
-
-          {/* UFO location markers — not clustered (one per state/territory) */}
-          {visibleLocations
-            .filter(l => l.type === 'ufoLocation')
-            .map(location => (
-              <Marker
-                key={location.id}
-                position={spreadMap[location.id] ?? [location.lat, location.lng]}
-                icon={createCustomIcon('ufoLocation', false, false, `${location.name}${location.city ? ', ' + location.city : ''} — UFO Location`)}
-                eventHandlers={{ click: () => setSelectedLocation(location) }}
-              />
-            ))
-          }
-
           {/* Car check-in badges — rendered above location pins */}
           {Object.entries(locationCars).map(([locationId, cars]) => {
             if (!cars.length) return null;
@@ -4090,15 +4056,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {selectedLocation.type === 'festival' && (
                   <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#B044FB', borderColor: '#B044FB' }}>BOOK FESTIVAL</span>
                 )}
-                {selectedLocation.type === 'ghostTown' && (
-                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#F5F5DC', borderColor: '#F5F5DC' }}>GHOST TOWN</span>
-                )}
-                {selectedLocation.type === 'ufoLocation' && (
-                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#FFED29', borderColor: '#FFED29' }}>UFO LOCATION</span>
-                )}
-                {selectedLocation.type === 'ufoLocation' && selectedLocation.incidentType && (
-                  <span className="font-bungee text-[10px] px-2 py-0.5 rounded-full" style={{ background: '#FFED29', color: '#1A1B2E' }}>{selectedLocation.incidentType.toUpperCase()}</span>
-                )}
                 {starburstIds.has(selectedLocation.id) && (
                   <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
                 )}
@@ -4179,12 +4136,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     </svg>
                     <span>
                       {selectedLocation.address && <span>{selectedLocation.address}<br /></span>}
-                      {/* Ghost towns omit state here — their description already includes it */}
-                      {selectedLocation.type === 'ghostTown' || selectedLocation.type === 'ufoLocation'
-                        ? selectedLocation.city || ''
-                        : selectedLocation.city && selectedLocation.state
-                          ? `${selectedLocation.city}, ${selectedLocation.state}`
-                          : selectedLocation.city || selectedLocation.state || ''}
+                      {selectedLocation.city && selectedLocation.state
+                        ? `${selectedLocation.city}, ${selectedLocation.state}`
+                        : selectedLocation.city || selectedLocation.state || ''}
                     </span>
                   </div>
                 )}
@@ -4197,28 +4151,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     <a href={`tel:${selectedLocation.phone}`} className="hover:text-starlight-turquoise transition-colors">
                       {selectedLocation.phone}
                     </a>
-                  </div>
-                )}
-
-                {/* Ghost-town-specific fields */}
-                {selectedLocation.type === 'ghostTown' && selectedLocation.historicalNotes && (
-                  <div className="font-special-elite text-sm text-chrome-silver mb-2" style={{ lineHeight: 1.5 }}>
-                    <span className="font-bungee text-[9px] text-paper-white/60 tracking-widest uppercase block mb-1">Historical Notes</span>
-                    {selectedLocation.historicalNotes}
-                  </div>
-                )}
-                {selectedLocation.type === 'ghostTown' && selectedLocation.bestTimeToVisit && (
-                  <div className="font-special-elite text-sm text-chrome-silver mb-2">
-                    <span className="font-bungee text-[9px] text-paper-white/60 tracking-widest uppercase">Best time to visit: </span>
-                    {selectedLocation.bestTimeToVisit}
-                  </div>
-                )}
-
-                {/* UFO-location-specific fields */}
-                {selectedLocation.type === 'ufoLocation' && selectedLocation.paranormalNotes && (
-                  <div className="font-special-elite text-sm text-chrome-silver mb-2" style={{ lineHeight: 1.5 }}>
-                    <span className="font-bungee text-[9px] tracking-widest uppercase block mb-1" style={{ color: '#FFED29', opacity: 0.75 }}>Paranormal Notes</span>
-                    {selectedLocation.paranormalNotes}
                   </div>
                 )}
 
@@ -4246,8 +4178,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                       {selectedLocation.type === 'festival' ? 'Visit Festival Website' :
                        selectedLocation.source === 'ALA' ? 'View on ALA Literary Landmarks' :
                        selectedLocation.type === 'drivein' ? 'Visit Website' :
-                       selectedLocation.type === 'ghostTown' ? 'Learn More' :
-                       selectedLocation.type === 'ufoLocation' ? 'Learn More' :
                        selectedLocation.website ? 'Visit Website' : 'Read more on Wikipedia'}
                     </span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
