@@ -3934,7 +3934,22 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {/* Route Info — shown when a freshly plotted route has no saved route info and no My Stops */}
       {!loadedRoute && route.length > 0 && !selectedLocation && activeTripStops.length === 0 && currentRouteStops.length === 0 && (
         <div style={{ position: 'fixed', left: 16, right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)', zIndex: 1000, display: 'flex', justifyContent: 'center' }}>
-          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-1.5 md:py-3 rounded-lg">
+          <div className="bg-midnight-navy/90 border-2 border-atomic-orange px-3 md:px-6 py-2 md:py-3 rounded-lg w-full max-w-lg">
+            {/* Save / Clear — mobile only (desktop uses the navbar buttons) */}
+            <div className="flex gap-2 mb-2 md:hidden">
+              <button
+                onClick={() => { if (user) { setSaveRouteError(''); setShowSaveRouteModal(true); } else { onShowLogin(); } }}
+                className="flex-1 font-bungee text-xs py-2 rounded-lg border border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy transition-colors"
+              >
+                SAVE ROUTE
+              </button>
+              <button
+                onClick={handleClearRoute}
+                className="flex-1 font-bungee text-xs py-2 rounded-lg border border-atomic-orange/70 text-atomic-orange hover:bg-atomic-orange hover:text-midnight-navy transition-colors"
+              >
+                CLEAR ROUTE
+              </button>
+            </div>
             <p className="text-paper-white font-special-elite text-[10px] md:text-sm text-center">
               <span className="text-[#FFD700]">tap a stop then ➕ ADD TO ROUTE to plan navigation</span>
             </p>
