@@ -103,11 +103,12 @@ export async function searchFirestore(q, centerLat, centerLng) {
   if (!q || q.trim().length < 2) return [];
 
   const dist = (item) => haversine(centerLat, centerLng, item.lat ?? 0, item.lng ?? 0);
-  const toResult = (i, type) => ({
-    ...i, type, source: 'firestore',
-    address: i.address || [i.city, i.state].filter(Boolean).join(', ') || '',
-    coords:  [i.lat, i.lng],
-  });
+  const toResult = (i, type) => {
+    const street    = i.address || '';
+    const cityState = [i.city, i.state].filter(Boolean).join(', ');
+    const address   = street && cityState ? `${street}, ${cityState}` : street || cityState || '';
+    return { ...i, type, source: 'firestore', address, coords: [i.lat, i.lng] };
+  };
 
   // ── Category mode ────────────────────────────────────────────────────────
   const categoryType = getCategoryType(q);
