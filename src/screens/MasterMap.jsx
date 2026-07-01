@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import 'leaflet/dist/leaflet.css';
 import 'react-leaflet-cluster/lib/assets/MarkerCluster.css';
@@ -857,6 +857,12 @@ const createConvoyIcon = (count, animating = false) => {
     iconSize: [42, 42],
     iconAnchor: [21, 80],
   });
+};
+
+// Closes the location shelf when the user clicks on the map background
+const MapClickHandler = ({ onMapClick }) => {
+  useMapEvents({ click: onMapClick });
+  return null;
 };
 
 // Smoothly pans/zooms the map to a search result without re-mounting the MapContainer
@@ -3247,6 +3253,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <FitBoundsController target={fitTarget} />
           <MapPositionTracker routeStateRef={routeStateRef} onMove={setMapCenter} />
           <UiModeController uiMode={uiMode} />
+          <MapClickHandler onMapClick={() => setSelectedLocation(null)} />
 
           {/* Author tidbit trapezoid — shown after 600ms hover or on Explore DC/PR click */}
           {tidbitState && (
