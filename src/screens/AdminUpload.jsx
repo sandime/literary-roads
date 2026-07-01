@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch, setDoc, updateDoc, where } from 'firebase/firestore';
@@ -493,6 +493,16 @@ const deleteCollection = async (colName, onProgress) => {
 export default function AdminUpload() {
   const { user } = useAuth();
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    const root = document.getElementById('root');
+    document.body.style.overflow = 'auto';
+    if (root) { root.style.overflow = 'auto'; root.style.height = 'auto'; }
+    return () => {
+      document.body.style.overflow = '';
+      if (root) { root.style.overflow = ''; root.style.height = ''; }
+    };
+  }, []);
 
   const [selectedKey, setSelectedKey]     = useState('bookstores');
   const [uploadMode, setUploadMode]       = useState('geojson'); // 'geojson' | 'csv' | 'manual'
