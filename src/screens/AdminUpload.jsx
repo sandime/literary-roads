@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
-import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch, setDoc, updateDoc, where } from 'firebase/firestore';
 import { geocodeNominatim } from '../utils/nominatimGeocoding';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -515,6 +515,13 @@ export default function AdminUpload() {
   const [current, setCurrent]             = useState('');
   const [errorMsg, setErrorMsg]           = useState('');
 
+  // Remove Location (soft-delete)
+  const [removeCol, setRemoveCol]         = useState('bookstores');
+  const [removeQuery, setRemoveQuery]     = useState('');
+  const [removeResults, setRemoveResults] = useState(null); // null = not searched
+  const [removeSearching, setRemoveSearching] = useState(false);
+  const [removeMsg, setRemoveMsg]         = useState('');
+
   const config    = COLLECTIONS[selectedKey];
   const hasPreset = config.presetFiles.length > 0;
   const busy      = phase === 'loading' || phase === 'uploading';
@@ -849,6 +856,40 @@ export default function AdminUpload() {
     (uploadMode === 'csv' ? csvRows.length > 0 : (hasPreset && usePreset || uploadedFiles.length > 0));
 
   const hasReasons = Object.keys(stats.excludeReasons).length > 0;
+
+  const handleRemoveSearch = async () => {
+    if (!removeQuery.trim()) return;
+    setRemoveSearching(true);
+    setRemoveMsg('');
+    setRemoveResults(null);
+    try {
+      const snap = await getDocs(collection(db, removeCol));
+      const q = removeQuery.toLowerCase();
+      const hits = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(d => (d.name || '').toLowerCase().includes(q) || (d.city || '').toLowerCase().includes(q))
+        .slice(0, 20);
+      setRemoveResults(hits);
+      if (!hits.length) setRemoveMsg('No matching locations found.');
+    } catch (err) {
+      setRemoveMsg(`Error: ${err.message}`);
+    }
+    setRemoveSearching(false);
+  };
+
+  const handleSoftDelete = async (locationId, currentDeleted) => {
+    try {
+      await updateDoc(doc(db, removeCol, locationId), currentDeleted
+        ? { deleted: false, deletedAt: null }
+        : { deleted: true, deletedAt: serverTimestamp() }
+      );
+      setRemoveResults(prev => prev.map(r =>
+        r.id === locationId ? { ...r, deleted: !currentDeleted } : r
+      ));
+    } catch (err) {
+      setRemoveMsg(`Error: ${err.message}`);
+    }
+  };
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -1392,6 +1433,76 @@ export default function AdminUpload() {
         <p className="font-special-elite text-chrome-silver/40 text-xs text-center mt-3">
           Filters · deduplicates · writes to Firestore <code>{selectedKey}</code> collection
         </p>
+      </div>
+
+      {/* ── REMOVE LOCATION (soft-delete) ─────────────────────────────────── */}
+      <div className="w-full max-w-2xl mt-10 border border-atomic-orange/30 rounded-xl p-6">
+        <h2 className="font-bungee text-atomic-orange text-sm tracking-widest mb-4">REMOVE LOCATION</h2>
+        <p className="font-special-elite text-chrome-silver/60 text-xs mb-4">
+          Marks a location as deleted — it disappears from the map and searches but is not destroyed in Firestore.
+        </p>
+
+        <div className="flex flex-col gap-3 mb-4">
+          <select
+            value={removeCol}
+            onChange={e => { setRemoveCol(e.target.value); setRemoveResults(null); setRemoveMsg(''); }}
+            className="bg-midnight-navy border border-chrome-silver/30 text-paper-white font-special-elite text-sm px-3 py-2 rounded-lg"
+          >
+            {Object.entries(COLLECTIONS).map(([k, v]) => (
+              <option key={k} value={k}>{v.icon} {v.label}</option>
+            ))}
+          </select>
+
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search by name or city…"
+              value={removeQuery}
+              onChange={e => setRemoveQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleRemoveSearch()}
+              className="flex-1 bg-midnight-navy border border-chrome-silver/30 text-paper-white font-special-elite text-sm px-3 py-2 rounded-lg placeholder-chrome-silver/30"
+            />
+            <button
+              onClick={handleRemoveSearch}
+              disabled={removeSearching || !removeQuery.trim()}
+              className="font-bungee text-xs px-4 py-2 rounded-lg border border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-midnight-navy transition-colors disabled:opacity-40"
+            >
+              {removeSearching ? 'SEARCHING…' : 'SEARCH'}
+            </button>
+          </div>
+        </div>
+
+        {removeMsg && (
+          <p className="font-special-elite text-chrome-silver/50 text-xs mb-3">{removeMsg}</p>
+        )}
+
+        {removeResults !== null && removeResults.length > 0 && (
+          <ul className="flex flex-col gap-2">
+            {removeResults.map(r => (
+              <li key={r.id} className={`flex items-start justify-between gap-3 p-3 rounded-lg border ${r.deleted ? 'border-chrome-silver/10 opacity-50' : 'border-chrome-silver/20'}`}>
+                <div className="min-w-0 flex-1">
+                  <p className={`font-special-elite text-sm ${r.deleted ? 'line-through text-chrome-silver/50' : 'text-paper-white'}`}>{r.name}</p>
+                  <p className="font-bungee text-[9px] text-chrome-silver/40 tracking-wider mt-0.5">
+                    {[r.city, r.state].filter(Boolean).join(', ')} &middot; {r.id}
+                  </p>
+                  {r.deleted && (
+                    <p className="font-bungee text-[9px] text-atomic-orange/60 tracking-wider mt-0.5">DELETED</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleSoftDelete(r.id, r.deleted)}
+                  className={`flex-shrink-0 font-bungee text-[10px] px-3 py-1 rounded border transition-colors ${
+                    r.deleted
+                      ? 'border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
+                      : 'border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-midnight-navy'
+                  }`}
+                >
+                  {r.deleted ? 'RESTORE' : 'REMOVE'}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

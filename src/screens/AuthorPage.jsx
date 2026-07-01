@@ -136,7 +136,7 @@ export default function AuthorPage() {
       .then(snap => {
         const nearby = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
-          .filter(l => typeof l.lat === 'number' && typeof l.lng === 'number')
+          .filter(l => !l.deleted && typeof l.lat === 'number' && typeof l.lng === 'number')
           .map(l => ({ ...l, dist: haversine(sLat, sLng, l.lat, l.lng) }))
           .filter(l => l.dist <= 200)
           .sort((a, b) => a.dist - b.dist)

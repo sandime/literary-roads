@@ -78,7 +78,7 @@ async function cachedFetch(key, fn) {
 
 async function fetchAll(col) {
   const snap = await getDocs(collection(db, col));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.deleted);
 }
 
 // For large collections: lat bounding box around map center, then haversine filter
@@ -92,7 +92,7 @@ async function fetchNearby(col, type, centerLat, centerLng, radiusMiles = 150) {
   const snap = await getDocs(q);
   return snap.docs
     .map(d => ({ id: d.id, type, ...d.data() }))
-    .filter(d => d.lat && d.lng && haversine(centerLat, centerLng, d.lat, d.lng) <= radiusMiles);
+    .filter(d => !d.deleted && d.lat && d.lng && haversine(centerLat, centerLng, d.lat, d.lng) <= radiusMiles);
 }
 
 // ── TIER 1: Firestore ──────────────────────────────────────────────────────

@@ -62,6 +62,7 @@ const searchLibraries = async (lat, lng, radiusMiles) => {
   return snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
     .filter(lib =>
+      !lib.deleted &&
       lib.lat && lib.lng &&
       Math.abs(lib.lng - lng) <= lngDelta &&
       haversine(lat, lng, lib.lat, lib.lng) <= radiusMiles

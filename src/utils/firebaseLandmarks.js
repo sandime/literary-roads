@@ -26,6 +26,7 @@ export const getCuratedLandmarks = async (routePoints, radiusMiles = 25) => {
     const allLandmarks = [];
     snapshot.forEach((doc) => {
       const data = doc.data();
+      if (data.deleted) return;
       // Skip docs without valid coordinates (failed geocoding)
       if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
       // Preserve the original source field (e.g. 'ALA') so The Shelf can attribute correctly
@@ -62,6 +63,7 @@ const fetchAllDriveIns = async () => {
   const all = [];
   snapshot.forEach((doc) => {
     const data = doc.data();
+    if (data.deleted) return;
     if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
     all.push({ id: doc.id, ...data, type: 'drivein' });
   });
@@ -111,6 +113,7 @@ const fetchAllGhostTowns = async () => {
   const all = [];
   snapshot.forEach((doc) => {
     const data = doc.data();
+    if (data.deleted) return;
     if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
     if (data.active === false) return;
     all.push({
@@ -179,6 +182,7 @@ const fetchAllUfoLocations = async () => {
   const all = [];
   snapshot.forEach((doc) => {
     const data = doc.data();
+    if (data.deleted) return;
     if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
     if (data.active === false) return;
     all.push({
@@ -252,6 +256,7 @@ const _fetchCollection = async (colName, type) => {
   const all = [];
   snap.forEach(doc => {
     const d = doc.data();
+    if (d.deleted) return;
     if (typeof d.lat !== 'number' || typeof d.lng !== 'number') return;
     all.push({ id: doc.id, ...d, type });
   });

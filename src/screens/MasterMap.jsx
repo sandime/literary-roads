@@ -17,7 +17,7 @@ import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../uti
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
-import { subscribeSavedStops, saveStop, unsaveStop } from '../utils/savedStops';
+import { subscribeSavedStops, saveStop, unsaveStop, checkSavedStopsValidity } from '../utils/savedStops';
 import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
 import { checkAndAwardBadges, subscribeToUserBadges } from '../utils/badgeChecker';
 import { ADMIN_UID } from '../utils/newsletterAdmin';
@@ -1442,6 +1442,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const mobileMenuRef = useRef(null);     // mobile profile container
   const [shelfSnap, setShelfSnap] = useState('half'); // mobile: 'mini'|'half'|'full'
   const [shelfDeskMinimized, setShelfDeskMinimized] = useState(false);
+  const [locationDeleted, setLocationDeleted] = useState(false);
   const shelfRef = useRef(null);
   const shelfDragRef = useRef(null);
   const [showInfoMenu, setShowInfoMenu] = useState(false);
@@ -1552,7 +1553,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       (async () => {
         try {
           const snap = await getDoc(doc(db, 'literary_landmarks', landmarkId));
-          if (snap.exists()) {
+          if (snap.exists() && !snap.data().deleted) {
             const landmark = { id: snap.id, ...snap.data(), type: 'landmark' };
             setSelectedLocation(landmark);
             setFitTarget({ center: [landmark.lat, landmark.lng], zoom: 14 });
@@ -1571,7 +1572,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       (async () => {
         try {
           const snap = await getDoc(doc(db, 'bookstores', bookstoreId));
-          if (snap.exists()) {
+          if (snap.exists() && !snap.data().deleted) {
             const bookstore = { id: snap.id, ...snap.data(), type: 'bookstore' };
             setVisibleLocations(prev =>
               prev.some(l => l.id === bookstore.id) ? prev : [...prev, bookstore]
@@ -1618,7 +1619,35 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   useEffect(() => { setShowSearch(false); }, [location.pathname]);
 
   // Reset shelf tab and transient state whenever a new location is opened
-  useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); }, [selectedLocation?.id]);
+  useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); setLocationDeleted(false); }, [selectedLocation?.id]);
+
+  // Stale-pin guard: check if the tapped location has since been soft-deleted
+  useEffect(() => {
+    if (!selectedLocation?.id) return;
+    const TYPE_TO_COL = {
+      landmark:    'literary_landmarks',
+      bookstore:   'bookstores',
+      cafe:        'coffeeShops',
+      drivein:     'driveIns',
+      festival:    'literaryFestivals',
+      library:     'libraries',
+      museum:      'museums',
+      restaurant:  'restaurants',
+      park:        'parks',
+      historicSite:'historicSites',
+      artGallery:  'artGalleries',
+      observatory: 'observatories',
+      aquarium:    'aquariums',
+      theater:     'theaters',
+      ghostTown:   'ghostTowns',
+      ufoLocation: 'ufoLocations',
+    };
+    const col = TYPE_TO_COL[selectedLocation.type];
+    if (!col) return;
+    getDoc(doc(db, col, selectedLocation.id))
+      .then(snap => { if (snap.exists() && snap.data().deleted) setLocationDeleted(true); })
+      .catch(() => {});
+  }, [selectedLocation?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Focus the shelf when a location opens (screen reader accessibility)
   useEffect(() => {
@@ -1868,10 +1897,13 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     return subscribeToUserBadges(user.uid, setEarnedBadgeData);
   }, [user]);
 
-  // Saved stops (permanent bookmarks): stream from Firestore
+  // Saved stops (permanent bookmarks): stream from Firestore, then check for soft-deleted sources
   useEffect(() => {
     if (!user) { setSavedStops([]); return; }
-    return subscribeSavedStops(user.uid, setSavedStops);
+    return subscribeSavedStops(user.uid, (stops) => {
+      setSavedStops(stops);
+      checkSavedStopsValidity(stops).then(setSavedStops).catch(() => {});
+    });
   }, [user]);
 
   // Active swap meet — show pulsing map marker when open
@@ -4087,8 +4119,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </h2>
             </div>
 
+            {/* Deleted location notice — shown instead of all content when soft-deleted */}
+            {locationDeleted && (
+              <div className="my-4 px-3 py-3 rounded-lg border border-chrome-silver/20 bg-white/5 text-center">
+                <p className="font-special-elite text-chrome-silver/60 text-sm">This location is no longer available.</p>
+              </div>
+            )}
+
             {/* Audio narration — landmarks only */}
-            {selectedLocation.type === 'landmark' && (
+            {!locationDeleted && selectedLocation.type === 'landmark' && (
               <div className="mb-2">
                 <AudioNarrative location={selectedLocation} />
               </div>
@@ -4106,7 +4145,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             )}
 
             {/* Tab bar — bookstores & cafes only */}
-            {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
+            {!locationDeleted && (selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && (
               <div className="flex gap-1 mb-4 border-b border-white/10 pb-0">
                 {[
                   { id: 'info', label: 'INFO' },
@@ -4134,7 +4173,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             )}
 
             {/* Tab: Info (or full content for landmarks + festivals) */}
-            {(selectedLocation.type === 'landmark' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
+            {!locationDeleted && (selectedLocation.type === 'landmark' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
               <div>
                 {/* Pit stop rating for bookstores, cafes, driveins — only mounted when info tab is active */}
                 {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe' || selectedLocation.type === 'drivein') && (

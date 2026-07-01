@@ -1,8 +1,27 @@
 import { db } from '../config/firebase';
 import {
-  collection, setDoc, deleteDoc, doc,
+  collection, setDoc, deleteDoc, doc, getDoc,
   onSnapshot, query, orderBy, serverTimestamp,
 } from 'firebase/firestore';
+
+const TYPE_TO_COL = {
+  landmark:     'literary_landmarks',
+  bookstore:    'bookstores',
+  cafe:         'coffeeShops',
+  drivein:      'driveIns',
+  festival:     'literaryFestivals',
+  library:      'libraries',
+  museum:       'museums',
+  restaurant:   'restaurants',
+  park:         'parks',
+  historicSite: 'historicSites',
+  artGallery:   'artGalleries',
+  observatory:  'observatories',
+  aquarium:     'aquariums',
+  theater:      'theaters',
+  ghostTown:    'ghostTowns',
+  ufoLocation:  'ufoLocations',
+};
 
 // Firestore collection: users/{userId}/savedStops/{docId}
 // Requires rule: allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -36,3 +55,21 @@ export const saveStop = (userId, location) =>
 
 export const unsaveStop = (userId, locationId) =>
   deleteDoc(doc(db, 'users', userId, 'savedStops', sanitizeId(locationId)));
+
+// Returns a parallel-checked copy of stops with `unavailable: true` on any that
+// have been soft-deleted in their source collection.
+export const checkSavedStopsValidity = async (stops) => {
+  const checks = await Promise.all(
+    stops.map(async (stop) => {
+      const col = TYPE_TO_COL[stop.type];
+      if (!col || !stop.stopId) return stop;
+      try {
+        const snap = await getDoc(doc(db, col, stop.stopId));
+        return snap.exists() && snap.data().deleted ? { ...stop, unavailable: true } : stop;
+      } catch {
+        return stop;
+      }
+    })
+  );
+  return checks;
+};

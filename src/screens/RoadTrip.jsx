@@ -170,10 +170,23 @@ const RoadTrip = ({ items, onRemove, onClearAll, onClose, onSelectStop, savedRou
                     SAVED PLACES ({savedStops.length})
                   </p>
                   {savedStops.map((item) => (
-                    <StopCard key={item.id} item={item} onSelect={onSelectStop}
-                      onRemove={() => onRemoveSaved?.(item.id)}
-                      onShare={onShareSaved ? () => onShareSaved(item) : undefined}
-                      badgeColor="starlight-turquoise" badge="★" />
+                    item.unavailable ? (
+                      <div key={item.id} className="flex items-center justify-between gap-2 py-2 px-1 opacity-40">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-special-elite text-chrome-silver text-sm truncate line-through">{item.name}</p>
+                          <p className="font-bungee text-[9px] text-chrome-silver/60 tracking-widest uppercase mt-0.5">No longer available</p>
+                        </div>
+                        <button onClick={() => onRemoveSaved?.(item.id)}
+                          className="flex-shrink-0 text-chrome-silver/40 hover:text-atomic-orange transition-colors text-lg leading-none px-1"
+                          title="Remove from saved places"
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <StopCard key={item.id} item={item} onSelect={onSelectStop}
+                        onRemove={() => onRemoveSaved?.(item.id)}
+                        onShare={onShareSaved ? () => onShareSaved(item) : undefined}
+                        badgeColor="starlight-turquoise" badge="★" />
+                    )
                   ))}
                 </>
               )}

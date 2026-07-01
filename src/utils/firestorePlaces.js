@@ -45,7 +45,7 @@ export const getNearbyBookstores = async (lat, lng, radiusMiles = 5) => {
       const snap = await getDocs(q);
       return snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .filter(b => !b.deleted && b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
         .sort((a, b) => haversine(lat, lng, a.lat, a.lng) - haversine(lat, lng, b.lat, b.lng))
         .map(b => ({
           id:          b.id,
@@ -82,7 +82,7 @@ export const getNearbyCoffeeShops = async (lat, lng, radiusMiles = 5) => {
       const snap = await getDocs(q);
       return snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .filter(b => !b.deleted && b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
         .sort((a, b) => haversine(lat, lng, a.lat, a.lng) - haversine(lat, lng, b.lat, b.lng))
         .map(b => ({
           id:          b.id,
@@ -119,7 +119,7 @@ const makeNearby = (collectionName, type, description, cachePrefix) =>
         const snap = await getDocs(q);
         return snap.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+          .filter(b => !b.deleted && b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
           .map(b => ({
             id:          b.id,
             name:        b.name,
@@ -157,7 +157,7 @@ export const getNearbyRestaurants = async (lat, lng, radiusMiles = 5) => {
       const snap = await getDocs(q);
       return snap.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(b => b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
+        .filter(b => !b.deleted && b.lat && b.lng && haversine(lat, lng, b.lat, b.lng) <= radiusMiles)
         .map(b => ({
           id:          b.id,
           name:        b.name,
