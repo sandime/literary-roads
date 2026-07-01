@@ -3,6 +3,9 @@ dist/
 .env
 service-account.json
 serviceAccount.json
+serviceAccountKey.json
+scripts/serviceAccountKey.json
+scripts/.env.local
 .env.local
 .env.*.local
 
