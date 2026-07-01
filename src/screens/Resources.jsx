@@ -692,13 +692,6 @@ function Newsstand({ guides, activeSalon, navigate }) {
   const [sel, setSel] = useState(null);
 
   const selectedItem =
-    sel === 'gazette' ? {
-      title: 'The Literary Roads Gazette',
-      accent: HS.orange,
-      blurb: 'The weekly dispatch from the road — book picks, community news, and detours worth taking.',
-      action: () => navigate('/newspaper/current'),
-      actionLabel: 'Read now',
-    } :
     sel ? (() => {
       const it = rackItems.find(r => r.id === sel);
       if (!it) return null;
@@ -731,13 +724,11 @@ function Newsstand({ guides, activeSalon, navigate }) {
 
       <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
         {/* Gazette card */}
-        <button onClick={() => setSel(sel === 'gazette' ? null : 'gazette')} className="hs-gazette"
-          aria-pressed={sel === 'gazette'} style={{
+        <button onClick={() => navigate('/newspaper/current')} className="hs-gazette"
+          style={{
           textAlign: 'left', cursor: 'pointer', padding: 14, borderRadius: 10,
           background: HS.cream, color: HS.ink, border: `2px solid ${HS.ink}`,
-          boxShadow: sel === 'gazette'
-            ? `0 14px 28px rgba(0,0,0,.5), 0 0 0 2px ${HS.orange}`
-            : '0 10px 22px rgba(0,0,0,.4)',
+          boxShadow: '0 10px 22px rgba(0,0,0,.4)',
           transition: 'box-shadow 200ms',
         }}>
           <div style={{
