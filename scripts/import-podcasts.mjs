@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 // Literary Podcasts importer
 // Reads literary-podcasts.json and upserts each entry into Firestore.
+// Uses firebase-admin (Admin SDK) — bypasses security rules entirely.
+//
+// One-time setup:
+//   1. Firebase Console → Project Settings → Service Accounts → Generate New Key
+//   2. Save the downloaded file as:  scripts/serviceAccountKey.json
 //
 // Usage:
 //   node scripts/import-podcasts.mjs                    → dry run, prints what would be uploaded
@@ -8,12 +13,13 @@
 //   node scripts/import-podcasts.mjs --upload --sync    → upsert all entries AND delete any Firestore
 //                                                          docs whose ID is not in the JSON
 
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = join(__dirname, 'literary-podcasts.json');
+const KEY_FILE  = join(__dirname, 'serviceAccountKey.json');
 
 // ── Load + validate JSON ───────────────────────────────────────────────────
 function loadPodcasts() {
@@ -22,7 +28,6 @@ function loadPodcasts() {
     raw = readFileSync(DATA_FILE, 'utf8');
   } catch {
     console.error(`✗ Cannot read ${DATA_FILE}`);
-    console.error('  Make sure literary-podcasts.json exists in the scripts/ directory.');
     process.exit(1);
   }
 
@@ -30,7 +35,7 @@ function loadPodcasts() {
   try {
     podcasts = JSON.parse(raw);
   } catch (e) {
-    console.error(`✗ Invalid JSON in literary-podcasts.json: ${e.message}`);
+    console.error(`✗ Invalid JSON: ${e.message}`);
     process.exit(1);
   }
 
@@ -39,7 +44,6 @@ function loadPodcasts() {
     process.exit(1);
   }
 
-  // Validate required fields
   const errors = [];
   podcasts.forEach((p, i) => {
     if (!p.id)    errors.push(`  [${i}] missing "id"`);
@@ -54,54 +58,58 @@ function loadPodcasts() {
   return podcasts;
 }
 
-// ── Firestore upload ───────────────────────────────────────────────────────
+// ── Firestore upload (Admin SDK) ───────────────────────────────────────────
 async function uploadToFirestore(podcasts, sync = false) {
-  const { initializeApp, getApps } = await import('firebase/app');
-  const { getFirestore, collection, setDoc, deleteDoc, getDocs, doc, serverTimestamp } = await import('firebase/firestore');
+  if (!existsSync(KEY_FILE)) {
+    console.error('✗ Service account key not found at:');
+    console.error(`    ${KEY_FILE}`);
+    console.error('');
+    console.error('  To generate one:');
+    console.error('  1. Go to https://console.firebase.google.com');
+    console.error('  2. Project Settings → Service Accounts → Generate New Key');
+    console.error('  3. Save the downloaded file as scripts/serviceAccountKey.json');
+    process.exit(1);
+  }
 
-  const app = getApps().length
-    ? getApps()[0]
-    : initializeApp({
-        apiKey:            'AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE',
-        authDomain:        'the-literary-roads.firebaseapp.com',
-        projectId:         'the-literary-roads',
-        storageBucket:     'the-literary-roads.firebasestorage.app',
-        messagingSenderId: '305145573086',
-        appId:             '1:305145573086:web:206ec464384fe149c45c4f',
-      });
+  const admin = (await import('firebase-admin')).default;
 
-  const db     = getFirestore(app);
-  const colRef = collection(db, 'literary_podcasts');
+  if (!admin.apps.length) {
+    const serviceAccount = JSON.parse(readFileSync(KEY_FILE, 'utf8'));
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+  }
 
-  // ── Delete removed entries first (--sync mode) ────────────────────────────
+  const db     = admin.firestore();
+  const colRef = db.collection('literary_podcasts');
+
+  // ── Delete orphaned docs (--sync mode) ────────────────────────────────────
   if (sync) {
+    console.log('Checking for removed entries…');
     const jsonIds  = new Set(podcasts.map(p => p.id));
-    const existing = await getDocs(colRef);
+    const existing = await colRef.get();
     let deleted = 0;
     for (const d of existing.docs) {
       if (!jsonIds.has(d.id)) {
-        await deleteDoc(d.ref);
+        await d.ref.delete();
         console.log(`  🗑  deleted: ${d.data().title || d.id}`);
         deleted++;
       }
     }
-    if (deleted === 0) console.log('  (no orphaned docs to delete)');
-    console.log('');
+    console.log(deleted === 0 ? '  (no orphaned docs)\n' : '');
   }
 
-  // ── Upsert all entries ────────────────────────────────────────────────────
+  // ── Upsert all entries ─────────────────────────────────────────────────────
   let uploaded = 0, failed = 0;
 
   for (const podcast of podcasts) {
-    // Strip empty rssUrl so Firestore doesn't store blank strings
     const data = { ...podcast };
     if (!data.rssUrl) delete data.rssUrl;
 
     try {
-      // setDoc with the podcast id as document ID — safe to re-run (upsert)
-      await setDoc(doc(colRef, podcast.id), {
+      await colRef.doc(podcast.id).set({
         ...data,
-        updatedAt: serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       console.log(`  ✓ ${podcast.title}`);
       uploaded++;
@@ -112,8 +120,7 @@ async function uploadToFirestore(podcasts, sync = false) {
   }
 
   console.log(`\nDone: ${uploaded} upserted, ${failed} errors`);
-  if (failed === 0) console.log('Collection: literary_podcasts');
-  process.exit(0);
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 // ── Dry run preview ────────────────────────────────────────────────────────
@@ -123,13 +130,13 @@ function dryRun(podcasts) {
     console.log(`  ${i + 1}. [${p.id}]`);
     console.log(`     Title : ${p.title}`);
     console.log(`     Host  : ${p.host}`);
-    console.log(`     Tags  : ${(p.tags || []).join(', ')}`);
+    console.log(`     Active: ${p.active}`);
     console.log(`     URL   : ${p.url}`);
     console.log('');
   });
   console.log(`── Total: ${podcasts.length} podcasts ──`);
   console.log('\nTo upload, run:');
-  console.log('  node scripts/import-podcasts.mjs --upload');
+  console.log('  node scripts/import-podcasts.mjs --upload --sync');
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
@@ -137,7 +144,7 @@ const podcasts = loadPodcasts();
 
 if (process.argv.includes('--upload')) {
   const sync = process.argv.includes('--sync');
-  console.log(`Uploading ${podcasts.length} podcasts to Firestore (literary_podcasts)${sync ? ' [sync mode — will delete removed entries]' : ''}…\n`);
+  console.log(`Uploading ${podcasts.length} podcasts to Firestore${sync ? ' [sync — will delete removed]' : ''}…\n`);
   uploadToFirestore(podcasts, sync).catch(err => { console.error(err); process.exit(1); });
 } else {
   dryRun(podcasts);
