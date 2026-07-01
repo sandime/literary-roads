@@ -93,10 +93,11 @@ async function fetchSurpriseBook(genre, usedIds) {
       const item = items[Math.floor(Math.random() * items.length)];
       const v    = item.volumeInfo;
       return {
-        id:       `g_${item.id}`,
-        title:    v.title           || 'Unknown',
-        author:   v.authors?.[0]    || 'Unknown',
-        coverURL: v.imageLinks.thumbnail.replace('http:', 'https:'),
+        id:          `g_${item.id}`,
+        title:       v.title           || 'Unknown',
+        author:      v.authors?.[0]    || 'Unknown',
+        coverURL:    v.imageLinks.thumbnail.replace('http:', 'https:'),
+        description: v.description     || '',
         genre,
       };
     } catch {}
@@ -415,6 +416,11 @@ function PerforatedTicket({ fortune, book, n }) {
             <div style={{ fontFamily: 'var(--hs-sans)', fontSize: 12, color: HS.cream2, marginTop: 1 }}>
               {book.author} &middot; <span style={{ fontStyle: 'italic', color: HS.muted }}>{book.genre}</span>
             </div>
+            {book.description && (
+              <p style={{ margin: '8px 0 0', fontFamily: 'var(--hs-serif)', fontSize: 12, lineHeight: 1.5, color: HS.cream2 }}>
+                {book.description.replace(/\s+/g, ' ').split(/(?<=[.!?])\s+/).slice(0, 2).join(' ')}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -429,6 +435,7 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
   const [saveStatus, setSave]     = useState('idle'); // idle | saving | saved | dupe | error
   const genreDeckRef = useRef([]);
   const usedIdsRef   = useRef(new Set());
+  const ticketRef    = useRef(null);
 
   const pickGenre = () => {
     if (!genreDeckRef.current.length)
@@ -450,6 +457,7 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
       await new Promise(r => setTimeout(r, 400));
       setTicket({ fortune: fortuneObj.fortune, book });
       setN(v => v + 1);
+      setTimeout(() => ticketRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
     } finally {
       setPulling(false);
     }
@@ -499,7 +507,10 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
             Your path, your books
           </div>
           <h3 style={{ margin: '0 0 6px', fontFamily: 'var(--hs-display)', fontSize: 30, lineHeight: 1, color: HS.cream }}>
-            Stark knows.
+            <a href="https://www.britannica.com/biography/Freya-Stark" target="_blank" rel="noreferrer"
+              style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: HS.cyan, textUnderlineOffset: 3 }}>
+              Stark
+            </a> knows.
           </h3>
           <p style={{ margin: '0 0 18px', fontFamily: 'var(--hs-serif)', fontSize: 15, lineHeight: 1.5, color: HS.cream2 }}>
             One press of the plunger and the booth deals you a literary fortune &mdash; with a book to match.{' '}
@@ -533,7 +544,7 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
       </div>
 
       <Reveal open={!!ticket}>
-        <div style={{ paddingTop: 20 }}>
+        <div ref={ticketRef} style={{ paddingTop: 20 }}>
           <div style={{
             height: 8, borderRadius: 4, background: HS.navy2,
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.6)',
