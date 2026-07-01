@@ -13,7 +13,6 @@ import { getRandomFortune } from '../data/literaryFortunes.js';
 
 const BASE     = import.meta.env.BASE_URL;
 const HS_KEY   = 'highwaySnacks.open.v2';
-const MAX_FAV  = 5;
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const HS = {
@@ -909,14 +908,15 @@ function StarIcon({ filled }) {
   );
 }
 
-function CarRadio({ podcasts, loading, favIds, onToggleFav, canFav, isLoggedIn }) {
-  const [open, setOpen]  = useState(false);
-  const [band, setBand]  = useState('fm');
-  const [cur,  setCur]   = useState(null);
+function CarRadio({ podcasts, loading, favIds, onToggleFav, isLoggedIn }) {
+  const [open, setOpen]      = useState(false);
+  const [band, setBand]      = useState('fm');
+  const [cur,  setCur]       = useState(null);
+  const [leavingIds, setLeavingIds] = useState(new Set());
 
-  const fmStations = podcasts.map(p => ({
+  const fmStations = podcasts.map((p, i) => ({
     id:   p.id,
-    freq: p.freq || `${(88 + podcasts.indexOf(p) * 3.8).toFixed(1)}`,
+    freq: p.freq || `${(88 + i * 3.8).toFixed(1)}`,
     name: p.title || '',
     host: p.host  || '',
     note: p.description ? p.description.slice(0, 80) + (p.description.length > 80 ? '…' : '') : '',
@@ -924,16 +924,20 @@ function CarRadio({ podcasts, loading, favIds, onToggleFav, canFav, isLoggedIn }
     tag:  p.tag   || '',
   }));
 
+  const favSet      = new Set(favIds);
+  const favStations = favIds.map(id => fmStations.find(s => s.id === id)).filter(Boolean);
+  const allStations = fmStations.filter(s => !favSet.has(s.id));
+
   const LR_NETWORK = [
     { id: 'lr1', freq: 'LR-1', name: 'The Festival Circuit', host: 'live from the road', note: 'Dispatches from literary festivals across the country', url: null },
     { id: 'lr2', freq: 'LR-2', name: 'In the Passenger Seat', host: 'author conversations', note: 'Coming soon — author road trips', url: null },
     { id: 'lr3', freq: 'LR-3', name: 'The Bulletin', host: 'community news', note: 'New chapters, meetups & shelf finds', url: null },
   ];
 
-  const list = band === 'fm' ? fmStations : LR_NETWORK;
+  const allList = band === 'fm' ? fmStations : LR_NETWORK;
 
-  const idx       = cur ? list.findIndex(s => s.id === cur.id) : -1;
-  const dialAngle = idx < 0 ? -150 : -150 + (idx / Math.max(1, list.length - 1)) * 300;
+  const idx       = cur ? allList.findIndex(s => s.id === cur.id) : -1;
+  const dialAngle = idx < 0 ? -150 : -150 + (idx / Math.max(1, allList.length - 1)) * 300;
   const needlePct = cur && band === 'fm'
     ? ((parseFloat(cur.freq) - 88) / (108 - 88)) * 100
     : 50;
@@ -948,6 +952,92 @@ function CarRadio({ podcasts, loading, favIds, onToggleFav, canFav, isLoggedIn }
     setCur(isOn ? null : s);
     if (!isOn && s.url) window.open(s.url, '_blank', 'noopener');
   };
+
+  const handleToggleFav = (id) => {
+    if (!onToggleFav || leavingIds.has(id)) return;
+    if (favIds.includes(id)) {
+      setLeavingIds(prev => new Set([...prev, id]));
+      setTimeout(() => {
+        onToggleFav(id);
+        setLeavingIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+      }, 300);
+    } else {
+      onToggleFav(id);
+    }
+  };
+
+  const renderRow = (s) => {
+    const on  = cur?.id === s.id;
+    const fav = favIds.includes(s.id);
+    return (
+      <div key={s.id} style={{
+        display: 'flex', alignItems: 'center', gap: 13,
+        padding: '11px 14px', borderRadius: 10,
+        background: on ? HS.navy3 : HS.navy2,
+        border: `1.5px solid ${on ? HS.orange : HS.navyLine}`,
+        boxShadow: on ? `0 0 0 1px ${HS.orange}55, inset 0 0 18px ${HS.orange}14` : 'none',
+        transition: 'all 180ms',
+      }}>
+        <button onClick={() => handleStation(s)} style={{
+          display: 'flex', flex: 1, alignItems: 'center', gap: 13, textAlign: 'left',
+          background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit',
+        }}>
+          <span style={{
+            flexShrink: 0, width: 50, textAlign: 'center',
+            fontFamily: 'var(--hs-mono)', fontWeight: 700, fontSize: 15,
+            color: on ? HS.orange : HS.muted,
+            textShadow: on ? '0 0 8px rgba(245,129,42,.7)' : 'none',
+          }}>{s.freq}</span>
+          <span style={{ width: 1, alignSelf: 'stretch', background: HS.navyLine }} />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontFamily: 'var(--hs-serif)', fontSize: 16, fontWeight: 700, color: HS.cream, lineHeight: 1.1 }}>
+              {s.name}
+            </span>
+            <span style={{ display: 'block', fontFamily: 'var(--hs-sans)', fontSize: 11.5, color: HS.muted, marginTop: 2 }}>
+              {s.host}{s.note ? ` · ${s.note}` : ''}
+            </span>
+          </span>
+          <span style={{
+            flexShrink: 0, width: 30, height: 30, borderRadius: '50%',
+            display: 'grid', placeItems: 'center',
+            background: on ? HS.orange : 'transparent',
+            border: `1.5px solid ${on ? HS.orange : HS.muted}`,
+          }}>
+            {on ? <EQBars on /> : (
+              <svg width="11" height="12" viewBox="0 0 11 12">
+                <path d="M1 1 L10 6 L1 11 Z" fill={HS.muted} />
+              </svg>
+            )}
+          </span>
+        </button>
+
+        {isLoggedIn && band === 'fm' && (
+          <button onClick={() => handleToggleFav(s.id)} title={fav ? 'Unfavorite' : 'Favorite'}
+            style={{
+              background: 'none', border: 'none', padding: '4px', cursor: 'pointer',
+              filter: fav ? `drop-shadow(0 0 4px ${HS.mustard})` : 'none',
+              flexShrink: 0,
+            }}>
+            <StarIcon filled={fav} />
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  const SubHeader = ({ label, color = HS.muted, icon }) => (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 7,
+      marginBottom: 10, paddingBottom: 8,
+      borderBottom: `1px solid ${HS.navyLine}`,
+    }}>
+      {icon}
+      <span style={{
+        fontFamily: 'var(--hs-mono)', fontSize: 9.5, fontWeight: 700,
+        letterSpacing: '0.18em', textTransform: 'uppercase', color,
+      }}>{label}</span>
+    </div>
+  );
 
   return (
     <div>
@@ -1056,78 +1146,61 @@ function CarRadio({ podcasts, loading, favIds, onToggleFav, canFav, isLoggedIn }
 
       {/* Station list */}
       <Reveal open={open}>
-        <div style={{ marginTop: 0, paddingTop: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ marginTop: 0, paddingTop: 18 }}>
           {loading && band === 'fm' ? (
             <p style={{ fontFamily: 'var(--hs-mono)', fontSize: 11, color: HS.muted, textAlign: 'center', letterSpacing: '0.1em' }}>
               TUNING IN&hellip;
             </p>
-          ) : list.length === 0 ? (
-            <p style={{ fontFamily: 'var(--hs-mono)', fontSize: 11, color: HS.muted, textAlign: 'center', letterSpacing: '0.1em' }}>
-              NO STATIONS ON THIS BAND YET
-            </p>
-          ) : list.map(s => {
-            const on  = cur?.id === s.id;
-            const fav = favIds.includes(s.id);
-            return (
-              <div key={s.id} style={{
-                display: 'flex', alignItems: 'center', gap: 13,
-                padding: '11px 14px', borderRadius: 10,
-                background: on ? HS.navy3 : HS.navy2,
-                border: `1.5px solid ${on ? HS.orange : HS.navyLine}`,
-                boxShadow: on ? `0 0 0 1px ${HS.orange}55, inset 0 0 18px ${HS.orange}14` : 'none',
-                transition: 'all 180ms',
-              }}>
-                <button onClick={() => handleStation(s)} style={{
-                  display: 'flex', flex: 1, alignItems: 'center', gap: 13, textAlign: 'left',
-                  background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit',
-                }}>
-                  <span style={{
-                    flexShrink: 0, width: 50, textAlign: 'center',
-                    fontFamily: 'var(--hs-mono)', fontWeight: 700, fontSize: 15,
-                    color: on ? HS.orange : HS.muted,
-                    textShadow: on ? '0 0 8px rgba(245,129,42,.7)' : 'none',
-                  }}>{s.freq}</span>
-                  <span style={{ width: 1, alignSelf: 'stretch', background: HS.navyLine }} />
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: 'block', fontFamily: 'var(--hs-serif)', fontSize: 16, fontWeight: 700, color: HS.cream, lineHeight: 1.1 }}>
-                      {s.name}
-                    </span>
-                    <span style={{ display: 'block', fontFamily: 'var(--hs-sans)', fontSize: 11.5, color: HS.muted, marginTop: 2 }}>
-                      {s.host}{s.note ? ` · ${s.note}` : ''}
-                    </span>
-                  </span>
-                  <span style={{
-                    flexShrink: 0, width: 30, height: 30, borderRadius: '50%',
-                    display: 'grid', placeItems: 'center',
-                    background: on ? HS.orange : 'transparent',
-                    border: `1.5px solid ${on ? HS.orange : HS.muted}`,
-                  }}>
-                    {on ? <EQBars on /> : (
-                      <svg width="11" height="12" viewBox="0 0 11 12">
-                        <path d="M1 1 L10 6 L1 11 Z" fill={HS.muted} />
-                      </svg>
-                    )}
-                  </span>
-                </button>
+          ) : band === 'fm' ? (
+            <>
+              {/* Favorites sub-section */}
+              {favStations.length > 0 && (
+                <div style={{ marginBottom: 20 }}>
+                  <SubHeader label="Favorites" color={HS.mustard}
+                    icon={<StarIcon filled />} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {favStations.map(s => {
+                      const leaving = leavingIds.has(s.id);
+                      return (
+                        <div key={s.id} style={{
+                          overflow: 'hidden',
+                          maxHeight: leaving ? 0 : '160px',
+                          opacity: leaving ? 0 : 1,
+                          transition: 'max-height 300ms ease, opacity 220ms ease',
+                        }}>
+                          {renderRow(s)}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
-                {/* Favorite star */}
-                {isLoggedIn && band === 'fm' && (
-                  <button onClick={() => onToggleFav(s.id)} title={fav ? 'Unfavorite' : canFav ? 'Favorite' : `Max ${MAX_FAV} favorites`}
-                    style={{
-                      background: 'none', border: 'none', padding: '4px', cursor: fav || canFav ? 'pointer' : 'not-allowed',
-                      opacity: !fav && !canFav ? 0.35 : 1,
-                      filter: fav ? `drop-shadow(0 0 4px ${HS.mustard})` : 'none',
-                      flexShrink: 0,
-                    }}>
-                    <StarIcon filled={fav} />
-                  </button>
+              {/* All Shows sub-section */}
+              <div>
+                {favStations.length > 0 && (
+                  <SubHeader label="All Shows" color={HS.muted} />
+                )}
+                {allStations.length === 0 ? (
+                  <p style={{ fontFamily: 'var(--hs-mono)', fontSize: 11, color: HS.muted, textAlign: 'center', letterSpacing: '0.1em' }}>
+                    NO STATIONS ON THIS BAND YET
+                  </p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {allStations.map(s => renderRow(s))}
+                  </div>
                 )}
               </div>
-            );
-          })}
-          <div style={{ textAlign: 'center', marginTop: 4, fontFamily: 'var(--hs-mono)', fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: HS.muted }}>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {LR_NETWORK.map(s => renderRow(s))}
+            </div>
+          )}
+
+          <div style={{ textAlign: 'center', marginTop: 14, fontFamily: 'var(--hs-mono)', fontSize: 9.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: HS.muted }}>
             {band === 'fm'
-              ? `${list.length} show${list.length !== 1 ? 's' : ''} on the dial · new every week`
+              ? `${fmStations.length} show${fmStations.length !== 1 ? 's' : ''} on the dial · new every week`
               : 'Literary Roads network feed · coming soon'}
           </div>
         </div>
@@ -1236,8 +1309,7 @@ export default function Resources({ onBack }) {
   const toggleFav = (id) => {
     if (!user) return;
     const isFav = favIds.includes(id);
-    if (!isFav && favIds.length >= MAX_FAV) return;
-    const updated = isFav ? favIds.filter(x => x !== id) : [...favIds, id];
+    const updated = isFav ? favIds.filter(x => x !== id) : [id, ...favIds];
     setFavIds(updated);
     persist(updated);
   };
@@ -1336,7 +1408,7 @@ export default function Resources({ onBack }) {
             accent={HS.pink} open={open.has(3)} onToggle={() => toggle(3)}
             icon={<HeadChip color={HS.pink} label="Listen ▸" />}>
             <CarRadio podcasts={podcasts} loading={podLoading} favIds={favIds}
-              onToggleFav={toggleFav} canFav={favIds.length < MAX_FAV} isLoggedIn={!!user} />
+              onToggleFav={toggleFav} isLoggedIn={!!user} />
           </Section>
         </div>
 
