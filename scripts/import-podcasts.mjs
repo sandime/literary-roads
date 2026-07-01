@@ -1,34 +1,97 @@
 #!/usr/bin/env node
-// Literary Podcasts importer
-// Reads literary-podcasts.json and upserts each entry into Firestore.
-// Signs in with Firebase email/password — no service account key needed.
+// Literary Podcasts importer — uses Firebase CLI authentication
+// Reads literary-podcasts.json and upserts each entry into Firestore via REST API.
+//
+// Prerequisites: firebase login  (already done — no service account key needed)
 //
 // Usage:
 //   node scripts/import-podcasts.mjs                    → dry run
 //   node scripts/import-podcasts.mjs --upload           → upsert all entries
 //   node scripts/import-podcasts.mjs --upload --sync    → upsert + delete removed entries
-//
-// Credentials (pick one):
-//   FIREBASE_EMAIL=you@email.com FIREBASE_PASSWORD=yourpass node scripts/import-podcasts.mjs --upload --sync
-//   or set them in scripts/.env.local
 
 import { readFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { fileURLToPath }  from 'url';
+import { dirname, join }  from 'path';
+import { homedir }        from 'os';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = join(__dirname, 'literary-podcasts.json');
-const ENV_FILE  = join(__dirname, '.env.local');
+const __dirname  = dirname(fileURLToPath(import.meta.url));
+const DATA_FILE  = join(__dirname, 'literary-podcasts.json');
+const PROJECT_ID = 'the-literary-roads';
+const FS_BASE    = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents`;
 
-// ── Load optional .env.local ───────────────────────────────────────────────
-if (existsSync(ENV_FILE)) {
-  readFileSync(ENV_FILE, 'utf8')
-    .split('\n')
-    .filter(l => l.includes('=') && !l.startsWith('#'))
-    .forEach(l => {
-      const [k, ...v] = l.split('=');
-      if (!process.env[k.trim()]) process.env[k.trim()] = v.join('=').trim();
-    });
+// Firebase CLI OAuth2 client credentials (public constants in firebase-tools source)
+const CLI_CLIENT_ID     = '563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com';
+const CLI_CLIENT_SECRET = 'j9iVZfS8kkCEFUPaAeJV0sAi';
+
+// ── Get refresh token from Firebase CLI configstore ────────────────────────
+function getCliRefreshToken() {
+  const configFile = join(homedir(), '.config', 'configstore', 'firebase-tools.json');
+  if (!existsSync(configFile)) return null;
+  try {
+    return JSON.parse(readFileSync(configFile, 'utf8')).tokens?.refresh_token || null;
+  } catch { return null; }
+}
+
+// ── Exchange refresh token → access token ─────────────────────────────────
+async function getAccessToken(refreshToken) {
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type:    'refresh_token',
+      refresh_token: refreshToken,
+      client_id:     CLI_CLIENT_ID,
+      client_secret: CLI_CLIENT_SECRET,
+    }),
+  });
+  const data = await res.json();
+  if (!data.access_token) {
+    throw new Error(`Token refresh failed: ${data.error_description || JSON.stringify(data)}`);
+  }
+  return data.access_token;
+}
+
+// ── Firestore REST helpers ─────────────────────────────────────────────────
+// Convert a plain JS object to a Firestore REST API "fields" map
+function toFirestoreFields(obj) {
+  const fields = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v === undefined) continue;
+    if (typeof v === 'string')  fields[k] = { stringValue: v };
+    else if (typeof v === 'boolean') fields[k] = { booleanValue: v };
+    else if (typeof v === 'number')  fields[k] = { integerValue: String(v) };
+    else if (Array.isArray(v)) fields[k] = { arrayValue: { values: v.map(s => ({ stringValue: String(s) })) } };
+    else if (v === null) fields[k] = { nullValue: null };
+  }
+  return fields;
+}
+
+async function fsGet(token, collection) {
+  const res = await fetch(`${FS_BASE}/${collection}?pageSize=300`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`GET ${collection}: ${res.status} ${await res.text()}`);
+  return (await res.json()).documents || [];
+}
+
+async function fsPatch(token, collection, docId, fields) {
+  // Build field mask so we overwrite all supplied fields
+  const mask = Object.keys(fields).map(f => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join('&');
+  const url  = `${FS_BASE}/${collection}/${encodeURIComponent(docId)}?${mask}`;
+  const res  = await fetch(url, {
+    method:  'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+  if (!res.ok) throw new Error(`PATCH ${docId}: ${res.status} ${await res.text()}`);
+}
+
+async function fsDelete(token, collection, docId) {
+  const res = await fetch(`${FS_BASE}/${collection}/${encodeURIComponent(docId)}`, {
+    method:  'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`DELETE ${docId}: ${res.status} ${await res.text()}`);
 }
 
 // ── Load + validate JSON ───────────────────────────────────────────────────
@@ -57,74 +120,47 @@ function loadPodcasts() {
   return podcasts;
 }
 
-// ── Firestore upload ───────────────────────────────────────────────────────
-async function uploadToFirestore(podcasts, sync = false) {
-  const email    = process.env.FIREBASE_EMAIL;
-  const password = process.env.FIREBASE_PASSWORD;
-
-  if (!email || !password) {
-    console.error('✗ Firebase credentials not set.\n');
-    console.error('  Run with your credentials:');
-    console.error('    FIREBASE_EMAIL=you@email.com FIREBASE_PASSWORD=yourpass node scripts/import-podcasts.mjs --upload --sync');
-    console.error('');
-    console.error('  Or create scripts/.env.local containing:');
-    console.error('    FIREBASE_EMAIL=you@email.com');
-    console.error('    FIREBASE_PASSWORD=yourpass');
+// ── Upload ─────────────────────────────────────────────────────────────────
+async function upload(podcasts, sync = false) {
+  const refreshToken = getCliRefreshToken();
+  if (!refreshToken) {
+    console.error('✗ Firebase CLI credentials not found. Run: firebase login');
     process.exit(1);
   }
 
-  const { initializeApp, getApps } = await import('firebase/app');
-  const { getAuth, signInWithEmailAndPassword } = await import('firebase/auth');
-  const { getFirestore, collection, doc, setDoc, deleteDoc, getDocs, serverTimestamp } = await import('firebase/firestore');
+  process.stdout.write('Getting access token… ');
+  const token = await getAccessToken(refreshToken);
+  console.log('✓\n');
 
-  const app = getApps().length ? getApps()[0] : initializeApp({
-    apiKey:            'AIzaSyBlKiGzXCTIgjqjzDROB_dywrjJntizkYE',
-    authDomain:        'the-literary-roads.firebaseapp.com',
-    projectId:         'the-literary-roads',
-    storageBucket:     'the-literary-roads.firebasestorage.app',
-    messagingSenderId: '305145573086',
-    appId:             '1:305145573086:web:206ec464384fe149c45c4f',
-  });
-
-  // Sign in
-  process.stdout.write(`Signing in as ${email}… `);
-  try {
-    await signInWithEmailAndPassword(getAuth(app), email, password);
-    console.log('✓');
-  } catch (err) {
-    console.log('✗');
-    console.error(`  Auth failed: ${err.message}`);
-    process.exit(1);
-  }
-
-  const db     = getFirestore(app);
-  const colRef = collection(db, 'literary_podcasts');
-
-  // ── Delete orphaned docs (--sync) ─────────────────────────────────────────
+  // ── Delete orphaned docs ─────────────────────────────────────────────────
   if (sync) {
-    console.log('\nChecking for removed entries…');
+    console.log('Checking for removed entries…');
+    const existing = await fsGet(token, 'literary_podcasts');
     const jsonIds  = new Set(podcasts.map(p => p.id));
-    const existing = await getDocs(colRef);
     let deleted = 0;
-    for (const d of existing.docs) {
-      if (!jsonIds.has(d.id)) {
-        await deleteDoc(d.ref);
-        console.log(`  🗑  deleted: ${d.data().title || d.id}`);
+    for (const d of existing) {
+      const id = d.name.split('/').pop();
+      if (!jsonIds.has(id)) {
+        await fsDelete(token, 'literary_podcasts', id);
+        const title = d.fields?.title?.stringValue || id;
+        console.log(`  🗑  deleted: ${title}`);
         deleted++;
       }
     }
     console.log(deleted === 0 ? '  (no orphaned docs)\n' : '');
   }
 
-  // ── Upsert all entries ─────────────────────────────────────────────────────
-  console.log('\nUploading…');
+  // ── Upsert ───────────────────────────────────────────────────────────────
+  console.log('Uploading…');
   let uploaded = 0, failed = 0;
 
   for (const podcast of podcasts) {
-    const data = { ...podcast };
-    if (!data.rssUrl) delete data.rssUrl;
+    const { id, rssUrl, ...rest } = podcast;
+    const fields = toFirestoreFields(rssUrl ? { ...rest, rssUrl } : rest);
+    // Add server timestamp as a string (REST API doesn't support serverTimestamp directly)
+    fields.updatedAt = { timestampValue: new Date().toISOString() };
     try {
-      await setDoc(doc(colRef, podcast.id), { ...data, updatedAt: serverTimestamp() });
+      await fsPatch(token, 'literary_podcasts', id, fields);
       console.log(`  ✓ ${podcast.title}`);
       uploaded++;
     } catch (err) {
@@ -150,7 +186,7 @@ function dryRun(podcasts) {
   });
   console.log(`── Total: ${podcasts.length} podcasts ──`);
   console.log('\nTo upload, run:');
-  console.log('  FIREBASE_EMAIL=you@email.com FIREBASE_PASSWORD=yourpass node scripts/import-podcasts.mjs --upload --sync');
+  console.log('  node scripts/import-podcasts.mjs --upload --sync');
 }
 
 // ── Main ───────────────────────────────────────────────────────────────────
@@ -158,8 +194,8 @@ const podcasts = loadPodcasts();
 
 if (process.argv.includes('--upload')) {
   const sync = process.argv.includes('--sync');
-  console.log(`Uploading ${podcasts.length} podcasts${sync ? ' [sync — will delete removed]' : ''}…`);
-  uploadToFirestore(podcasts, sync).catch(err => { console.error(err); process.exit(1); });
+  console.log(`Uploading ${podcasts.length} podcasts${sync ? ' [sync — will delete removed]' : ''}…\n`);
+  upload(podcasts, sync).catch(err => { console.error('✗', err.message); process.exit(1); });
 } else {
   dryRun(podcasts);
 }
