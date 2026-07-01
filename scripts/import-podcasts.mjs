@@ -3,8 +3,10 @@
 // Reads literary-podcasts.json and upserts each entry into Firestore.
 //
 // Usage:
-//   node scripts/import-podcasts.mjs            → dry run, prints what would be uploaded
-//   node scripts/import-podcasts.mjs --upload   → upload to Firestore
+//   node scripts/import-podcasts.mjs                    → dry run, prints what would be uploaded
+//   node scripts/import-podcasts.mjs --upload           → upsert all entries to Firestore
+//   node scripts/import-podcasts.mjs --upload --sync    → upsert all entries AND delete any Firestore
+//                                                          docs whose ID is not in the JSON
 
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -53,9 +55,9 @@ function loadPodcasts() {
 }
 
 // ── Firestore upload ───────────────────────────────────────────────────────
-async function uploadToFirestore(podcasts) {
+async function uploadToFirestore(podcasts, sync = false) {
   const { initializeApp, getApps } = await import('firebase/app');
-  const { getFirestore, collection, setDoc, doc, serverTimestamp } = await import('firebase/firestore');
+  const { getFirestore, collection, setDoc, deleteDoc, getDocs, doc, serverTimestamp } = await import('firebase/firestore');
 
   const app = getApps().length
     ? getApps()[0]
@@ -71,6 +73,23 @@ async function uploadToFirestore(podcasts) {
   const db     = getFirestore(app);
   const colRef = collection(db, 'literary_podcasts');
 
+  // ── Delete removed entries first (--sync mode) ────────────────────────────
+  if (sync) {
+    const jsonIds  = new Set(podcasts.map(p => p.id));
+    const existing = await getDocs(colRef);
+    let deleted = 0;
+    for (const d of existing.docs) {
+      if (!jsonIds.has(d.id)) {
+        await deleteDoc(d.ref);
+        console.log(`  🗑  deleted: ${d.data().title || d.id}`);
+        deleted++;
+      }
+    }
+    if (deleted === 0) console.log('  (no orphaned docs to delete)');
+    console.log('');
+  }
+
+  // ── Upsert all entries ────────────────────────────────────────────────────
   let uploaded = 0, failed = 0;
 
   for (const podcast of podcasts) {
@@ -117,8 +136,9 @@ function dryRun(podcasts) {
 const podcasts = loadPodcasts();
 
 if (process.argv.includes('--upload')) {
-  console.log(`Uploading ${podcasts.length} podcasts to Firestore (literary_podcasts)…\n`);
-  uploadToFirestore(podcasts).catch(err => { console.error(err); process.exit(1); });
+  const sync = process.argv.includes('--sync');
+  console.log(`Uploading ${podcasts.length} podcasts to Firestore (literary_podcasts)${sync ? ' [sync mode — will delete removed entries]' : ''}…\n`);
+  uploadToFirestore(podcasts, sync).catch(err => { console.error(err); process.exit(1); });
 } else {
   dryRun(podcasts);
 }

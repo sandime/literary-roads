@@ -6,36 +6,18 @@
     "description": "Anne Bogel — the blogger behind Modern Mrs. Darcy — talks books with readers, helping them find their next great read by dissecting what they love and what leaves them cold.",
     "url": "https://modernmrsdarcy.com/what-should-i-read-next/",
     "rssUrl": "https://feeds.simplecast.com/W_9rTEj_",
-    "tags": [
-      "Book Recommendations",
-      "Book Culture"
-    ],
+    "tags": ["Book Recommendations", "Book Culture"],
     "emoji": "📚",
     "active": true
   },
   {
-    "id": "between-the-covers",
-    "title": "Between the Covers",
-    "host": "David Naimon",
-    "description": "In-depth conversations with fiction writers about craft, process, and the life of writing.",
-    "url": "https://tinhouse.com/podcast/",
-    "rssUrl": "https://feeds.simplecast.com/S6Rn3lNt",
-    "tags": ["Craft & Conversations", "Fiction", "Interviews"],
-    "emoji": "🎙️",
-    "active": true
-  },
-  {
-    "id": "nyt-book-review", 
+    "id": "nyt-book-review",
     "title": "The Book Review",
     "host": "New York Times",
     "description": "The New York Times Book Review podcast features author interviews, discussions of the week's notable new books, and conversations about literature and the publishing world.",
     "url": "https://www.nytimes.com/column/book-review-podcast",
     "rssUrl": "https://rss.nytimes.com/services/xml/rss/nyt/Books.xml",
-    "tags": [
-      "Book News",
-      "Literary Criticism",
-      "Interviews"
-    ],
+    "tags": ["Book News", "Literary Criticism", "Interviews"],
     "emoji": "📰",
     "active": true
   },
@@ -62,17 +44,6 @@
     "active": true
   },
   {
-    "id": "literary-disco",
-    "title": "Literary Disco",
-    "host": "Rider Strong, Julia Pistell & Tod Goldberg",
-    "description": "Three writers geek out on books, movies, and culture with warmth and humor.",
-    "url": "http://literarydisco.com",
-    "rssUrl": "",
-    "tags": ["Book Talk", "Culture", "Humor"],
-    "emoji": "🎧",
-    "active": true
-  },
-  {
     "id": "backlisted",
     "title": "Backlisted",
     "host": "John Mitchinson & Andy Miller",
@@ -88,198 +59,186 @@
     "title": "3 Books With Neil Pasricha",
     "host": "Neil Pasricha: Bestselling Author",
     "description": "3 Books is a completely insane and totally epic 22-year-long quest to uncover and discuss the 1000 most formative books in the world.",
-    "url": "http://www.3books.co?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "url": "https://www.3books.co",
     "rssUrl": "",
-    "tags": [
-      "Social Sciences",
-      "Music"
-    ],
-    "emoji": "🎙️",
-    "active": true
-  },
-
-  {
-    "id": "ask-penguin",
-    "title": "Ask Penguin",
-    "host": "Penguin Books UK",
-    "description": "What Should I Read next? Ask Penguin is the podcast where your quirkiest, trickiest, and most urgent book questions get answered.",
-    "url": "https://www.penguin.co.uk/discover/podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Music"
-    ],
+    "tags": ["Interviews", "Book Culture"],
     "emoji": "🎙️",
     "active": true
   },
   {
-    "id": "c-span-bookshelf",
-    "title": "C-SPAN Bookshelf",
-    "host": "C-SPAN",
-    "description": "The C-SPAN Bookshelf podcast feed makes it easy for you to listen to all of the C-SPAN podcast episodes about nonfiction books.",
-    "url": "https://www.c-span.org/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "id": "alzabo-soup",
+    "title": "Alzabo Soup",
+    "host": "Philip Armstrong and Andrew Metzroth",
+    "description": "Deep chapter-by-chapter analysis of speculative fiction — we literally become our favorite authors by devouring portions of their brains.",
+    "url": "https://alzabosoup.com",
     "rssUrl": "",
-    "tags": [],
+    "tags": ["Literary Analysis", "Speculative Fiction"],
+    "emoji": "🎙️",
+    "active": true
+  },
+  {
+    "id": "bookaholic-author-interviews-book-reviews-book-news",
+    "title": "Bookaholic",
+    "host": "Deirdre Pippins",
+    "description": "A safe place for reading junkies who obsess over books, authors, bookstores, book news, and trivia — with author interviews, genre deep-dives, and bookish things.",
+    "url": "https://www.book-a-holic.com",
+    "rssUrl": "",
+    "tags": ["Author Interviews", "Book Reviews"],
     "emoji": "📜",
     "active": true
-   
   },
-{
-
+  {
+    "id": "books-beach-beyond",
+    "title": "Books, Beach & Beyond",
+    "host": "Elin Hilderbrand & Tim Ehrenberg",
+    "description": "The 'Queen of Beach Reads' Elin Hilderbrand and Tim Talks Books host spirited conversations with bestselling authors about the writing process, the road to screen, and the stories behind the stories.",
+    "url": "https://www.booksbeachandbeyond.com",
+    "rssUrl": "",
+    "tags": ["Author Interviews", "Beach Reads"],
+    "emoji": "🎙️",
+    "active": true
+  },
+  {
+    "id": "concavity-show",
+    "title": "Concavity Show",
+    "host": "Matt Bucher & Dave Laird",
+    "description": "A podcast about literary fiction and the world of books.",
+    "url": "https://greatconcavity.podbean.com",
+    "rssUrl": "",
+    "tags": ["Literary Fiction"],
+    "emoji": "📖",
+    "active": true
+  },
+  {
+    "id": "hardcore-literature",
+    "title": "Hardcore Literature",
+    "host": "Benjamin McEvoy",
+    "description": "Deep dives into the greatest books ever written — Shakespeare, Homer, Tolstoy, and beyond. We don't just read the great books, we live them.",
+    "url": "https://benjaminmcevoy.com",
+    "rssUrl": "",
+    "tags": ["Classics", "Literary Analysis"],
+    "emoji": "📚",
+    "active": true
+  },
+  {
+    "id": "literary-quest",
+    "title": "Literary Quest",
+    "host": "Marysa & Vicki",
+    "description": "A podcast dedicated to fantasy fiction — weekly discussions and recommendations for genre lovers.",
+    "url": "https://podcasters.spotify.com/pod/show/literary-quest",
+    "rssUrl": "",
+    "tags": ["Fantasy", "Book Recommendations"],
+    "emoji": "📖",
+    "active": true
+  },
+  {
+    "id": "london-review-bookshop-podcast",
+    "title": "London Review Bookshop Podcast",
+    "host": "London Review Bookshop",
+    "description": "Literary events recorded at the London Review Bookshop — fiction, poetry, politics, music, and much more.",
+    "url": "https://www.londonreviewbookshop.co.uk/events",
+    "rssUrl": "",
+    "tags": ["Literary Events", "Bookshop"],
+    "emoji": "✍️",
+    "active": true
+  },
+  {
+    "id": "the-music-book-podcast",
+    "title": "The Music Book Podcast",
+    "host": "Marc Masters",
+    "description": "Talking to authors about how they wrote their books about music. Hosted by music writer Marc Masters.",
+    "url": "https://themusicbookpodcast.buzzsprout.com",
+    "rssUrl": "",
+    "tags": ["Music", "Author Interviews"],
+    "emoji": "🎙️",
+    "active": true
+  },
+  {
+    "id": "the-book-case",
+    "title": "The Book Case",
+    "host": "ABC News | Charlie Gibson, Kate Gibson",
+    "description": "The Book Case makes the case for books outside of your usual genre. Wander the aisles of your local bookstore with Kate and Charlie Gibson and meet authors who will open your appetite to new categories.",
+    "url": "https://abcaudio.com/podcasts/the-book-case/",
+    "rssUrl": "",
+    "tags": ["Book Recommendations", "Interviews"],
+    "emoji": "🎙️",
+    "active": true
+  },
+  {
+    "id": "the-h-p-lovecraft-literary-podcast",
+    "title": "The H.P. Lovecraft Literary Podcast",
+    "host": "Strange Studies of Strange Stories",
+    "description": "Hosts Chad Fifer and Chris Lackey discuss genre fiction weekly, with voice actors, sound design, and occasional expert guests.",
+    "url": "https://www.hppodcraft.com/episodes/",
+    "rssUrl": "",
+    "tags": ["Horror", "Literary Analysis"],
+    "emoji": "📖",
+    "active": true
+  },
+  {
+    "id": "the-lost-sci-fi-podcast-vintage-sci-fi-short-stories",
+    "title": "The Lost Sci-Fi Podcast",
+    "host": "Scott Miller",
+    "description": "Restores and narrates forgotten vintage science fiction short stories from the 1700s through the mid-1960s — #1 on Apple Podcasts in 43 countries.",
+    "url": "https://lostscifi.com/the-lost-sci-fi-podcast/",
+    "rssUrl": "",
+    "tags": ["Sci-Fi", "Vintage", "Short Stories"],
+    "emoji": "📜",
+    "active": true
+  },
+  {
+    "id": "the-paris-review",
+    "title": "The Paris Review",
+    "host": "The Paris Review",
+    "description": "The best interviews, fiction, essays, and poetry from America's most legendary literary quarterly, brought to life in sound.",
+    "url": "https://www.theparisreview.org/podcast",
+    "rssUrl": "",
+    "tags": ["Literary Fiction", "Poetry"],
+    "emoji": "✍️",
+    "active": true
+  },
+  {
     "id": "book-news",
     "title": "Book News",
     "host": "Book News",
     "description": "We review all kinds of books and talk about them.",
-    "url": "https://podcasters.spotify.com/pod/show/book-news?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "url": "https://podcasters.spotify.com/pod/show/book-news",
     "rssUrl": "",
     "tags": [],
     "emoji": "📚",
     "active": false
-   
   },
-
-
-{
-    "id": "brianna-wiest",
-    "title": "Brianna Wiest",
-    "host": "Brianna Wiest",
-    "description": "Brianna is the bestselling author of the books 101 Essays The Will Change The Way You Think, The Mountain Is You, Salt Water, Ceremony, When You're Ready, This Is How You Heal, and more.",
-    "url": "https://thoughtcatalog.com/brianna-wiest/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Social Sciences"
-    ],
-    "emoji": "🎙️",
-    "active": false
-    
-  },
-
-{
+  {
     "id": "fully-booked-by-kirkus-reviews",
     "title": "Fully Booked by Kirkus Reviews",
     "host": "PodcastOne",
-    "description": "Get the ultimate insider's scoop on the best new books. The editors at Kirkus Reviews interview your favorite authors, tell you whether or not the books on the bestseller list are worth the read, give you behind-the-scenes insights, and introduce you to great books you may otherwise never find.",
-    "url": "https://art19.com/shows/fully-booked-by-kirkus-reviews?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "description": "Get the ultimate insider's scoop on the best new books. The editors at Kirkus Reviews interview your favorite authors, tell you whether or not the books on the bestseller list are worth the read.",
+    "url": "https://art19.com/shows/fully-booked-by-kirkus-reviews",
     "rssUrl": "",
-    "tags": [
-      "Social Sciences",
-      "Music"
-    ],
+    "tags": ["Book Reviews", "Interviews"],
     "emoji": "🎙️",
     "active": false
-  
   },
-
- {
+  {
     "id": "read-this",
     "title": "Read This",
     "host": "Schwartz",
-    "description": "Read This is a show about the books we love and the stories behind them, hosted by Michael Williams. Every Thursday, you’ll hear insightful conversations with the smartest, funniest readers and writers we know and in-depth interviews with the best Australian and international authors.",
-    "url": "https://www.spreaker.com/podcast/read-this--6671847?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "description": "A show about the books we love and the stories behind them — in-depth interviews with the best Australian and international authors.",
+    "url": "https://www.spreaker.com/podcast/read-this--6671847",
     "rssUrl": "",
-    "tags": [
-      "Music"
-    ],
+    "tags": ["Interviews"],
     "emoji": "🎙️",
     "active": false
-    
   },
-
-
- {
+  {
     "id": "reading-and-writing-podcast",
     "title": "Reading And Writing Podcast",
     "host": "Jeff Rutherford",
-    "description": "Interviews with authors and writers about their books, their writing habits, their favorite novels, and how they got started writing.",
-    "url": "https://redcircle.com/shows/reading-and-writing-podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
+    "description": "Interviews with authors about their books, writing habits, favorite novels, and how they got started writing.",
+    "url": "https://redcircle.com/shows/reading-and-writing-podcast",
     "rssUrl": "",
-    "tags": [
-      "Music"
-    ],
+    "tags": ["Writing Craft", "Interviews"],
     "emoji": "🎙️",
     "active": false
-    
-  },
-
-
-{
-    "id": "the-book-case",
-    "title": "The Book Case",
-    "host": "ABC News | Charlie Gibson, Kate Gibson",
-    "description": "Are you stuck in a reading rut? The Book Case makes the case for books outside of your usual genre. Wander the aisles of your local bookstore with Kate and Charlie Gibson and meet fascinating characters who will open your appetite to new categories while deepening your hunger for books.",
-    "url": "https://abcaudio.com/podcasts/the-book-case/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Society & Culture",
-      "Music"
-    ],
-    "emoji": "🎙️",
-    "active": false
-   
-  },
-
-
- {
-    "id": "the-h-p-lovecraft-literary-podcast",
-    "title": "The H.P. Lovecraft Literary Podcast",
-    "host": "Strange Studies of Strange Stories",
-    "description": "The H.P. Lovecraft Literary Podcast hatched in 2009 and is still going strong as Strange Studies of Strange Stories!Each week, hosts Chad Fifer and Chris Lackey discuss a piece of genre fiction. Talented voice actors bring the text to life. Music and sound effects create atmosphere while occasional guest experts show up to make things classy.",
-    "url": "https://www.hppodcraft.com/episodes/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Visual Arts",
-      "Design",
-      "Education",
-      "TV & Film"
-    ],
-    "emoji": "📖",
-    "active": false
-   
-  },
-
-
-{
-    "id": "the-lost-sci-fi-podcast-vintage-sci-fi-short-stories",
-    "title": "The Lost Sci-Fi Podcast - Vintage Sci-Fi Short Stories",
-    "host": "Scott Miller",
-    "description": "The Lost Sci-Fi Podcast restores and narrates forgotten and underrated vintage science fiction short stories spanning from the 1700s through the mid-1960s. Each episode features a professionally narrated classic drawn from early speculative fiction, pioneering 19th-century tales, and the pulp magazine era that shaped modern science fiction.",
-    "url": "https://lostscifi.com/the-lost-sci-fi-podcast/?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [
-      "Society & Culture"
-    ],
-    "emoji": "📜",
-    "active": false
-   
-  },
-
-{
-    "id": "the-paris-review",
-    "title": "The Paris Review",
-    "host": "The Paris Review",
-    "description": "The Paris Review Podcast returns with a new season, featuring the best interviews, fiction, essays, and poetry from America’s most legendary literary quarterly, brought to life in sound. Join us for intimate conversations with Sharon Olds and Olga Tokarczuk; fiction by Rivers Solomon, Jun'ichirō Tanizaki, and Zach Williams; poems by Terrance Hayes and Maggie Millner; nonfiction by Robert Glück, Jean Garnett, and Sean Thor Conroe; and performances by George Takei, Lena Waithe, and many others.",
-    "url": "https://www.theparisreview.org/podcast?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "✍️",
-    "active": false
-   
-  },
-
-
-
- {
-    "id": "youre-booked",
-    "title": "You're Booked",
-    "host": "Daisy Buchanan",
-    "description": "Welcome to You’re Booked, the podcast for literary nosy parkers who would like the chance to snoop around their favourite authors’ bookshelves.",
-    "url": "https://play.acast.com/s/booked?utm_source=listennotes.com&utm_campaign=Listen+Notes&utm_medium=website",
-    "rssUrl": "",
-    "tags": [],
-    "emoji": "🎙️",
-    "active": false,
-    "_apple": "https://podcasts.apple.com/podcast/id1439173261",
-    "_listenNotesUrl": "https://www.listennotes.com/c/518b144182cd4b379a164cae8328b61b/"
   }
-
-
 ]
