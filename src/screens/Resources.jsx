@@ -1421,7 +1421,7 @@ export default function Resources({ onBack }) {
           gap: 12, flexWrap: 'wrap', textAlign: 'center',
         }}>
           <img src={`${BASE}images/star-cat-mark.png`} alt=""
-            style={{ width: 34, height: 34, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }} />
+            style={{ width: 68, height: 68, objectFit: 'contain', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))' }} />
           <span style={{ fontFamily: 'var(--hs-nameplate)', fontSize: 14, letterSpacing: '0.1em', color: HS.cream2 }}>
             Highway Snacks
           </span>

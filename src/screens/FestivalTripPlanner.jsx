@@ -85,6 +85,16 @@ async function fetchPlacesByCategories(lat, lng, categories) {
   return interleaveByType(results.flat());
 }
 
+function haversineMiles(lat1, lng1, lat2, lng2) {
+  const R = 3958.8;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 +
+    Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 // ── Itinerary Generator ────────────────────────────────────────────────────────
 async function buildFestivalItinerary(startCoords, startText, festivals, tripDays, packed, categories) {
   const f1 = festivals[0];
@@ -97,20 +107,23 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
     try { places2 = await fetchPlacesByCategories(f2.lat, f2.lng, categories); } catch {}
   }
 
-  // Split into book-style stops (literary/attractions) and cafe-style stops (food/drink)
-  // Drive-ins are reserved for week-long trips only (7 days) — they're evening venues
-  // that don't fit the tighter schedule of 2–4 day festival trips
-  const FOOD_TYPES = new Set(['cafe', 'restaurant']);
-  const books1 = places1.filter(p => !FOOD_TYPES.has(p.type) && (p.type !== 'drivein' || tripDays >= 7));
-  const cafes1 = places1.filter(p => FOOD_TYPES.has(p.type));
-  const books2 = places2.filter(p => !FOOD_TYPES.has(p.type) && (p.type !== 'drivein' || tripDays >= 7));
-  const cafes2 = places2.filter(p => FOOD_TYPES.has(p.type));
+  // Type-gated buckets — each slot type pulls only from its own collection
+  const cafes1      = places1.filter(p => p.type === 'cafe');
+  const bookstores1 = places1.filter(p => p.type === 'bookstore');
+  const sights1     = places1.filter(p => ['landmark', 'historicSite', 'museum', 'theater', 'park'].includes(p.type));
+  const driveins1   = places1.filter(p => p.type === 'drivein' && tripDays >= 7);
+
+  const cafes2      = places2.filter(p => p.type === 'cafe');
+  const bookstores2 = places2.filter(p => p.type === 'bookstore');
+  const sights2     = places2.filter(p => ['landmark', 'historicSite', 'museum', 'theater', 'park'].includes(p.type));
+  const driveins2   = places2.filter(p => p.type === 'drivein' && tripDays >= 7);
 
   const slotsPerDay = packed ? 5 : 3;
 
   // Helper: pick next unused place
   const pick = (arr, used) => arr.find(p => !used.has(p.id)) || null;
   const used1 = new Set(), used2 = new Set();
+  const nearFestival1 = haversineMiles(startCoords[0], startCoords[1], f1.lat, f1.lng) < 30;
 
   const festStop = (fest, dayTag, time, note, durationMins) => ({
     id: `fest-${fest.id}-${dayTag}`,
@@ -139,6 +152,17 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
   ];
   const getDriveInNoteFest = (p) => DRIVEIN_NOTES_FEST[p.id.charCodeAt(0) % DRIVEIN_NOTES_FEST.length];
 
+  const sightNote = (p) => {
+    const phrases = {
+      museum:       `Spend an afternoon exploring ${p.name}`,
+      historicSite: `Step back in time at ${p.name}`,
+      theater:      `Take in ${p.name} before the evening`,
+      park:         `An afternoon stroll through ${p.name}`,
+      landmark:     `Afternoon stop at ${p.name}`,
+    };
+    return phrases[p.type] || `Afternoon at ${p.name}`;
+  };
+
   const asStop = (p, time, note, durationMins) => {
     if (!p) return null;
     if (p.type === 'drivein') {
@@ -147,156 +171,180 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
     return { ...p, suggestedTime: time, note, durationMins };
   };
 
+  const cafeStop = (p, time, note, dur) =>
+    p ? asStop(p, time, note, dur)
+      : { id: `ph-cafe-${Math.random().toString(36).slice(2)}`, name: 'Local Café', type: 'cafe', coords: null, address: '', suggestedTime: time, note: 'Find a local café or coffee shop nearby', durationMins: dur };
+
+  const bookStop = (p, time, note, dur) =>
+    p ? asStop(p, time, note, dur)
+      : { id: `ph-book-${Math.random().toString(36).slice(2)}`, name: 'Local Bookstore', type: 'bookstore', coords: null, address: '', suggestedTime: time, note: 'Browse a local bookstore or library', durationMins: dur };
+
   const days = [];
 
   // ── WEEKEND (2 days) ────────────────────────────────────────────────────────
   if (tripDays === 2) {
     const c1a = pick(cafes1, used1); if (c1a) used1.add(c1a.id);
-    const b1a = pick(books1, used1); if (b1a) used1.add(b1a.id);
+    const b1a = pick(bookstores1, used1); if (b1a) used1.add(b1a.id);
     days.push({
       dayNum: 1,
       label: `Arrive in ${f1.city} — Festival Day 1`,
       stops: [
         travelStop(`Depart from ${startText}`, startCoords, '9:00 AM', 'Hit the road!'),
-        asStop(c1a, '12:00 PM', 'Pit stop: fuel up for the festival', 30),
+        cafeStop(c1a, '12:00 PM', 'Pit stop: fuel up for the festival', 30),
         festStop(f1, 'd1', '2:00 PM', f1.description.slice(0, 120) + (f1.description.length > 120 ? '…' : ''), packed ? 300 : 240),
-        asStop(b1a, '7:00 PM', 'Browse the local literary scene after the festival', 60),
+        bookStop(b1a, '7:00 PM', 'Browse the local literary scene after the festival', 60),
       ].filter(Boolean),
     });
 
     const c1b = pick(cafes1, used1); if (c1b) used1.add(c1b.id);
-    const b1b = pick(books1, used1); if (b1b) used1.add(b1b.id);
+    const b1b = pick(bookstores1, used1); if (b1b) used1.add(b1b.id);
+    const s1a = pick(sights1, used1); if (s1a) used1.add(s1a.id);
     days.push({
       dayNum: 2,
       label: `Festival Day 2 → Drive Home`,
       stops: [
-        asStop(c1b, '9:00 AM', 'Morning coffee before the final festival session', 30),
+        cafeStop(c1b, '9:00 AM', 'Morning coffee before the final festival session', 30),
         festStop(f1, 'd2', '10:30 AM', `Final day at ${f1.name} — soak in every reading!`, packed ? 300 : 240),
-        asStop(b1b, '4:00 PM', 'One last bookstore before the road home', 60),
+        s1a ? asStop(s1a, '2:30 PM', sightNote(s1a), 90) : null,
+        bookStop(b1b, '4:30 PM', 'One last bookstore before the road home', 60),
         travelStop(`Return to ${startText}`, startCoords, '6:00 PM', 'Head home with new books and memories'),
       ].filter(Boolean),
     });
 
   // ── 3-4 DAYS ────────────────────────────────────────────────────────────────
   } else if (tripDays === 3) {
-    const c1a = pick(cafes1, used1); if (c1a) used1.add(c1a.id);
-    const b1a = pick(books1, used1); if (b1a) used1.add(b1a.id);
-    const b1b = pick(books1, used1); if (b1b) used1.add(b1b.id);
-    days.push({
-      dayNum: 1,
-      label: `Drive to ${f1.city}`,
-      stops: [
-        travelStop(`Depart from ${startText}`, startCoords, '9:00 AM', 'Start your literary road trip!'),
-        asStop(c1a, '12:00 PM', 'Midway coffee stop in the festival city', 30),
-        travelStop(`Arrive in ${f1.city}`, [f1.lat, f1.lng], '3:00 PM', `Check in and explore downtown ${f1.city}`),
-        asStop(b1a, '5:00 PM', 'Get oriented at a local bookstore', 60),
-      ].filter(Boolean),
-    });
+    if (!nearFestival1) {
+      const c1a = pick(cafes1, used1); if (c1a) used1.add(c1a.id);
+      const b1a = pick(bookstores1, used1); if (b1a) used1.add(b1a.id);
+      days.push({
+        dayNum: 1,
+        label: `Drive to ${f1.city}`,
+        stops: [
+          travelStop(`Depart from ${startText}`, startCoords, '9:00 AM', 'Start your literary road trip!'),
+          cafeStop(c1a, '12:00 PM', 'Midway coffee stop in the festival city', 30),
+          travelStop(`Arrive in ${f1.city}`, [f1.lat, f1.lng], '3:00 PM', `Check in and explore downtown ${f1.city}`),
+          bookStop(b1a, '5:00 PM', 'Get oriented at a local bookstore', 60),
+        ].filter(Boolean),
+      });
+    }
 
+    const b1b = pick(bookstores1, used1); if (b1b) used1.add(b1b.id);
     const c1b = pick(cafes1, used1); if (c1b) used1.add(c1b.id);
+    const s1a = pick(sights1, used1); if (s1a) used1.add(s1a.id);
     days.push({
       dayNum: 2,
       label: `Full Day at ${f1.name}`,
       stops: [
-        asStop(c1b, '8:30 AM', 'Start the festival day properly caffeinated', 45),
+        cafeStop(c1b, '8:30 AM', 'Start the festival day properly caffeinated', 45),
         festStop(f1, 'd1', '10:00 AM', f1.description.slice(0, 120) + '…', packed ? 420 : 360),
-        asStop(b1b, '5:30 PM', 'Evening bookstore after a full festival day', 60),
+        s1a ? asStop(s1a, '4:30 PM', sightNote(s1a), 90) : null,
+        bookStop(b1b, '6:00 PM', 'Evening bookstore after a full festival day', 60),
       ].filter(Boolean),
     });
 
-    const c1c = pick(cafes1, used1) || (cafes1[0] && !used1.has(cafes1[0].id) ? cafes1[0] : cafes1[0]);
-    const b1c = pick(books1, used1) || books1[0];
+    const c1c = pick(cafes1, used1) || null;
+    const b1c = pick(bookstores1, used1) || null;
     days.push({
       dayNum: 3,
       label: `Last Session → Head Home`,
       stops: [
-        asStop(c1c, '8:30 AM', 'Final morning coffee in the festival city', 30),
+        cafeStop(c1c, '8:30 AM', 'Final morning coffee in the festival city', 30),
         festStop(f1, 'd2', '10:00 AM', 'Morning sessions before hitting the road', 180),
-        asStop(b1c, '1:30 PM', 'Pick up a signed copy from local booksellers', 45),
+        bookStop(b1c, '1:30 PM', 'Pick up a signed copy from local booksellers', 45),
         travelStop(`Return to ${startText}`, startCoords, '3:00 PM', 'Drive home with full bags and full heart'),
       ].filter(Boolean),
     });
 
   // ── WEEK (7 days) ────────────────────────────────────────────────────────────
   } else {
-    // Day 1: Travel with en-route stops
-    const c1a = pick(cafes1, used1); if (c1a) used1.add(c1a.id);
-    const b1a = pick(books1, used1); if (b1a) used1.add(b1a.id);
-    days.push({
-      dayNum: 1, label: `Road to ${f1.city}`,
-      stops: [
-        travelStop(`Depart from ${startText}`, startCoords, '9:00 AM', 'Your literary journey begins!'),
-        asStop(c1a, '12:00 PM', 'Midway pit stop', 30),
-        asStop(b1a, '3:00 PM', 'Warm-up bookstore before the festival starts', 60),
-        travelStop(`Settle into ${f1.city}`, [f1.lat, f1.lng], '6:00 PM', 'Dinner in the festival neighborhood'),
-      ].filter(Boolean),
-    });
+    // Day 1: Travel with en-route stops (skipped if origin is within 30 miles of festival)
+    if (!nearFestival1) {
+      const c1a = pick(cafes1, used1); if (c1a) used1.add(c1a.id);
+      const b1a = pick(bookstores1, used1); if (b1a) used1.add(b1a.id);
+      days.push({
+        dayNum: 1, label: `Road to ${f1.city}`,
+        stops: [
+          travelStop(`Depart from ${startText}`, startCoords, '9:00 AM', 'Your literary journey begins!'),
+          cafeStop(c1a, '12:00 PM', 'Midway pit stop', 30),
+          bookStop(b1a, '3:00 PM', 'Warm-up bookstore before the festival starts', 60),
+          travelStop(`Settle into ${f1.city}`, [f1.lat, f1.lng], '6:00 PM', 'Dinner in the festival neighborhood'),
+        ].filter(Boolean),
+      });
+    }
 
     // Day 2-3: Festival Days
     const c1b = pick(cafes1, used1); if (c1b) used1.add(c1b.id);
-    const b1b = pick(books1, used1); if (b1b) used1.add(b1b.id);
-    const b1c = pick(books1, used1); if (b1c) used1.add(b1c.id);
+    const b1b = pick(bookstores1, used1); if (b1b) used1.add(b1b.id);
+    const b1c = pick(bookstores1, used1); if (b1c) used1.add(b1c.id);
+    const s1a = pick(sights1, used1); if (s1a) used1.add(s1a.id);
     days.push({
       dayNum: 2, label: `Festival Day 1 at ${f1.name}`,
       stops: [
-        asStop(c1b, '8:30 AM', 'Morning coffee to start festival day 1', 45),
+        cafeStop(c1b, '8:30 AM', 'Morning coffee to start festival day 1', 45),
         festStop(f1, 'd1', '10:00 AM', f1.description.slice(0, 120) + '…', packed ? 420 : 360),
-        asStop(b1b, '6:00 PM', 'Post-festival bookstore crawl', 90),
+        s1a ? asStop(s1a, '4:30 PM', sightNote(s1a), 90) : null,
+        bookStop(b1b, '6:00 PM', 'Post-festival bookstore crawl', 90),
       ].filter(Boolean),
     });
 
     const c1c = pick(cafes1, used1); if (c1c) used1.add(c1c.id);
+    const s1b = pick(sights1, used1); if (s1b) used1.add(s1b.id);
     days.push({
       dayNum: 3, label: `Festival Day 2`,
       stops: [
-        asStop(c1c, '8:30 AM', 'Day 2 fuel-up', 30),
+        cafeStop(c1c, '8:30 AM', 'Day 2 fuel-up', 30),
         festStop(f1, 'd2', '10:00 AM', `Dive deeper into ${f1.name} programming`, packed ? 420 : 360),
-        asStop(b1c, '6:00 PM', 'Explore the bookstores of ${f1.city} after dark', 60),
+        s1b ? asStop(s1b, '4:30 PM', sightNote(s1b), 90) : null,
+        bookStop(b1c, '6:00 PM', `Explore the bookstores of ${f1.city} after dark`, 60),
       ].filter(Boolean),
     });
 
     // Day 4: Explore the region (or travel to 2nd festival)
     if (f2) {
       const c2a = pick(cafes2, used2); if (c2a) used2.add(c2a.id);
-      const b2a = pick(books2, used2); if (b2a) used2.add(b2a.id);
+      const b2a = pick(bookstores2, used2); if (b2a) used2.add(b2a.id);
       days.push({
         dayNum: 4, label: `Travel to ${f2.city}`,
         stops: [
           travelStop(`Leave ${f1.city}`, [f1.lat, f1.lng], '9:00 AM', `Road trip to ${f2.city} for festival #2!`),
-          asStop(c2a, '12:00 PM', 'En-route coffee stop', 30),
-          asStop(b2a, '4:00 PM', `Discover the bookstores of ${f2.city}`, 60),
+          cafeStop(c2a, '12:00 PM', 'En-route coffee stop', 30),
+          bookStop(b2a, '4:00 PM', `Discover the bookstores of ${f2.city}`, 60),
           travelStop(`Arrive in ${f2.city}`, [f2.lat, f2.lng], '6:00 PM', 'Check in and rest for festival #2'),
         ].filter(Boolean),
       });
 
       const c2b = pick(cafes2, used2); if (c2b) used2.add(c2b.id);
-      const b2b = pick(books2, used2); if (b2b) used2.add(b2b.id);
+      const b2b = pick(bookstores2, used2); if (b2b) used2.add(b2b.id);
+      const s2a = pick(sights2, used2); if (s2a) used2.add(s2a.id);
       days.push({
         dayNum: 5, label: `${f2.name}`,
         stops: [
-          asStop(c2b, '8:30 AM', 'Coffee before festival #2 kicks off', 30),
+          cafeStop(c2b, '8:30 AM', 'Coffee before festival #2 kicks off', 30),
           festStop(f2, 'd1', '10:00 AM', f2.description.slice(0, 120) + '…', packed ? 420 : 360),
-          asStop(b2b, '6:00 PM', 'Literary bookstore in the second festival city', 60),
+          s2a ? asStop(s2a, '4:30 PM', sightNote(s2a), 90) : null,
+          bookStop(b2b, '6:00 PM', 'Literary bookstore in the second festival city', 60),
         ].filter(Boolean),
       });
     } else {
       // Day 4-5: Explore local literary scene
-      const b1d = pick(books1, used1) || books1[0];
-      const c1d = pick(cafes1, used1) || cafes1[0];
-      const c1e = pick(cafes1, used1) || cafes1[0];
+      const b1d = pick(bookstores1, used1) || null;
+      const c1d = pick(cafes1, used1) || null;
+      const c1e = pick(cafes1, used1) || null;
+      const s1c = pick(sights1, used1); if (s1c) used1.add(s1c.id);
       days.push({
         dayNum: 4, label: `Explore ${f1.city}'s Literary Scene`,
         stops: [
-          asStop(c1d, '9:00 AM', 'Coffee at a different neighborhood café', 60),
-          asStop(b1d, '11:00 AM', 'Deep dive into a local bookstore', 90),
+          cafeStop(c1d, '9:00 AM', 'Coffee at a different neighborhood café', 60),
+          bookStop(b1d, '11:00 AM', 'Deep dive into a local bookstore', 90),
           travelStop(`Literary walk of ${f1.city}`, [f1.lat, f1.lng], '2:00 PM', 'Explore neighborhoods mentioned in local literature'),
         ].filter(Boolean),
       });
       days.push({
         dayNum: 5, label: `One More Festival Day`,
         stops: [
-          asStop(c1e, '8:30 AM', 'Morning coffee for the bonus festival day', 30),
+          cafeStop(c1e, '8:30 AM', 'Morning coffee for the bonus festival day', 30),
           festStop(f1, 'd3', '10:00 AM', 'Extra sessions and final signings', packed ? 300 : 240),
+          s1c ? asStop(s1c, '3:30 PM', sightNote(s1c), 90) : null,
           travelStop(`Evening in ${f1.city}`, [f1.lat, f1.lng], '5:00 PM', 'Final dinner in the festival city'),
         ].filter(Boolean),
       });
@@ -320,6 +368,8 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
       ],
     });
   }
+
+  days.forEach((d, i) => { d.dayNum = i + 1; });
 
   // Collect all unique coords for map
   const allCoords = days.flatMap(d => d.stops.filter(s => s.coords).map(s => s.coords));
