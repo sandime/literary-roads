@@ -107,16 +107,28 @@ async function buildFestivalItinerary(startCoords, startText, festivals, tripDay
     try { places2 = await fetchPlacesByCategories(f2.lat, f2.lng, categories); } catch {}
   }
 
-  // Type-gated buckets — each slot type pulls only from its own collection
-  const cafes1      = places1.filter(p => p.type === 'cafe');
-  const bookstores1 = places1.filter(p => p.type === 'bookstore');
-  const sights1     = places1.filter(p => ['landmark', 'historicSite', 'museum', 'theater', 'park'].includes(p.type));
-  const driveins1   = places1.filter(p => p.type === 'drivein' && tripDays >= 7);
+  // Shuffle so each call (initial + refresh) picks from a different random order
+  const shuffle = (arr) => {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
+  const sp1 = shuffle(places1);
+  const sp2 = shuffle(places2);
 
-  const cafes2      = places2.filter(p => p.type === 'cafe');
-  const bookstores2 = places2.filter(p => p.type === 'bookstore');
-  const sights2     = places2.filter(p => ['landmark', 'historicSite', 'museum', 'theater', 'park'].includes(p.type));
-  const driveins2   = places2.filter(p => p.type === 'drivein' && tripDays >= 7);
+  // Type-gated buckets — each slot type pulls only from its own collection
+  const cafes1      = sp1.filter(p => p.type === 'cafe');
+  const bookstores1 = sp1.filter(p => p.type === 'bookstore');
+  const sights1     = sp1.filter(p => ['landmark', 'historicSite', 'museum', 'theater', 'park'].includes(p.type));
+  const driveins1   = sp1.filter(p => p.type === 'drivein' && tripDays >= 7);
+
+  const cafes2      = sp2.filter(p => p.type === 'cafe');
+  const bookstores2 = sp2.filter(p => p.type === 'bookstore');
+  const sights2     = sp2.filter(p => ['landmark', 'historicSite', 'museum', 'theater', 'park'].includes(p.type));
+  const driveins2   = sp2.filter(p => p.type === 'drivein' && tripDays >= 7);
 
   const slotsPerDay = packed ? 5 : 3;
 
@@ -540,6 +552,8 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
     }
   };
 
+  const handleRefresh = () => handleGenerate();
+
   // ── Save ─────────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!user) { onShowLogin(); return; }
@@ -611,34 +625,56 @@ const FestivalTripPlanner = ({ onBack, onHome, onLoadTrip, onShowLogin }) => {
             {step === 'itinerary' && `${itinerary?.days.length}-day journey · ${selectedFests.map(f=>f.city).join(' + ')}`}
           </p>
         </div>
-        {/* Home button */}
-        {onHome && (
-          <button onClick={onHome}
-            className="text-chrome-silver/50 hover:text-starlight-turquoise transition-colors flex-shrink-0"
-            style={{ minWidth:36, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
-            title="Home"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </button>
-        )}
-        {/* Right side: step dots (filter) or New Trip button (all other steps) */}
+        {/* Right side: home + step dots (filter) or home + New Trip + optional Refresh */}
         {step === 'filter' ? (
-          <JourneySteps steps={['filter','select','preferences','itinerary']} currentStep={step} />
+          <>
+            {onHome && (
+              <button onClick={onHome}
+                className="text-chrome-silver/50 hover:text-starlight-turquoise transition-colors flex-shrink-0"
+                style={{ minWidth:36, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
+                title="Home"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </button>
+            )}
+            <JourneySteps steps={['filter','select','preferences','itinerary']} currentStep={step} />
+          </>
         ) : (
-          <button
-            onClick={() => {
-              isCancelledRef.current = true;
-              setStep('filter');
-              setSelectedFests([]);
-              setItinerary(null);
-              setSaved(false);
-            }}
-            className="flex-shrink-0 font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
-          >
-            ↺ NEW TRIP
-          </button>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {onHome && (
+              <button onClick={onHome}
+                className="text-chrome-silver/50 hover:text-starlight-turquoise transition-colors"
+                style={{ minWidth:32, minHeight:40, display:'flex', alignItems:'center', justifyContent:'center' }}
+                title="Home"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+              </button>
+            )}
+            <button
+              onClick={() => {
+                isCancelledRef.current = true;
+                setStep('filter');
+                setSelectedFests([]);
+                setItinerary(null);
+                setSaved(false);
+              }}
+              className="font-bungee text-[10px] tracking-wide text-chrome-silver/50 hover:text-atomic-orange transition-colors border border-chrome-silver/20 hover:border-atomic-orange/50 rounded px-2 py-1 whitespace-nowrap"
+            >
+              ↺ NEW TRIP
+            </button>
+            {step === 'itinerary' && (
+              <button
+                onClick={handleRefresh}
+                className="font-bungee text-[10px] tracking-wide text-atomic-orange hover:text-starlight-turquoise transition-colors border border-atomic-orange hover:border-starlight-turquoise rounded px-2 py-1 whitespace-nowrap"
+              >
+                ↺ REFRESH
+              </button>
+            )}
+          </div>
         )}
       </div>
 
