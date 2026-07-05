@@ -4,7 +4,7 @@
       "rank": 1,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 11,
+      "weeksOnList": 12,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
@@ -13,7 +13,7 @@
       "rank": 2,
       "title": "WHISTLER",
       "author": "Ann Patchett",
-      "weeksOnList": 3,
+      "weeksOnList": 4,
       "isbn13": "9780063511637",
       "description": "Decades after their time together, a woman reconnects with her stepfather and they look back at the directions their lives have taken.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063511637.jpg"
@@ -22,78 +22,78 @@
       "rank": 3,
       "title": "THE CALAMITY CLUB",
       "author": "Kathryn Stockett",
-      "weeksOnList": 7,
+      "weeksOnList": 8,
       "isbn13": "9781954118812",
       "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
     },
     {
       "rank": 4,
-      "title": "THE CORRESPONDENT",
-      "author": "Virginia Evans",
-      "weeksOnList": 34,
-      "isbn13": "9780593798430",
-      "description": "Letters from someone she used to know push Sybil Van Antwerp toward revisiting her past and finding a way to forgive.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798430.jpg"
+      "title": "IT COULD HAVE BEEN HER",
+      "author": "Lisa Jewell",
+      "weeksOnList": 1,
+      "isbn13": "9781668033906",
+      "description": "When a teenager is reported missing, Jane Trevally visits a house that holds unsettling memories for her.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668033906.jpg"
     },
     {
       "rank": 5,
-      "title": "CARL'S DOOMSDAY SCENARIO",
-      "author": "Matt Dinniman",
-      "weeksOnList": 23,
-      "isbn13": "9780593820261",
-      "description": "The second book in the \"Dungeon Crawler Carl\" series. Carl and Donut confront an ancient spell and heightened dangers.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593820261.jpg"
+      "title": "WEDDINGS",
+      "author": "Danielle Steel",
+      "weeksOnList": 1,
+      "isbn13": "9780593973110",
+      "description": "The daughter of a celebrated wedding dress designer becomes engaged and the women in the family contend with relationship complications.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593973110.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
+      "title": "REGIME CHANGE",
+      "author": "Maggie Haberman and Jonathan Swan",
+      "weeksOnList": 1,
+      "isbn13": "9781668067246",
+      "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
+    },
+    {
+      "rank": 2,
       "title": "COMMUNION",
       "author": "JD Vance",
-      "weeksOnList": 1,
+      "weeksOnList": 2,
       "isbn13": "9780063575011",
       "description": "The vice president and author of “Hillbilly Elegy” describes how he perceives his faith played a part in his work in public life.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063575011.jpg"
     },
     {
-      "rank": 2,
-      "title": "THE LAND AND ITS PEOPLE",
-      "author": "David Sedaris",
-      "weeksOnList": 4,
-      "isbn13": "9780316264839",
-      "description": "Essays on the passage of time, complicated relationships and some unexpected delights life has to offer.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316264839.jpg"
+      "rank": 3,
+      "title": "REVOLUTION",
+      "author": "Eric Metaxas",
+      "weeksOnList": 3,
+      "isbn13": "9781631440885",
+      "description": "The author of “Martin Luther” and “Bonhoeffer” gives an account of the foundation of the United States of America.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781631440885.jpg"
     },
     {
-      "rank": 3,
+      "rank": 4,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 22,
+      "weeksOnList": 23,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
-      "rank": 4,
-      "title": "STRIPPED DOWN",
-      "author": "Bunnie Xo",
-      "weeksOnList": 13,
-      "isbn13": "9780063445192",
-      "description": "The host of the “Dumb Blonde Podcast” shares how redemption was an important part of her journey toward reaching her goals.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063445192.jpg"
-    },
-    {
       "rank": 5,
-      "title": "COURAGE CAN SAVE US",
-      "author": "Rye Barcott",
-      "weeksOnList": 2,
-      "isbn13": "9798260200575",
-      "description": "Profiles of Democratic and Republican politicians who previously served in the military or the F.B.I.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798260200575.jpg"
+      "title": "THE LAND AND ITS PEOPLE",
+      "author": "David Sedaris",
+      "weeksOnList": 5,
+      "isbn13": "9780316264839",
+      "description": "Essays on the passage of time, complicated relationships and some unexpected delights life has to offer.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316264839.jpg"
     }
   ],
-  "issueDate": "Sunday, June 28, 2026",
-  "issueNumber": 78,
-  "updatedAt": "2026-06-28T11:41:05.505Z"
+  "issueDate": "Sunday, July 5, 2026",
+  "issueNumber": 79,
+  "updatedAt": "2026-07-05T11:22:16.036Z"
 }
