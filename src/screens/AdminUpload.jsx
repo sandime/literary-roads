@@ -1004,7 +1004,7 @@ export default function AdminUpload() {
                 <div className="flex flex-wrap gap-1">
                   {csvHeaders.map(h => (
                     <span key={h} className={`font-mono text-xs px-1.5 py-0.5 rounded ${
-                      ['name','lat','lng','address','city','state'].includes(h)
+                      ['name','lat','lng','address','city','state','zipcode','phone','website'].includes(h)
                         ? 'bg-starlight-turquoise/20 text-starlight-turquoise'
                         : 'bg-white/10 text-chrome-silver'
                     }`}>{h}</span>
@@ -1017,6 +1017,8 @@ export default function AdminUpload() {
                     <p key={i} className="font-mono text-xs text-chrome-silver/80 truncate">
                       {row.name}{row.city ? ` · ${row.city}` : ''}{row.state ? `, ${row.state}` : ''}
                       {row.lat ? ` (${parseFloat(row.lat).toFixed(4)}, ${parseFloat(row.lng).toFixed(4)})` : ' [needs geocoding]'}
+                      {row.phone ? ` · ${row.phone}` : ''}
+                      {row.website ? ` · ${row.website}` : ''}
                     </p>
                   ))}
                 </div>
