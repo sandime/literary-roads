@@ -65,7 +65,7 @@ function IconMood() {
 }
 
 // ── Method row ────────────────────────────────────────────────────────────────
-function MethodRow({ accent, icon, label, sub, onClick, disabled, badge }) {
+function MethodRow({ accent, label, sub, onClick, disabled, badge }) {
   const [hov, setHov] = useState(false);
   return (
     <button
@@ -94,11 +94,6 @@ function MethodRow({ accent, icon, label, sub, onClick, disabled, badge }) {
       }}>
         {/* Accent stripe */}
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 4, borderRadius: '12px 0 0 12px', background: accent }} />
-
-        {/* Icon */}
-        <div style={{ color: accent, flexShrink: 0, marginLeft: 2 }}>
-          {icon}
-        </div>
 
         {/* Text */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -313,9 +308,8 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
           <div>
             <MethodRow
               accent={L.turquoise}
-              icon={<IconDice />}
               label="Ask the Librarian"
-              sub="Let the librarian pick something from your list"
+              sub="Ask the librarian to pick something from your Read Next list"
               badge={readNextCount > 0 ? `${readNextCount} books` : null}
               onClick={() => setShowAsk(v => !v)}
             />
@@ -327,7 +321,6 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
           {/* 2 — By Setting */}
           <MethodRow
             accent={L.coral}
-            icon={<IconMap />}
             label="By Setting"
             sub="Find books set in a specific state or world"
             onClick={() => onNavigate('settingsMap')}
@@ -336,7 +329,6 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
           {/* 3 — Thin the Stack */}
           <MethodRow
             accent={L.gold}
-            icon={<IconScissors />}
             label="Thin the Stack"
             sub="Trim the books you've been ignoring on Read Next"
             badge={readNextCount > 4 ? `${readNextCount} queued` : null}
@@ -346,7 +338,6 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
           {/* 4 — By Mood (placeholder) */}
           <MethodRow
             accent={L.peach}
-            icon={<IconMood />}
             label="By Mood"
             sub="Match a book to how you're feeling right now"
             disabled

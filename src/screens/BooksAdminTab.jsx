@@ -57,7 +57,7 @@ function buildBookDoc(raw) {
     title,
     authors,
     description:      (raw.description   || '').trim(),
-    coverUrl:         (raw.coverUrl      || raw.cover_url || '').trim(),
+    coverUrl:         (raw.coverUrl      || raw.cover_url || '').toString().trim(),
     categories:       Array.isArray(raw.categories) ? raw.categories
                         : typeof raw.categories === 'string'
                           ? raw.categories.split(';').map(s => s.trim()).filter(Boolean)

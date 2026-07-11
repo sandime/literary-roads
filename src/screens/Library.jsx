@@ -1758,14 +1758,30 @@ export default function Library({ onBack }) {
     return (
       <ThinTheStack
         readNext={readNext}
-        onBack={() => setView('librariansDesk')}
+        onBack={() => navigate(-1)}
       />
     );
   }
 
   if (view === 'settingsMap') {
+    const handleAddFromDesk = async (book) => {
+      if (!user) return;
+      const docId = (book.id || book.title || 'book').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
+      const googleVolumeId = book.googleBooksId || book.id || null;
+      const coverUrl = book.coverUrl || book.coverURL ||
+        (googleVolumeId ? `https://books.google.com/books/content?id=${googleVolumeId}&printsec=frontcover&img=1&zoom=1` : null);
+      const ref = doc(db, 'users', user.uid, 'libraryReadNext', docId);
+      await setDoc(ref, {
+        title:        book.title || '',
+        author:       Array.isArray(book.authors) ? book.authors.join(', ') : (book.authors || ''),
+        coverUrl:     coverUrl || null,
+        lastViewedAt: null,
+        date:         serverTimestamp(),
+        source:       'librariansDesk',
+      }, { merge: true });
+    };
     return (
-      <SettingsMap onBack={() => setView('librariansDesk')} />
+      <SettingsMap onBack={() => navigate(-1)} onAddToReadNext={handleAddFromDesk} />
     );
   }
 

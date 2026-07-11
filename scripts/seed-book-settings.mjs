@@ -82,6 +82,9 @@ Rules:
 - "medium" = the setting is likely but not stated explicitly in the description.
 - "low" = possible but uncertain.
 - If the book has no identifiable real or fictional place setting (e.g. pure concept nonfiction), return an empty array [].
+- Washington D.C. / District of Columbia → type: "state", place: "District of Columbia"
+- Puerto Rico → type: "state", place: "Puerto Rico"
+- Alaska and Hawaii → type: "state" (same as other US states)
 - Return ONLY the JSON array, no other text.
 
 Example: [{"place":"Montana","type":"state","confidence":"high","source":"ai-generated"}]`;

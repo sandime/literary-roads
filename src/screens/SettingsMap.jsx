@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
 const L = {
@@ -30,12 +30,69 @@ const BEYOND = [
 ];
 
 // ── Stack card + flip-through view ───────────────────────────────────────────
-function StackCard({ books, label, onClose }) {
+const GB_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
+
+async function fetchBookCover(book) {
+  const title  = book.title || '';
+  const author = (book.authors || [])[0] || '';
+  const q      = [title, author].filter(Boolean).join(' ');
+
+  // Google Books — use API key to avoid rate limiting
+  try {
+    const key = GB_KEY ? `&key=${GB_KEY}` : '';
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=3${key}`);
+    if (res.ok) {
+      const data = await res.json();
+      for (const item of (data.items || [])) {
+        const thumb = item.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:');
+        if (thumb) return thumb;
+      }
+    }
+  } catch {}
+
+  // Open Library fallback — no key needed
+  try {
+    const res = await fetch(
+      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=5&fields=cover_i`
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const coverId = (data.docs || []).find(d => d.cover_i)?.cover_i;
+      if (coverId) return `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
+    }
+  } catch {}
+
+  return null;
+}
+
+function StackCard({ books, label, onClose, onAddToReadNext }) {
   const [index, setIndex] = useState(0);
+  const [addedId, setAddedId] = useState(null);
+  // covers: { [bookId]: url } — filled lazily from Google Books API
+  const [covers, setCovers] = useState(() =>
+    Object.fromEntries(books.filter(b => b.coverUrl).map(b => [b.id, b.coverUrl]))
+  );
+  const fetchingRef = useRef(new Set());
+
   const featured = books.find(b => b.featured) || books[0];
-  const sortedBooks = featured
+  const sortedBooks = useMemo(() => featured
     ? [featured, ...books.filter(b => b.id !== featured.id)]
-    : books;
+    : books,
+  [books, featured?.id]);
+
+  // Fetch cover for current book (and one ahead) when not already cached
+  useEffect(() => {
+    [sortedBooks[index], sortedBooks[index + 1]].forEach(book => {
+      if (!book || covers[book.id] || fetchingRef.current.has(book.id)) return;
+      fetchingRef.current.add(book.id);
+      fetchBookCover(book).then(thumb => {
+        if (!thumb) return;
+        setCovers(prev => ({ ...prev, [book.id]: thumb }));
+        updateDoc(doc(db, 'books', book.id), { coverUrl: thumb }).catch(() => {});
+      });
+    });
+  }, [index, sortedBooks]);
+
   const current = sortedBooks[index] || sortedBooks[0];
   if (!current) return null;
 
@@ -107,8 +164,12 @@ function StackCard({ books, label, onClose }) {
                 width: 76, height: 108, flexShrink: 0, borderRadius: 6,
                 overflow: 'hidden', boxShadow: '2px 4px 10px rgba(0,0,0,0.16)', background: '#eee',
               }}>
-                <img src={current.coverUrl || CAT_SRC} alt={current.title} onError={onCoverError}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={covers[current.id] || CAT_SRC}
+                  alt={current.title}
+                  onError={onCoverError}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{ fontFamily: 'Georgia, serif', fontSize: 15, fontWeight: 700, color: L.dark, margin: '0 0 4px', lineHeight: 1.3 }}>
@@ -142,6 +203,28 @@ function StackCard({ books, label, onClose }) {
                   </span>
                 ))}
               </div>
+            )}
+
+            {/* Add to Read Next */}
+            {onAddToReadNext && (
+              <button
+                onClick={() => {
+                  onAddToReadNext({ ...current, coverUrl: covers[current.id] || current.coverUrl });
+                  setAddedId(current.id);
+                  setTimeout(() => setAddedId(null), 2000);
+                }}
+                style={{
+                  width: '100%', marginBottom: 10,
+                  padding: '9px 0', borderRadius: 8, cursor: 'pointer',
+                  background: addedId === current.id ? `${L.turquoise}22` : L.turquoise,
+                  border: addedId === current.id ? `1.5px solid ${L.turquoise}` : 'none',
+                  fontFamily: 'Bungee, sans-serif', fontSize: 11,
+                  color: addedId === current.id ? L.turquoise : L.white,
+                  letterSpacing: '0.06em', transition: 'all 0.2s',
+                }}
+              >
+                {addedId === current.id ? '✓ ADDED TO READ NEXT' : '+ ADD TO READ NEXT'}
+              </button>
             )}
 
             {/* Navigation */}
@@ -237,7 +320,14 @@ function BeyondPanel({ beyondBooks, onCategory }) {
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
-export default function SettingsMap({ onBack }) {
+const SPECIAL_REGIONS = [
+  { key: 'Alaska',               label: 'Alaska' },
+  { key: 'Hawaii',               label: 'Hawaii' },
+  { key: 'District of Columbia', label: 'DC' },
+  { key: 'Puerto Rico',          label: 'Puerto Rico' },
+];
+
+export default function SettingsMap({ onBack, onAddToReadNext }) {
   const [geoJson, setGeoJson]         = useState(null);
   const [allBooks, setAllBooks]       = useState([]);
   const [loading, setLoading]         = useState(true);
@@ -423,6 +513,29 @@ export default function SettingsMap({ onBack }) {
           </div>
         )}
 
+        {/* Special regions */}
+        <div style={{ padding: '10px 16px 2px', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: L.muted, letterSpacing: '0.1em', marginRight: 2 }}>ALSO:</span>
+          {SPECIAL_REGIONS.map(({ key, label }) => {
+            const count = (stateBooks[key] || []).length;
+            return (
+              <button key={key}
+                onClick={() => count > 0 && setSelected({ books: stateBooks[key], label })}
+                style={{
+                  fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.07em',
+                  background: count > 0 ? `${L.turquoise}18` : 'rgba(153,153,153,0.07)',
+                  color: count > 0 ? L.turquoise : L.muted,
+                  border: `1px solid ${count > 0 ? `${L.turquoise}44` : 'rgba(153,153,153,0.18)'}`,
+                  borderRadius: 20, padding: '4px 11px',
+                  cursor: count > 0 ? 'pointer' : 'default',
+                }}
+              >
+                {label}{count > 0 ? ` · ${count}` : ''}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Beyond the map panel */}
         <BeyondPanel beyondBooks={beyondBooks} onCategory={handleBeyondCategory} />
       </div>
@@ -433,6 +546,7 @@ export default function SettingsMap({ onBack }) {
           books={selected.books}
           label={selected.label}
           onClose={() => setSelected(null)}
+          onAddToReadNext={onAddToReadNext}
         />
       )}
     </div>
