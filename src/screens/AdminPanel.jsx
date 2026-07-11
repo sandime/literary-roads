@@ -17,6 +17,7 @@ import CuratedRoutesTab from './CuratedRoutesTab';
 import SwapMeetAdminTab from './SwapMeetAdminTab';
 import GuidesAdminTab from './GuidesAdminTab';
 import SalonAdminTab from './SalonAdminTab';
+import BooksAdminTab from './BooksAdminTab';
 
 // ── Date formatting ────────────────────────────────────────────────────────────
 // Returns "April 18, 2026" for single-day, "April 18-24, 2026 · 7 days" for multi-day.
@@ -1628,6 +1629,12 @@ export default function AdminPanel() {
         >
           THE SALON
         </button>
+        <button
+          onClick={() => setActiveTab('books')}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'books' ? '2px solid #38C5C5' : '2px solid transparent', color: activeTab === 'books' ? '#38C5C5' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+        >
+          BOOKS
+        </button>
         {/* RSS tab — always last */}
         <button
           onClick={() => setActiveTab('rss')}
@@ -1656,6 +1663,9 @@ export default function AdminPanel() {
         )}
         {activeTab === 'salon' && (
           <SalonAdminTab showToast={showToast} />
+        )}
+        {activeTab === 'books' && (
+          <BooksAdminTab showToast={showToast} />
         )}
         {activeTab === 'rss' && (
           <RSSTab showToast={showToast} />

@@ -258,6 +258,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ── Books catalog (shared, powers Librarian's Desk) ──────────────────────────
+    match /books/{bookId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ── The Salon ─────────────────────────────────────────────────────────────────
     match /salon/{salonId} {
       allow read: if true;

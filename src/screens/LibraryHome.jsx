@@ -416,6 +416,64 @@ function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
   );
 }
 
+// ── Librarian's Desk doorway card ─────────────────────────────────────────────
+function LibrariansDesk({ onNavigate }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate('librariansDesk')}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: 0, width: '100%', textAlign: 'left',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        transition: 'transform 0.22s ease',
+      }}
+    >
+      <div style={{
+        borderRadius: 12, overflow: 'hidden', display: 'flex',
+        border: `1px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.25)'}`,
+        background: '#F7FFFF',
+        boxShadow: hov ? '0 5px 16px rgba(56,197,197,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
+      }}>
+        <div style={{ width: 4, background: L.turquoise, flexShrink: 0 }} />
+        <div style={{ flex: 1, padding: '14px 12px' }}>
+          <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.turquoise, letterSpacing: '0.14em', textTransform: 'uppercase', margin: '0 0 5px' }}>
+            THIRD ROOM
+          </p>
+          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: '#2D2D2D', fontWeight: 700, margin: '0 0 7px', lineHeight: 1.2 }}>
+            The Librarian's Desk
+          </h3>
+          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.6, margin: '0 0 10px' }}>
+            Need help finding a book? Ask the librarian, browse by setting, or thin your stack.
+          </p>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {['Ask the Librarian', 'By Setting', 'Thin the Stack'].map(label => (
+              <span key={label} style={{
+                fontFamily: 'Special Elite, serif', fontSize: 10,
+                background: 'rgba(56,197,197,0.1)', border: '1px solid rgba(56,197,197,0.35)',
+                borderRadius: 20, padding: '3px 9px', color: '#1a7a7a', whiteSpace: 'nowrap',
+              }}>
+                {label}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px 0 4px' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke={hov ? L.turquoise : 'rgba(56,197,197,0.5)'} strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke 0.2s' }}>
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ── LibraryHome ───────────────────────────────────────────────────────────────
 export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null, discoveredAuthors = [], authorBooksCount = 0 }) {
   return (
@@ -504,7 +562,7 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
               <Boomerang color={L.sparkle1}  size={28} />
             </div>
 
-            {/* Author Room doorway */}
+            {/* Doorways */}
             <div style={{ marginTop: 28 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
@@ -513,11 +571,14 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
                 </span>
                 <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
               </div>
-              <AuthorRoomCard
-                discoveredAuthors={discoveredAuthors}
-                authorBooksCount={authorBooksCount}
-                onNavigate={onNavigate}
-              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <AuthorRoomCard
+                  discoveredAuthors={discoveredAuthors}
+                  authorBooksCount={authorBooksCount}
+                  onNavigate={onNavigate}
+                />
+                <LibrariansDesk onNavigate={onNavigate} />
+              </div>
             </div>
           </div>
 

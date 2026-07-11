@@ -179,6 +179,7 @@ export default function AuthorPage() {
           placeName:      `${author.name}'s ${stateName}`,
           state:          stateName,
           date:           serverTimestamp(),
+          lastViewedAt:   null,
           whoWhatWhere:   [title, author.name, stateName].join(' · '),
         },
         { merge: true }

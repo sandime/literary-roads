@@ -10,6 +10,9 @@ import { BackArrowIcon, LibraryIcon } from '../components/Icons';
 import PostcardBuilder from '../components/PostcardBuilder';
 import LibraryHome from './LibraryHome';
 import LibraryArchive from './LibraryArchive';
+import LibrariansDesk from './LibrariansDesk';
+import ThinTheStack from './ThinTheStack';
+import SettingsMap from './SettingsMap';
 import { useDiscoveredAuthors } from '../utils/discoveredAuthors';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 
@@ -757,6 +760,46 @@ function AuthorCat({ size = 160 }) {
 }
 
 // ── Section shell ─────────────────────────────────────────────────────────────
+// ── Part 4: remove-from-Read-Next-when-logged prompt ─────────────────────────
+function RemoveFromReadNextPrompt({ title, onConfirm, onDismiss }) {
+  return (
+    <div style={{
+      position: 'fixed', bottom: 24, left: '50%', transform: 'translateX(-50%)',
+      zIndex: 900, width: 'calc(100% - 32px)', maxWidth: 420,
+      background: L.white, borderRadius: 14,
+      border: `1.5px solid ${L.peach}`,
+      boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+      padding: '16px 18px',
+      animation: 'lib-fade-in 0.22s ease',
+    }}>
+      <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: '#C07A10', letterSpacing: '0.06em', margin: '0 0 6px' }}>
+        YOU FINISHED THIS ONE
+      </p>
+      <p style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: L.mid, lineHeight: 1.5, margin: '0 0 14px' }}>
+        Remove <em>{title}</em> from Read Next?
+      </p>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={onConfirm}
+          style={{
+            flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
+            background: L.peach, border: 'none',
+            fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.white, letterSpacing: '0.05em',
+          }}>
+          REMOVE IT
+        </button>
+        <button onClick={onDismiss}
+          style={{
+            flex: 1, padding: '10px 0', borderRadius: 8, cursor: 'pointer',
+            background: 'transparent', border: `1.5px solid ${L.muted}`,
+            fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.muted, letterSpacing: '0.05em',
+          }}>
+          KEEP IT
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SectionShell({ title, accentColor, onBack, children }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: L.bg, overflowY: 'auto', fontFamily: 'Special Elite, serif' }}>
@@ -811,13 +854,16 @@ function ShelfCard({ accentColor, children }) {
 // ── Main Library ──────────────────────────────────────────────────────────────
 // URL ↔ view name mapping
 const PATH_TO_VIEW = {
-  '':          'home',
-  'booklog':   'bookLog',
-  'archive':   'archive',
-  'postcards': 'postcards',
-  'recs':      'myRecs',
-  'readnext':  'readNext',
-  'authors':   'authorRoom',
+  '':              'home',
+  'booklog':       'bookLog',
+  'archive':       'archive',
+  'postcards':     'postcards',
+  'recs':          'myRecs',
+  'readnext':      'readNext',
+  'authors':       'authorRoom',
+  'desk':          'librariansDesk',
+  'settings-map':  'settingsMap',
+  'thin-stack':    'thinStack',
 };
 const VIEW_TO_PATH = Object.fromEntries(
   Object.entries(PATH_TO_VIEW).map(([k, v]) => [v, k])
@@ -870,6 +916,10 @@ export default function Library({ onBack }) {
   const [readNextBook, setReadNextBook] = useState(null);
   const [readNextDiscovery, setReadNextDiscovery] = useState('');
   const [readNextSaving, setReadNextSaving] = useState(false);
+
+  // Part 4: prompt to remove from Read Next when a book is logged
+  const [removeFromReadNextId, setRemoveFromReadNextId] = useState(null); // docId in libraryReadNext
+  const [removeFromReadNextTitle, setRemoveFromReadNextTitle] = useState('');
 
   // Real-time subscriptions
   useEffect(() => {
@@ -956,6 +1006,14 @@ export default function Library({ onBack }) {
       setSelectedBook(null); setShowAddSearch(false);
       checkAndAwardBadges(user.uid).then(newly => { if (newly.length > 0) setNewBadges(newly); });
       checkAndAwardFoundersBadge(user.uid).then(badge => { if (badge) setNewBadges(prev => [...prev, badge]); });
+
+      // Part 4: check if this book is in Read Next — prompt to remove if so
+      const googleBooksId = selectedBook.id;
+      const matchingReadNext = readNext.find(r => r.googleBooksId === googleBooksId);
+      if (matchingReadNext) {
+        setRemoveFromReadNextId(matchingReadNext.id);
+        setRemoveFromReadNextTitle(selectedBook.title);
+      }
     } catch (err) {
       console.error('[Library] save:', err);
       setSaveError('Could not save. Try again.');
@@ -1012,12 +1070,13 @@ export default function Library({ onBack }) {
       const safeId = (readNextBook.id || '').replace(/\//g, '_');
       const docId = `manual_${safeId}_${Date.now()}`;
       await setDoc(doc(db, 'users', user.uid, 'libraryReadNext', docId), {
-        title:        readNextBook.title,
-        author:       readNextBook.author || '',
-        coverUrl:     readNextBook.coverURL || '',
+        title:         readNextBook.title,
+        author:        readNextBook.author || '',
+        coverUrl:      readNextBook.coverURL || '',
         googleBooksId: readNextBook.id,
-        whoWhatWhere: readNextDiscovery.trim() || '',
-        date:         serverTimestamp(),
+        whoWhatWhere:  readNextDiscovery.trim() || '',
+        date:          serverTimestamp(),
+        lastViewedAt:  null,
       });
       setReadNextBook(null);
       setReadNextDiscovery('');
@@ -1670,5 +1729,61 @@ export default function Library({ onBack }) {
     );
   }
 
-  return null;
+  if (view === 'librariansDesk') {
+    return (
+      <>
+        <LibrariansDesk
+          readNext={readNext}
+          onNavigate={setView}
+          onBack={() => setView('home')}
+        />
+        {/* Part 4 prompt — floats above the Desk if triggered */}
+        {removeFromReadNextId && (
+          <RemoveFromReadNextPrompt
+            title={removeFromReadNextTitle}
+            onConfirm={async () => {
+              try { await deleteDoc(doc(db, 'users', user.uid, 'libraryReadNext', removeFromReadNextId)); }
+              catch (e) { console.error('[Library] remove readNext:', e); }
+              setRemoveFromReadNextId(null);
+              setRemoveFromReadNextTitle('');
+            }}
+            onDismiss={() => { setRemoveFromReadNextId(null); setRemoveFromReadNextTitle(''); }}
+          />
+        )}
+      </>
+    );
+  }
+
+  if (view === 'thinStack') {
+    return (
+      <ThinTheStack
+        readNext={readNext}
+        onBack={() => setView('librariansDesk')}
+      />
+    );
+  }
+
+  if (view === 'settingsMap') {
+    return (
+      <SettingsMap onBack={() => setView('librariansDesk')} />
+    );
+  }
+
+  // Part 4 prompt can also appear over any other view (e.g. if triggered from Book Log view)
+  return (
+    <>
+      {removeFromReadNextId && (
+        <RemoveFromReadNextPrompt
+          title={removeFromReadNextTitle}
+          onConfirm={async () => {
+            try { await deleteDoc(doc(db, 'users', user.uid, 'libraryReadNext', removeFromReadNextId)); }
+            catch (e) { console.error('[Library] remove readNext:', e); }
+            setRemoveFromReadNextId(null);
+            setRemoveFromReadNextTitle('');
+          }}
+          onDismiss={() => { setRemoveFromReadNextId(null); setRemoveFromReadNextTitle(''); }}
+        />
+      )}
+    </>
+  );
 }

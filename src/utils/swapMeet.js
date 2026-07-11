@@ -17,11 +17,13 @@ export async function addToReadNext(userId, book) {
   const bookId = raw.replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
   const ref = doc(db, 'users', userId, 'libraryReadNext', bookId);
   await setDoc(ref, {
-    title:   book.title  || '',
-    author:  book.author || '',
-    coverId: book.coverId || null,
-    addedAt: serverTimestamp(),
-    source:  'swapMeet',
+    title:        book.title  || '',
+    author:       book.author || '',
+    coverId:      book.coverId || null,
+    addedAt:      serverTimestamp(),
+    date:         serverTimestamp(),
+    lastViewedAt: null,
+    source:       'swapMeet',
   }, { merge: true });
 }
 

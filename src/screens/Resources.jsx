@@ -477,6 +477,7 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
         googleBooksId: ticket.book.id,
         whoWhatWhere:  `Highway Snacks · ${ticket.book.genre}`,
         date:          serverTimestamp(),
+        lastViewedAt:  null,
       });
       setSave('saved');
     } catch { setSave('error'); }

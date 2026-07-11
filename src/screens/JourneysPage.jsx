@@ -585,6 +585,7 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
       coverUrl: coverUrl || '',
       whoWhatWhere: `From curated route: ${route.name}`,
       date: serverTimestamp(),
+      lastViewedAt: null,
     });
   };
 
