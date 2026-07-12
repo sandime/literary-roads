@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { LibraryIcon } from '../components/Icons';
 import { fetchPublishedGuides } from '../utils/bookstoreGuides';
+import { getOrCreateBook } from '../utils/booksCatalog';
 import { subscribeToActiveSalon } from '../utils/salon';
 import { getRandomFortune } from '../data/literaryFortunes.js';
 
@@ -480,6 +481,7 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
         lastViewedAt:  null,
       });
       setSave('saved');
+      getOrCreateBook({ id: ticket.book.id, title: ticket.book.title, authors: [ticket.book.author], coverUrl: ticket.book.coverURL || '' }).catch(() => {});
     } catch { setSave('error'); }
   };
 

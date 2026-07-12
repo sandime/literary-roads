@@ -326,7 +326,15 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
             onClick={() => onNavigate('settingsMap')}
           />
 
-          {/* 3 — Thin the Stack */}
+          {/* 3 — By Length */}
+          <MethodRow
+            accent="#7B6EC4"
+            label="By Length"
+            sub="Find something quick, or settle in for a while"
+            onClick={() => onNavigate('byLength')}
+          />
+
+          {/* 4 — Thin the Stack */}
           <MethodRow
             accent={L.gold}
             label="Thin the Stack"
@@ -335,7 +343,7 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
             onClick={() => onNavigate('thinStack')}
           />
 
-          {/* 4 — By Mood (placeholder) */}
+          {/* 5 — By Mood (placeholder) */}
           <MethodRow
             accent={L.peach}
             label="By Mood"

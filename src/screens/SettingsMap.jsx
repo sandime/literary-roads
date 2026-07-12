@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
+import { fetchBookCover } from '../utils/booksCatalog';
 import { db } from '../config/firebase';
 
 const L = {
@@ -30,40 +31,6 @@ const BEYOND = [
 ];
 
 // ── Stack card + flip-through view ───────────────────────────────────────────
-const GB_KEY = import.meta.env.VITE_GOOGLE_PLACES_API_KEY || '';
-
-async function fetchBookCover(book) {
-  const title  = book.title || '';
-  const author = (book.authors || [])[0] || '';
-  const q      = [title, author].filter(Boolean).join(' ');
-
-  // Google Books — use API key to avoid rate limiting
-  try {
-    const key = GB_KEY ? `&key=${GB_KEY}` : '';
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=3${key}`);
-    if (res.ok) {
-      const data = await res.json();
-      for (const item of (data.items || [])) {
-        const thumb = item.volumeInfo?.imageLinks?.thumbnail?.replace('http:', 'https:');
-        if (thumb) return thumb;
-      }
-    }
-  } catch {}
-
-  // Open Library fallback — no key needed
-  try {
-    const res = await fetch(
-      `https://openlibrary.org/search.json?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}&limit=5&fields=cover_i`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      const coverId = (data.docs || []).find(d => d.cover_i)?.cover_i;
-      if (coverId) return `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
-    }
-  } catch {}
-
-  return null;
-}
 
 function StackCard({ books, label, onClose, onAddToReadNext }) {
   const [index, setIndex] = useState(0);

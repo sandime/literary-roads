@@ -16,12 +16,12 @@ function setCache(key, data) {
 }
 
 async function fetchGoogle(query) {
-  const cacheKey = `lr_gbooks_v2_${query}`;
+  const cacheKey = `lr_gbooks_v3_${query}`;
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
   const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers,volumeInfo/categories)${key}`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers,volumeInfo/categories,volumeInfo/pageCount)${key}`;
   const res = await fetch(url);
   if (!res.ok) return []; // includes 429 — Open Library fills the gap
   const data = await res.json();
@@ -41,6 +41,7 @@ async function fetchGoogle(query) {
       author: item.volumeInfo?.authors?.[0] || 'Unknown Author',
       coverURL,
       isbn,
+      pageCount: item.volumeInfo?.pageCount || null,
       categories: item.volumeInfo?.categories || [],
       link: item.volumeInfo?.infoLink || `https://books.google.com/books?id=${item.id}`,
       source: 'google',
@@ -51,7 +52,7 @@ async function fetchGoogle(query) {
 }
 
 async function fetchOpenLibrary(query) {
-  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10&fields=key,title,author_name,cover_i`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10&fields=key,title,author_name,cover_i,number_of_pages_median`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
@@ -60,6 +61,7 @@ async function fetchOpenLibrary(query) {
     title: doc.title || 'Unknown Title',
     author: doc.author_name?.[0] || 'Unknown Author',
     coverURL: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+    pageCount: doc.number_of_pages_median || null,
     link: `https://openlibrary.org${doc.key}`,
     source: 'openlibrary',
   }));

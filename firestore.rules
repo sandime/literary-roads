@@ -258,10 +258,13 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
-    // ── Books catalog (shared, powers Librarian's Desk) ──────────────────────────
+    // ── Books catalog (shared, powers Librarian's Desk) ─────────────���────────────
+    // Any logged-in user can create (getOrCreateBook called from all write sites).
+    // Only admin can update/delete — protects curated enrichment data.
     match /books/{bookId} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
     }
 
     // ── The Salon ─────────────────────────────────────────────────────────────────

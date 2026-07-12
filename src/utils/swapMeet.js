@@ -1,4 +1,5 @@
 import { db } from '../config/firebase';
+import { getOrCreateBook } from './booksCatalog';
 import {
   collection, doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc,
   onSnapshot, query, where, orderBy, limit, serverTimestamp, getDocs,
@@ -25,6 +26,8 @@ export async function addToReadNext(userId, book) {
     lastViewedAt: null,
     source:       'swapMeet',
   }, { merge: true });
+  const coverUrl = book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : '';
+  getOrCreateBook({ title: book.title || '', authors: [book.author || ''], coverUrl }).catch(() => {});
 }
 
 // ── Current swap meet (most recent by openAt — handles active + upcoming) ────

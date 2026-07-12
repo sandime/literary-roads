@@ -5,6 +5,7 @@ import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { AUTHOR_TIDBITS, STATE_CENTERS } from '../data/authorTidbits';
 import { addDiscoveredAuthor, useDiscoveredAuthors } from '../utils/discoveredAuthors';
+import { getOrCreateBook } from '../utils/booksCatalog';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const C = {
@@ -185,6 +186,7 @@ export default function AuthorPage() {
         { merge: true }
       );
       setReadNextAdded(prev => new Set([...prev, title]));
+      getOrCreateBook({ title, authors: [author.name], coverUrl: coverUrl || '' }).catch(() => {});
     } catch (e) {
       console.error('[AuthorPage] readNext error', e);
     }

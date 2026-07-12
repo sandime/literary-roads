@@ -10,6 +10,7 @@ import {
 import PosterIllustration from '../components/journey/PosterIllustrations';
 import { BookIcon, CoffeeCupIcon, LiteraryLandmarkIcon } from '../components/Icons';
 import SecretRoom from '../components/journey/SecretRoom';
+import { getOrCreateBook } from '../utils/booksCatalog';
 
 const CAT_SRC = `${import.meta.env.BASE_URL}images/library-cat.png`;
 const JOURNEY_CAT_SRC = `${import.meta.env.BASE_URL}images/journey-cat.png`;
@@ -587,6 +588,7 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
       date: serverTimestamp(),
       lastViewedAt: null,
     });
+    getOrCreateBook({ title: book.title, authors: [book.author || ''], coverUrl: coverUrl || '', description: book.description || '' }).catch(() => {});
   };
 
   const handleAddAllToReadNext = async () => {

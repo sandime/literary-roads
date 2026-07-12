@@ -13,7 +13,9 @@ import LibraryArchive from './LibraryArchive';
 import LibrariansDesk from './LibrariansDesk';
 import ThinTheStack from './ThinTheStack';
 import SettingsMap from './SettingsMap';
+import ByLength from './ByLength';
 import { useDiscoveredAuthors } from '../utils/discoveredAuthors';
+import { getOrCreateBook } from '../utils/booksCatalog';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 
 // ── Cover image helpers ───────────────────────────────────────────────────────
@@ -864,6 +866,7 @@ const PATH_TO_VIEW = {
   'desk':          'librariansDesk',
   'settings-map':  'settingsMap',
   'thin-stack':    'thinStack',
+  'by-length':     'byLength',
 };
 const VIEW_TO_PATH = Object.fromEntries(
   Object.entries(PATH_TO_VIEW).map(([k, v]) => [v, k])
@@ -1006,6 +1009,7 @@ export default function Library({ onBack }) {
       setSelectedBook(null); setShowAddSearch(false);
       checkAndAwardBadges(user.uid).then(newly => { if (newly.length > 0) setNewBadges(newly); });
       checkAndAwardFoundersBadge(user.uid).then(badge => { if (badge) setNewBadges(prev => [...prev, badge]); });
+      getOrCreateBook({ id: selectedBook.id, title: selectedBook.title, authors: [selectedBook.author], coverUrl: selectedBook.coverURL || '', categories: selectedBook.categories || [], pageCount: selectedBook.pageCount || null }).catch(() => {});
 
       // Part 4: check if this book is in Read Next — prompt to remove if so
       const googleBooksId = selectedBook.id;
@@ -1081,6 +1085,7 @@ export default function Library({ onBack }) {
       setReadNextBook(null);
       setReadNextDiscovery('');
       setShowReadNextAdd(false);
+      getOrCreateBook({ id: readNextBook.id, title: readNextBook.title, authors: [readNextBook.author || ''], coverUrl: readNextBook.coverURL || '', categories: readNextBook.categories || [], pageCount: readNextBook.pageCount || null }).catch(() => {});
     } catch (err) { console.error('[Library] save readNext manual:', err); }
     finally { setReadNextSaving(false); }
   };
@@ -1763,25 +1768,30 @@ export default function Library({ onBack }) {
     );
   }
 
+  // Shared handler for adding a book from any Librarian's Desk sub-screen
+  const handleAddFromDesk = async (book) => {
+    if (!user) return;
+    const docId = (book.id || book.title || 'book').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
+    const coverUrl = book.coverUrl || book.coverURL || null;
+    await setDoc(doc(db, 'users', user.uid, 'libraryReadNext', docId), {
+      title:        book.title || '',
+      author:       Array.isArray(book.authors) ? book.authors.join(', ') : (book.authors || ''),
+      coverUrl:     coverUrl || null,
+      lastViewedAt: null,
+      date:         serverTimestamp(),
+      source:       'librariansDesk',
+    }, { merge: true });
+  };
+
   if (view === 'settingsMap') {
-    const handleAddFromDesk = async (book) => {
-      if (!user) return;
-      const docId = (book.id || book.title || 'book').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 100);
-      const googleVolumeId = book.googleBooksId || book.id || null;
-      const coverUrl = book.coverUrl || book.coverURL ||
-        (googleVolumeId ? `https://books.google.com/books/content?id=${googleVolumeId}&printsec=frontcover&img=1&zoom=1` : null);
-      const ref = doc(db, 'users', user.uid, 'libraryReadNext', docId);
-      await setDoc(ref, {
-        title:        book.title || '',
-        author:       Array.isArray(book.authors) ? book.authors.join(', ') : (book.authors || ''),
-        coverUrl:     coverUrl || null,
-        lastViewedAt: null,
-        date:         serverTimestamp(),
-        source:       'librariansDesk',
-      }, { merge: true });
-    };
     return (
       <SettingsMap onBack={() => navigate(-1)} onAddToReadNext={handleAddFromDesk} />
+    );
+  }
+
+  if (view === 'byLength') {
+    return (
+      <ByLength onBack={() => navigate(-1)} onAddToReadNext={handleAddFromDesk} />
     );
   }
 
