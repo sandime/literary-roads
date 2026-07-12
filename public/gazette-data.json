@@ -4,96 +4,96 @@
       "rank": 1,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 12,
+      "weeksOnList": 13,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
       "rank": 2,
-      "title": "WHISTLER",
-      "author": "Ann Patchett",
-      "weeksOnList": 4,
-      "isbn13": "9780063511637",
-      "description": "Decades after their time together, a woman reconnects with her stepfather and they look back at the directions their lives have taken.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063511637.jpg"
-    },
-    {
-      "rank": 3,
       "title": "THE CALAMITY CLUB",
       "author": "Kathryn Stockett",
-      "weeksOnList": 8,
+      "weeksOnList": 9,
       "isbn13": "9781954118812",
       "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
     },
     {
+      "rank": 3,
+      "title": "WHISTLER",
+      "author": "Ann Patchett",
+      "weeksOnList": 5,
+      "isbn13": "9780063511637",
+      "description": "Decades after their time together, a woman reconnects with her stepfather and they look back at the directions their lives have taken.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063511637.jpg"
+    },
+    {
       "rank": 4,
-      "title": "IT COULD HAVE BEEN HER",
-      "author": "Lisa Jewell",
+      "title": "THE SHAMPOO EFFECT",
+      "author": "Jenny Jackson",
       "weeksOnList": 1,
-      "isbn13": "9781668033906",
-      "description": "When a teenager is reported missing, Jane Trevally visits a house that holds unsettling memories for her.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668033906.jpg"
+      "isbn13": "9798217059959",
+      "description": "When Caroline Lash is pushed out of a social circle in a small seaside town, she exposes secrets that rile up the residents.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217059959.jpg"
     },
     {
       "rank": 5,
-      "title": "WEDDINGS",
-      "author": "Danielle Steel",
-      "weeksOnList": 1,
-      "isbn13": "9780593973110",
-      "description": "The daughter of a celebrated wedding dress designer becomes engaged and the women in the family contend with relationship complications.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593973110.jpg"
+      "title": "DUNGEON CRAWLER CARL",
+      "author": "Matt Dinniman",
+      "weeksOnList": 15,
+      "isbn13": "9780593820247",
+      "description": "A Coast Guard vet named Carl and his ex-girlfriend’s cat, Princess Donut, are trapped in a fantasy dungeon.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593820247.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
+      "title": "CANCEL ME IF YOU CAN",
+      "author": "Dave Portnoy",
+      "weeksOnList": 1,
+      "isbn13": "9781668222027",
+      "description": "The founder of Barstool Sports describes how he grew his business from a four-page newspaper into the digital media company it is today.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668222027.jpg"
+    },
+    {
+      "rank": 2,
       "title": "REGIME CHANGE",
       "author": "Maggie Haberman and Jonathan Swan",
-      "weeksOnList": 1,
+      "weeksOnList": 2,
       "isbn13": "9781668067246",
       "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
     },
     {
-      "rank": 2,
+      "rank": 3,
       "title": "COMMUNION",
       "author": "JD Vance",
-      "weeksOnList": 2,
+      "weeksOnList": 3,
       "isbn13": "9780063575011",
       "description": "The vice president and author of “Hillbilly Elegy” describes how he perceives his faith played a part in his work in public life.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063575011.jpg"
     },
     {
-      "rank": 3,
-      "title": "REVOLUTION",
-      "author": "Eric Metaxas",
-      "weeksOnList": 3,
-      "isbn13": "9781631440885",
-      "description": "The author of “Martin Luther” and “Bonhoeffer” gives an account of the foundation of the United States of America.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781631440885.jpg"
-    },
-    {
       "rank": 4,
       "title": "STRANGERS",
       "author": "Belle Burden",
-      "weeksOnList": 23,
+      "weeksOnList": 24,
       "isbn13": "9780593733318",
       "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
     },
     {
       "rank": 5,
-      "title": "THE LAND AND ITS PEOPLE",
-      "author": "David Sedaris",
-      "weeksOnList": 5,
-      "isbn13": "9780316264839",
-      "description": "Essays on the passage of time, complicated relationships and some unexpected delights life has to offer.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316264839.jpg"
+      "title": "REVOLUTION",
+      "author": "Eric Metaxas",
+      "weeksOnList": 4,
+      "isbn13": "9781631440885",
+      "description": "The author of “Martin Luther” and “Bonhoeffer” gives an account of the foundation of the United States of America.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781631440885.jpg"
     }
   ],
-  "issueDate": "Sunday, July 5, 2026",
-  "issueNumber": 79,
-  "updatedAt": "2026-07-05T11:22:16.036Z"
+  "issueDate": "Sunday, July 12, 2026",
+  "issueNumber": 80,
+  "updatedAt": "2026-07-12T11:04:06.899Z"
 }
