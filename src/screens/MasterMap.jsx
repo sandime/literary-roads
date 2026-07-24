@@ -817,7 +817,9 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false, label = ''
     html: `<div style="position:relative;display:inline-block;${glowBoost}"${a11y}>${icons[type] || icons.cafe}${starburstOverlay}${inTripOverlay}</div>`,
     className: isSwapMeet ? 'swap-meet-marker' : 'custom-googie-marker',
     iconSize:   isSearch ? [32, 40] : isSwapMeet ? [56, 64] : [40, 40],
-    iconAnchor: isSearch ? [16, 40] : isSwapMeet ? [28, 64] : [20, 40],
+    // Bookstores anchor 8px left of center, cafes 8px right — gives ~16px screen
+    // separation for co-located pairs at any zoom level without moving the geo point.
+    iconAnchor: isSearch ? [16, 40] : isSwapMeet ? [28, 64] : type === 'bookstore' ? [26, 40] : type === 'cafe' ? [14, 40] : [20, 40],
     popupAnchor: [0, isSwapMeet ? -64 : -40],
   });
   // Tag the icon so cluster functions can identify the marker's category
@@ -1792,8 +1794,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const spreadMap = useMemo(() => {
     const TYPES = new Set(['landmark','festival','drivein','bookstore','cafe']);
     const markers = visibleLocations.filter(l => TYPES.has(l.type));
-    const THRESHOLD = 0.0006; // ~60 m
-    const RADIUS    = 0.00028; // ~30 m
+    const THRESHOLD = 0.0012; // ~130 m — catches same-building and same-block pairs
+    const RADIUS    = 0.0006; // ~65 m — visible separation at zoom 15+
     const offsets   = {};
     const processed = new Set();
 
@@ -2291,6 +2293,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   const handleExploreStates = () => {
     const statesArray = [...ssSelected];
+
+    // DC or PR alone → use the direct fly-in + nearby-pins path (no route planner)
+    if (statesArray.length === 1 && statesArray[0] === 'District of Columbia') {
+      handleExploreDC();
+      return;
+    }
+    if (statesArray.length === 1 && statesArray[0] === 'Puerto Rico') {
+      handleExplorePR();
+      return;
+    }
+
     setActiveStates(statesArray);
     setUiMode('explore');
     setShowPlanner(true);
@@ -3375,12 +3388,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             ))
           }
 
-          {/* Bookstore markers — closest 5 to map center, never clustered */}
+          {/* Bookstore markers — closest 20 to map center, never clustered */}
           {visibleLocations
             .filter(l => l.type === 'bookstore')
             .map(l => ({ l, d: distMiles(mapCenter, [l.lat, l.lng]) }))
             .sort((a, b) => a.d - b.d)
-            .slice(0, 5)
+            .slice(0, 20)
             .map(({ l: location }) => (
               <Marker
                 key={location.id}
@@ -3391,12 +3404,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             ))
           }
 
-          {/* Cafe markers — closest 5 to map center, never clustered */}
+          {/* Cafe markers — closest 20 to map center, never clustered */}
           {visibleLocations
             .filter(l => l.type === 'cafe')
             .map(l => ({ l, d: distMiles(mapCenter, [l.lat, l.lng]) }))
             .sort((a, b) => a.d - b.d)
-            .slice(0, 5)
+            .slice(0, 20)
             .map(({ l: location }) => (
               <Marker
                 key={location.id}
@@ -3579,32 +3592,32 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             }}
           >
             <button
-              onClick={() => { if (!exploreDragged.current) handleExploreDC(); }}
+              onClick={() => { if (!exploreDragged.current) toggleStateSelect('District of Columbia'); }}
               className="font-bungee"
               style={{
                 padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
-                border: '2px solid rgba(64,224,208,0.4)',
-                background: 'rgba(26,27,46,0.92)',
+                border: ssSelected.has('District of Columbia') ? '2px solid rgba(64,224,208,0.9)' : '2px solid rgba(64,224,208,0.4)',
+                background: ssSelected.has('District of Columbia') ? 'rgba(64,224,208,0.18)' : 'rgba(26,27,46,0.92)',
                 color: '#F5F5DC',
                 cursor: 'inherit', backdropFilter: 'blur(4px)',
                 userSelect: 'none',
               }}
             >
-              EXPLORE D.C.
+              {ssSelected.has('District of Columbia') ? '✓ D.C.' : 'EXPLORE D.C.'}
             </button>
             <button
-              onClick={() => { if (!exploreDragged.current) handleExplorePR(); }}
+              onClick={() => { if (!exploreDragged.current) toggleStateSelect('Puerto Rico'); }}
               className="font-bungee"
               style={{
                 padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
-                border: '2px solid rgba(64,224,208,0.4)',
-                background: 'rgba(26,27,46,0.92)',
+                border: ssSelected.has('Puerto Rico') ? '2px solid rgba(64,224,208,0.9)' : '2px solid rgba(64,224,208,0.4)',
+                background: ssSelected.has('Puerto Rico') ? 'rgba(64,224,208,0.18)' : 'rgba(26,27,46,0.92)',
                 color: '#F5F5DC',
                 cursor: 'inherit', backdropFilter: 'blur(4px)',
                 userSelect: 'none',
               }}
             >
-              EXPLORE PR
+              {ssSelected.has('Puerto Rico') ? '✓ PR' : 'EXPLORE PR'}
             </button>
           </div>
 

@@ -116,6 +116,21 @@ const isExcludedVenue = (name) => {
   return NAME_EXCLUDE.some(t => lower.includes(t));
 };
 
+// Require at least one coffee keyword in the name, OR the OSM cuisine=coffee_shop tag.
+// OSM amenity=cafe is used for European-style bistros and restaurants too, so without
+// this filter we import non-coffee places.
+const COFFEE_KEYWORDS = [
+  'coffee', 'espresso', 'roaster', 'roastery', 'java', 'cafe', 'caffè',
+  'cappuccino', 'latte', 'cortado', 'pour over', 'cold brew', 'coffeehouse',
+  'coffee house', 'brew', 'barista',
+];
+
+const isCoffeePlace = (name, tags) => {
+  if ((tags['cuisine'] || '').toLowerCase() === 'coffee_shop') return true;
+  const lower = name.toLowerCase();
+  return COFFEE_KEYWORDS.some(k => lower.includes(k));
+};
+
 // ── Overpass query builder ────────────────────────────────────────────────────
 const buildQuery = (stateName) => `
 [out:json][timeout:60];
@@ -176,6 +191,7 @@ const transformElement = (el) => {
 
   if (isChainByName(name)) return null;
   if (isExcludedVenue(name)) return null;
+  if (!isCoffeePlace(name, p)) return null;
 
   // Get coordinates (nodes have lat/lon; ways have center)
   const lat = el.lat ?? el.center?.lat;

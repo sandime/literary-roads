@@ -77,7 +77,7 @@ export const searchAlongRoute = async (routePoints) => {
   // A global cap fills up at the start city and starves mid-route areas.
   // With closest-first sorting in getNearby*, slice(PER_POINT) gives the
   // nearest places to each sample point before dedup.
-  const PER_POINT = 8;
+  const PER_POINT = 20;
 
   const [bookstoreResults, cafeResults] = await Promise.all([
     Promise.all(samplePoints.map(([lat, lng]) =>
