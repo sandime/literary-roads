@@ -1512,28 +1512,6 @@
     "genre": null
   },
   {
-    "id": "nashville-book-festival",
-    "name": "Nashville Book Festival",
-    "city": "Nashville",
-    "state": "TN",
-    "lat": 36.1627,
-    "lng": -86.7816,
-    "description": "Annual free one-day event at the Nashville Public Library celebrating books and reading with Nashville authors, national guests, and family programming.",
-    "website": "https://library.nashville.org/events/nashville-book-festival",
-    "typicalMonth": "September",
-    "recurringPattern": "Annual – September",
-    "size": "regional",
-    "primaryType": "general",
-    "tags": [
-      "books",
-      "free",
-      "tennessee",
-      "library",
-      "nashville"
-    ],
-    "genre": null
-  },
-  {
     "id": "atlanta-book-fair",
     "name": "Atlanta Book Fair at MOCA GA",
     "city": "Atlanta",

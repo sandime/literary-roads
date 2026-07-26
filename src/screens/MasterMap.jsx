@@ -103,7 +103,7 @@ const STATE_MAJOR_CITIES = {
   'Wisconsin':            { abbr: 'WI', cities: ['Milwaukee', 'Madison', 'Green Bay'] },
   'Wyoming':              { abbr: 'WY', cities: ['Cheyenne', 'Jackson', 'Laramie'] },
   'District of Columbia': { abbr: 'DC', cities: ['Washington'] },
-  'Puerto Rico':          { abbr: 'PR', cities: ['San Juan', 'Ponce', 'Mayagüez'] },
+  'Puerto Rico':          { abbr: 'PR', cities: ['San Juan', 'Ponce', 'Mayagüez', 'Rincón', 'Arecibo', 'Fajardo', 'Aguadilla'] },
 };
 
 // ── State-selection overlay constants ────────────────────────────────────────
@@ -1839,6 +1839,24 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     );
   };
 
+  // Quick-select city chips for single-state planner; DC added for MD and VA
+  const cityChips = useMemo(() => {
+    if (activeStates.length !== 1) return [];
+    const state = activeStates[0];
+    const info = STATE_MAJOR_CITIES[state];
+    if (!info) return [];
+    const chips = info.cities.map(c => `${c}, ${info.abbr}`);
+    if (state === 'Maryland' || state === 'Virginia') {
+      chips.push('Washington, DC');
+    }
+    return chips;
+  }, [activeStates]);
+
+  const handleCityChipClick = (city) => {
+    if (!startCity.trim()) setStartCity(city);
+    else if (!endCity.trim()) setEndCity(city);
+  };
+
   // Smart placeholder city hints: first selected state → start, last selected state → end
   const cityHint = useMemo(() => {
     if (!activeStates.length) return { start: null, end: null };
@@ -2354,34 +2372,19 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     }
   };
 
-  // Jump directly into Puerto Rico — same treatment as DC
-  const handleExplorePR = async () => {
+  // Enter Puerto Rico with the city planner (same flow as other states)
+  const handleExplorePR = () => {
     const PR_LAT = 18.2208, PR_LNG = -66.5901;
     setActiveStates(['Puerto Rico']);
     setUiMode('explore');
-    setShowPlanner(false);
+    setShowPlanner(true);
     setRoute([]);
     setLoadedRoute(null);
     setCurrentRouteStops([]);
-    setPendingExploreTidbit('Puerto Rico');
+    setVisibleLocations([]);
+    setStartCity('');
+    setEndCity('');
     setSearchTarget({ center: [PR_LAT, PR_LNG], zoom: 9 });
-    setLoading(true);
-    try {
-      const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
-        searchNearbyPlaces(PR_LAT, PR_LNG, 50),
-        getLiteraryFestivalsNear(PR_LAT, PR_LNG, 50),
-        getDriveInsNear(PR_LAT, PR_LNG, 50),
-        getCuratedLandmarks([[PR_LAT, PR_LNG]], 50),
-      ]);
-      const seenIds = new Set();
-      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
-        .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
-      setVisibleLocations(combined);
-    } catch (err) {
-      console.error('[handleExplorePR]', err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   // Go back to state-selection mode, resetting all route/explore state
@@ -3325,6 +3328,26 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             />
           )}
 
+          {/* DC dot marker — DC is too tiny to reliably tap on the GeoJSON layer */}
+          {uiMode === 'stateSelect' && (
+            <Marker
+              key={`dc-dot-${ssSelected.has('District of Columbia')}`}
+              position={[38.9072, -77.0369]}
+              icon={L.divIcon({
+                className: '',
+                html: `<div title="Washington, D.C." style="
+                  width:12px;height:12px;border-radius:50%;cursor:pointer;
+                  background:${ssSelected.has('District of Columbia') ? 'rgba(64,224,208,0.9)' : '#40E0D0'};
+                  border:2px solid ${ssSelected.has('District of Columbia') ? '#0D0E1A' : '#0D0E1A'};
+                  box-shadow:0 0 10px rgba(64,224,208,${ssSelected.has('District of Columbia') ? '1' : '0.7'});
+                "></div>`,
+                iconSize: [12, 12],
+                iconAnchor: [6, 6],
+              })}
+              eventHandlers={{ click: () => toggleStateSelect('District of Columbia') }}
+            />
+          )}
+
           {uiMode === 'explore' && route.length > 1 && (
             <Polyline
               positions={route}
@@ -3592,20 +3615,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             }}
           >
             <button
-              onClick={() => { if (!exploreDragged.current) toggleStateSelect('District of Columbia'); }}
-              className="font-bungee"
-              style={{
-                padding: '5px 11px', borderRadius: 8, fontSize: 10, letterSpacing: '0.08em',
-                border: ssSelected.has('District of Columbia') ? '2px solid rgba(64,224,208,0.9)' : '2px solid rgba(64,224,208,0.4)',
-                background: ssSelected.has('District of Columbia') ? 'rgba(64,224,208,0.18)' : 'rgba(26,27,46,0.92)',
-                color: '#F5F5DC',
-                cursor: 'inherit', backdropFilter: 'blur(4px)',
-                userSelect: 'none',
-              }}
-            >
-              {ssSelected.has('District of Columbia') ? '✓ D.C.' : 'EXPLORE D.C.'}
-            </button>
-            <button
               onClick={() => { if (!exploreDragged.current) toggleStateSelect('Puerto Rico'); }}
               className="font-bungee"
               style={{
@@ -3769,6 +3778,25 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                     Include state if needed — e.g. "Memphis, TN"
                   </p>
                 )}
+                {cityChips.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 2 }}>
+                    {cityChips.map(city => (
+                      <button
+                        key={city}
+                        onClick={() => handleCityChipClick(city)}
+                        className="font-special-elite"
+                        style={{
+                          padding: '3px 10px', borderRadius: 20, fontSize: 11,
+                          border: '1px solid rgba(64,224,208,0.45)',
+                          background: 'rgba(64,224,208,0.08)',
+                          color: '#40E0D0', cursor: 'pointer',
+                        }}
+                      >
+                        {city}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <CityAutocomplete
                   value={startCity}
                   onChange={setStartCity}
@@ -3823,6 +3851,25 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 <p className="text-chrome-silver font-special-elite text-xs text-center -mb-1">
                   Include state if needed — e.g. "Memphis, TN"
                 </p>
+              )}
+              {cityChips.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                  {cityChips.map(city => (
+                    <button
+                      key={city}
+                      onClick={() => handleCityChipClick(city)}
+                      className="font-special-elite"
+                      style={{
+                        padding: '3px 10px', borderRadius: 20, fontSize: 11,
+                        border: '1px solid rgba(64,224,208,0.45)',
+                        background: 'rgba(64,224,208,0.08)',
+                        color: '#40E0D0', cursor: 'pointer',
+                      }}
+                    >
+                      {city}
+                    </button>
+                  ))}
+                </div>
               )}
               <div>
                 <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Starting City</label>
