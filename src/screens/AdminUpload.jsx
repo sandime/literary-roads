@@ -347,7 +347,9 @@ const transformFeature = (feature, config, reasonCounts) => {
     if (hours && typeof hours === 'string' && hours.trim()) extra.hours = hours.trim();
   }
 
+  const spotlight = (p['spotlight'] || '').trim() || null;
   const result = { docId, name, address, city, state, zipcode, lat, lng, phone, website,
+                   ...(spotlight ? { spotlight } : {}),
                    type: config.type, source: 'openstreetmap', ...extra };
   // DEBUG — remove after verifying addresses are populated
   if (address || city || state) {
@@ -524,6 +526,81 @@ export default function AdminUpload() {
   const [stats, setStats]                 = useState(EMPTY_STATS);
   const [current, setCurrent]             = useState('');
   const [errorMsg, setErrorMsg]           = useState('');
+
+  // Spotlight patch mode
+  const [slFile, setSlFile]               = useState(null);
+  const [slRows, setSlRows]               = useState([]);   // { name, city, state, spotlight }
+  const [slMatches, setSlMatches]         = useState(null); // null = not searched yet; array = results
+  const [slSearching, setSlSearching]     = useState(false);
+  const [slPatching, setSlPatching]       = useState(false);
+  const [slMsg, setSlMsg]                 = useState('');
+  const [slCollection, setSlCollection]   = useState('bookstores');
+  const slInputRef = useRef(null);
+
+  const handleSlFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSlFile(file);
+    setSlMatches(null);
+    setSlMsg('');
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const { rows } = parseCSV(ev.target.result);
+      // Accept rows that have name + spotlight
+      setSlRows(rows.filter(r => r.name && r.spotlight));
+    };
+    reader.readAsText(file);
+  };
+
+  const handleSlSearch = async () => {
+    if (!slRows.length) return;
+    setSlSearching(true);
+    setSlMatches(null);
+    setSlMsg('');
+    try {
+      const snap = await getDocs(collection(db, slCollection));
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.deleted);
+      const results = slRows.map(row => {
+        const nameLower = row.name.toLowerCase().trim();
+        // Exact name match first, then substring
+        let match = docs.find(d => (d.name || '').toLowerCase().trim() === nameLower);
+        if (!match) match = docs.find(d => (d.name || '').toLowerCase().includes(nameLower) || nameLower.includes((d.name || '').toLowerCase().trim()));
+        // Narrow by city/state if provided and multiple candidates exist
+        if (!match && (row.city || row.state)) {
+          const candidates = docs.filter(d => (d.name || '').toLowerCase().includes(nameLower));
+          match = candidates.find(d =>
+            (!row.city  || (d.city  || '').toLowerCase().includes(row.city.toLowerCase())) &&
+            (!row.state || (d.state || '').toUpperCase() === row.state.toUpperCase())
+          ) || candidates[0];
+        }
+        return { row, match: match || null };
+      });
+      setSlMatches(results);
+    } catch (err) {
+      setSlMsg(`Error searching: ${err.message}`);
+    } finally {
+      setSlSearching(false);
+    }
+  };
+
+  const handleSlPatch = async () => {
+    if (!slMatches) return;
+    const toPatch = slMatches.filter(m => m.match);
+    if (!toPatch.length) return;
+    setSlPatching(true);
+    setSlMsg('');
+    let ok = 0, fail = 0;
+    for (const { row, match } of toPatch) {
+      try {
+        await updateDoc(doc(db, slCollection, match.id), { spotlight: row.spotlight.trim() });
+        ok++;
+      } catch (err) {
+        fail++;
+      }
+    }
+    setSlMsg(`Done — patched ${ok} doc${ok !== 1 ? 's' : ''}${fail ? `, ${fail} failed` : ''}.`);
+    setSlPatching(false);
+  };
 
   // Remove Location (soft-delete)
   const [removeCol, setRemoveCol]         = useState('bookstores');
@@ -946,8 +1023,8 @@ export default function AdminUpload() {
         </div>
 
         {/* Upload mode toggle */}
-        <div className="flex gap-2 mb-6">
-          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual']].map(([mode, label]) => (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual'], ['spotlight', '☀️ Spotlight']].map(([mode, label]) => (
             <button key={mode} onClick={() => handleModeChange(mode)} disabled={busy}
               className={`flex-1 py-2.5 rounded-xl font-bungee text-xs tracking-wider border transition-all disabled:opacity-40 ${
                 uploadMode === mode
@@ -1248,8 +1325,107 @@ export default function AdminUpload() {
           </div>
         )}
 
+        {/* ── SPOTLIGHT PATCH MODE ──────────────────────────────────────────── */}
+        {uploadMode === 'spotlight' && (
+          <div className="mb-6 space-y-4">
+            {/* What this does */}
+            <div className="border border-starlight-turquoise/20 rounded-xl p-3 bg-white/5">
+              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">HOW IT WORKS</p>
+              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
+                Upload a CSV with <code className="text-paper-white">name</code> and <code className="text-paper-white">spotlight</code> columns
+                (plus optional <code className="text-paper-white">city</code> and <code className="text-paper-white">state</code> to help match).
+                The tool finds each entry in Firestore by name and patches only the spotlight field — no other data is changed.
+              </p>
+              <p className="font-mono text-starlight-turquoise/60 text-xs mt-2">
+                name,city,state,spotlight<br/>
+                "Powell's Books",Portland,OR,"Portland's cathedral of books…"
+              </p>
+            </div>
+
+            {/* Collection picker */}
+            <div>
+              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">COLLECTION</label>
+              <div className="relative">
+                <select
+                  value={slCollection}
+                  onChange={e => { setSlCollection(e.target.value); setSlMatches(null); setSlMsg(''); }}
+                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm appearance-none focus:outline-none focus:border-starlight-turquoise"
+                >
+                  {[['bookstores','📚 Bookstores'],['coffeeShops','☕ Coffee Shops']].map(([k,l]) => (
+                    <option key={k} value={k} className="bg-midnight-navy">{l}</option>
+                  ))}
+                </select>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-starlight-turquoise text-xs">▼</span>
+              </div>
+            </div>
+
+            {/* File picker */}
+            <div>
+              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">CSV FILE</label>
+              <input ref={slInputRef} type="file" accept=".csv,.txt" onChange={handleSlFileChange} className="hidden" />
+              <button onClick={() => slInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-starlight-turquoise/40 rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:border-starlight-turquoise/70 hover:text-paper-white transition-all text-center">
+                {slFile ? slFile.name : 'Click to choose a .csv file'}
+              </button>
+              {slRows.length > 0 && (
+                <p className="font-special-elite text-starlight-turquoise text-xs mt-1.5">
+                  {slRows.length} row{slRows.length !== 1 ? 's' : ''} with name + spotlight detected
+                </p>
+              )}
+            </div>
+
+            {/* Search button */}
+            {slRows.length > 0 && !slMatches && (
+              <button onClick={handleSlSearch} disabled={slSearching || !user}
+                className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider border border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-all disabled:opacity-40">
+                {slSearching ? 'SEARCHING…' : `FIND MATCHES IN ${slCollection.toUpperCase()}`}
+              </button>
+            )}
+
+            {/* Match preview */}
+            {slMatches && (
+              <div className="space-y-2">
+                <p className="font-bungee text-xs tracking-widest" style={{ color: '#c8601a' }}>
+                  MATCH PREVIEW — {slMatches.filter(m => m.match).length} of {slMatches.length} found
+                </p>
+                <div className="bg-black/40 rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
+                  {slMatches.map(({ row, match }, i) => (
+                    <div key={i} className={`text-xs font-special-elite border-b border-white/5 pb-1.5 ${match ? 'text-paper-white' : 'text-atomic-orange/70'}`}>
+                      <span className="font-bold">{row.name}</span>
+                      {row.city ? ` · ${row.city}` : ''}
+                      {row.state ? `, ${row.state}` : ''}
+                      {match
+                        ? <span className="text-starlight-turquoise ml-1">✓ → [{match.id}] {match.name}{match.city ? `, ${match.city}` : ''}</span>
+                        : <span className="text-atomic-orange ml-1">✗ no match found</span>
+                      }
+                      <div className="text-chrome-silver/50 mt-0.5 truncate">"{row.spotlight}"</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Patch button */}
+                {slMatches.some(m => m.match) && (
+                  <button onClick={handleSlPatch} disabled={slPatching || !user}
+                    className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider transition-all disabled:opacity-40"
+                    style={{ background: '#c8601a', color: '#1A1B2E', boxShadow: !slPatching ? '0 0 20px rgba(200,96,26,0.4)' : 'none' }}>
+                    {slPatching
+                      ? 'PATCHING…'
+                      : `PATCH ${slMatches.filter(m => m.match).length} SPOTLIGHT${slMatches.filter(m => m.match).length !== 1 ? 'S' : ''}`}
+                  </button>
+                )}
+
+                {slMsg && (
+                  <p className={`font-special-elite text-sm ${slMsg.startsWith('Done') ? 'text-starlight-turquoise' : 'text-atomic-orange'}`}>
+                    {slMsg}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Delete-first toggle */}
-        {user && phase === 'idle' && uploadMode !== 'manual' && (
+        {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
           <div className="mb-5">
             <label className="flex items-start gap-3 cursor-pointer group">
               <div className="relative mt-0.5 flex-shrink-0">
@@ -1277,7 +1453,7 @@ export default function AdminUpload() {
         )}
 
         {/* Firestore rules reminder */}
-        {user && phase === 'idle' && uploadMode !== 'manual' && (
+        {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
           <div className="border border-starlight-turquoise/30 rounded-xl p-4 mb-6 bg-white/5">
             <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-2">FIRESTORE RULES</p>
             <p className="font-special-elite text-paper-white text-sm mb-2">
@@ -1289,7 +1465,7 @@ export default function AdminUpload() {
         )}
 
         {/* Stats */}
-        {phase !== 'idle' && uploadMode !== 'manual' && (
+        {phase !== 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
           <div className="border border-starlight-turquoise/20 rounded-xl p-4 mb-6 bg-black/30 font-special-elite text-sm space-y-1">
 
             {/* Input counts */}
@@ -1420,7 +1596,7 @@ export default function AdminUpload() {
         )}
 
         {/* Upload button */}
-        {phase !== 'done' && uploadMode !== 'manual' && (
+        {phase !== 'done' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
           <button
             onClick={uploadMode === 'csv' ? handleCsvUpload : handleUpload}
             disabled={!canUpload}

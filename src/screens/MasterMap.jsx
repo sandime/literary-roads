@@ -4260,6 +4260,42 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </a>
                 )}
 
+                {/* Spotlight — admin-curated editorial note, bookstores + cafes only */}
+                {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe') && selectedLocation.spotlight && (
+                  <div style={{
+                    margin: '14px 0 10px',
+                    background: '#0d1124',
+                    border: '1.5px solid #c8601a',
+                    borderRadius: 8,
+                    padding: '12px 14px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 7 }}>
+                      {/* Atomic-era starburst — 8 rays from a filled center */}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                        <circle cx="12" cy="12" r="4" fill="#c8601a" />
+                        {[0,45,90,135,180,225,270,315].map(deg => {
+                          const r = deg * Math.PI / 180;
+                          return <line key={deg}
+                            x1={12 + 5 * Math.cos(r)} y1={12 + 5 * Math.sin(r)}
+                            x2={12 + 10 * Math.cos(r)} y2={12 + 10 * Math.sin(r)}
+                            stroke="#c8601a" strokeWidth="2" strokeLinecap="round" />;
+                        })}
+                      </svg>
+                      <span style={{
+                        fontFamily: 'Bungee, sans-serif', fontSize: 11,
+                        color: '#c8601a', letterSpacing: '0.1em', fontWeight: 700,
+                      }}>SPOTLIGHT</span>
+                    </div>
+                    <p style={{
+                      margin: 0, fontSize: 12.5, lineHeight: 1.6,
+                      color: 'rgba(100,210,200,0.85)',
+                      fontFamily: 'Special Elite, Georgia, serif',
+                    }}>
+                      {selectedLocation.spotlight}
+                    </p>
+                  </div>
+                )}
+
                 {selectedLocation.source === 'ALA' && (
                   <p className="font-special-elite mt-3 pt-3 border-t border-white/10"
                     style={{ fontSize: '10px', color: 'rgba(192,192,192,0.55)', lineHeight: '1.4' }}>
