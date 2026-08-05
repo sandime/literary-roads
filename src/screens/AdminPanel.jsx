@@ -1198,12 +1198,16 @@ function UseThisModal({ draft, onClose, onUsed, showToast }) {
 
 // ── RSS Tab Panel ─────────────────────────────────────────────────────────────
 function RSSTab({ showToast }) {
-  const [drafts, setDrafts]           = useState([]);
-  const [loading, setLoading]         = useState(true);
+  const [drafts, setDrafts]               = useState([]);
+  const [loading, setLoading]             = useState(true);
   const [filterSection, setFilterSection] = useState('all');
-  const [useTarget, setUseTarget]     = useState(null);
+  const [useTarget, setUseTarget]         = useState(null);
   const [discardTarget, setDiscardTarget] = useState(null);
   const [showFeedManager, setShowFeedManager] = useState(false);
+  const [selectMode, setSelectMode]       = useState(false);
+  const [selected, setSelected]           = useState(new Set());
+  const [confirmMass, setConfirmMass]     = useState(false);
+  const [massDeleting, setMassDeleting]   = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1214,6 +1218,8 @@ function RSSTab({ showToast }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const exitSelectMode = () => { setSelectMode(false); setSelected(new Set()); };
+
   const handleDiscard = async () => {
     try {
       await discardRSSDraft(discardTarget.id);
@@ -1223,9 +1229,50 @@ function RSSTab({ showToast }) {
     } catch { showToast('Discard failed', 'error'); }
   };
 
+  const handleMassDiscard = async () => {
+    setConfirmMass(false);
+    setMassDeleting(true);
+    try {
+      await Promise.all([...selected].map(id => discardRSSDraft(id)));
+      showToast(`${selected.size} draft${selected.size !== 1 ? 's' : ''} discarded`);
+      exitSelectMode();
+      load();
+    } catch {
+      showToast('Some deletes failed — refresh to check', 'error');
+    } finally {
+      setMassDeleting(false);
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   const visible = filterSection === 'all'
     ? drafts
     : drafts.filter(d => d.suggestedSection === filterSection);
+
+  const allVisibleSelected = visible.length > 0 && visible.every(d => selected.has(d.id));
+
+  const toggleSelectAll = () => {
+    if (allVisibleSelected) {
+      setSelected(prev => {
+        const next = new Set(prev);
+        visible.forEach(d => next.delete(d.id));
+        return next;
+      });
+    } else {
+      setSelected(prev => {
+        const next = new Set(prev);
+        visible.forEach(d => next.add(d.id));
+        return next;
+      });
+    }
+  };
 
   const sectionCounts = drafts.reduce((acc, d) => {
     acc[d.suggestedSection] = (acc[d.suggestedSection] || 0) + 1;
@@ -1243,14 +1290,43 @@ function RSSTab({ showToast }) {
   return (
     <div>
       {/* Header row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.muted }}>
           {loading ? '...' : `${drafts.length} draft${drafts.length !== 1 ? 's' : ''} — new content arrives daily at 6 AM`}
         </span>
-        <button onClick={() => setShowFeedManager(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
-          <GearIcon /> FEEDS
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {!selectMode ? (
+            <>
+              {!loading && drafts.length > 0 && (
+                <button onClick={() => setSelectMode(true)}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  SELECT
+                </button>
+              )}
+              <button onClick={() => setShowFeedManager(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                <GearIcon /> FEEDS
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={toggleSelectAll}
+                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: allVisibleSelected ? 'rgba(64,224,208,0.1)' : 'transparent', color: allVisibleSelected ? C.teal : C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                {allVisibleSelected ? 'DESELECT ALL' : 'SELECT ALL'}
+              </button>
+              {selected.size > 0 && (
+                <button onClick={() => setConfirmMass(true)} disabled={massDeleting}
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.5)`, background: 'rgba(255,78,0,0.12)', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em', opacity: massDeleting ? 0.5 : 1 }}>
+                  {massDeleting ? 'DISCARDING…' : `DISCARD ${selected.size}`}
+                </button>
+              )}
+              <button onClick={exitSelectMode}
+                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.muted, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                CANCEL
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Section filter bar */}
@@ -1278,58 +1354,94 @@ function RSSTab({ showToast }) {
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {visible.map(draft => (
-            <div key={draft.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px 16px' }}>
-              {/* Badges */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(64,224,208,0.1)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.06em' }}>
-                  {draft.sourceName}
-                </span>
-                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,78,0,0.1)', color: C.orange, border: `1px solid rgba(255,78,0,0.3)`, letterSpacing: '0.06em' }}>
-                  {RSS_SECTION_LABELS[draft.suggestedSection] || draft.suggestedSection}
-                </span>
-              </div>
-
-              {/* Title */}
-              <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.white, marginBottom: 5, lineHeight: 1.35 }}>
-                {draft.title}
-              </div>
-
-              {/* Summary — 2 lines */}
-              {draft.summary && (
-                <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: 'rgba(245,245,220,0.65)', lineHeight: 1.5, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                  {draft.summary}
-                </p>
-              )}
-
-              {/* Link + date */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                {draft.link && (
-                  <a href={draft.link} target="_blank" rel="noopener noreferrer"
-                    style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.teal, textDecoration: 'none' }}>
-                    Read article →
-                  </a>
+          {visible.map(draft => {
+            const isSelected = selected.has(draft.id);
+            return (
+              <div key={draft.id}
+                onClick={selectMode ? () => toggleSelect(draft.id) : undefined}
+                style={{
+                  background: isSelected ? 'rgba(255,78,0,0.07)' : C.surface,
+                  border: `1px solid ${isSelected ? 'rgba(255,78,0,0.5)' : C.border}`,
+                  borderRadius: 10, padding: '14px 16px',
+                  cursor: selectMode ? 'pointer' : 'default',
+                  transition: 'background 0.15s, border-color 0.15s',
+                  display: 'flex', gap: 12, alignItems: 'flex-start',
+                }}
+              >
+                {/* Checkbox column */}
+                {selectMode && (
+                  <div style={{
+                    width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginTop: 2,
+                    border: `2px solid ${isSelected ? C.orange : C.border}`,
+                    background: isSelected ? C.orange : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.15s',
+                  }}>
+                    {isSelected && (
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                        <polyline points="2,6 5,9 10,3" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </div>
                 )}
-                {draft.createdAt?.seconds && (
-                  <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted }}>
-                    {new Date(draft.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                  </span>
-                )}
-              </div>
 
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setUseTarget(draft)}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 16px', borderRadius: 6, border: 'none', background: C.teal, color: C.bg, cursor: 'pointer', letterSpacing: '0.05em' }}>
-                  USE THIS
-                </button>
-                <button onClick={() => setDiscardTarget(draft)}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
-                  DISCARD
-                </button>
+                {/* Card content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  {/* Badges */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(64,224,208,0.1)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.06em' }}>
+                      {draft.sourceName}
+                    </span>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,78,0,0.1)', color: C.orange, border: `1px solid rgba(255,78,0,0.3)`, letterSpacing: '0.06em' }}>
+                      {RSS_SECTION_LABELS[draft.suggestedSection] || draft.suggestedSection}
+                    </span>
+                  </div>
+
+                  {/* Title */}
+                  <div style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: C.white, marginBottom: 5, lineHeight: 1.35 }}>
+                    {draft.title}
+                  </div>
+
+                  {/* Summary — 2 lines */}
+                  {draft.summary && (
+                    <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: 'rgba(245,245,220,0.65)', lineHeight: 1.5, margin: '0 0 8px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {draft.summary}
+                    </p>
+                  )}
+
+                  {/* Link + date */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: selectMode ? 0 : 12 }}>
+                    {draft.link && !selectMode && (
+                      <a href={draft.link} target="_blank" rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.teal, textDecoration: 'none' }}>
+                        Read article →
+                      </a>
+                    )}
+                    {draft.createdAt?.seconds && (
+                      <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted }}>
+                        {new Date(draft.createdAt.seconds * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Actions — hidden in select mode */}
+                  {!selectMode && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => setUseTarget(draft)}
+                        style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 16px', borderRadius: 6, border: 'none', background: C.teal, color: C.bg, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                        USE THIS
+                      </button>
+                      <button onClick={() => setDiscardTarget(draft)}
+                        style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                        DISCARD
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -1347,6 +1459,14 @@ function RSSTab({ showToast }) {
           name={discardTarget.title}
           onConfirm={handleDiscard}
           onCancel={() => setDiscardTarget(null)}
+        />
+      )}
+
+      {confirmMass && (
+        <DeleteConfirm
+          name={`${selected.size} draft${selected.size !== 1 ? 's' : ''}`}
+          onConfirm={handleMassDiscard}
+          onCancel={() => setConfirmMass(false)}
         />
       )}
 
