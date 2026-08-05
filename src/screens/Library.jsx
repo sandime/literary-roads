@@ -14,6 +14,7 @@ import LibrariansDesk from './LibrariansDesk';
 import ThinTheStack from './ThinTheStack';
 import SettingsMap from './SettingsMap';
 import ByLength from './ByLength';
+import ByEra from './ByEra';
 import { useDiscoveredAuthors } from '../utils/discoveredAuthors';
 import { getOrCreateBook } from '../utils/booksCatalog';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
@@ -867,6 +868,7 @@ const PATH_TO_VIEW = {
   'settings-map':  'settingsMap',
   'thin-stack':    'thinStack',
   'by-length':     'byLength',
+  'by-era':        'byEra',
 };
 const VIEW_TO_PATH = Object.fromEntries(
   Object.entries(PATH_TO_VIEW).map(([k, v]) => [v, k])
@@ -1792,6 +1794,12 @@ export default function Library({ onBack }) {
   if (view === 'byLength') {
     return (
       <ByLength onBack={() => navigate(-1)} onAddToReadNext={handleAddFromDesk} />
+    );
+  }
+
+  if (view === 'byEra') {
+    return (
+      <ByEra onBack={() => navigate(-1)} />
     );
   }
 

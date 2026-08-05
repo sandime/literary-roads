@@ -334,7 +334,15 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
             onClick={() => onNavigate('byLength')}
           />
 
-          {/* 4 — Thin the Stack */}
+          {/* 4 — By Era */}
+          <MethodRow
+            accent="#C17D3C"
+            label="By Era"
+            sub="Find a classic from your Read Next list"
+            onClick={() => onNavigate('byEra')}
+          />
+
+          {/* 6 — Thin the Stack */}
           <MethodRow
             accent={L.gold}
             label="Thin the Stack"
@@ -343,7 +351,7 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
             onClick={() => onNavigate('thinStack')}
           />
 
-          {/* 5 — By Mood (placeholder) */}
+          {/* 7 — By Mood (placeholder) */}
           <MethodRow
             accent={L.peach}
             label="By Mood"

@@ -76,9 +76,12 @@ export async function getOrCreateBook(bookData) {
   const snap = await getDoc(ref);
   if (snap.exists()) {
     const existing = snap.data();
-    if (!existing.pageCount && bookData.pageCount) {
-      await updateDoc(ref, { pageCount: bookData.pageCount });
-      return { id: snap.id, ...existing, pageCount: bookData.pageCount };
+    const patches = {};
+    if (!existing.pageCount    && bookData.pageCount)    patches.pageCount    = bookData.pageCount;
+    if (!existing.publishedYear && bookData.publishedYear) patches.publishedYear = bookData.publishedYear;
+    if (Object.keys(patches).length) {
+      await updateDoc(ref, patches);
+      return { id: snap.id, ...existing, ...patches };
     }
     return { id: snap.id, ...existing };
   }
@@ -88,12 +91,13 @@ export async function getOrCreateBook(bookData) {
     : [(bookData.author || bookData.authors || '')].filter(Boolean);
 
   const bookDoc = {
-    title:             bookData.title       || '',
+    title:             bookData.title        || '',
     authors,
-    description:       bookData.description || '',
+    description:       bookData.description  || '',
     coverUrl:          bookData.coverUrl || bookData.coverURL || '',
-    pageCount:         bookData.pageCount   || null,
-    categories:        bookData.categories  || [],
+    pageCount:         bookData.pageCount    || null,
+    publishedYear:     bookData.publishedYear || null,
+    categories:        bookData.categories   || [],
     settings:          [],
     moods:             [],
     enrichmentVersion: 0,

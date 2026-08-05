@@ -21,7 +21,7 @@ async function fetchGoogle(query) {
   if (cached) return cached;
 
   const key = BOOKS_API_KEY ? `&key=${BOOKS_API_KEY}` : '';
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers,volumeInfo/categories,volumeInfo/pageCount)${key}`;
+  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=8&printType=books&fields=items(id,volumeInfo/title,volumeInfo/authors,volumeInfo/imageLinks,volumeInfo/infoLink,volumeInfo/industryIdentifiers,volumeInfo/categories,volumeInfo/pageCount,volumeInfo/publishedDate)${key}`;
   const res = await fetch(url);
   if (!res.ok) return []; // includes 429 — Open Library fills the gap
   const data = await res.json();
@@ -41,7 +41,8 @@ async function fetchGoogle(query) {
       author: item.volumeInfo?.authors?.[0] || 'Unknown Author',
       coverURL,
       isbn,
-      pageCount: item.volumeInfo?.pageCount || null,
+      pageCount:     item.volumeInfo?.pageCount     || null,
+      publishedDate: item.volumeInfo?.publishedDate || null, // raw string e.g. "1937" or "2002-04-01"
       categories: item.volumeInfo?.categories || [],
       link: item.volumeInfo?.infoLink || `https://books.google.com/books?id=${item.id}`,
       source: 'google',
@@ -52,7 +53,7 @@ async function fetchGoogle(query) {
 }
 
 async function fetchOpenLibrary(query) {
-  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10&fields=key,title,author_name,cover_i,number_of_pages_median`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=10&fields=key,title,author_name,cover_i,number_of_pages_median,first_publish_year`;
   const res = await fetch(url);
   if (!res.ok) return [];
   const data = await res.json();
@@ -61,15 +62,23 @@ async function fetchOpenLibrary(query) {
     title: doc.title || 'Unknown Title',
     author: doc.author_name?.[0] || 'Unknown Author',
     coverURL: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
-    pageCount: doc.number_of_pages_median || null,
+    pageCount:     doc.number_of_pages_median || null,
+    publishedYear: doc.first_publish_year     || null, // integer — original publication year
     link: `https://openlibrary.org${doc.key}`,
     source: 'openlibrary',
   }));
 }
 
-// Normalize title+author for deduplication
+// Normalize title+author for deduplication — same key used in both passes
 function dedupKey(book) {
   return `${book.title}|${book.author}`.toLowerCase().replace(/[^a-z0-9|]/g, '');
+}
+
+// Parse the year out of Google's publishedDate string ("1937", "2002-04-01", etc.)
+function parseYear(str) {
+  if (!str) return null;
+  const y = parseInt(str, 10);
+  return y > 0 ? y : null;
 }
 
 export async function searchBooks(query) {
@@ -79,11 +88,28 @@ export async function searchBooks(query) {
   const google = g.status === 'fulfilled' ? g.value : [];
   const openlib = ol.status === 'fulfilled' ? ol.value : [];
 
+  // Pass 1: build OL year lookup keyed on the same dedupKey used in the dedup loop.
+  // OL's first_publish_year is the original publication date; Google's publishedDate
+  // is often an edition date (e.g. 2002 reprint of a 1937 novel). Prefer OL.
+  const olYearMap = new Map();
+  for (const book of openlib) {
+    if (book.publishedYear) {
+      const k = dedupKey(book);
+      if (!olYearMap.has(k)) olYearMap.set(k, book.publishedYear);
+    }
+  }
+
+  // Pass 2: dedup (Google wins on cover/ISBN data), then inject publishedYear.
   const seen = new Set();
   const merged = [];
   for (const book of [...google, ...openlib]) {
     const key = dedupKey(book);
-    if (!seen.has(key)) { seen.add(key); merged.push(book); }
+    if (!seen.has(key)) {
+      seen.add(key);
+      // Prefer OL's original publication year; fall back to parsing Google's edition date
+      const publishedYear = olYearMap.get(key) || parseYear(book.publishedDate) || null;
+      merged.push({ ...book, publishedYear, publishedDate: undefined });
+    }
   }
 
   // Books with covers first
