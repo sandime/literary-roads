@@ -351,12 +351,12 @@ export default function LibrariansDesk({ readNext, onNavigate, onBack }) {
             onClick={() => onNavigate('thinStack')}
           />
 
-          {/* 7 — By Mood (placeholder) */}
+          {/* 7 — Banned & Challenged */}
           <MethodRow
-            accent={L.peach}
-            label="By Mood"
-            sub="Match a book to how you're feeling right now"
-            disabled
+            accent="#c8601a"
+            label="Banned & Challenged"
+            sub="Books on your Read Next that have been banned or challenged"
+            onClick={() => onNavigate('bannedBooks')}
           />
         </div>
 

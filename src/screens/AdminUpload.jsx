@@ -537,6 +537,15 @@ export default function AdminUpload() {
   const [slCollection, setSlCollection]   = useState('bookstores');
   const slInputRef = useRef(null);
 
+  // Banned Books tab state
+  const [bbFile, setBbFile]           = useState(null);
+  const [bbRows, setBbRows]           = useState([]); // parsed CSV rows
+  const [bbMatches, setBbMatches]     = useState(null); // null = not searched; array = results
+  const [bbSearching, setBbSearching] = useState(false);
+  const [bbPatching, setBbPatching]   = useState(false);
+  const [bbMsg, setBbMsg]             = useState('');
+  const bbInputRef = useRef(null);
+
   const handleSlFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -600,6 +609,90 @@ export default function AdminUpload() {
     }
     setSlMsg(`Done — patched ${ok} doc${ok !== 1 ? 's' : ''}${fail ? `, ${fail} failed` : ''}.`);
     setSlPatching(false);
+  };
+
+  // ── Banned Books handlers ────────────────────────────────────────────────────
+  const handleBbFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBbFile(file);
+    setBbMatches(null);
+    setBbMsg('');
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const { rows } = parseCSV(ev.target.result);
+      // Accept rows that have at least a name (title) and banned field
+      setBbRows(rows.filter(r => r.name));
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBbSearch = async () => {
+    if (!bbRows.length) return;
+    setBbSearching(true);
+    setBbMatches(null);
+    setBbMsg('');
+    try {
+      const snap = await getDocs(collection(db, 'books'));
+      const allBooks = snap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+
+      const results = bbRows.map(row => {
+        const titleLower = row.name.toLowerCase().trim();
+        const authorLower = (row.author || '').toLowerCase().trim();
+
+        // Match by title field (not name — books collection uses title)
+        const candidates = allBooks.filter(b =>
+          (b.title || '').toLowerCase().trim() === titleLower
+        );
+
+        let match = null;
+        if (candidates.length === 1) {
+          match = candidates[0];
+        } else if (candidates.length > 1 && authorLower) {
+          // Disambiguate by author
+          match = candidates.find(b =>
+            (b.authors || []).some(a => a.toLowerCase().includes(authorLower))
+          ) || candidates[0];
+        } else if (candidates.length > 1) {
+          match = candidates[0];
+        }
+
+        // Build the patch object from CSV fields present
+        const patch = {};
+        if (row.banned) {
+          const raw = row.banned.toLowerCase().trim();
+          patch.banned = (raw === 'true' || raw === '1' || raw === 'yes');
+        }
+        if (row.bannedcontext || row.bannedContext) patch.bannedContext = (row.bannedcontext || row.bannedContext).trim();
+        if (row.bannedsource || row.bannedSource) patch.bannedSource = (row.bannedsource || row.bannedSource).trim();
+
+        return { row, match: match || null, patch };
+      });
+      setBbMatches(results);
+    } catch (err) {
+      setBbMsg(`Error searching: ${err.message}`);
+    } finally {
+      setBbSearching(false);
+    }
+  };
+
+  const handleBbPatch = async () => {
+    if (!bbMatches) return;
+    const toPatch = bbMatches.filter(m => m.match && Object.keys(m.patch).length > 0);
+    if (!toPatch.length) return;
+    setBbPatching(true);
+    setBbMsg('');
+    let ok = 0, fail = 0;
+    for (const { match, patch } of toPatch) {
+      try {
+        await updateDoc(doc(db, 'books', match._docId), patch);
+        ok++;
+      } catch {
+        fail++;
+      }
+    }
+    setBbMsg(`Done — patched ${ok} book${ok !== 1 ? 's' : ''}${fail ? `, ${fail} failed` : ''}.`);
+    setBbPatching(false);
   };
 
   // Remove Location (soft-delete)
@@ -1024,7 +1117,7 @@ export default function AdminUpload() {
 
         {/* Upload mode toggle */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual'], ['spotlight', '☀️ Spotlight']].map(([mode, label]) => (
+          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual'], ['spotlight', '☀️ Spotlight'], ['bannedBooks', '🔥 Banned Books']].map(([mode, label]) => (
             <button key={mode} onClick={() => handleModeChange(mode)} disabled={busy}
               className={`flex-1 py-2.5 rounded-xl font-bungee text-xs tracking-wider border transition-all disabled:opacity-40 ${
                 uploadMode === mode
@@ -1424,8 +1517,99 @@ export default function AdminUpload() {
           </div>
         )}
 
+        {/* ── BANNED BOOKS MODE ─────────────────────────────────────────────── */}
+        {uploadMode === 'bannedBooks' && (
+          <div className="mb-6 space-y-4">
+            {/* How it works */}
+            <div className="border border-starlight-turquoise/20 rounded-xl p-3 bg-white/5">
+              <p className="font-bungee text-xs tracking-widest mb-1" style={{ color: '#c8601a' }}>HOW IT WORKS</p>
+              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
+                Upload a CSV with <code className="text-paper-white">name</code> (book title), <code className="text-paper-white">author</code> (for disambiguation),
+                <code className="text-paper-white"> banned</code> (true/yes/1), <code className="text-paper-white">bannedContext</code>, and optional <code className="text-paper-white">bannedSource</code>.
+                Matches against the <code className="text-paper-white">books</code> collection's <code className="text-paper-white">title</code> field — not the locations collections.
+                Only the fields present in the CSV are patched; nothing else is touched.
+              </p>
+              <p className="font-mono text-xs mt-2" style={{ color: 'rgba(200,96,26,0.6)' }}>
+                name,author,banned,bannedContext,bannedSource<br/>
+                "The Kite Runner",Khaled Hosseini,true,"Sexual content and violence",American Library Association
+              </p>
+            </div>
+
+            {/* File picker */}
+            <div>
+              <label className="font-bungee text-xs tracking-widest block mb-2" style={{ color: '#c8601a' }}>CSV FILE</label>
+              <input ref={bbInputRef} type="file" accept=".csv,.txt" onChange={handleBbFileChange} className="hidden" />
+              <button onClick={() => bbInputRef.current?.click()}
+                className="w-full border-2 border-dashed rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:text-paper-white transition-all text-center"
+                style={{ borderColor: 'rgba(200,96,26,0.4)' }}>
+                {bbFile ? bbFile.name : 'Click to choose a .csv file'}
+              </button>
+              {bbRows.length > 0 && (
+                <p className="font-special-elite text-xs mt-1.5" style={{ color: '#c8601a' }}>
+                  {bbRows.length} row{bbRows.length !== 1 ? 's' : ''} detected
+                </p>
+              )}
+            </div>
+
+            {/* Search button */}
+            {bbRows.length > 0 && !bbMatches && (
+              <button onClick={handleBbSearch} disabled={bbSearching || !user}
+                className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider border transition-all disabled:opacity-40"
+                style={{ borderColor: '#c8601a', color: '#c8601a' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(200,96,26,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                {bbSearching ? 'SEARCHING BOOKS…' : 'FIND MATCHES IN BOOKS COLLECTION'}
+              </button>
+            )}
+
+            {/* Match preview */}
+            {bbMatches && (
+              <div className="space-y-2">
+                <p className="font-bungee text-xs tracking-widest" style={{ color: '#c8601a' }}>
+                  MATCH PREVIEW — {bbMatches.filter(m => m.match).length} of {bbMatches.length} found
+                </p>
+                <div className="bg-black/40 rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
+                  {bbMatches.map(({ row, match, patch }, i) => (
+                    <div key={i} className={`text-xs font-special-elite border-b border-white/5 pb-1.5 ${match ? 'text-paper-white' : 'text-atomic-orange/70'}`}>
+                      <span className="font-bold">{row.name}</span>
+                      {row.author ? ` · ${row.author}` : ''}
+                      {match
+                        ? <span className="text-starlight-turquoise ml-1">✓ → [{match._docId}]</span>
+                        : <span className="text-atomic-orange ml-1">✗ no match in books collection</span>
+                      }
+                      {match && (
+                        <div className="text-chrome-silver/50 mt-0.5 truncate">
+                          {Object.entries(patch).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Patch button */}
+                {bbMatches.some(m => m.match && Object.keys(m.patch).length > 0) && (
+                  <button onClick={handleBbPatch} disabled={bbPatching || !user}
+                    className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider transition-all disabled:opacity-40"
+                    style={{ background: '#c8601a', color: '#1A1B2E', boxShadow: !bbPatching ? '0 0 20px rgba(200,96,26,0.4)' : 'none' }}>
+                    {bbPatching
+                      ? 'PATCHING…'
+                      : `PATCH ${bbMatches.filter(m => m.match).length} BOOK${bbMatches.filter(m => m.match).length !== 1 ? 'S' : ''}`}
+                  </button>
+                )}
+
+                {bbMsg && (
+                  <p className={`font-special-elite text-sm ${bbMsg.startsWith('Done') ? 'text-starlight-turquoise' : 'text-atomic-orange'}`}>
+                    {bbMsg}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Delete-first toggle */}
-        {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
+        {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && uploadMode !== 'bannedBooks' && (
           <div className="mb-5">
             <label className="flex items-start gap-3 cursor-pointer group">
               <div className="relative mt-0.5 flex-shrink-0">
@@ -1453,7 +1637,7 @@ export default function AdminUpload() {
         )}
 
         {/* Firestore rules reminder */}
-        {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
+        {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && uploadMode !== 'bannedBooks' && (
           <div className="border border-starlight-turquoise/30 rounded-xl p-4 mb-6 bg-white/5">
             <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-2">FIRESTORE RULES</p>
             <p className="font-special-elite text-paper-white text-sm mb-2">
@@ -1465,7 +1649,7 @@ export default function AdminUpload() {
         )}
 
         {/* Stats */}
-        {phase !== 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
+        {phase !== 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && uploadMode !== 'bannedBooks' && (
           <div className="border border-starlight-turquoise/20 rounded-xl p-4 mb-6 bg-black/30 font-special-elite text-sm space-y-1">
 
             {/* Input counts */}
@@ -1596,7 +1780,7 @@ export default function AdminUpload() {
         )}
 
         {/* Upload button */}
-        {phase !== 'done' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && (
+        {phase !== 'done' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && uploadMode !== 'bannedBooks' && (
           <button
             onClick={uploadMode === 'csv' ? handleCsvUpload : handleUpload}
             disabled={!canUpload}

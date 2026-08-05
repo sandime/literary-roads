@@ -15,6 +15,7 @@ import ThinTheStack from './ThinTheStack';
 import SettingsMap from './SettingsMap';
 import ByLength from './ByLength';
 import ByEra from './ByEra';
+import BannedBooks from './BannedBooks';
 import { useDiscoveredAuthors } from '../utils/discoveredAuthors';
 import { getOrCreateBook } from '../utils/booksCatalog';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
@@ -869,6 +870,7 @@ const PATH_TO_VIEW = {
   'thin-stack':    'thinStack',
   'by-length':     'byLength',
   'by-era':        'byEra',
+  'banned-books':  'bannedBooks',
 };
 const VIEW_TO_PATH = Object.fromEntries(
   Object.entries(PATH_TO_VIEW).map(([k, v]) => [v, k])
@@ -1800,6 +1802,15 @@ export default function Library({ onBack }) {
   if (view === 'byEra') {
     return (
       <ByEra onBack={() => navigate(-1)} />
+    );
+  }
+
+  if (view === 'bannedBooks') {
+    return (
+      <BannedBooks
+        onBack={() => navigate(-1)}
+        onViewShelf={() => navigate('/library/readnext')}
+      />
     );
   }
 
