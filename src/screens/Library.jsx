@@ -16,6 +16,7 @@ import SettingsMap from './SettingsMap';
 import ByLength from './ByLength';
 import ByEra from './ByEra';
 import BannedBooks from './BannedBooks';
+import LibrarySetAside from './LibrarySetAside';
 import { useDiscoveredAuthors } from '../utils/discoveredAuthors';
 import { getOrCreateBook } from '../utils/booksCatalog';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
@@ -871,6 +872,7 @@ const PATH_TO_VIEW = {
   'by-length':     'byLength',
   'by-era':        'byEra',
   'banned-books':  'bannedBooks',
+  'set-aside':     'setAside',
 };
 const VIEW_TO_PATH = Object.fromEntries(
   Object.entries(PATH_TO_VIEW).map(([k, v]) => [v, k])
@@ -924,6 +926,9 @@ export default function Library({ onBack }) {
   const [readNextDiscovery, setReadNextDiscovery] = useState('');
   const [readNextSaving, setReadNextSaving] = useState(false);
 
+  // Set Aside shelf
+  const [setAside, setSetAside] = useState([]);
+
   // Part 4: prompt to remove from Read Next when a book is logged
   const [removeFromReadNextId, setRemoveFromReadNextId] = useState(null); // docId in libraryReadNext
   const [removeFromReadNextTitle, setRemoveFromReadNextTitle] = useState('');
@@ -969,8 +974,23 @@ export default function Library({ onBack }) {
     return unsub;
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    const unsub = onSnapshot(
+      collection(db, 'users', user.uid, 'librarySetAside'),
+      snap => setSetAside(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      err => console.error('[Library] librarySetAside:', err)
+    );
+    return unsub;
+  }, [user]);
+
   const discoveredAuthors = useDiscoveredAuthors(user?.uid);
   const authorBooksCount  = readNext.filter(r => r.recommendedBy?.startsWith('Author Page:')).length;
+
+  const suppressedIds = new Set(
+    setAside.filter(s => s.suppressInRecommendations).map(s => s.googleBooksId || s.titleAuthorSlug).filter(Boolean)
+  );
+  const filteredReadNext = readNext.filter(r => !suppressedIds.has(r.googleBooksId));
 
   const sortedBooks = [...loggedBooks].sort((a, b) =>
     (b.timestamp?.toMillis?.() ?? 0) - (a.timestamp?.toMillis?.() ?? 0));
@@ -1121,6 +1141,7 @@ export default function Library({ onBack }) {
           }}
           discoveredAuthors={discoveredAuthors}
           authorBooksCount={authorBooksCount}
+          setAsideCount={setAside.length}
         />
         {/* Overlays still rendered above LibraryHome */}
         {newBadges.length > 0 && (
@@ -1742,7 +1763,7 @@ export default function Library({ onBack }) {
     return (
       <>
         <LibrariansDesk
-          readNext={readNext}
+          readNext={filteredReadNext}
           onNavigate={setView}
           onBack={() => setView('home')}
         />
@@ -1766,7 +1787,7 @@ export default function Library({ onBack }) {
   if (view === 'thinStack') {
     return (
       <ThinTheStack
-        readNext={readNext}
+        readNext={filteredReadNext}
         onBack={() => navigate(-1)}
       />
     );
@@ -1801,7 +1822,7 @@ export default function Library({ onBack }) {
 
   if (view === 'byEra') {
     return (
-      <ByEra onBack={() => navigate(-1)} />
+      <ByEra onBack={() => navigate(-1)} suppressedIds={suppressedIds} />
     );
   }
 
@@ -1810,8 +1831,13 @@ export default function Library({ onBack }) {
       <BannedBooks
         onBack={() => navigate(-1)}
         onViewShelf={() => navigate('/library/readnext')}
+        suppressedIds={suppressedIds}
       />
     );
+  }
+
+  if (view === 'setAside') {
+    return <LibrarySetAside onBack={() => navigate(-1)} user={user} />;
   }
 
   // Part 4 prompt can also appear over any other view (e.g. if triggered from Book Log view)

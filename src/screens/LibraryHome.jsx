@@ -133,6 +133,98 @@ function ArchiveShelfUnit({ onNavigate, estYear }) {
   );
 }
 
+// ── Set Aside shelf ───────────────────────────────────────────────────────────
+const SET_ASIDE_SPINES = [2, 5, 0, 7, 3, 8]; // indices into SPINE_PALETTE/H/W
+
+function SetAsideShelfUnit({ onNavigate, count }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => onNavigate('setAside')}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: 'none', border: 'none', cursor: 'pointer',
+        padding: 0, width: '100%', textAlign: 'left',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        transition: 'transform 0.22s ease',
+      }}
+    >
+      {/* Label row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '0 2px' }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, letterSpacing: '0.05em' }}>
+          SET ASIDE
+        </span>
+        {count > 0 && (
+          <span style={{
+            fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.white,
+            background: L.coral, borderRadius: 10, padding: '2px 6px',
+          }}>
+            {count}
+          </span>
+        )}
+        <span style={{
+          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10,
+          color: '#9b8cbf', fontStyle: 'italic',
+        }}>
+          books you didn't finish
+        </span>
+      </div>
+
+      {/* Books — anchored right */}
+      <div style={{
+        background: '#EDE8F4',
+        borderTop:   `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
+        borderLeft:  `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
+        borderRight: `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
+        borderBottom: 'none',
+        borderRadius: '6px 6px 0 0',
+        padding: '8px 8px 0',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', gap: 2,
+        minHeight: 96,
+        transition: 'border-color 0.2s',
+      }}>
+        {SET_ASIDE_SPINES.map((si, idx) => (
+          <div key={idx} style={{
+            width:  SPINE_W[si % SPINE_W.length],
+            height: SPINE_H[si % SPINE_H.length],
+            background: SPINE_PALETTE[(si + idx * 2) % SPINE_PALETTE.length],
+            borderRadius: '2px 2px 0 0',
+            flexShrink: 0,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            overflow: 'hidden',
+            boxShadow: 'inset -1px 0 3px rgba(0,0,0,0.12)',
+          }}>
+            <span style={{
+              writingMode: 'vertical-rl', transform: 'rotate(180deg)',
+              fontFamily: 'Special Elite, serif', fontSize: 6,
+              color: 'rgba(255,255,255,0.8)', letterSpacing: '0.08em',
+              overflow: 'hidden', textOverflow: 'clip', whiteSpace: 'nowrap',
+              maxHeight: '85%',
+            }}>
+              {SPINE_LABELS[si % SPINE_LABELS.length]}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Shelf plank */}
+      <div style={{
+        height: 14,
+        background: 'linear-gradient(180deg, #c4b8d4 0%, #b0a2c2 100%)',
+        borderRadius: '0 0 5px 5px',
+        borderBottom: `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
+        borderLeft:   `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
+        borderRight:  `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
+        borderTop: 'none',
+        boxShadow: hov ? '0 5px 14px rgba(196,184,212,0.45)' : '0 3px 8px rgba(0,0,0,0.14)',
+        transition: 'box-shadow 0.22s, border-color 0.2s',
+      }} />
+    </button>
+  );
+}
+
 // ── Retro SVG shapes ──────────────────────────────────────────────────────────
 const Starburst = ({ color, size = 30 }) => (
   <svg width={size} height={size} viewBox="0 0 30 30" aria-hidden="true">
@@ -475,7 +567,7 @@ function LibrariansDesk({ onNavigate }) {
 }
 
 // ── LibraryHome ───────────────────────────────────────────────────────────────
-export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null, discoveredAuthors = [], authorBooksCount = 0 }) {
+export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null, discoveredAuthors = [], authorBooksCount = 0, setAsideCount = 0 }) {
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 300,
@@ -551,6 +643,7 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
                 />
               ))}
               <ArchiveShelfUnit onNavigate={onNavigate} estYear={estYear} />
+              <SetAsideShelfUnit onNavigate={onNavigate} count={setAsideCount} />
             </div>
 
             {/* Bottom accent row */}

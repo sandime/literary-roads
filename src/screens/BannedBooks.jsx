@@ -208,7 +208,7 @@ function DetailSheet({ book, onClose, onViewShelf }) {
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
-export default function BannedBooks({ onBack, onViewShelf }) {
+export default function BannedBooks({ onBack, onViewShelf, suppressedIds = new Set() }) {
   const { user } = useAuth();
   const [books,       setBooks]       = useState([]);
   const [loading,     setLoading]     = useState(true);
@@ -219,7 +219,9 @@ export default function BannedBooks({ onBack, onViewShelf }) {
 
     getDocs(collection(db, 'users', user.uid, 'libraryReadNext'))
       .then(async (rnSnap) => {
-        const rnItems = rnSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+        const rnItems = rnSnap.docs
+          .map(d => ({ _docId: d.id, ...d.data() }))
+          .filter(item => !suppressedIds.has(item.googleBooksId));
 
         // For each readNext item, fetch the books doc and check banned === true.
         // Searches the `books` collection by title field — not the locations collections.

@@ -135,6 +135,9 @@ service cloud.firestore {
       match /discoveredAuthors/{authorId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+      match /librarySetAside/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // ── Literary festival map data: public read, written only by Cloud Functions ─

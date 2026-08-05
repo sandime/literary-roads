@@ -191,7 +191,7 @@ async function backfillPublishedYears(books, setBooks, onDone) {
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
-export default function ByEra({ onBack }) {
+export default function ByEra({ onBack, suppressedIds = new Set() }) {
   const { user } = useAuth();
   const [books,          setBooks]      = useState([]);
   const [loading,        setLoading]    = useState(true);
@@ -203,7 +203,9 @@ export default function ByEra({ onBack }) {
 
     getDocs(collection(db, 'users', user.uid, 'libraryReadNext'))
       .then(async (rnSnap) => {
-        const rnItems = rnSnap.docs.map(d => ({ _docId: d.id, ...d.data() }));
+        const rnItems = rnSnap.docs
+          .map(d => ({ _docId: d.id, ...d.data() }))
+          .filter(item => !suppressedIds.has(item.googleBooksId));
 
         // For each readNext item, fetch its books doc to get publishedYear
         const loaded = (await Promise.all(rnItems.map(async (item) => {
