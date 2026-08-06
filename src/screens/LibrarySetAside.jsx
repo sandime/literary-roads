@@ -350,6 +350,8 @@ export default function LibrarySetAside({ onBack, user: userProp }) {
         setAsideNote:            note   || null,
         suppressInRecommendations: reason === 'not-for-me',
       });
+      // Remove from Read Next if present — setting aside means they're done with the queue
+      deleteDoc(doc(db, 'users', user.uid, 'libraryReadNext', docId)).catch(() => {});
     } catch (err) {
       console.error('[SetAside] commit failed:', err);
     }
