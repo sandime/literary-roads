@@ -12,7 +12,7 @@ import { autocompleteCity, geocodePlace } from '../utils/mapboxGeocoding';
 import { searchFirestore, searchMapbox, searchGooglePlaces, getCategoryType } from '../utils/placeSearch';
 import { searchNearbyPlaces, searchNearbyPlacesTiered, searchAlongRoute, distributeAlongRoute } from '../utils/nearbySearch';
 import { searchLiteraryAlongRoute, searchLiteraryLandmarks } from '../utils/wikipedia';
-import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear } from '../utils/firebaseLandmarks';
+import { getCuratedLandmarks, getDriveInsAlongRoute, getDriveInsNear, getStoriedPlacesNear, getStoriedPlacesAlongRoute } from '../utils/firebaseLandmarks';
 import { getLiteraryFestivalsAlongRoute, getLiteraryFestivalsNear } from '../utils/literaryFestivals';
 import { getMapboxRoute } from '../utils/mapbox';
 import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStorage';
@@ -559,6 +559,39 @@ const createCustomIcon = (type, hasStarburst = false, inTrip = false, label = ''
       </svg>
     `,
 
+    // LANTERN - Storied Places (Warm Amber/Gold)
+    storied_place: `
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <filter id="glow-storied-${uid}">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g filter="url(#glow-storied-${uid})" class="neon-marker">
+          <!-- Handle -->
+          <path d="M16 9 Q20 6 24 9" stroke="#F5C842" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+          <!-- Top cap -->
+          <line x1="13" y1="10" x2="27" y2="10" stroke="#F5C842" stroke-width="2" stroke-linecap="round"/>
+          <!-- Body left -->
+          <line x1="13" y1="10" x2="13" y2="28" stroke="#F5C842" stroke-width="2" stroke-linecap="round"/>
+          <!-- Body right -->
+          <line x1="27" y1="10" x2="27" y2="28" stroke="#F5C842" stroke-width="2" stroke-linecap="round"/>
+          <!-- Panel dividers -->
+          <line x1="13" y1="15" x2="27" y2="15" stroke="#F5C842" stroke-width="1" opacity="0.5"/>
+          <line x1="13" y1="23" x2="27" y2="23" stroke="#F5C842" stroke-width="1" opacity="0.5"/>
+          <!-- Flame glow in center panel -->
+          <path d="M20 22 Q18 19 20 17 Q22 19 20 22Z" stroke="#F5C842" stroke-width="1.2" fill="none" opacity="0.8"/>
+          <!-- Bottom taper -->
+          <path d="M13 28 L15 32 L25 32 L27 28" stroke="#F5C842" stroke-width="2" stroke-linejoin="round" fill="none"/>
+        </g>
+      </svg>
+    `,
+
     // COLUMNS - Museums (Sky Blue)
     museum: `
       <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -1095,7 +1128,8 @@ const SEARCH_BADGE = {
   cafe:       { label: 'Coffee',     bg: '#40E0D0', text: '#1A1B2E' },
   landmark:   { label: 'Landmark',   bg: '#40E0D0', text: '#1A1B2E' },
   festival:   { label: 'Festival',   bg: '#B044FB', text: '#fff'    },
-  drivein:    { label: 'Drive-in',   bg: '#FFB347', text: '#1A1B2E' },
+  drivein:    { label: 'Drive-in',      bg: '#FFB347', text: '#1A1B2E' },
+  storied_place: { label: 'Storied Place', bg: '#F5C842', text: '#1A1B2E' },
   ghostTown:  { label: 'Ghost Town',    bg: '#C0C0C0', text: '#1A1B2E' },
   ufoLocation:{ label: 'UFO Location',  bg: '#FFED29', text: '#1A1B2E' },
   search:     { label: 'Location',   bg: '#4a4a6a', text: '#C0C0C0' },
@@ -1660,6 +1694,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       observatory: 'observatories',
       aquarium:    'aquariums',
       theater:     'theaters',
+      storied_place: 'storiedPlaces',
       ghostTown:   'ghostTowns',
       ufoLocation: 'ufoLocations',
     };
@@ -1811,7 +1846,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   // Spread co-located markers across types so they don't hide each other.
   // Groups any two markers within ~60 m of each other and fans them out ~30 m apart.
   const spreadMap = useMemo(() => {
-    const TYPES = new Set(['landmark','festival','drivein','bookstore','cafe']);
+    const TYPES = new Set(['landmark','festival','drivein','bookstore','cafe','storied_place']);
     const markers = visibleLocations.filter(l => TYPES.has(l.type));
     const THRESHOLD = 0.0012; // ~130 m — catches same-building and same-block pairs
     const RADIUS    = 0.0006; // ~65 m — visible separation at zoom 15+
@@ -2377,14 +2412,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     setSearchTarget({ center: [DC_LAT, DC_LNG], zoom: 13 });
     setLoading(true);
     try {
-      const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+      const [places, nearFestivals, nearDriveIns, nearCurated, nearStoried] = await Promise.all([
         searchNearbyPlaces(DC_LAT, DC_LNG, 10),
         getLiteraryFestivalsNear(DC_LAT, DC_LNG, 10),
         getDriveInsNear(DC_LAT, DC_LNG, 10),
         getCuratedLandmarks([[DC_LAT, DC_LNG]], 10),
+        getStoriedPlacesNear(DC_LAT, DC_LNG, 10),
       ]);
       const seenIds = new Set();
-      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+      const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearStoried]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
       setVisibleLocations(combined);
     } catch (err) {
@@ -2488,16 +2524,17 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       async (position) => {
         const { latitude, longitude } = position.coords;
 
-        const [places, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+        const [places, nearFestivals, nearDriveIns, nearCurated, nearStoried] = await Promise.all([
           searchNearbyPlaces(latitude, longitude, 15),
           getLiteraryFestivalsNear(latitude, longitude, 15),
           getDriveInsNear(latitude, longitude, 15),
           getCuratedLandmarks([[latitude, longitude]], 15),
+          getStoriedPlacesNear(latitude, longitude, 15),
         ]);
 
         // Deduplicate by id in case any location appears in multiple sources
         const seenIds = new Set();
-        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+        const combined = [...places, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearStoried]
           .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
         setSearchTarget({ center: [latitude, longitude], zoom: 12 });
@@ -2579,10 +2616,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       // ── Phase 1: bookstores, cafes, drive-ins, literary landmarks ──────────
       // Note: no separate destPlaces call — route sampling already covers the endpoint,
       // and distributeAlongRoute guarantees ≥3 bookstores + cafes near the destination.
-      const [places, curatedLandmarks, driveIns] = await Promise.all([
+      const [places, curatedLandmarks, driveIns, storiedPlaces] = await Promise.all([
         searchAlongRoute(routePoints),
         getCuratedLandmarks(allTripPoints, 20),
         getDriveInsAlongRoute(allTripPoints, 20),
+        getStoriedPlacesAlongRoute(allTripPoints, 20),
       ]);
 
       const normName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -2601,7 +2639,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
       const festivals = await getLiteraryFestivalsAlongRoute(allTripPoints, 100);
       const allRaw = [];
-      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...festivals, ...places]);
+      mergeInto(allRaw, [...curatedLandmarks, ...driveIns, ...storiedPlaces, ...festivals, ...places]);
 
       // Apply geographic thinning across all types so pins spread evenly along the
       // route rather than bunching at start/end, then guarantee destination coverage.
@@ -2671,15 +2709,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       setShowSearch(false);
 
       const { lat, lng } = place;
-      const [nearby, nearFestivals, nearDriveIns, nearCurated] = await Promise.all([
+      const [nearby, nearFestivals, nearDriveIns, nearCurated, nearStoried] = await Promise.all([
         searchNearbyPlacesTiered(lat, lng),
         Promise.resolve(getLiteraryFestivalsNear(lat, lng, 15)),
         getDriveInsNear(lat, lng, 15),
         getCuratedLandmarks([[lat, lng]], 15),
+        getStoriedPlacesNear(lat, lng, 15),
       ]);
 
       const seenIds = new Set();
-      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated]
+      const combined = [normalizedPlace, ...nearby, ...nearFestivals, ...nearDriveIns, ...nearCurated, ...nearStoried]
         .filter(loc => { if (seenIds.has(loc.id)) return false; seenIds.add(loc.id); return true; });
 
       setVisibleLocations(combined);
@@ -3495,6 +3534,28 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             ))
           }
 
+          {/* Storied Places markers — clustered like landmarks */}
+          <MarkerClusterGroup
+            iconCreateFunction={createLandmarkClusterIcon}
+            maxClusterRadius={50}
+            showCoverageOnHover={false}
+            zoomToBoundsOnClick={true}
+            spiderfyOnMaxZoom={true}
+            chunkedLoading
+          >
+            {visibleLocations
+              .filter(l => l.type === 'storied_place')
+              .map(location => (
+                <Marker
+                  key={location.id}
+                  position={spreadMap[location.id] ?? [location.lat, location.lng]}
+                  icon={createCustomIcon('storied_place', starburstIds.has(location.id), currentRouteStopIds.has(location.id), `${location.name}${location.city ? ', ' + location.city : ''} — Storied Place`)}
+                  eventHandlers={{ click: () => setSelectedLocation(location) }}
+                />
+              ))
+            }
+          </MarkerClusterGroup>
+
           {/* Car check-in badges — rendered above location pins */}
           {Object.entries(locationCars).map(([locationId, cars]) => {
             if (!cars.length) return null;
@@ -4196,6 +4257,9 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 {selectedLocation.type === 'festival' && (
                   <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#B044FB', borderColor: '#B044FB' }}>BOOK FESTIVAL</span>
                 )}
+                {selectedLocation.type === 'storied_place' && (
+                  <span className="font-bungee text-[10px] px-2 py-0.5 border rounded-full" style={{ color: '#F5C842', borderColor: '#F5C842' }}>STORIED PLACE</span>
+                )}
                 {starburstIds.has(selectedLocation.id) && (
                   <img src="/literary-roads/images/starburst-rating.png" alt="Highly recommended" title="10+ travelers recommend this!" style={{ width: '28px', height: '28px', flexShrink: 0 }} />
                 )}
@@ -4212,15 +4276,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </div>
             )}
 
-            {/* Audio narration — landmarks only */}
-            {!locationDeleted && selectedLocation.type === 'landmark' && (
+            {/* Audio narration — landmarks and storied places */}
+            {!locationDeleted && (selectedLocation.type === 'landmark' || selectedLocation.type === 'storied_place') && (
               <div className="mb-2">
                 <AudioNarrative location={selectedLocation} />
               </div>
             )}
 
-            {/* Pit stop rating — landmarks only (always shown, no tab to unmount it) */}
-            {selectedLocation.type === 'landmark' && (
+            {/* Pit stop rating — landmarks and storied places */}
+            {(selectedLocation.type === 'landmark' || selectedLocation.type === 'storied_place') && (
               <PitStopRating
                 key={selectedLocation.id}
                 locationId={selectedLocation.id}
@@ -4258,8 +4322,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               </div>
             )}
 
-            {/* Tab: Info (or full content for landmarks + festivals) */}
-            {!locationDeleted && (selectedLocation.type === 'landmark' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
+            {/* Tab: Info (or full content for landmarks, storied places + festivals) */}
+            {!locationDeleted && (selectedLocation.type === 'landmark' || selectedLocation.type === 'storied_place' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
               <div>
                 {/* Pit stop rating for bookstores, cafes, driveins — only mounted when info tab is active */}
                 {(selectedLocation.type === 'bookstore' || selectedLocation.type === 'cafe' || selectedLocation.type === 'drivein') && (
@@ -4384,8 +4448,15 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </p>
                 )}
 
-                {/* Landmarks keep Guestbook inline (festivals are events, not permanent venues) */}
-                {selectedLocation.type === 'landmark' && selectedLocation.type !== 'festival' && (
+                {selectedLocation.type === 'storied_place' && (
+                  <p className="font-special-elite mt-3 pt-3 border-t border-white/10"
+                    style={{ fontSize: '10px', color: 'rgba(192,192,192,0.55)', lineHeight: '1.4' }}>
+                    A place with a literary story.
+                  </p>
+                )}
+
+                {/* Landmarks and storied places keep Guestbook inline */}
+                {(selectedLocation.type === 'landmark' || selectedLocation.type === 'storied_place') && (
                   <Guestbook
                     key={selectedLocation.id}
                     locationId={selectedLocation.id}
@@ -4432,7 +4503,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           )}
 
           {/* Sticky buttons — info tab only */}
-          {isExpanded && (shelfTab === 'info' || selectedLocation.type === 'landmark') && (
+          {isExpanded && (shelfTab === 'info' || selectedLocation.type === 'landmark' || selectedLocation.type === 'storied_place') && (
           <div className="flex-shrink-0 flex flex-col gap-1.5 px-3 pb-3 md:px-5 md:pb-4 pt-1.5 max-w-2xl mx-auto w-full">
             {/* Row 1: Save Place (primary explore action) + Add to Route (navigation queue) */}
             <div className="flex gap-2">

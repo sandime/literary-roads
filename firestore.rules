@@ -140,6 +140,12 @@ service cloud.firestore {
       }
     }
 
+    // ── Storied Places: public read, admin-only write ────────────────────────
+    match /storiedPlaces/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // ── Literary festival map data: public read, written only by Cloud Functions ─
     match /literaryFestivals/{doc} {
       allow read: if true;

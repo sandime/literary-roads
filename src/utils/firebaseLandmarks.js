@@ -238,6 +238,56 @@ export const getUfoLocationsNear = async (lat, lng, radiusMiles = 200) => {
   }
 };
 
+// ── Storied Places ────────────────────────────────────────────────────────────
+const _storiedPlaceCache = { data: null, ts: 0 };
+const STORIED_PLACE_TTL  = 10 * 60 * 1000; // 10 min
+
+const fetchAllStoriedPlaces = async () => {
+  const now = Date.now();
+  if (_storiedPlaceCache.data && now - _storiedPlaceCache.ts < STORIED_PLACE_TTL) {
+    return _storiedPlaceCache.data;
+  }
+  const snapshot = await getDocs(collection(db, 'storiedPlaces'));
+  const all = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    if (data.deleted) return;
+    if (typeof data.lat !== 'number' || typeof data.lng !== 'number') return;
+    all.push({ id: doc.id, ...data, type: 'storied_place' });
+  });
+  console.log(`[Firestore] ${all.length} storied places fetched`);
+  _storiedPlaceCache.data = all;
+  _storiedPlaceCache.ts   = now;
+  return all;
+};
+
+export const getStoriedPlacesNear = async (lat, lng, radiusMiles = 25) => {
+  try {
+    const all = await fetchAllStoriedPlaces();
+    return all.filter(p => getDistance(p.lat, p.lng, lat, lng) <= radiusMiles);
+  } catch (error) {
+    console.error('[StoriedPlaces] getStoriedPlacesNear error:', error);
+    return [];
+  }
+};
+
+export const getStoriedPlacesAlongRoute = async (routePoints, radiusMiles = 25) => {
+  try {
+    const all = await fetchAllStoriedPlaces();
+    const samples = routePoints
+      .filter((_, i) => i % 5 === 0)
+      .concat(routePoints[routePoints.length - 1])
+      .filter(p => Array.isArray(p) && p.length >= 2);
+    if (!samples.length) return [];
+    return all.filter(p =>
+      samples.some(([pLat, pLng]) => getDistance(p.lat, p.lng, pLat, pLng) <= radiusMiles)
+    );
+  } catch (error) {
+    console.error('[StoriedPlaces] getStoriedPlacesAlongRoute error:', error);
+    return [];
+  }
+};
+
 // ── Extra collections for main map (route planner + NEAR ME) ─────────────────
 // Each collection is small enough to fetch-all and filter client-side.
 const EXTRA_COLLECTIONS = [

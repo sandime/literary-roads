@@ -264,6 +264,13 @@ const COLLECTIONS = {
       return ['drive-in','drive in','drivein'].some(k => l.includes(k));
     },
   },
+  storiedPlaces: {
+    label: 'Storied Places',
+    icon: '🏮',
+    type: 'storied_place',
+    presetFiles: [],
+    isValid: (name) => !!name,
+  },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -463,6 +470,29 @@ const csvRowToEntry = (row, type) => {
   };
   if (row.refnum) entry.refnum = row.refnum; // NRHP reference number
   return entry;
+};
+
+// Build a Firestore-ready entry for a Storied Place CSV row
+const csvRowToStoriedPlace = (row) => {
+  const lat = parseFloat(row.lat);
+  const lng = parseFloat(row.lng);
+  if (!row.name || isNaN(lat) || isNaN(lng)) return null;
+  const slug  = row.name.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 24);
+  const docId = `sp_${slug}_${lat.toFixed(4)}_${lng.toFixed(4)}`.replace(/\./g, '_');
+  return {
+    docId,
+    name:        row.name,
+    author:      row.author      || null,
+    city:        row.city        || null,
+    state:       row.state       || null,
+    description: row.description || null,
+    website:     row.website     || null,
+    source:      row.source      || 'Storied Places',
+    sourceUrl:   row.sourceUrl   || '',
+    type:        'storied_place',
+    year:        row.year ? parseInt(row.year, 10) || null : null,
+    lat, lng,
+  };
 };
 
 const EMPTY_STATS = { total: 0, filtered: 0, dupes: 0, uploaded: 0, skipped: 0, failed: 0, deleted: 0, geocoded: 0, excludeReasons: {}, uniqueCount: 0, withCity: 0, withState: 0, withAddress: 0 };
@@ -974,7 +1004,9 @@ export default function AdminUpload() {
 
     // Step 2: transform to Firestore entries
     const cfg = COLLECTIONS[selectedKey];
-    const entries = rows.map(r => csvRowToEntry(r, cfg.type)).filter(Boolean);
+    const entries = selectedKey === 'storiedPlaces'
+      ? rows.map(csvRowToStoriedPlace).filter(Boolean)
+      : rows.map(r => csvRowToEntry(r, cfg.type)).filter(Boolean);
     const { unique, dupeCount } = deduplicate(entries);
     const filtered = csvRows.length - entries.length + skippedGeo;
     setStats(s => ({ ...s, total: csvRows.length, filtered, dupes: dupeCount, geocoded }));
@@ -1139,11 +1171,18 @@ export default function AdminUpload() {
             {/* Expected columns hint */}
             <div className="border border-starlight-turquoise/20 rounded-xl p-3 mb-3 bg-white/5">
               <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">EXPECTED COLUMNS</p>
-              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-                <span className="text-paper-white">Required:</span> name<br/>
-                <span className="text-paper-white">With coords:</span> name, lat, lng, address, city, state, zipcode, phone, website<br/>
-                <span className="text-paper-white">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Nominatim)
-              </p>
+              {selectedKey === 'storiedPlaces' ? (
+                <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
+                  <span className="text-paper-white">Required:</span> name, lat, lng<br/>
+                  <span className="text-paper-white">Optional:</span> author, city, state, description, website, source, sourceUrl, year
+                </p>
+              ) : (
+                <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
+                  <span className="text-paper-white">Required:</span> name<br/>
+                  <span className="text-paper-white">With coords:</span> name, lat, lng, address, city, state, zipcode, phone, website<br/>
+                  <span className="text-paper-white">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Nominatim)
+                </p>
+              )}
             </div>
 
             {/* File picker */}
