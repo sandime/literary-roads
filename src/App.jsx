@@ -303,6 +303,7 @@ function AppInner() {
                 onBack={() => navigate(-1)}
                 onShowLibrary={() => navigate('/library')}
                 onShowBadges={() => navigate('/badges')}
+                onShowTrips={() => navigate('/', { state: { openTrips: true } })}
                 selectedStates={selectedStates}
               />
             } />

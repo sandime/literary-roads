@@ -1404,6 +1404,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [shelfTab, setShelfTab] = useState('info'); // 'info' | 'guestbook' | 'tale' | 'roadshot'
   const [showTaleModal, setShowTaleModal] = useState(false);
   const [starburstIds, setStarburstIds] = useState(new Set());
+  const [avatarId, setAvatarId] = useState(null);
   const [tripItems, setTripItems] = useState([]);
   const [showRoadTrip, setShowRoadTrip] = useState(false);
   const [activeTripStops, setActiveTripStops] = useState(saved.tripStops ?? []);
@@ -1619,6 +1620,24 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   // Close search bar whenever the route changes (navigating to Library, Journeys, etc.)
   useEffect(() => { setShowSearch(false); }, [location.pathname]);
+
+  // Live-sync avatarId from the user's Firestore doc
+  useEffect(() => {
+    if (!user) { setAvatarId(null); return; }
+    const unsub = onSnapshot(
+      doc(db, 'users', user.uid),
+      snap => setAvatarId(snap.exists() ? (snap.data().avatarId || null) : null),
+      () => {}
+    );
+    return unsub;
+  }, [user?.uid]);
+
+  // Open My Trips drawer when navigated here with { state: { openTrips: true } }
+  useEffect(() => {
+    if (!location.state?.openTrips) return;
+    setShowRoadTrip(true);
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.state?.openTrips]);
 
   // Reset shelf tab and transient state whenever a new location is opened
   useEffect(() => { setShelfTab('info'); setShowTaleModal(false); setCheckInError(''); setLocationDeleted(false); }, [selectedLocation?.id]);
@@ -2783,9 +2802,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               className="text-starlight-turquoise active:text-atomic-orange transition-colors"
               aria-label={user ? 'Profile menu' : 'Log in'}
             >
-              {user?.photoURL ? (
-                <img src={user.photoURL} className="w-7 h-7 rounded-full" alt="avatar"
-                  style={{ border: '1.5px solid #40E0D0', boxShadow: showMobileMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
+              {user && avatarId ? (
+                <img src={`${import.meta.env.BASE_URL}images/avatars/${avatarId}.png`} className="w-7 h-7 rounded-full" alt="avatar"
+                  style={{ border: '1.5px solid #40E0D0', boxShadow: showMobileMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none', objectFit: 'cover' }} />
+              ) : user ? (
+                <div style={{ width: 28, height: 28, borderRadius: '50%', background: '#1A1B2E', border: '1.5px solid #38c5c5', boxShadow: showMobileMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none', flexShrink: 0 }} />
               ) : (
                 <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -3068,9 +3089,11 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 aria-expanded={user ? showUserMenu : undefined}
                 className="flex flex-col items-center text-starlight-turquoise hover:text-atomic-orange transition-colors p-1"
               >
-                {user?.photoURL ? (
-                  <img src={user.photoURL} className="w-6 h-6 rounded-full" alt="avatar"
-                    style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none' }} />
+                {user && avatarId ? (
+                  <img src={`${import.meta.env.BASE_URL}images/avatars/${avatarId}.png`} className="w-6 h-6 rounded-full" alt="avatar"
+                    style={{ border: '1.5px solid #40E0D0', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none', objectFit: 'cover' }} />
+                ) : user ? (
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#1A1B2E', border: '1.5px solid #38c5c5', boxShadow: showUserMenu ? '0 0 8px rgba(64,224,208,0.7)' : 'none', flexShrink: 0 }} />
                 ) : (
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

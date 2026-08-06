@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+
+const STARLIGHT_CIRCLE_ENABLED = false;
 import {
   sendPasswordResetEmail,
   fetchSignInMethodsForEmail,
@@ -799,7 +801,7 @@ export default function Login({ onLoginSuccess, onBack, onContinueAsGuest, onSho
                   textUnderlineOffset: 4, padding: '2px 0', flexShrink: 0,
                 }}>Continue as Guest →</button>
 
-                {!isReg && (
+                {!isReg && STARLIGHT_CIRCLE_ENABLED && (
                   <div style={{ marginTop: 'auto', paddingTop: 10, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
                     <MemberBadge />
                   </div>

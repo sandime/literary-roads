@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { doc, setDoc, updateDoc, onSnapshot, collection } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot, collection } from 'firebase/firestore';
 import { subscribeToCurrentMeet } from '../utils/swapMeet';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
@@ -542,10 +542,77 @@ function QuestHistoryModal({ history, onClose }) {
   );
 }
 
+// ── Avatar picker ───────────────────────────────────────────────────────────
+const AVATAR_SLUGS = [
+  'reading-cat', 'road-book', 'motel',
+  'typewriter', 'compass', 'cat-face',
+  'peeking-cat', 'coffee-cup', 'luggage',
+];
+
+function AvatarPicker({ currentId, onSelect, onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 600,
+        background: 'rgba(0,0,0,0.65)',
+        display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 480,
+          background: '#1E1F33',
+          borderRadius: '20px 20px 0 0',
+          border: '1.5px solid rgba(56,197,197,0.3)',
+          padding: '24px 20px 44px',
+        }}
+      >
+        <p style={{
+          fontFamily: 'Bungee, sans-serif', fontSize: 11,
+          color: '#38c5c5', letterSpacing: '0.1em',
+          textAlign: 'center', margin: '0 0 20px',
+        }}>
+          CHOOSE YOUR AVATAR
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          {AVATAR_SLUGS.map(slug => (
+            <button
+              key={slug}
+              type="button"
+              onClick={() => onSelect(slug)}
+              style={{
+                background: '#0D0E1A',
+                border: `2px solid ${currentId === slug ? '#38c5c5' : 'rgba(255,255,255,0.1)'}`,
+                borderRadius: 12,
+                padding: 6,
+                cursor: 'pointer',
+                boxShadow: currentId === slug ? '0 0 10px rgba(56,197,197,0.4)' : 'none',
+                transition: 'border-color 0.15s, box-shadow 0.15s',
+                aspectRatio: '1',
+                overflow: 'hidden',
+              }}
+            >
+              <img
+                src={`${import.meta.env.BASE_URL}images/avatars/${slug}.png`}
+                alt={slug}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 8, display: 'block' }}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Profile component ──────────────────────────────────────────────────
-export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedStates = [] }) {
+export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTrips, selectedStates = [] }) {
   const { user } = useAuth();
 
+  const [avatarId, setAvatarId]               = useState(null);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [privacyOn, setPrivacyOn]             = useState(() => localStorage.getItem('lr-privacy') === 'true');
   const [soundEnabled, setSoundEnabled]       = useState(true);
   const [swapMeetReminder, setSwapMeetReminder] = useState(true);
@@ -584,6 +651,7 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
         if (!snap.exists()) return;
         const data = snap.data();
         setFavoriteBooks(data.favoriteBooks || []);
+        setAvatarId(data.avatarId || null);
 
         setTripCount((data.trip || []).length);
         setVisitedCount((data.visitedStates || []).length);
@@ -779,6 +847,18 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
     return subscribeToEnrollment(user.uid, activeSalon.id, setSalonEnrolled);
   }, [user, activeSalon?.id]);
 
+  const handleSelectAvatar = async (slug) => {
+    setAvatarId(slug);
+    setShowAvatarPicker(false);
+    if (user) {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), { avatarId: slug });
+      } catch {
+        await setDoc(doc(db, 'users', user.uid), { avatarId: slug }, { merge: true });
+      }
+    }
+  };
+
   const displayName = user?.displayName || 'Literary Traveler';
   const initials = displayName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 
@@ -805,15 +885,25 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
       <div className="w-full max-w-lg rounded-2xl p-[2px] mb-5"
         style={{ background: 'linear-gradient(135deg, #40E0D0 0%, #FF4E00 100%)', boxShadow: '0 0 25px rgba(64,224,208,0.3)' }}>
         <div className="rounded-2xl p-6 flex items-center gap-4" style={{ background: '#1E1F33' }}>
-          {user?.photoURL ? (
-            <img src={user.photoURL} alt="avatar" className="w-16 h-16 rounded-full flex-shrink-0"
-              style={{ border: '3px solid #40E0D0', boxShadow: '0 0 12px rgba(64,224,208,0.6)' }} />
-          ) : (
-            <div className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 font-bungee text-2xl"
-              style={{ background: '#1A1B2E', border: '3px solid #40E0D0', boxShadow: '0 0 12px rgba(64,224,208,0.6)', color: '#40E0D0' }}>
-              {initials}
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={() => setShowAvatarPicker(true)}
+            style={{
+              width: 64, height: 64, borderRadius: '50%', flexShrink: 0,
+              overflow: 'hidden', padding: 0, cursor: 'pointer',
+              background: '#1A1B2E',
+              border: '3px solid #38c5c5',
+              boxShadow: '0 0 12px rgba(56,197,197,0.6)',
+            }}
+          >
+            {avatarId ? (
+              <img
+                src={`${import.meta.env.BASE_URL}images/avatars/${avatarId}.png`}
+                alt="avatar"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            ) : null}
+          </button>
           <div className="min-w-0">
             <p className="font-bungee text-paper-white text-base truncate">{displayName}</p>
             <p className="font-special-elite text-xs truncate mt-0.5" style={{ color: 'rgba(192,192,192,0.45)' }}>
@@ -851,13 +941,13 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
             ))}
           </div>
           <button
-            onClick={onShowBadges}
+            onClick={onShowTrips}
             className="w-full font-bungee text-[10px] py-2 rounded-lg transition-all"
             style={{ border: '1px solid rgba(255,78,0,0.5)', color: '#FF4E00', background: 'transparent', letterSpacing: '0.06em' }}
             onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,78,0,0.12)'; e.currentTarget.style.borderColor = '#FF4E00'; }}
             onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'rgba(255,78,0,0.5)'; }}
           >
-            VIEW BADGES
+            VIEW TRIPS
           </button>
         </div>
 
@@ -975,26 +1065,6 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
                   </div>
                 </div>
 
-                {/* Status */}
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  padding: '8px 12px', borderRadius: '8px', marginBottom: '12px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.07)',
-                }}>
-                  <span style={{ fontSize: '1.1rem' }}>{stats.statusEmoji}</span>
-                  <div>
-                    <p className="font-bungee text-[11px]" style={{ color: '#F5F5DC', letterSpacing: '0.03em' }}>
-                      {stats.status}
-                    </p>
-                    {stats.remaining > 0 && (
-                      <p className="font-special-elite text-[10px]" style={{ color: 'rgba(192,192,192,0.5)', marginTop: '1px' }}>
-                        {stats.remaining} {stats.remaining === 1 ? 'book' : 'books'} to go by Dec 31
-                      </p>
-                    )}
-                  </div>
-                </div>
-
                 {/* Action buttons */}
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
@@ -1030,106 +1100,6 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
               >
                 View Past Quests
               </button>
-            )}
-          </div>
-        );
-      })()}
-
-      {/* ── Badges section ── */}
-      {user && (() => {
-        const earnedIds     = new Set(earnedBadgeData.map(b => b.badgeId));
-        const allProgress   = computeBadgeProgress(travelStats);
-        const earnedBadges  = allProgress.filter(b => earnedIds.has(b.id));
-        const nextBadge     = allProgress
-          .filter(b => !earnedIds.has(b.id) && b.pct > 0)
-          .sort((a, b) => b.pct - a.pct)[0] || null;
-        // Most recent 6 (last earned first — use earnedBadgeData order isn't guaranteed, use definition order for now)
-        const recentBadges = earnedBadges.slice(-6).reverse();
-
-        return (
-          <div className="w-full max-w-lg rounded-xl p-4 mb-5"
-            style={{ background: '#1E1F33', border: '1px solid #2A2B45' }}>
-            {/* Header row */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h2 className="font-bungee text-sm"
-                  style={{ color: '#40E0D0', textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em' }}>
-                  BADGES EARNED
-                </h2>
-                <span className="font-bungee text-[10px] px-1.5 py-0.5 rounded-full"
-                  style={{ background: '#40E0D020', border: '1px solid #40E0D040', color: '#40E0D0' }}>
-                  {earnedBadges.length}
-                </span>
-              </div>
-              {onShowBadges && (
-                <button onClick={onShowBadges}
-                  className="font-bungee text-[10px] px-3 py-1.5 rounded-full transition-all"
-                  style={{ border: '1px solid rgba(64,224,208,0.4)', color: '#40E0D0', background: 'transparent', letterSpacing: '0.04em' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(64,224,208,0.1)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
-                  VIEW ALL
-                </button>
-              )}
-            </div>
-
-            {/* Badge icons grid */}
-            {recentBadges.length > 0 ? (
-              <div className="grid grid-cols-6 gap-2 mb-4">
-                {recentBadges.map(badge => (
-                  <div key={badge.id} className="flex flex-col items-center gap-1">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center"
-                      style={{
-                        background: `radial-gradient(circle, ${badge.color}22, ${badge.color}08)`,
-                        border: `1.5px solid ${badge.color}60`,
-                        boxShadow: `0 0 8px ${badge.color}40`,
-                        fontSize: '1.25rem',
-                      }}>
-                      {badge.icon}
-                    </div>
-                    <span className="font-bungee text-[7px] text-center leading-tight"
-                      style={{ color: badge.color, maxWidth: '40px' }}>
-                      {badge.name}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="font-special-elite text-xs mb-4 text-center"
-                style={{ color: 'rgba(192,192,192,0.4)', lineHeight: 1.5 }}>
-                No badges yet — park at a bookstore to start!
-              </p>
-            )}
-
-            {/* Next badge progress */}
-            {nextBadge && (
-              <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <span style={{ fontSize: '1.1rem' }}>{nextBadge.icon}</span>
-                    <div>
-                      <p className="font-bungee text-[10px] leading-tight"
-                        style={{ color: nextBadge.color, letterSpacing: '0.03em' }}>
-                        NEXT: {nextBadge.name}
-                      </p>
-                      <p className="font-special-elite text-[9px]"
-                        style={{ color: 'rgba(192,192,192,0.45)' }}>
-                        Just {nextBadge.required - nextBadge.current} more to go!
-                      </p>
-                    </div>
-                  </div>
-                  <span className="font-bungee text-[10px]"
-                    style={{ color: 'rgba(192,192,192,0.4)' }}>
-                    {nextBadge.current}/{nextBadge.required}
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
-                  <div className="h-full rounded-full transition-all"
-                    style={{
-                      width: `${nextBadge.pct}%`,
-                      background: `linear-gradient(90deg, ${nextBadge.color}80, ${nextBadge.color})`,
-                    }} />
-                </div>
-              </div>
             )}
           </div>
         );
@@ -1329,6 +1299,15 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, selectedS
           onAdd={handleAddBook}
           onRemove={handleRemoveBook}
           onClose={() => setShowBookModal(false)}
+        />
+      )}
+
+      {/* Avatar picker */}
+      {showAvatarPicker && (
+        <AvatarPicker
+          currentId={avatarId}
+          onSelect={handleSelectAvatar}
+          onClose={() => setShowAvatarPicker(false)}
         />
       )}
 
