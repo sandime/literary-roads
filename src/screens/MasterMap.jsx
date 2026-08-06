@@ -2322,9 +2322,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
   const exploreLabel = (sel) => {
     const hasPR = sel.has('Puerto Rico');
-    const nonPR = hasPR ? sel.size - 1 : sel.size;
-    if (hasPR && nonPR === 0) return 'EXPLORE PUERTO RICO →';
-    if (hasPR) return `EXPLORE ${nonPR} STATE${nonPR > 1 ? 'S' : ''} AND PUERTO RICO →`;
+    const hasDC = sel.has('District of Columbia');
+    const nonSpecial = sel.size - (hasPR ? 1 : 0) - (hasDC ? 1 : 0);
+    if (sel.size === 1 && hasDC) return 'EXPLORE DC →';
+    if (sel.size === 1 && hasPR) return 'EXPLORE PUERTO RICO →';
+    if (hasPR && nonSpecial === 0 && !hasDC) return 'EXPLORE PUERTO RICO →';
+    if (hasPR) return `EXPLORE ${sel.size - 1} STATE${sel.size - 1 > 1 ? 'S' : ''} AND PUERTO RICO →`;
     return `EXPLORE ${sel.size} STATE${sel.size > 1 ? 'S' : ''} →`;
   };
 
