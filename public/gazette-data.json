@@ -2,18 +2,18 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "THE POISON DAUGHTER",
-      "author": "Sheila Masterson",
+      "title": "BIG LITTLE TRUTHS",
+      "author": "Liane Moriarty",
       "weeksOnList": 1,
-      "isbn13": "9781638935971",
-      "description": "A woman with a deadly kiss who moonlights as a vigilante going after abusive men comes under threat by her betrothed.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781638935971.jpg"
+      "isbn13": "9780593798638",
+      "description": "In a sequel to “Big Little Lies,” a stranger’s presence at a school may force things to the fore that had not been shared.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798638.jpg"
     },
     {
       "rank": 2,
       "title": "THE CALAMITY CLUB",
       "author": "Kathryn Stockett",
-      "weeksOnList": 16,
+      "weeksOnList": 17,
       "isbn13": "9781954118812",
       "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
@@ -22,78 +22,78 @@
       "rank": 3,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 20,
+      "weeksOnList": 21,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
       "rank": 4,
-      "title": "DELUSIONAL",
-      "author": "James Patterson and James O. Born",
-      "weeksOnList": 1,
-      "isbn13": "9780316569835",
-      "description": "The 18th book in the Michael Bennett series. A group that is angry with the government gets investigated.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316569835.jpg"
-    },
-    {
-      "rank": 5,
       "title": "WHISTLER",
       "author": "Ann Patchett",
-      "weeksOnList": 12,
+      "weeksOnList": 13,
       "isbn13": "9780063511637",
       "description": "Decades after their time together, a woman reconnects with her stepfather and they look back at the directions their lives have taken.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063511637.jpg"
+    },
+    {
+      "rank": 5,
+      "title": "HEART OF GLASS",
+      "author": "Jennifer Hillier",
+      "weeksOnList": 1,
+      "isbn13": "9781250763181",
+      "description": "When a man known as the Carnival Killer takes back his confession, two women who lost their friend 25 years ago must confront their past.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250763181.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
+      "title": "GOING FURTHER",
+      "author": "Ted Cruz",
+      "weeksOnList": 1,
+      "isbn13": "9798217181193",
+      "description": "The Republican senator from Texas profiles the Supreme Court justice Clarence Thomas.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217181193.jpg"
+    },
+    {
+      "rank": 2,
       "title": "REGIME CHANGE",
       "author": "Maggie Haberman and Jonathan Swan",
-      "weeksOnList": 9,
+      "weeksOnList": 10,
       "isbn13": "9781668067246",
       "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
     },
     {
-      "rank": 2,
-      "title": "THIS IS ME",
-      "author": "Hayden Panettiere",
-      "weeksOnList": 2,
-      "isbn13": "9781538773420",
-      "description": "The late Golden Globe-nominated actress describes how she contended with fame and handled difficulties in her life.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773420.jpg"
-    },
-    {
       "rank": 3,
-      "title": "THE NERD REICH",
-      "author": "Gil Durán",
-      "weeksOnList": 1,
-      "isbn13": "9781668221402",
-      "description": "An independent journalist portrays a new political order that would supplant elected governments with corporate rule.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668221402.jpg"
+      "title": "STAR OF THE SHOW",
+      "author": "Dolly Parton with Tom Roland",
+      "weeksOnList": 2,
+      "isbn13": "9781984863133",
+      "description": "Stories and photographs documenting the late country music icon’s career onstage.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781984863133.jpg"
     },
     {
       "rank": 4,
-      "title": "THE DAY AFTER",
-      "author": "Brian Tyler Cohen",
-      "weeksOnList": 4,
-      "isbn13": "9780063495104",
-      "description": "The author of “Shameless” looks at the relationship Republicans and Democrats have to power and prescribes ways for it to be used after Donald Trump’s presidency.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063495104.jpg"
+      "title": "THE RISE AND FALL OF THE ARTIFICIAL STATE",
+      "author": "Jill Lepore",
+      "weeksOnList": 1,
+      "isbn13": "9781324098423",
+      "description": "The author of “These Truths” examines how technology and artificial intelligence have impacted global democracy and human community.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781324098423.jpg"
     },
     {
       "rank": 5,
-      "title": "STRANGERS",
-      "author": "Belle Burden",
-      "weeksOnList": 31,
-      "isbn13": "9780593733318",
-      "description": "Burden retraces her marriage of 20 years in search of clues to help shape her understanding about its demise and to find a way forward.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593733318.jpg"
+      "title": "THE SERVICEBERRY",
+      "author": "Robin Wall Kimmerer",
+      "weeksOnList": 33,
+      "isbn13": "9781668072240",
+      "description": "The author of “Braiding Sweetgrass” illuminates how the gift economy in the natural world works and draws lessons for our economy; with illustrations by John Burgoyne.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668072240.jpg"
     }
   ],
-  "issueDate": "Sunday, August 30, 2026",
-  "issueNumber": 87,
-  "updatedAt": "2026-08-30T14:34:00.223Z"
+  "issueDate": "Sunday, September 6, 2026",
+  "issueNumber": 88,
+  "updatedAt": "2026-09-06T13:17:15.448Z"
 }
