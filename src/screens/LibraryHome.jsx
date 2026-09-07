@@ -390,13 +390,8 @@ function CatLink({ size = 180 }) {
 function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
   const [hov, setHov] = useState(false);
 
-  const totalStates      = Object.keys(AUTHOR_TIDBITS).length;
-  const discoveredStates = new Set(discoveredAuthors.map(a => a.state));
-  const previewDiscovered = discoveredAuthors.slice(0, 3);
-  const undiscoveredSlots = Object.keys(AUTHOR_TIDBITS)
-    .filter(s => !discoveredStates.has(s))
-    .slice(0, Math.max(0, 3 - previewDiscovered.length));
-  const remaining = totalStates - discoveredAuthors.length;
+  const totalStates = Object.keys(AUTHOR_TIDBITS).length;
+  const remaining   = totalStates - discoveredAuthors.length;
 
   return (
     <button
@@ -448,32 +443,6 @@ function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
           }}>
             Authors discovered through your literary road trips — waiting to be found.
           </p>
-
-          {/* Preview chip strip */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
-            {previewDiscovered.map(a => (
-              <span key={a.id} style={{
-                fontFamily: 'Special Elite, serif', fontSize: 10,
-                background: 'rgba(245,166,35,0.14)',
-                border: '1px solid rgba(245,166,35,0.45)',
-                borderRadius: 20, padding: '3px 9px',
-                color: '#7A5800', whiteSpace: 'nowrap',
-              }}>
-                {a.name} · {a.state}
-              </span>
-            ))}
-            {undiscoveredSlots.map(state => (
-              <span key={state} style={{
-                fontFamily: 'Special Elite, serif', fontSize: 10,
-                background: 'transparent',
-                border: '1px dashed rgba(0,0,0,0.18)',
-                borderRadius: 20, padding: '3px 9px',
-                color: 'rgba(0,0,0,0.28)', whiteSpace: 'nowrap',
-              }}>
-                ??? · {state}
-              </span>
-            ))}
-          </div>
 
           {/* Stats */}
           <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
@@ -539,20 +508,9 @@ function LibrariansDesk({ onNavigate }) {
           <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: '#2D2D2D', fontWeight: 700, margin: '0 0 7px', lineHeight: 1.2 }}>
             The Librarian's Desk
           </h3>
-          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.6, margin: '0 0 10px' }}>
+          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
             Need help finding a book? Ask the librarian, browse by setting, or thin your stack.
           </p>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {['Ask the Librarian', 'By Setting', 'Thin the Stack'].map(label => (
-              <span key={label} style={{
-                fontFamily: 'Special Elite, serif', fontSize: 10,
-                background: 'rgba(56,197,197,0.1)', border: '1px solid rgba(56,197,197,0.35)',
-                borderRadius: 20, padding: '3px 9px', color: '#1a7a7a', whiteSpace: 'nowrap',
-              }}>
-                {label}
-              </span>
-            ))}
-          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px 0 4px' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
