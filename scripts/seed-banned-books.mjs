@@ -126,15 +126,12 @@ const BANNED_LIST = [
   { title: 'The Kite Runner', author: 'Khaled Hosseini', bannedContext: 'Sexual violence; offensive language', bannedSource: 'American Library Association' },
   { title: 'Speak', author: 'Laurie Halse Anderson', bannedContext: 'Rape and sexual content; anti-Christian', bannedSource: 'American Library Association' },
   { title: 'The Hate U Give', author: 'Angie Thomas', bannedContext: 'Drug use; profanity; anti-police message', bannedSource: 'American Library Association' },
-  { title: 'And Tango Makes Three', author: 'Justin Richardson', bannedContext: 'Same-sex families; homosexuality', bannedSource: 'American Library Association' },
-  { title: 'Brave New World', author: 'Aldous Huxley', bannedContext: 'Insensitive; offensive language; sexually explicit', bannedSource: 'American Library Association' },
+  { title: 'And Tango Makes Three', author: 'Justin Richardson and Peter Parnell', bannedContext: 'Same-sex families; homosexuality', bannedSource: 'American Library Association' },
   { title: 'Of Mice and Men', author: 'John Steinbeck', bannedContext: 'Racial slurs; profanity; violence', bannedSource: 'American Library Association' },
-  { title: 'Catcher in the Rye', author: 'J.D. Salinger', bannedContext: 'Profanity; sexual content; blasphemy', bannedSource: 'American Library Association' },
   { title: 'The Catcher in the Rye', author: 'J.D. Salinger', bannedContext: 'Profanity; sexual content; blasphemy', bannedSource: 'American Library Association' },
   { title: 'To Kill a Mockingbird', author: 'Harper Lee', bannedContext: 'Racial slurs; racial injustice', bannedSource: 'American Library Association' },
   { title: 'The Color Purple', author: 'Alice Walker', bannedContext: 'Sexual content; offensive language; unsuited to age group', bannedSource: 'American Library Association' },
   { title: 'Lord of the Flies', author: 'William Golding', bannedContext: 'Violence; offensive language; demoralizing', bannedSource: 'American Library Association' },
-  { title: '1984', author: 'George Orwell', bannedContext: 'Pro-communist; political ideology; sexual content', bannedSource: 'American Library Association' },
   { title: 'Nineteen Eighty-Four', author: 'George Orwell', bannedContext: 'Pro-communist; political ideology; sexual content', bannedSource: 'American Library Association' },
   { title: 'Animal Farm', author: 'George Orwell', bannedContext: 'Pro-communist; political ideology', bannedSource: 'American Library Association' },
   { title: 'Beloved', author: 'Toni Morrison', bannedContext: 'Violence; sexual content; slavery depictions', bannedSource: 'American Library Association' },
@@ -148,7 +145,6 @@ const BANNED_LIST = [
   { title: 'I Know Why the Caged Bird Sings', author: 'Maya Angelou', bannedContext: 'Sexual content; offensive language; inappropriate for age', bannedSource: 'American Library Association' },
   { title: 'Lolita', author: 'Vladimir Nabokov', bannedContext: 'Sexual content involving a minor', bannedSource: 'American Library Association' },
   { title: 'The Adventures of Huckleberry Finn', author: 'Mark Twain', bannedContext: 'Racial slurs; racism', bannedSource: 'American Library Association' },
-  { title: 'Huckleberry Finn', author: 'Mark Twain', bannedContext: 'Racial slurs; racism', bannedSource: 'American Library Association' },
   { title: 'Slaughterhouse-Five', author: 'Kurt Vonnegut', bannedContext: 'Offensive language; violence; anti-American; sexual content', bannedSource: 'American Library Association' },
   { title: 'The Grapes of Wrath', author: 'John Steinbeck', bannedContext: 'Offensive language; communist propaganda; blasphemy', bannedSource: 'American Library Association' },
   { title: 'Flowers for Algernon', author: 'Daniel Keyes', bannedContext: 'Sexually explicit; offensive language', bannedSource: 'American Library Association' },
@@ -218,7 +214,6 @@ const BANNED_LIST = [
   { title: 'Heather Has Two Mommies', author: 'Lesléa Newman', bannedContext: 'LGBTQ+ content; homosexuality', bannedSource: 'American Library Association' },
   { title: 'King and King', author: 'Linda de Haan', bannedContext: 'LGBTQ+ content; homosexuality', bannedSource: 'American Library Association' },
   { title: 'Uncle Bobby\'s Wedding', author: 'Sarah S. Brannen', bannedContext: 'LGBTQ+ content; homosexuality', bannedSource: 'American Library Association' },
-  { title: 'And Tango Makes Three', author: 'Peter Parnell', bannedContext: 'LGBTQ+ content; same-sex families', bannedSource: 'American Library Association' },
   { title: 'Bel Canto', author: 'Ann Patchett', bannedContext: 'Sexual content; violence', bannedSource: 'American Library Association' },
   { title: 'The Girl with the Dragon Tattoo', author: 'Stieg Larsson', bannedContext: 'Violence; sexual content', bannedSource: 'American Library Association' },
   { title: 'Infinite Jest', author: 'David Foster Wallace', bannedContext: 'Drug use; sexual content; offensive language', bannedSource: 'American Library Association' },
@@ -227,13 +222,23 @@ const BANNED_LIST = [
 ];
 
 // ── Match logic ───────────────────────────────────────────────────────────────
+function normTitle(s) {
+  return (s || '').toLowerCase()
+    .replace(/^(the|a|an)\s+/, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
 function findMatch(entry, allBooks) {
-  const titleLower  = entry.title.toLowerCase().trim();
+  const titleNorm  = normTitle(entry.title);
   const authorLower = entry.author.toLowerCase().trim();
 
-  const candidates = allBooks.filter(b =>
-    (b.title || '').toLowerCase().trim() === titleLower
+  // Exact title match first, then normalized (strips leading articles + punctuation)
+  let candidates = allBooks.filter(b =>
+    (b.title || '').toLowerCase().trim() === entry.title.toLowerCase().trim()
   );
+  if (!candidates.length) {
+    candidates = allBooks.filter(b => normTitle(b.title) === titleNorm);
+  }
 
   if (candidates.length === 0) return null;
   if (candidates.length === 1) return candidates[0];
