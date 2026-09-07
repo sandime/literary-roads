@@ -249,6 +249,7 @@ export default function BannedBooks({ onBack, onViewShelf, suppressedIds = new S
             }
           }
 
+          console.log('[BannedBooks]', item.title, '| googleBooksId:', item.googleBooksId, '| booksDocId:', booksDocId, '| banned:', booksData?.banned, '| booksData title:', booksData?.title);
           if (!booksData?.banned) return null; // only include banned books
 
           return {
