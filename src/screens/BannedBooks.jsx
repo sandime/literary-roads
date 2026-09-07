@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, doc, getDoc, updateDoc, query, where, limit } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, query, where } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchBookCover, titleAuthorSlug } from '../utils/booksCatalog';
@@ -217,57 +217,44 @@ export default function BannedBooks({ onBack, onViewShelf, suppressedIds = new S
   useEffect(() => {
     if (!user) { setLoading(false); return; }
 
-    getDocs(collection(db, 'users', user.uid, 'libraryReadNext'))
-      .then(async (rnSnap) => {
-        const rnItems = rnSnap.docs
-          .map(d => ({ _docId: d.id, ...d.data() }))
-          .filter(item => !suppressedIds.has(item.googleBooksId));
+    // Fetch all banned books and the user's read next list in parallel,
+    // then cross-reference client-side with normalized titles.
+    // This avoids per-book lookups and case-sensitivity issues with Firestore == queries.
+    Promise.all([
+      getDocs(query(collection(db, 'books'), where('banned', '==', true))),
+      getDocs(collection(db, 'users', user.uid, 'libraryReadNext')),
+    ]).then(([bannedSnap, rnSnap]) => {
+      const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-        // For each readNext item, fetch the books doc and check banned === true.
-        // Searches the `books` collection by title field — not the locations collections.
-        const loaded = (await Promise.all(rnItems.map(async (item) => {
-          const booksDocId = item.googleBooksId
-            || titleAuthorSlug(item.title || '', item.author || '');
+      // Build a lookup map: normalized title → banned book data
+      const bannedByTitle = new Map();
+      bannedSnap.docs.forEach(d => {
+        const data = d.data();
+        bannedByTitle.set(norm(data.title), data);
+      });
 
-          // Try direct docId lookup first
-          let booksData = null;
-          if (booksDocId) {
-            const snap = await getDoc(doc(db, 'books', booksDocId)).catch(() => null);
-            if (snap?.exists()) booksData = snap.data();
-          }
+      const rnItems = rnSnap.docs
+        .map(d => ({ _docId: d.id, ...d.data() }))
+        .filter(item => !suppressedIds.has(item.googleBooksId));
 
-          // Fallback: query by title — catches docId mismatches AND cases where
-          // the directly-found doc exists but has no banned field (e.g. a g_ shell
-          // record created before the import-style banned record was patched in)
-          if ((!booksData || !booksData.banned) && item.title) {
-            const titleSnap = await getDocs(
-              query(collection(db, 'books'), where('title', '==', item.title), limit(5))
-            ).catch(() => null);
-            if (titleSnap && !titleSnap.empty) {
-              const bannedDoc = titleSnap.docs.find(d => d.data().banned);
-              if (bannedDoc) booksData = bannedDoc.data();
-            }
-          }
+      const loaded = rnItems.map(item => {
+        const booksData = bannedByTitle.get(norm(item.title));
+        if (!booksData) return null;
+        return {
+          id:            item._docId,
+          title:         booksData.title        || item.title  || '',
+          author:        item.author            || (booksData.authors?.[0]) || '',
+          authors:       booksData.authors      || [item.author || ''],
+          coverUrl:      item.coverUrl          || booksData.coverUrl || '',
+          whoWhatWhere:  item.whoWhatWhere       || '',
+          bannedContext: booksData.bannedContext || '',
+          bannedSource:  booksData.bannedSource  || '',
+        };
+      }).filter(Boolean);
 
-          console.log('[BannedBooks]', item.title, '| googleBooksId:', item.googleBooksId, '| booksDocId:', booksDocId, '| banned:', booksData?.banned, '| booksData title:', booksData?.title);
-          if (!booksData?.banned) return null; // only include banned books
-
-          return {
-            id:           booksDocId,
-            title:        item.title         || booksData.title  || '',
-            author:       item.author        || (booksData.authors?.[0]) || '',
-            authors:      booksData.authors  || [item.author || ''],
-            coverUrl:     item.coverUrl      || booksData.coverUrl || '',
-            whoWhatWhere: item.whoWhatWhere   || '',
-            bannedContext: booksData.bannedContext || '',
-            bannedSource:  booksData.bannedSource  || '',
-          };
-        }))).filter(Boolean);
-
-        setBooks(loaded.sort((a, b) => a.title.localeCompare(b.title)));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      setBooks(loaded.sort((a, b) => a.title.localeCompare(b.title)));
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [user]);
 
   const handleViewShelf = () => {
