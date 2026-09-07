@@ -1477,18 +1477,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const carSubsRef = useRef({});
   const userMenuRef = useRef(null);       // desktop profile container
   const mobileMenuRef = useRef(null);     // mobile profile container
-  const navbarRef = useRef(null);
-  const [navbarHeight, setNavbarHeight] = useState(80);
-
-  useEffect(() => {
-    const el = navbarRef.current;
-    if (!el) return;
-    const obs = new ResizeObserver(() => setNavbarHeight(el.offsetHeight));
-    obs.observe(el);
-    setNavbarHeight(el.offsetHeight);
-    return () => obs.disconnect();
-  }, []);
-
   const [shelfSnap, setShelfSnap] = useState('half'); // mobile: 'mini'|'half'|'full'
   const [shelfDeskMinimized, setShelfDeskMinimized] = useState(false);
   const [locationDeleted, setLocationDeleted] = useState(false);
@@ -2797,7 +2785,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       {/* ══════════════════════════════════════════════
            HEADER
       ══════════════════════════════════════════════ */}
-      <div ref={navbarRef} className="fixed top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
+      <div className="fixed top-0 left-0 right-0 z-[1000] bg-midnight-navy/95 border-b-2 border-starlight-turquoise px-3 py-2 md:py-4">
 
         {/* ── Mobile header: hamburger | title | profile ── */}
         <div className="flex items-center md:hidden">
@@ -4187,7 +4175,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
           } : {
             position: 'fixed',
-            top: navbarHeight,
+            top: showSearch ? 128 : 80,
             right: 0, bottom: 0,
             width: shelfDeskMinimized ? '52px' : '380px',
             zIndex: 1001, pointerEvents: 'none',
