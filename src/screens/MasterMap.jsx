@@ -4040,34 +4040,37 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         </div>
       )}
 
-      {/* My Stops chip — fixed positioning so iOS Safari toolbar can't obscure it */}
-      {currentRouteStops.length > 0 && !selectedLocation && activeTripStops.length === 0 && (
+      {/* My Stops chip — fixed positioning so iOS Safari toolbar can't obscure it.
+           Mobile: hidden when shelf (bottom drawer) is open to avoid overlap.
+           Desktop: always visible — shelf is a right panel so bottom is clear. */}
+      {currentRouteStops.length > 0 && activeTripStops.length === 0 && (!selectedLocation || window.innerWidth >= 768) && (
         <div
           style={{
             position: 'fixed',
-            left: 12, right: 12,
+            left: 12,
+            // On desktop with the right panel open, keep the chip clear of the panel.
+            right: selectedLocation && window.innerWidth >= 768 ? 400 : 12,
             bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
             zIndex: 1000,
             display: 'flex',
             justifyContent: 'center',
+            transition: 'right 0.28s cubic-bezier(0.4,0,0.2,1)',
           }}
         >
           <div className="bg-midnight-navy/97 border-2 rounded-xl px-3 py-2.5 flex items-center gap-3 shadow-2xl max-w-lg w-full md:w-auto"
             style={{ borderColor: 'rgba(255,215,0,0.7)' }}>
 
-            {/* Counter — desktop only (stars on map give enough feedback on mobile) */}
+            {/* Counter — desktop only */}
             <span className="hidden md:block font-special-elite text-sm flex-1 leading-tight" style={{ color: '#FFD700' }}>
               ⭐ {currentRouteStops.length} stop{currentRouteStops.length !== 1 ? 's' : ''} in My Stops
             </span>
 
-            {/* Button — full-width with full label on mobile, compact on desktop */}
             <button
               onClick={() => setShowMyStopsNavigate(true)}
               className="flex-1 md:flex-none bg-atomic-orange text-midnight-navy font-bungee rounded-lg hover:bg-starlight-turquoise transition-colors"
               style={{ minHeight: 44, padding: '10px 14px', boxShadow: '0 0 12px rgba(255,78,0,0.4)', fontSize: '0.8rem' }}
             >
-              <span className="md:hidden">NAVIGATE MY STOPS</span>
-              <span className="hidden md:inline">NAVIGATE →</span>
+              NAVIGATE MY STOPS
             </button>
           </div>
         </div>
