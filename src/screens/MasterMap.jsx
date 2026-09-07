@@ -981,16 +981,6 @@ const AuthorTidbitOverlay = ({ stateName, onDismiss }) => {
 
   useEffect(() => { ensureFlickerStyle(); }, []);
 
-  // Keep shelf panel flush with the navbar bottom border on desktop.
-  useEffect(() => {
-    const el = navbarRef.current;
-    if (!el) return;
-    const obs = new ResizeObserver(() => setNavbarHeight(el.offsetHeight));
-    obs.observe(el);
-    setNavbarHeight(el.offsetHeight);
-    return () => obs.disconnect();
-  }, []);
-
   const triggerDismiss = () => {
     setDismiss(true);
     clearTimeout(timerRef.current);
@@ -1489,6 +1479,16 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const mobileMenuRef = useRef(null);     // mobile profile container
   const navbarRef = useRef(null);
   const [navbarHeight, setNavbarHeight] = useState(80);
+
+  useEffect(() => {
+    const el = navbarRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(() => setNavbarHeight(el.offsetHeight));
+    obs.observe(el);
+    setNavbarHeight(el.offsetHeight);
+    return () => obs.disconnect();
+  }, []);
+
   const [shelfSnap, setShelfSnap] = useState('half'); // mobile: 'mini'|'half'|'full'
   const [shelfDeskMinimized, setShelfDeskMinimized] = useState(false);
   const [locationDeleted, setLocationDeleted] = useState(false);
