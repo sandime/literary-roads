@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, query, where, limit } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchBookCover, titleAuthorSlug } from '../utils/booksCatalog';
@@ -228,13 +228,24 @@ export default function BannedBooks({ onBack, onViewShelf, suppressedIds = new S
         const loaded = (await Promise.all(rnItems.map(async (item) => {
           const booksDocId = item.googleBooksId
             || titleAuthorSlug(item.title || '', item.author || '');
-          if (!booksDocId) return null;
 
-          const snap = await getDoc(doc(db, 'books', booksDocId)).catch(() => null);
-          if (!snap?.exists()) return null;
+          // Try direct docId lookup first
+          let booksData = null;
+          if (booksDocId) {
+            const snap = await getDoc(doc(db, 'books', booksDocId)).catch(() => null);
+            if (snap?.exists()) booksData = snap.data();
+          }
 
-          const booksData = snap.data();
-          if (!booksData.banned) return null; // only include banned books
+          // Fallback: query by title — catches docId mismatches between
+          // the books catalog and the libraryReadNext entry
+          if (!booksData && item.title) {
+            const titleSnap = await getDocs(
+              query(collection(db, 'books'), where('title', '==', item.title), limit(1))
+            ).catch(() => null);
+            if (titleSnap && !titleSnap.empty) booksData = titleSnap.docs[0].data();
+          }
+
+          if (!booksData?.banned) return null; // only include banned books
 
           return {
             id:           booksDocId,
