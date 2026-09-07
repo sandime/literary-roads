@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { collection, doc, getDoc, getDocs, query, limit, serverTimestamp, writeBatch, setDoc, updateDoc, where } from 'firebase/firestore';
 import { geocodeNominatim } from '../utils/nominatimGeocoding';
+import { titleAuthorSlug } from '../utils/booksCatalog';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Coffee shop filter — returns a reason string if excluded, null if included
