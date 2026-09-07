@@ -9,6 +9,7 @@ import {
   collection, doc, setDoc, getDoc, serverTimestamp, getDocs, deleteDoc,
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { titleAuthorSlug } from '../utils/booksCatalog';
 
 const C = {
   bg:     '#1A1B2E',
@@ -240,7 +241,7 @@ export default function BooksAdminTab({ showToast }) {
       if (!bookDoc) { s.errors++; continue; }
 
       const id = (raw.googleBooksId || raw.id || '').trim() ||
-        `import_${bookDoc.title.toLowerCase().replace(/[^a-z0-9]/g, '_').slice(0, 40)}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        titleAuthorSlug(bookDoc.title, (bookDoc.authors || [])[0] || '');
 
       try {
         const snap = await getDoc(doc(db, 'books', id));
