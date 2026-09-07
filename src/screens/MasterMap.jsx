@@ -4165,23 +4165,35 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         const isExpanded = isMob ? shelfSnap !== 'mini' : !shelfDeskMinimized;
         const snapH = { mini: '56px', half: '50vh', full: '80vh' }[shelfSnap];
         return (
-        // Full-screen pointer-events:none shell — lets map marker clicks pass through
-        // the area above the shelf so users can tap any marker without closing first.
-        <div style={{ position: 'fixed', inset: 0, zIndex: 1001, pointerEvents: 'none', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+        // Mobile: full-screen shell so map clicks pass through above the shelf.
+        // Desktop: fixed right panel that leaves the map fully visible.
+        <div style={isMob ? {
+            position: 'fixed', inset: 0, zIndex: 1001, pointerEvents: 'none',
+            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+          } : {
+            position: 'fixed',
+            top: showSearch ? 128 : 80,
+            right: 0, bottom: 0,
+            width: shelfDeskMinimized ? '52px' : '380px',
+            zIndex: 1001, pointerEvents: 'none',
+            transition: 'width 0.28s cubic-bezier(0.4,0,0.2,1)',
+          }}>
         <div
           ref={shelfRef}
           role="dialog"
           aria-modal="true"
           aria-label={`${selectedLocation.name} details`}
           tabIndex={-1}
-          className="animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col"
+          className={isMob
+            ? 'animate-slide-up bg-midnight-navy border-t-4 border-starlight-turquoise rounded-t-3xl shadow-2xl flex flex-col'
+            : 'bg-midnight-navy border-l-4 border-starlight-turquoise shadow-2xl flex flex-col'}
           style={{
             pointerEvents: 'auto',
             position: 'relative',
-            height: isMob ? snapH : (shelfDeskMinimized ? '56px' : undefined),
-            maxHeight: isMob ? undefined : (shelfDeskMinimized ? '56px' : '65vh'),
+            height: isMob ? snapH : '100%',
+            width: '100%',
             overflow: 'hidden',
-            transition: 'height 0.28s cubic-bezier(0.4,0,0.2,1)',
+            transition: isMob ? 'height 0.28s cubic-bezier(0.4,0,0.2,1)' : 'none',
           }}
         >
           {/* Mobile drag handle */}
@@ -4199,13 +4211,27 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
           {/* Collapsed bar — tap to expand */}
           {!isExpanded && (
-            <button
-              className="flex-1 flex items-center px-4 gap-3 w-full"
-              onClick={() => isMob ? setShelfSnap('half') : setShelfDeskMinimized(false)}
-            >
-              <span className="text-starlight-turquoise font-bungee text-sm truncate">{selectedLocation.name}</span>
-              <span className="ml-auto text-chrome-silver/50 font-special-elite text-xs whitespace-nowrap">tap to expand ↑</span>
-            </button>
+            isMob ? (
+              <button
+                className="flex-1 flex items-center px-4 gap-3 w-full"
+                onClick={() => setShelfSnap('half')}
+              >
+                <span className="text-starlight-turquoise font-bungee text-sm truncate">{selectedLocation.name}</span>
+                <span className="ml-auto text-chrome-silver/50 font-special-elite text-xs whitespace-nowrap">tap to expand ↑</span>
+              </button>
+            ) : (
+              <button
+                className="flex-1 flex flex-col items-center justify-center gap-4 w-full"
+                onClick={() => setShelfDeskMinimized(false)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#40E0D0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span style={{ color: '#40E0D0', fontFamily: 'Bungee, sans-serif', fontSize: 9, writingMode: 'vertical-rl', transform: 'rotate(180deg)', letterSpacing: '0.08em' }}>
+                  {selectedLocation.name}
+                </span>
+              </button>
+            )
           )}
 
           {/* Close + desktop minimize — direct child of shelf so absolute positioning
