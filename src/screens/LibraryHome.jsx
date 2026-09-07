@@ -509,7 +509,7 @@ function LibrariansDesk({ onNavigate }) {
             The Librarian's Desk
           </h3>
           <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
-            Need help finding a book? Ask the librarian, browse by setting, or thin your stack.
+            Need help finding a book?
           </p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px 0 4px' }}>
