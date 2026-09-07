@@ -4178,8 +4178,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           style={{
             pointerEvents: 'auto',
             position: 'relative',
-            height: isMob ? snapH : (shelfDeskMinimized ? '56px' : '60vh'),
-            maxHeight: isMob ? undefined : (shelfDeskMinimized ? '56px' : '60vh'),
+            height: isMob ? snapH : (shelfDeskMinimized ? '56px' : undefined),
+            maxHeight: isMob ? undefined : (shelfDeskMinimized ? '56px' : '65vh'),
             overflow: 'hidden',
             transition: 'height 0.28s cubic-bezier(0.4,0,0.2,1)',
           }}
@@ -4237,9 +4237,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
 
           {/* Scrollable content */}
           {isExpanded && (
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Fixed header: badge, name, deleted notice, audio, rating, tab bar */}
-            <div className="flex-shrink-0 px-4 md:px-6 pt-4 md:pt-6 max-w-2xl mx-auto w-full">
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 max-w-2xl mx-auto w-full">
 
             {/* Type badge + name — compact single block */}
             <div className="mb-1.5">
@@ -4323,9 +4321,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 ))}
               </div>
             )}
-            </div>
-            {/* Scrollable tab content */}
-            <div className="flex-1 overflow-y-auto px-4 md:px-6 pb-4 md:pb-6 max-w-2xl mx-auto w-full">
 
             {/* Tab: Info (or full content for landmarks, storied places + festivals) */}
             {!locationDeleted && (selectedLocation.type === 'landmark' || selectedLocation.type === 'storied_place' || selectedLocation.type === 'festival' || shelfTab === 'info') && (
@@ -4504,7 +4499,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                 location={selectedLocation}
               />
             )}
-            </div>
           </div>
           )}
 
