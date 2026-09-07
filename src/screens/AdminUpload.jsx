@@ -797,16 +797,13 @@ export default function AdminUpload() {
         const titleLower = row.name.toLowerCase().trim();
         const authorLower = (row.author || '').toLowerCase().trim();
 
-        // Match by title field (not name — books collection uses title)
         const candidates = allBooks.filter(b =>
           (b.title || '').toLowerCase().trim() === titleLower
         );
-
         let match = null;
         if (candidates.length === 1) {
           match = candidates[0];
         } else if (candidates.length > 1 && authorLower) {
-          // Disambiguate by author
           match = candidates.find(b =>
             (b.authors || []).some(a => a.toLowerCase().includes(authorLower))
           ) || candidates[0];
@@ -814,7 +811,6 @@ export default function AdminUpload() {
           match = candidates[0];
         }
 
-        // Build the patch object from CSV fields present
         const patch = {};
         if (row.banned) {
           const raw = row.banned.toLowerCase().trim();
@@ -823,7 +819,10 @@ export default function AdminUpload() {
         if (row.bannedcontext || row.bannedContext) patch.bannedContext = (row.bannedcontext || row.bannedContext).trim();
         if (row.bannedsource || row.bannedSource) patch.bannedSource = (row.bannedsource || row.bannedSource).trim();
 
-        return { row, match: match || null, patch };
+        // If no match in books collection, flag for creation
+        const willCreate = !match;
+        const docId = match?._docId || titleAuthorSlug(row.name || '', row.author || '');
+        return { row, match: match || null, patch, willCreate, docId };
       });
       setBbMatches(results);
     } catch (err) {
@@ -835,20 +834,35 @@ export default function AdminUpload() {
 
   const handleBbPatch = async () => {
     if (!bbMatches) return;
-    const toPatch = bbMatches.filter(m => m.match && Object.keys(m.patch).length > 0);
-    if (!toPatch.length) return;
+    const toWrite = bbMatches.filter(m => Object.keys(m.patch).length > 0);
+    if (!toWrite.length) return;
     setBbPatching(true);
     setBbMsg('');
-    let ok = 0, fail = 0;
-    for (const { match, patch } of toPatch) {
+    let ok = 0, created = 0, fail = 0;
+    for (const { row, match, patch, willCreate, docId } of toWrite) {
       try {
-        await updateDoc(doc(db, 'books', match._docId), patch);
-        ok++;
+        if (willCreate) {
+          // Book doesn't exist yet — create a minimal doc with the banned fields
+          const author = (row.author || '').trim();
+          await setDoc(doc(db, 'books', docId), {
+            title:   (row.name || '').trim(),
+            authors: author ? [author] : [],
+            ...patch,
+          }, { merge: true });
+          created++;
+        } else {
+          await updateDoc(doc(db, 'books', match._docId), patch);
+          ok++;
+        }
       } catch {
         fail++;
       }
     }
-    setBbMsg(`Done — patched ${ok} book${ok !== 1 ? 's' : ''}${fail ? `, ${fail} failed` : ''}.`);
+    const parts = [];
+    if (ok)      parts.push(`${ok} patched`);
+    if (created) parts.push(`${created} created`);
+    if (fail)    parts.push(`${fail} failed`);
+    setBbMsg(`Done — ${parts.join(', ')}.`);
     setBbPatching(false);
   };
 
@@ -1733,34 +1747,30 @@ export default function AdminUpload() {
             {bbMatches && (
               <div className="space-y-2">
                 <p className="font-bungee text-xs tracking-widest" style={{ color: '#c8601a' }}>
-                  MATCH PREVIEW — {bbMatches.filter(m => m.match).length} of {bbMatches.length} found
+                  PREVIEW — {bbMatches.filter(m => m.match).length} matched · {bbMatches.filter(m => m.willCreate).length} will create
                 </p>
                 <div className="bg-black/40 rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
-                  {bbMatches.map(({ row, match, patch }, i) => (
-                    <div key={i} className={`text-xs font-special-elite border-b border-white/5 pb-1.5 ${match ? 'text-paper-white' : 'text-atomic-orange/70'}`}>
+                  {bbMatches.map(({ row, match, patch, willCreate, docId }, i) => (
+                    <div key={i} className="text-xs font-special-elite border-b border-white/5 pb-1.5 text-paper-white">
                       <span className="font-bold">{row.name}</span>
                       {row.author ? ` · ${row.author}` : ''}
                       {match
-                        ? <span className="text-starlight-turquoise ml-1">✓ → [{match._docId}]</span>
-                        : <span className="text-atomic-orange ml-1">✗ no match in books collection</span>
+                        ? <span className="text-starlight-turquoise ml-1">✓ patch [{match._docId}]</span>
+                        : <span className="ml-1" style={{ color: '#F5C842' }}>+ create [{docId}]</span>
                       }
-                      {match && (
-                        <div className="text-chrome-silver/50 mt-0.5 truncate">
-                          {Object.entries(patch).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')}
-                        </div>
-                      )}
+                      <div className="text-chrome-silver/50 mt-0.5 truncate">
+                        {Object.entries(patch).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')}
+                      </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Patch button */}
-                {bbMatches.some(m => m.match && Object.keys(m.patch).length > 0) && (
+                {bbMatches.some(m => Object.keys(m.patch).length > 0) && (
                   <button onClick={handleBbPatch} disabled={bbPatching || !user}
                     className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider transition-all disabled:opacity-40"
                     style={{ background: '#c8601a', color: '#1A1B2E', boxShadow: !bbPatching ? '0 0 20px rgba(200,96,26,0.4)' : 'none' }}>
-                    {bbPatching
-                      ? 'PATCHING…'
-                      : `PATCH ${bbMatches.filter(m => m.match).length} BOOK${bbMatches.filter(m => m.match).length !== 1 ? 'S' : ''}`}
+                    {bbPatching ? 'WRITING…' : `WRITE ${bbMatches.filter(m => Object.keys(m.patch).length > 0).length} BOOKS`}
                   </button>
                 )}
 
