@@ -1,10 +1,11 @@
 // src/components/AudioNarrative.jsx
-// Web Speech API play button for landmark/journal narration.
-// No API key needed — uses browser's built-in speech synthesis.
-import { useState, useEffect } from 'react';
+// Plays an ElevenLabs MP3 for landmarks when one exists at
+// /sounds/narrations/{location.id}.mp3, falling back to the
+// browser's built-in speech synthesis for locations without a file.
+import { useState, useEffect, useRef } from 'react';
 
 const buildNarrative = (loc) => {
-  if (typeof loc === 'string') return loc; // pre-built text passed directly
+  if (typeof loc === 'string') return loc;
   const parts = [
     loc.name ? `${loc.name}.` : '',
     loc.city && loc.state ? `Located in ${loc.city}, ${loc.state}.` : (loc.city || loc.state || ''),
@@ -16,41 +17,38 @@ const buildNarrative = (loc) => {
 export default function AudioNarrative({ location, text }) {
   const [playing, setPlaying] = useState(false);
   const [supported] = useState('speechSynthesis' in window);
+  const audioRef = useRef(null);
 
-  // Stop when component unmounts or location changes
+  const mp3Url = location?.id ? `/sounds/narrations/${location.id}.mp3` : null;
+
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      window.speechSynthesis?.cancel();
+    };
   }, []);
 
   useEffect(() => {
     if (playing) {
+      audioRef.current?.pause();
+      audioRef.current = null;
       window.speechSynthesis?.cancel();
       setPlaying(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location?.id ?? text]);
 
-  if (!supported) return null;
-
-  const handlePlay = () => {
-    if (playing) {
-      window.speechSynthesis.cancel();
-      setPlaying(false);
-      return;
-    }
-
+  const playTTS = () => {
     const narrative = text ?? buildNarrative(location ?? {});
     if (!narrative.trim()) return;
-
     const utterance = new SpeechSynthesisUtterance(narrative);
-
     const setVoiceAndSpeak = () => {
       const voices = window.speechSynthesis.getVoices();
-      const preferred = voices.find(v =>
-        v.name.includes('Samantha') ||       // iOS
-        v.name.includes('Google US English') || // Chrome
-        v.name.includes('Karen')               // Mac
-      ) || voices.find(v => v.lang.startsWith('en')) || voices[0];
+      const preferred =
+        voices.find(v => v.name.includes('Samantha') || v.name.includes('Google US English') || v.name.includes('Karen')) ||
+        voices.find(v => v.lang.startsWith('en')) ||
+        voices[0];
       if (preferred) utterance.voice = preferred;
       utterance.rate  = 0.9;
       utterance.pitch = 1;
@@ -59,8 +57,6 @@ export default function AudioNarrative({ location, text }) {
       window.speechSynthesis.speak(utterance);
       setPlaying(true);
     };
-
-    // Voices may not be loaded yet on first call
     if (window.speechSynthesis.getVoices().length) {
       setVoiceAndSpeak();
     } else {
@@ -70,6 +66,38 @@ export default function AudioNarrative({ location, text }) {
       };
     }
   };
+
+  const handlePlay = () => {
+    if (playing) {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      window.speechSynthesis?.cancel();
+      setPlaying(false);
+      return;
+    }
+
+    if (mp3Url) {
+      const audio = new Audio(mp3Url);
+      audioRef.current = audio;
+
+      audio.addEventListener('canplay', () => setPlaying(true), { once: true });
+      audio.addEventListener('ended', () => { audioRef.current = null; setPlaying(false); }, { once: true });
+
+      let errorHandled = false;
+      const onError = () => {
+        if (errorHandled) return;
+        errorHandled = true;
+        audioRef.current = null;
+        if (supported) playTTS();
+      };
+      audio.addEventListener('error', onError, { once: true });
+      audio.play().catch(onError);
+    } else if (supported) {
+      playTTS();
+    }
+  };
+
+  if (!mp3Url && !supported) return null;
 
   const label = location?.name ?? 'this entry';
 
