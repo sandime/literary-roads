@@ -87,6 +87,34 @@ async function patchBook(accessToken, docId, patch) {
   if (!res.ok) throw new Error(`Patch failed for ${docId}: ${res.status} ${await res.text()}`);
 }
 
+// Matches the app's titleAuthorSlug() for consistent docId generation
+function titleAuthorSlug(title, author) {
+  return [title, author]
+    .filter(Boolean)
+    .join('_')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 100);
+}
+
+async function createBook(accessToken, docId, entry) {
+  const url = `${BOOKS_URL}/${docId}`;
+  const fields = {
+    title:        { stringValue: entry.title },
+    authors:      { arrayValue: { values: entry.author ? [{ stringValue: entry.author }] : [] } },
+    banned:       { booleanValue: true },
+    bannedContext: { stringValue: entry.bannedContext || '' },
+    bannedSource:  { stringValue: entry.bannedSource  || '' },
+  };
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+  if (!res.ok) throw new Error(`Create failed for ${docId}: ${res.status} ${await res.text()}`);
+}
+
 // ── ALA Most Challenged Books ─────────────────────────────────────────────────
 // Source: American Library Association / PEN America
 const BANNED_LIST = [
@@ -236,50 +264,61 @@ const DRY_RUN = !process.argv.includes('--patch');
 
   for (const entry of BANNED_LIST) {
     const match = findMatch(entry, allBooks);
-    if (!match) {
-      notFound.push(entry.title);
-    } else {
-      toProcess.push({
-        docId: match.id,
-        title: match.title,
-        patch: {
-          banned:        true,
-          bannedContext: entry.bannedContext,
-          bannedSource:  entry.bannedSource,
-        },
-      });
-    }
+    const docId = match ? match.id : titleAuthorSlug(entry.title, entry.author);
+    toProcess.push({
+      docId,
+      title:     entry.title,
+      willCreate: !match,
+      entry,
+      patch: {
+        banned:        true,
+        bannedContext: entry.bannedContext,
+        bannedSource:  entry.bannedSource,
+      },
+    });
   }
 
-  console.log(`      ${toProcess.length} matched, ${notFound.length} not found in books collection`);
-  if (notFound.length) {
-    console.log('\n  Not in books collection (users haven\'t added these yet):');
-    notFound.forEach(t => console.log(`    - ${t}`));
+  const matched  = toProcess.filter(p => !p.willCreate).length;
+  const toCreate = toProcess.filter(p =>  p.willCreate).length;
+  console.log(`      ${matched} matched, ${toCreate} will be created`);
+  if (toCreate) {
+    console.log('\n  Not in books collection — will create:');
+    toProcess.filter(p => p.willCreate).forEach(p => console.log(`    + ${p.title} [${p.docId}]`));
   }
 
   if (DRY_RUN) {
-    console.log('\n[dry run] Would patch:');
+    console.log('\n[dry run] Would patch/create:');
     toProcess.forEach(p => {
-      console.log(`  ${p.docId} — "${p.title}"`);
+      const action = p.willCreate ? 'CREATE' : 'PATCH ';
+      console.log(`  ${action} ${p.docId} — "${p.title}"`);
       console.log(`    bannedContext: ${p.patch.bannedContext}`);
-      console.log(`    bannedSource:  ${p.patch.bannedSource}`);
     });
     console.log('\nRun with --patch to execute.');
     return;
   }
 
-  console.log(`\n[3/3] Patching ${toProcess.length} books…`);
-  let ok = 0, fail = 0;
-  for (const { docId, title, patch } of toProcess) {
+  console.log(`\n[3/3] Writing ${toProcess.length} books…`);
+  let ok = 0, created = 0, fail = 0;
+  for (const { docId, title, willCreate, entry, patch } of toProcess) {
     try {
-      await patchBook(accessToken, docId, patch);
-      console.log(`  ✓ ${title} [${docId}]`);
-      ok++;
+      if (willCreate) {
+        await createBook(accessToken, docId, entry);
+        console.log(`  + created ${title} [${docId}]`);
+        created++;
+      } else {
+        await patchBook(accessToken, docId, patch);
+        console.log(`  ✓ patched  ${title} [${docId}]`);
+        ok++;
+      }
     } catch (err) {
       console.error(`  ✗ ${title} [${docId}]: ${err.message}`);
       fail++;
     }
   }
 
-  console.log(`\nDone — ${ok} patched, ${fail} failed, ${notFound.length} not found.`);
+  const parts = [];
+  if (ok)      parts.push(`${ok} patched`);
+  if (created) parts.push(`${created} created`);
+  if (fail)    parts.push(`${fail} failed`);
+  console.log(`\nDone — ${parts.join(', ')}.`);
 })();
