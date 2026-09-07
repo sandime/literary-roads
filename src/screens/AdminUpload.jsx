@@ -576,6 +576,133 @@ export default function AdminUpload() {
   const [bbMsg, setBbMsg]             = useState('');
   const bbInputRef = useRef(null);
 
+  // Dedup tab state
+  const [dedupCol, setDedupCol]           = useState('coffeeShops');
+  const [dedupGroups, setDedupGroups]     = useState(null); // null = not scanned
+  const [dedupScanning, setDedupScanning] = useState(false);
+  const [dedupMsg, setDedupMsg]           = useState('');
+  const [dedupDeleting, setDedupDeleting] = useState(new Set()); // docIds being deleted
+  const [dedupKeep, setDedupKeep]         = useState({}); // groupIdx → docId to keep
+
+  // ── Dedup helpers ─────────────────────────────────────────────────────────
+  const haversineMeters = (lat1, lng1, lat2, lng2) => {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  };
+
+  const normName = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  const normTitle = (s) => (s || '').toLowerCase()
+    .replace(/^(the|a|an)\s+/, '')
+    .replace(/[^a-z0-9]/g, '');
+
+  const fieldScore = (doc) =>
+    ['name', 'title', 'address', 'city', 'state', 'phone', 'website', 'description']
+      .filter(f => doc[f]).length;
+
+  const findLocationDupes = (docs) => {
+    const groups = [];
+    const matched = new Set();
+    for (let i = 0; i < docs.length; i++) {
+      if (matched.has(i)) continue;
+      const a = docs[i];
+      if (!a.lat || !a.lng) continue;
+      const group = [a];
+      for (let j = i + 1; j < docs.length; j++) {
+        if (matched.has(j)) continue;
+        const b = docs[j];
+        if (!b.lat || !b.lng) continue;
+        if (normName(a.name) !== normName(b.name)) continue;
+        if (haversineMeters(a.lat, a.lng, b.lat, b.lng) > 50) continue;
+        group.push(b);
+        matched.add(j);
+      }
+      if (group.length > 1) { groups.push(group); matched.add(i); }
+    }
+    return groups;
+  };
+
+  const findBookDupes = (docs) => {
+    const groups = [];
+    const matched = new Set();
+    for (let i = 0; i < docs.length; i++) {
+      if (matched.has(i)) continue;
+      const a = docs[i];
+      const titleA  = normTitle(a.title);
+      const authorA = normName((a.authors || [])[0] || a.author || '');
+      if (!titleA) continue;
+      const group = [a];
+      for (let j = i + 1; j < docs.length; j++) {
+        if (matched.has(j)) continue;
+        const b = docs[j];
+        if (normTitle(b.title) !== titleA) continue;
+        const authorB = normName((b.authors || [])[0] || b.author || '');
+        if (authorA && authorB && !authorA.includes(authorB) && !authorB.includes(authorA)) continue;
+        group.push(b);
+        matched.add(j);
+      }
+      if (group.length > 1) { groups.push(group); matched.add(i); }
+    }
+    return groups;
+  };
+
+  const defaultKeepId = (group) => {
+    const manual = group.find(d => d.source === 'manual');
+    if (manual) return manual._id;
+    return group.slice().sort((a, b) => fieldScore(b) - fieldScore(a))[0]._id;
+  };
+
+  const handleDedupScan = async () => {
+    setDedupScanning(true);
+    setDedupGroups(null);
+    setDedupMsg('');
+    setDedupKeep({});
+    try {
+      const snap = await getDocs(collection(db, dedupCol));
+      const docs = snap.docs
+        .map(d => ({ _id: d.id, ...d.data() }))
+        .filter(d => !d.deleted);
+      const groups = dedupCol === 'books' ? findBookDupes(docs) : findLocationDupes(docs);
+      const initialKeep = {};
+      groups.forEach((g, i) => { initialKeep[i] = defaultKeepId(g); });
+      setDedupKeep(initialKeep);
+      setDedupGroups(groups);
+      setDedupMsg(groups.length === 0 ? 'No duplicates found.' : '');
+    } catch (err) {
+      setDedupMsg(`Scan failed: ${err.message}`);
+    } finally {
+      setDedupScanning(false);
+    }
+  };
+
+  const handleDedupDeleteGroup = async (groupIdx) => {
+    const group = dedupGroups[groupIdx];
+    const keepId = dedupKeep[groupIdx];
+    const toDelete = group.filter(d => d._id !== keepId);
+    const ids = toDelete.map(d => d._id);
+    setDedupDeleting(prev => new Set([...prev, ...ids]));
+    try {
+      const colRef = collection(db, dedupCol);
+      for (const d of toDelete) {
+        await updateDoc(doc(colRef, d._id), { deleted: true });
+      }
+      setDedupGroups(prev => prev.filter((_, i) => i !== groupIdx));
+      setDedupKeep(prev => {
+        const next = { ...prev };
+        delete next[groupIdx];
+        return next;
+      });
+    } catch (err) {
+      setDedupMsg(`Delete failed: ${err.message}`);
+    } finally {
+      setDedupDeleting(prev => { const s = new Set(prev); ids.forEach(id => s.delete(id)); return s; });
+    }
+  };
+
   const handleSlFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1149,7 +1276,7 @@ export default function AdminUpload() {
 
         {/* Upload mode toggle */}
         <div className="flex gap-2 mb-6 flex-wrap">
-          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual'], ['spotlight', '☀️ Spotlight'], ['bannedBooks', '🔥 Banned Books']].map(([mode, label]) => (
+          {[['geojson', '🗺️ GeoJSON'], ['csv', '📋 CSV'], ['manual', '✏️ Manual'], ['spotlight', '☀️ Spotlight'], ['bannedBooks', '🔥 Banned Books'], ['dedup', '🔍 Dedup']].map(([mode, label]) => (
             <button key={mode} onClick={() => handleModeChange(mode)} disabled={busy}
               className={`flex-1 py-2.5 rounded-xl font-bungee text-xs tracking-wider border transition-all disabled:opacity-40 ${
                 uploadMode === mode
@@ -1844,6 +1971,103 @@ export default function AdminUpload() {
         <p className="font-special-elite text-chrome-silver/40 text-xs text-center mt-3">
           Filters · deduplicates · writes to Firestore <code>{selectedKey}</code> collection
         </p>
+
+        {/* ── DEDUP MODE ─────────────────────────────────────────────────────── */}
+        {uploadMode === 'dedup' && (
+          <div className="mt-6 space-y-4">
+            <div className="border border-starlight-turquoise/20 rounded-xl p-3 bg-white/5">
+              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">HOW IT WORKS</p>
+              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
+                For <span className="text-paper-white">location collections</span>: flags entries with the same name whose coordinates are within 50 meters of each other.<br/>
+                For <span className="text-paper-white">books</span>: flags entries with the same title (ignoring leading articles) and overlapping author.<br/>
+                Choose which doc to keep in each group, then delete the rest. Deleted docs are soft-deleted (<code className="text-paper-white">deleted: true</code>) and will no longer appear on the map.
+              </p>
+            </div>
+
+            {/* Collection selector */}
+            <div>
+              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-2">COLLECTION TO SCAN</p>
+              <div className="flex gap-2 flex-wrap">
+                {[['coffeeShops','☕ Coffee Shops'],['bookstores','📚 Bookstores'],['books','📖 Books']].map(([col, label]) => (
+                  <button key={col} onClick={() => { setDedupCol(col); setDedupGroups(null); setDedupMsg(''); }}
+                    className={`px-4 py-2 rounded-xl font-bungee text-xs tracking-wider border transition-all ${
+                      dedupCol === col
+                        ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise'
+                        : 'bg-transparent border-white/20 text-chrome-silver hover:border-white/40'
+                    }`}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Scan button */}
+            <button onClick={handleDedupScan} disabled={dedupScanning}
+              className="w-full py-3 rounded-xl font-bungee text-xs tracking-widest border-2 border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-all disabled:opacity-40">
+              {dedupScanning ? 'SCANNING…' : 'SCAN FOR DUPLICATES'}
+            </button>
+
+            {dedupMsg && (
+              <p className="font-special-elite text-center text-sm" style={{ color: dedupGroups?.length === 0 ? '#38c5c5' : '#e07b39' }}>{dedupMsg}</p>
+            )}
+
+            {/* Results */}
+            {dedupGroups && dedupGroups.length > 0 && (
+              <div className="space-y-4">
+                <p className="font-bungee text-atomic-orange text-xs tracking-widest">
+                  {dedupGroups.length} DUPLICATE GROUP{dedupGroups.length !== 1 ? 'S' : ''} FOUND
+                </p>
+                {dedupGroups.map((group, gi) => (
+                  <div key={gi} className="border border-atomic-orange/30 rounded-xl p-4 space-y-3">
+                    <p className="font-bungee text-atomic-orange text-xs tracking-wider">GROUP {gi + 1} — {group.length} DOCS</p>
+                    {group.map(d => {
+                      const isKeep = dedupKeep[gi] === d._id;
+                      const isDeleting = dedupDeleting.has(d._id);
+                      return (
+                        <div key={d._id}
+                          onClick={() => setDedupKeep(prev => ({ ...prev, [gi]: d._id }))}
+                          className={`rounded-lg p-3 cursor-pointer border transition-all ${
+                            isKeep
+                              ? 'border-starlight-turquoise bg-starlight-turquoise/10'
+                              : 'border-white/10 bg-white/5 hover:border-white/30'
+                          } ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-bungee text-xs text-paper-white truncate">
+                                {d.name || d.title || d._id}
+                              </p>
+                              {d.authors?.length > 0 && (
+                                <p className="font-special-elite text-chrome-silver text-xs">{d.authors.join(', ')}</p>
+                              )}
+                              {(d.city || d.state) && (
+                                <p className="font-special-elite text-chrome-silver text-xs">{[d.city, d.state].filter(Boolean).join(', ')}</p>
+                              )}
+                              {d.lat && <p className="font-special-elite text-chrome-silver/50 text-xs">{d.lat?.toFixed(5)}, {d.lng?.toFixed(5)}</p>}
+                              <p className="font-special-elite text-chrome-silver/40 text-xs mt-0.5">
+                                ID: {d._id} · source: {d.source || '—'}
+                              </p>
+                            </div>
+                            <span className={`flex-shrink-0 text-xs font-bungee px-2 py-0.5 rounded-full ${
+                              isKeep ? 'bg-starlight-turquoise text-midnight-navy' : 'bg-white/10 text-chrome-silver'
+                            }`}>
+                              {isKeep ? 'KEEP' : 'DELETE'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <button
+                      onClick={() => handleDedupDeleteGroup(gi)}
+                      disabled={dedupDeleting.size > 0}
+                      className="w-full py-2 rounded-lg font-bungee text-xs tracking-widest border border-atomic-orange/50 text-atomic-orange hover:bg-atomic-orange/10 transition-all disabled:opacity-40">
+                      DELETE {group.length - 1} DUPLICATE{group.length - 1 !== 1 ? 'S' : ''} IN THIS GROUP
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── REMOVE LOCATION (soft-delete) ─────────────────────────────────── */}
