@@ -236,13 +236,17 @@ export default function BannedBooks({ onBack, onViewShelf, suppressedIds = new S
             if (snap?.exists()) booksData = snap.data();
           }
 
-          // Fallback: query by title — catches docId mismatches between
-          // the books catalog and the libraryReadNext entry
-          if (!booksData && item.title) {
+          // Fallback: query by title — catches docId mismatches AND cases where
+          // the directly-found doc exists but has no banned field (e.g. a g_ shell
+          // record created before the import-style banned record was patched in)
+          if ((!booksData || !booksData.banned) && item.title) {
             const titleSnap = await getDocs(
-              query(collection(db, 'books'), where('title', '==', item.title), limit(1))
+              query(collection(db, 'books'), where('title', '==', item.title), limit(5))
             ).catch(() => null);
-            if (titleSnap && !titleSnap.empty) booksData = titleSnap.docs[0].data();
+            if (titleSnap && !titleSnap.empty) {
+              const bannedDoc = titleSnap.docs.find(d => d.data().banned);
+              if (bannedDoc) booksData = bannedDoc.data();
+            }
           }
 
           if (!booksData?.banned) return null; // only include banned books
