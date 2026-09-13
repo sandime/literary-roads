@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "BIG LITTLE TRUTHS",
-      "author": "Liane Moriarty",
+      "title": "THE KNAVE AND THE MOON",
+      "author": "Rachel Gillig",
       "weeksOnList": 1,
-      "isbn13": "9780593798638",
-      "description": "In a sequel to “Big Little Lies,” a stranger’s presence at a school may force things to the fore that had not been shared.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593798638.jpg"
+      "isbn13": "9780316608329",
+      "description": "The second book in the Stonewater Kingdom series. A knave who is lacking his memory may help Sybil take Benji out of power.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316608329.jpg"
     },
     {
       "rank": 2,
       "title": "THE CALAMITY CLUB",
       "author": "Kathryn Stockett",
-      "weeksOnList": 17,
+      "weeksOnList": 18,
       "isbn13": "9781954118812",
       "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
     },
     {
       "rank": 3,
+      "title": "THE MOST DANGEROUS GAMES",
+      "author": "MrBeast and James Patterson",
+      "weeksOnList": 1,
+      "isbn13": "9780063488762",
+      "description": "A group of mysteriously summoned competitors must overcome difficult terrain and tough challengers.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063488762.jpg"
+    },
+    {
+      "rank": 4,
       "title": "YESTERYEAR",
       "author": "Caro Claire Burke",
-      "weeksOnList": 21,
+      "weeksOnList": 22,
       "isbn13": "9780593804216",
       "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
     },
     {
-      "rank": 4,
-      "title": "WHISTLER",
-      "author": "Ann Patchett",
-      "weeksOnList": 13,
-      "isbn13": "9780063511637",
-      "description": "Decades after their time together, a woman reconnects with her stepfather and they look back at the directions their lives have taken.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063511637.jpg"
-    },
-    {
       "rank": 5,
-      "title": "HEART OF GLASS",
-      "author": "Jennifer Hillier",
+      "title": "THE DISAPPEARERS",
+      "author": "Marlon James",
       "weeksOnList": 1,
-      "isbn13": "9781250763181",
-      "description": "When a man known as the Carnival Killer takes back his confession, two women who lost their friend 25 years ago must confront their past.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250763181.jpg"
+      "isbn13": "9780593717202",
+      "description": "In 1988, a group of eight gay men are attacked in Jamaica. One of them is killed, leaving the others to respond in different ways.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593717202.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "GOING FURTHER",
-      "author": "Ted Cruz",
-      "weeksOnList": 1,
-      "isbn13": "9798217181193",
-      "description": "The Republican senator from Texas profiles the Supreme Court justice Clarence Thomas.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217181193.jpg"
+      "title": "THIS IS ME",
+      "author": "Hayden Panettiere",
+      "weeksOnList": 4,
+      "isbn13": "9781538773420",
+      "description": "The late actress describes how she contended with fame and handled difficulties in her life.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773420.jpg"
     },
     {
       "rank": 2,
+      "title": "AMERICAN SCOUNDREL",
+      "author": "Kai Bird with Susan Goldmark",
+      "weeksOnList": 1,
+      "isbn13": "9781668031575",
+      "description": "A co-author of “American Prometheus” chronicles the life and work of the lawyer and political fixer Roy Cohn.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668031575.jpg"
+    },
+    {
+      "rank": 3,
       "title": "REGIME CHANGE",
       "author": "Maggie Haberman and Jonathan Swan",
-      "weeksOnList": 10,
+      "weeksOnList": 11,
       "isbn13": "9781668067246",
       "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
     },
     {
-      "rank": 3,
-      "title": "STAR OF THE SHOW",
-      "author": "Dolly Parton with Tom Roland",
-      "weeksOnList": 2,
-      "isbn13": "9781984863133",
-      "description": "Stories and photographs documenting the late country music icon’s career onstage.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781984863133.jpg"
-    },
-    {
       "rank": 4,
-      "title": "THE RISE AND FALL OF THE ARTIFICIAL STATE",
-      "author": "Jill Lepore",
-      "weeksOnList": 1,
-      "isbn13": "9781324098423",
-      "description": "The author of “These Truths” examines how technology and artificial intelligence have impacted global democracy and human community.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781324098423.jpg"
+      "title": "GOING FURTHER",
+      "author": "Ted Cruz",
+      "weeksOnList": 2,
+      "isbn13": "9798217181193",
+      "description": "The Republican senator from Texas profiles the Supreme Court justice Clarence Thomas.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217181193.jpg"
     },
     {
       "rank": 5,
-      "title": "THE SERVICEBERRY",
-      "author": "Robin Wall Kimmerer",
-      "weeksOnList": 33,
-      "isbn13": "9781668072240",
-      "description": "The author of “Braiding Sweetgrass” illuminates how the gift economy in the natural world works and draws lessons for our economy; with illustrations by John Burgoyne.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668072240.jpg"
+      "title": "LET US DO GOOD",
+      "author": "Frank Siller",
+      "weeksOnList": 1,
+      "isbn13": "9780063572676",
+      "description": "The chief executive of the Tunnel to Towers Foundation describes how the actions his deceased brother took on 9/11 inspired the creation of his nonprofit.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063572676.jpg"
     }
   ],
-  "issueDate": "Sunday, September 6, 2026",
-  "issueNumber": 88,
-  "updatedAt": "2026-09-06T13:17:15.448Z"
+  "issueDate": "Sunday, September 13, 2026",
+  "issueNumber": 89,
+  "updatedAt": "2026-09-13T13:58:01.557Z"
 }
