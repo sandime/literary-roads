@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "THE KNAVE AND THE MOON",
-      "author": "Rachel Gillig",
+      "title": "BURN OF THE EVERFLAME",
+      "author": "Penn Cole",
       "weeksOnList": 1,
-      "isbn13": "9780316608329",
-      "description": "The second book in the Stonewater Kingdom series. A knave who is lacking his memory may help Sybil take Benji out of power.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316608329.jpg"
+      "isbn13": "9781668200223",
+      "description": "The fourth book of the Kindred's Curse Saga. War, rebellion and an unlikely alliance factor into whether the future will be in darkness.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668200223.jpg"
     },
     {
       "rank": 2,
       "title": "THE CALAMITY CLUB",
       "author": "Kathryn Stockett",
-      "weeksOnList": 18,
+      "weeksOnList": 19,
       "isbn13": "9781954118812",
       "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
     },
     {
       "rank": 3,
-      "title": "THE MOST DANGEROUS GAMES",
-      "author": "MrBeast and James Patterson",
+      "title": "TAIPEI STORY",
+      "author": "R.F. Kuang",
       "weeksOnList": 1,
-      "isbn13": "9780063488762",
-      "description": "A group of mysteriously summoned competitors must overcome difficult terrain and tough challengers.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063488762.jpg"
+      "isbn13": "9780063473744",
+      "description": "A Chinese American college freshman spending a summer in Taipei struggles with her family’s history.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063473744.jpg"
     },
     {
       "rank": 4,
-      "title": "YESTERYEAR",
-      "author": "Caro Claire Burke",
-      "weeksOnList": 22,
-      "isbn13": "9780593804216",
-      "description": "Natalie Heller Mills, a privileged tradwife social media influencer, wakes up to find she is living in the comparatively difficult reality of 1855.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593804216.jpg"
+      "title": "THE PIRATE QUEEN",
+      "author": "Ariel Lawhon",
+      "weeksOnList": 1,
+      "isbn13": "9780385550345",
+      "description": "In 16th-century Ireland, Grace O’Malley endures betrayal and hardship before leading a fleet of ships to defend her land.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385550345.jpg"
     },
     {
       "rank": 5,
-      "title": "THE DISAPPEARERS",
-      "author": "Marlon James",
-      "weeksOnList": 1,
-      "isbn13": "9780593717202",
-      "description": "In 1988, a group of eight gay men are attacked in Jamaica. One of them is killed, leaving the others to respond in different ways.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593717202.jpg"
+      "title": "THE KNAVE AND THE MOON",
+      "author": "Rachel Gillig",
+      "weeksOnList": 2,
+      "isbn13": "9780316601849",
+      "description": "The second book in the Stonewater Kingdom series. A knave who is lacking his memory may help Sybil take Benji out of power.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316601849.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "THIS IS ME",
-      "author": "Hayden Panettiere",
-      "weeksOnList": 4,
-      "isbn13": "9781538773420",
-      "description": "The late actress describes how she contended with fame and handled difficulties in her life.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538773420.jpg"
+      "title": "THE COUNTERREVOLUTION",
+      "author": "Victor Davis Hanson",
+      "weeksOnList": 1,
+      "isbn13": "9781541607828",
+      "description": "The author of “The End of Everything” evaluates the influence of President Trump’s time out of office on his second term.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781541607828.jpg"
     },
     {
       "rank": 2,
-      "title": "AMERICAN SCOUNDREL",
-      "author": "Kai Bird with Susan Goldmark",
+      "title": "HOW TO EAT AN ELEPHANT",
+      "author": "Sarah Longwell",
       "weeksOnList": 1,
-      "isbn13": "9781668031575",
-      "description": "A co-author of “American Prometheus” chronicles the life and work of the lawyer and political fixer Roy Cohn.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668031575.jpg"
+      "isbn13": "9781250464170",
+      "description": "The publisher of The Bulwark builds upon her interactions with voters to envision a modern pro-democracy movement.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250464170.jpg"
     },
     {
       "rank": 3,
-      "title": "REGIME CHANGE",
-      "author": "Maggie Haberman and Jonathan Swan",
-      "weeksOnList": 11,
-      "isbn13": "9781668067246",
-      "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
+      "title": "PLOT TWIST",
+      "author": "Harlan Coben",
+      "weeksOnList": 1,
+      "isbn13": "9781538784624",
+      "description": "Coben, known for his suspense novels, shares stories from his childhood, inspirations for his characters and insights into his craft.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538784624.jpg"
     },
     {
       "rank": 4,
-      "title": "GOING FURTHER",
-      "author": "Ted Cruz",
-      "weeksOnList": 2,
-      "isbn13": "9798217181193",
-      "description": "The Republican senator from Texas profiles the Supreme Court justice Clarence Thomas.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217181193.jpg"
+      "title": "IN MY DARKEST HOUR",
+      "author": "Dave Mustaine with Joe Layden",
+      "weeksOnList": 1,
+      "isbn13": "9780306837432",
+      "description": "The lead vocalist and guitarist for Megadeth describes the turn his life took when he was diagnosed with squamous cell carcinoma.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780306837432.jpg"
     },
     {
       "rank": 5,
-      "title": "LET US DO GOOD",
-      "author": "Frank Siller",
-      "weeksOnList": 1,
-      "isbn13": "9780063572676",
-      "description": "The chief executive of the Tunnel to Towers Foundation describes how the actions his deceased brother took on 9/11 inspired the creation of his nonprofit.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063572676.jpg"
+      "title": "REGIME CHANGE",
+      "author": "Maggie Haberman and Jonathan Swan",
+      "weeksOnList": 12,
+      "isbn13": "9781668067246",
+      "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
     }
   ],
-  "issueDate": "Sunday, September 13, 2026",
-  "issueNumber": 89,
-  "updatedAt": "2026-09-13T13:58:01.557Z"
+  "issueDate": "Sunday, September 20, 2026",
+  "issueNumber": 90,
+  "updatedAt": "2026-09-20T13:48:28.782Z"
 }
