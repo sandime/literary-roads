@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "BURN OF THE EVERFLAME",
-      "author": "Penn Cole",
+      "title": "DEAD BEAT",
+      "author": "Leigh Bardugo",
       "weeksOnList": 1,
-      "isbn13": "9781668200223",
-      "description": "The fourth book of the Kindred's Curse Saga. War, rebellion and an unlikely alliance factor into whether the future will be in darkness.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668200223.jpg"
+      "isbn13": "9781250884312",
+      "description": "The third book in the Ninth House series. Alex and her allies battle demons found in New Haven and on the Yale campus.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250884312.jpg"
     },
     {
       "rank": 2,
-      "title": "THE CALAMITY CLUB",
-      "author": "Kathryn Stockett",
-      "weeksOnList": 19,
-      "isbn13": "9781954118812",
-      "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
+      "title": "HOLLOW BONES",
+      "author": "Jodi Picoult",
+      "weeksOnList": 1,
+      "isbn13": "9780593726259",
+      "description": "A woman who runs the Rhode Island Department for Emergency Preparedness and her husband, who is a police polygraph expert, face a crisis in their marriage.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593726259.jpg"
     },
     {
       "rank": 3,
-      "title": "TAIPEI STORY",
-      "author": "R.F. Kuang",
+      "title": "THE THOROUGHBREDS",
+      "author": "Elin Hilderbrand and Shelby Cunningham",
       "weeksOnList": 1,
-      "isbn13": "9780063473744",
-      "description": "A Chinese American college freshman spending a summer in Taipei struggles with her family’s history.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063473744.jpg"
+      "isbn13": "9780316567916",
+      "description": "The second book in the Academy series. Close relationships and the stability of the boarding school are in doubt.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316567916.jpg"
     },
     {
       "rank": 4,
-      "title": "THE PIRATE QUEEN",
-      "author": "Ariel Lawhon",
+      "title": "EXIT PARTY",
+      "author": "Emily St",
       "weeksOnList": 1,
-      "isbn13": "9780385550345",
-      "description": "In 16th-century Ireland, Grace O’Malley endures betrayal and hardship before leading a fleet of ships to defend her land.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385550345.jpg"
+      "isbn13": "9780593321461",
+      "description": "In the near future, after America has had another civil war, Ari Waker embarks on a journey to seek answers to a mystery.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593321461.jpg"
     },
     {
       "rank": 5,
-      "title": "THE KNAVE AND THE MOON",
-      "author": "Rachel Gillig",
-      "weeksOnList": 2,
-      "isbn13": "9780316601849",
-      "description": "The second book in the Stonewater Kingdom series. A knave who is lacking his memory may help Sybil take Benji out of power.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316601849.jpg"
+      "title": "THE CALAMITY CLUB",
+      "author": "Kathryn Stockett",
+      "weeksOnList": 20,
+      "isbn13": "9781954118812",
+      "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
-      "title": "THE COUNTERREVOLUTION",
-      "author": "Victor Davis Hanson",
+      "title": "THE PERILOUS FIGHT",
+      "author": "Colin Kaepernick with Nick Chiles",
       "weeksOnList": 1,
-      "isbn13": "9781541607828",
-      "description": "The author of “The End of Everything” evaluates the influence of President Trump’s time out of office on his second term.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781541607828.jpg"
+      "isbn13": "9781538777879",
+      "description": "The Super Bowl quarterback and civil rights activist describes defining moments in his life and their outcomes.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538777879.jpg"
     },
     {
       "rank": 2,
-      "title": "HOW TO EAT AN ELEPHANT",
-      "author": "Sarah Longwell",
+      "title": "END TIMES FASCISM",
+      "author": "Naomi Klein and Astra Taylor",
       "weeksOnList": 1,
-      "isbn13": "9781250464170",
-      "description": "The publisher of The Bulwark builds upon her interactions with voters to envision a modern pro-democracy movement.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250464170.jpg"
+      "isbn13": "9780374621384",
+      "description": "An investigation of the shared beliefs belonging to religious fundamentalists, Silicon Valley technologists and ethno-nationalists.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780374621384.jpg"
     },
     {
       "rank": 3,
-      "title": "PLOT TWIST",
-      "author": "Harlan Coben",
+      "title": "CONFRONTING AMERICA",
+      "author": "Bill O'Reilly and Josh Hammer",
       "weeksOnList": 1,
-      "isbn13": "9781538784624",
-      "description": "Coben, known for his suspense novels, shares stories from his childhood, inspirations for his characters and insights into his craft.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538784624.jpg"
+      "isbn13": "9781250374073",
+      "description": "The conservative commentator shares his views on education, family, drugs, work and religion.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781250374073.jpg"
     },
     {
       "rank": 4,
-      "title": "IN MY DARKEST HOUR",
-      "author": "Dave Mustaine with Joe Layden",
+      "title": "ONE MAN IN",
+      "author": "Christian Craighead",
       "weeksOnList": 1,
-      "isbn13": "9780306837432",
-      "description": "The lead vocalist and guitarist for Megadeth describes the turn his life took when he was diagnosed with squamous cell carcinoma.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780306837432.jpg"
+      "isbn13": "9781982177331",
+      "description": "A former British special forces soldier gives an account of his fight against a unit of ethnic Somali terrorists at a hotel and office complex in Nairobi.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781982177331.jpg"
     },
     {
       "rank": 5,
-      "title": "REGIME CHANGE",
-      "author": "Maggie Haberman and Jonathan Swan",
-      "weeksOnList": 12,
-      "isbn13": "9781668067246",
-      "description": "Two White House correspondents for The New York Times delve into the first year of President Trump's second term.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668067246.jpg"
+      "title": "LIVE LAUGH LOVE",
+      "author": "Kristin Kobes Du Mez",
+      "weeksOnList": 1,
+      "isbn13": "9781324090977",
+      "description": "The author of “Jesus and John Wayne\" explores the history of white Christian womanhood in the United States.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781324090977.jpg"
     }
   ],
-  "issueDate": "Sunday, September 20, 2026",
-  "issueNumber": 90,
-  "updatedAt": "2026-09-20T13:48:28.782Z"
+  "issueDate": "Sunday, September 27, 2026",
+  "issueNumber": 91,
+  "updatedAt": "2026-09-27T14:53:52.692Z"
 }
