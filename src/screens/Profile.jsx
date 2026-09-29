@@ -623,7 +623,7 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
   const [tripCount, setTripCount] = useState(0);
   const [visitedCount, setVisitedCount] = useState(0);
   const [travelStats, setTravelStats]       = useState(null);
-  const [readingStats, setReadingStats]     = useState({ booksRead: 0, fiveCat: 0, nextReads: 0, questBooksRead: 0 });
+  const [readingStats, setReadingStats]     = useState({ booksRead: 0, fiveCat: 0, nextReads: 0, questBooksRead: 0, foundAtCounts: {} });
   const [earnedBadgeData, setEarnedBadgeData] = useState([]);
   const [newBadges, setNewBadges]             = useState([]);
   const [showBookModal, setShowBookModal]     = useState(false);
@@ -677,11 +677,16 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
     let booksData = [], wantSize = 0;
     const emit = () => {
       const questCount = booksData.filter(d => d.finishedYear === thisYear).length;
+      const foundAtCounts = {};
+      booksData.forEach(d => (d.foundAt ?? []).forEach(tag => {
+        foundAtCounts[tag] = (foundAtCounts[tag] ?? 0) + 1;
+      }));
       setReadingStats({
         booksRead:       booksData.length,
         fiveCat:         booksData.filter(d => d.rating === 5).length,
         nextReads:       wantSize,
         questBooksRead:  questCount,
+        foundAtCounts,
       });
     };
     const unsubBooks = onSnapshot(
@@ -974,6 +979,42 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
               </div>
             ))}
           </div>
+
+          {readingStats.booksRead >= 5 && (() => {
+            const entries = Object.entries(readingStats.foundAtCounts)
+              .filter(([, n]) => n > 0)
+              .sort(([, a], [, b]) => b - a);
+            if (entries.length === 0) return null;
+            const max = entries[0][1];
+            return (
+              <div style={{ marginBottom: 14 }}>
+                <p className="font-bungee text-center" style={{ fontSize: 9, color: '#40E0D0',
+                  textShadow: '0 0 8px rgba(64,224,208,0.5)', letterSpacing: '0.05em', marginBottom: 10 }}>
+                  HOW YOU FIND BOOKS
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                  {entries.map(([tag, count]) => (
+                    <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span className="font-special-elite" style={{ fontSize: '0.6rem', color: 'rgba(192,192,192,0.65)',
+                        minWidth: 72, textAlign: 'right', textTransform: 'uppercase', flexShrink: 0 }}>
+                        {tag}
+                      </span>
+                      <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'rgba(64,224,208,0.1)' }}>
+                        <div style={{ width: `${(count / max) * 100}%`, height: '100%',
+                          borderRadius: 2, background: 'rgba(64,224,208,0.7)',
+                          transition: 'width 0.4s ease' }} />
+                      </div>
+                      <span className="font-bungee" style={{ fontSize: 9, color: 'rgba(64,224,208,0.6)',
+                        minWidth: 14, textAlign: 'right', flexShrink: 0 }}>
+                        {count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           <button
             onClick={onShowLibrary}
             className="w-full font-bungee text-[10px] py-2 rounded-lg transition-all"

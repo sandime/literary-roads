@@ -265,6 +265,7 @@ function EntryForm({
   initialIsPrivate = false, initialPersonalNotes = '', initialPersonalNotesPrivate = true,
   initialBookType = 'fiction',
   initialWhatYouLearned = '', initialChangedThinking = '', initialWillApply = '',
+  initialFoundWhereNote = '',
 }) {
   const [rating, setRating] = useState(initialRating);
   const [finishedMonth, setFinishedMonth] = useState(initialMonth);
@@ -273,6 +274,7 @@ function EntryForm({
   const [reflection, setReflection] = useState(initialReflection);
   const [logVibeTags, setLogVibeTags] = useState(initialVibeTags);
   const [foundAt, setFoundAt] = useState(initialFoundAt);
+  const [foundWhereNote, setFoundWhereNote] = useState(initialFoundWhereNote);
   const [feel, setFeel] = useState(initialFeel);
   const [extras, setExtras] = useState(initialExtras);
   const [recommend, setRecommend] = useState(initialRecommend);
@@ -488,6 +490,16 @@ function EntryForm({
             </button>
           ))}
         </div>
+        {foundAt.includes('somewhere else') && (
+          <input
+            type="text"
+            value={foundWhereNote}
+            onChange={e => setFoundWhereNote(e.target.value.slice(0, 100))}
+            placeholder="Where exactly? (optional)"
+            maxLength={100}
+            style={{ ...inputStyle, marginTop: 8, fontSize: 12 }}
+          />
+        )}
       </div>
 
       {/* How did this book make you feel — fiction */}
@@ -625,7 +637,7 @@ function EntryForm({
       )}
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply })}
+        <button onClick={() => onSave({ rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '', format, reflection, vibeTags: logVibeTags, foundAt, foundWhereNote: foundAt.includes('somewhere else') ? (foundWhereNote.trim() || null) : null, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply })}
           disabled={saving}
           style={{ ...primaryBtn, flex: 1, padding: 10, fontSize: 11, opacity: saving ? 0.5 : 1 }}>
           {saving ? 'SAVING...' : 'SAVE'}
@@ -1013,7 +1025,7 @@ export default function Library({ onBack }) {
     } catch (err) { console.error('[Library] delete postcard book:', err); }
   };
 
-  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply }) => {
+  const handleAddBook = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, foundWhereNote, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply }) => {
     if (!user || !selectedBook) return;
     setSaving(true); setSaveError('');
     try {
@@ -1022,7 +1034,7 @@ export default function Library({ onBack }) {
         bookTitle: selectedBook.title, bookAuthor: selectedBook.author,
         bookCover: selectedBook.coverURL || null, googleBooksId: selectedBook.id,
         rating, finishedMonth, finishedYear: finishedYear ? Number(finishedYear) : '',
-        format, reflection, vibeTags, foundAt, feel, extras, recommend,
+        format, reflection, vibeTags, foundAt, foundWhereNote: foundWhereNote ?? null, feel, extras, recommend,
         isPrivate: isPrivate ?? false,
         personalNotes: personalNotes ?? '',
         personalNotesPrivate: personalNotesPrivate ?? true,
@@ -1050,12 +1062,12 @@ export default function Library({ onBack }) {
     } finally { setSaving(false); }
   };
 
-  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply }) => {
+  const handleEditSave = async ({ rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, foundWhereNote, feel, extras, recommend, isPrivate, personalNotes, personalNotesPrivate, bookType, whatYouLearned, changedThinking, willApply }) => {
     if (!user || !editingEntry) return;
     setEditSaving(true);
     try {
       await updateDoc(doc(db, 'users', user.uid, 'booksRead', editingEntry.id), {
-        rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, feel, extras, recommend,
+        rating, finishedMonth, finishedYear, format, reflection, vibeTags, foundAt, foundWhereNote: foundWhereNote ?? null, feel, extras, recommend,
         isPrivate: isPrivate ?? false,
         personalNotes: personalNotes ?? '',
         personalNotesPrivate: personalNotesPrivate ?? true,
@@ -1262,6 +1274,12 @@ export default function Library({ onBack }) {
                         </div>
                       </div>
                     </div>
+                    {activeEntry.foundAt?.includes('somewhere else') && activeEntry.foundWhereNote && (
+                      <p style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: L.muted,
+                        fontStyle: 'italic', marginTop: 10, lineHeight: 1.4 }}>
+                        Found: {activeEntry.foundWhereNote}
+                      </p>
+                    )}
                     <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                       <button onClick={() => setEditingEntry(activeEntry)}
                         style={{ ...ghostBtn, flex: 1, padding: 8, fontSize: 10 }}>
@@ -1295,6 +1313,7 @@ export default function Library({ onBack }) {
                       initialWhatYouLearned={editingEntry.whatYouLearned ?? ''}
                       initialChangedThinking={editingEntry.changedThinking ?? ''}
                       initialWillApply={editingEntry.willApply ?? ''}
+                      initialFoundWhereNote={editingEntry.foundWhereNote ?? ''}
                       onSave={handleEditSave} onCancel={() => setEditingEntry(null)} saving={editSaving} />
                   </div>
                 )}
