@@ -1593,6 +1593,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           if (snap.exists() && !snap.data().deleted) {
             const landmark = { id: snap.id, ...snap.data(), type: 'landmark' };
             setSelectedLocation(landmark);
+            setVisibleLocations(prev => prev.some(l => l.id === landmark.id) ? prev : [...prev, landmark]);
             setFitTarget({ center: [landmark.lat, landmark.lng], zoom: 14 });
             setUiMode('explore');
             setShowPlanner(false);
