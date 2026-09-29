@@ -116,6 +116,15 @@ export async function updateReview(salonId, reviewId, { rating, oneSentence, ful
   });
 }
 
+// ── Past salon archive ────────────────────────────────────────────────────────
+export function subscribeToPastSalons(callback) {
+  const q = query(collection(db, 'salon'), orderBy('startDate', 'desc'), limit(24));
+  return onSnapshot(q, snap => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(d => ['closed', 'review'].includes(d.status)));
+  }, () => callback([]));
+}
+
 // ── Time helpers ──────────────────────────────────────────────────────────────
 export function computeEnrollment(period) {
   if (!period) return { joined: false, daysRemaining: 0, dayOf: 0, totalDays: 0 };

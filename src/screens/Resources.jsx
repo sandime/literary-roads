@@ -9,7 +9,7 @@ import { db } from '../config/firebase';
 import { LibraryIcon } from '../components/Icons';
 import { fetchPublishedGuides } from '../utils/bookstoreGuides';
 import { getOrCreateBook } from '../utils/booksCatalog';
-import { subscribeToActiveSalon } from '../utils/salon';
+import { subscribeToActiveSalon, subscribeToPastSalons } from '../utils/salon';
 import { getRandomFortune } from '../data/literaryFortunes.js';
 
 const BASE     = import.meta.env.BASE_URL;
@@ -500,7 +500,8 @@ function FortuneBooth({ user, autoTrigger = 0 }) {
             filter: 'blur(8px)',
           }} />
           <img src={`${BASE}images/stark-dog.png`} alt="Stark, the fortune-telling Labrador"
-            style={{ width: '100%', maxWidth: 260, position: 'relative', filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.5))' }} />
+            onClick={pull}
+            style={{ width: '100%', maxWidth: 260, position: 'relative', filter: 'drop-shadow(0 10px 18px rgba(0,0,0,0.5))', cursor: pulling ? 'default' : 'pointer' }} />
         </div>
 
         {/* Console */}
@@ -608,11 +609,12 @@ function GuideMotif({ kind, color }) {
   return <Spark size={42} color={color} />;
 }
 
-function MagazineCover({ g, fanned = 0, onClick, active }) {
+function MagazineCover({ g, fanned = 0, onClick, active, hideTitle = false, noTopRadius = false }) {
   return (
     <button onClick={onClick} className="hs-cover" aria-pressed={active} style={{
       position: 'relative', flexShrink: 0, width: 124, height: 176,
-      borderRadius: '5px 5px 4px 4px', cursor: 'pointer', padding: 0, textAlign: 'left',
+      borderRadius: noTopRadius ? '0 0 4px 4px' : '5px 5px 4px 4px',
+      cursor: 'pointer', padding: 0, textAlign: 'left',
       background: g.coverImageUrl
         ? 'transparent'
         : `linear-gradient(160deg, ${g.bg2}, ${g.bg})`,
@@ -632,10 +634,14 @@ function MagazineCover({ g, fanned = 0, onClick, active }) {
       {g.coverImageUrl ? (
         <>
           <img src={g.coverImageUrl} alt={g.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 8px' }}>
-            <div style={{ fontFamily: 'var(--hs-display)', fontSize: 14, color: HS.cream, lineHeight: 1.1, whiteSpace: 'pre-line' }}>{g.title}</div>
-          </div>
+          {!hideTitle && (
+            <>
+              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 50%)' }} />
+              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '10px 10px 8px' }}>
+                <div style={{ fontFamily: 'var(--hs-display)', fontSize: 14, color: HS.cream, lineHeight: 1.1, whiteSpace: 'pre-line' }}>{g.title}</div>
+              </div>
+            </>
+          )}
         </>
       ) : (
         <>
@@ -658,203 +664,250 @@ function MagazineCover({ g, fanned = 0, onClick, active }) {
   );
 }
 
-function Newsstand({ guides, activeSalon, navigate }) {
-  const published   = guides.filter(g => g.published);
-  const comingSoon  = guides.filter(g => g.comingSoon && !g.published);
+function BucketShelf({ label, children }) {
+  return (
+    <div style={{ borderRadius: 10, border: `1.5px solid ${HS.navyLine}`, background: HS.navy2, overflow: 'hidden' }}>
+      <div style={{
+        padding: '5px 12px', background: HS.navy3, borderBottom: `1px solid ${HS.navyLine}`,
+        fontFamily: 'var(--hs-mono)', fontSize: 9, letterSpacing: '0.22em',
+        textTransform: 'uppercase', color: HS.muted,
+      }}>
+        {label}
+      </div>
+      <div style={{ padding: 14 }}>{children}</div>
+    </div>
+  );
+}
 
-  // Build rack items: salon card + published guides + coming-soon
-  const rackItems = [
-    ...(activeSalon ? [{
-      _type: 'salon',
-      id: 'salon',
-      title: activeSalon.bookTitle || 'The Salon',
-      kicker: 'The Salon',
-      bg: '#1A2A1F', bg2: '#243428',
-      accent: '#C9A84C', motif: 'star',
-      ink: '#FFF8E7',
-      published: true,
-      blurb: activeSalon.bookAuthor ? `${activeSalon.bookAuthor} — join readers this month.` : 'Reading together, once a month.',
-      coverImageUrl: activeSalon.coverURL || activeSalon.coverImage || null,
-    }] : []),
-    ...published.map((g, i) => ({
-      ...g,
-      _type: 'guide',
-      ...GUIDE_PALETTES[i % GUIDE_PALETTES.length],
-      kicker: g.subtitle || 'Field Guide',
-      blurb: g.subtitle || '',
-    })),
-    ...comingSoon.map((g, i) => ({
-      ...g,
-      _type: 'coming',
-      ...GUIDE_PALETTES[(published.length + i) % GUIDE_PALETTES.length],
-      kicker: 'Coming Soon',
-    })),
-  ];
-
-  const [sel, setSel] = useState(null);
-
-  const selectedItem =
-    sel ? (() => {
-      const it = rackItems.find(r => r.id === sel);
-      if (!it) return null;
-      if (it._type === 'salon') return {
-        title: `The Salon · ${it.title}`,
-        accent: it.accent,
-        blurb: it.blurb,
-        action: () => navigate('/salon'),
-        actionLabel: 'Join the Salon',
-      };
-      if (it._type === 'guide') return {
-        title: it.title,
-        accent: it.accent,
-        blurb: it.blurb || it.subtitle || 'A Literary Roads field guide.',
-        action: () => navigate(`/guide/${it.id}`),
-        actionLabel: 'Open guide',
-      };
-      return null;
-    })() : null;
+function Newsstand({ guides, activeSalon, salonHistory, navigate }) {
+  const published  = guides.filter(g => g.published);
+  const comingSoon = guides.filter(g => g.comingSoon && !g.published);
+  const pastBooks  = salonHistory.filter(s => s.id !== activeSalon?.id);
 
   return (
     <div>
-      {/* Striped awning */}
+      {/* Striped awning — spans full width above all three buckets */}
       <div style={{
         height: 16, borderRadius: '6px 6px 0 0',
         background: `repeating-linear-gradient(90deg, ${HS.red} 0 16px, ${HS.cream} 16px 32px)`,
-        border: `1.5px solid ${HS.ink}`, borderBottom: 'none', marginBottom: 14,
+        border: `1.5px solid ${HS.ink}`, borderBottom: 'none', marginBottom: 0,
         boxShadow: '0 6px 12px rgba(0,0,0,0.3)',
       }} />
 
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        {/* Gazette card */}
-        <button onClick={() => navigate('/newspaper/current')} className="hs-gazette"
-          style={{
-          textAlign: 'left', cursor: 'pointer', padding: 14, borderRadius: 10,
+      <div className="hs-newsstand">
+
+      {/* Bucket 1: Gazette */}
+      <BucketShelf label="The Literary Roads Gazette">
+        <button onClick={() => navigate('/newspaper/current')} className="hs-gazette" style={{
+          width: '100%', textAlign: 'left', cursor: 'pointer', padding: 10, borderRadius: 8,
           background: HS.cream, color: HS.ink, border: `2px solid ${HS.ink}`,
-          boxShadow: '0 10px 22px rgba(0,0,0,.4)',
-          transition: 'box-shadow 200ms',
+          boxShadow: '0 6px 16px rgba(0,0,0,.35)', transition: 'box-shadow 200ms',
         }}>
           <div style={{
-            fontFamily: 'var(--hs-mono)', fontSize: 9, letterSpacing: '0.2em',
+            fontFamily: 'var(--hs-mono)', fontSize: 8, letterSpacing: '0.2em',
             textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between',
-            borderBottom: `1.5px solid ${HS.ink}`, paddingBottom: 5,
+            borderBottom: `1.5px solid ${HS.ink}`, paddingBottom: 4,
           }}>
-            <span>Weekly Issue</span>
-            <span>Tabloid · Community</span>
+            <span>Weekly Issue</span><span>Tabloid · Community</span>
           </div>
           <div style={{
-            fontFamily: 'var(--hs-nameplate)', fontSize: 25, lineHeight: 1,
-            textAlign: 'center', padding: '9px 0 8px', borderBottom: `3px double ${HS.ink}`,
+            fontFamily: 'var(--hs-nameplate)', fontSize: 20, lineHeight: 1,
+            textAlign: 'center', padding: '7px 0 6px', borderBottom: `3px double ${HS.ink}`,
           }}>
             The Literary Roads<br />Gazette
           </div>
-          <div style={{ display: 'flex', gap: 11, marginTop: 11 }}>
+          <div style={{ display: 'flex', gap: 9, marginTop: 9, alignItems: 'center' }}>
             <img src={`${BASE}images/cat-newspaper-hs.png`} alt="" style={{
-              width: 78, height: 78, objectFit: 'contain', flexShrink: 0,
+              width: 58, height: 58, objectFit: 'contain', flexShrink: 0,
               filter: 'grayscale(1) contrast(1.05)',
             }} />
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: 'var(--hs-serif)', fontSize: 14, fontWeight: 700, lineHeight: 1.12, marginBottom: 4 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'var(--hs-serif)', fontSize: 12, fontWeight: 700, lineHeight: 1.12, marginBottom: 3 }}>
                 Dispatches from the literary road.
               </div>
               <div style={{
-                display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                fontFamily: 'var(--hs-serif)', fontSize: 11, lineHeight: 1.4, color: HS.ink, opacity: 0.78,
+                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                fontFamily: 'var(--hs-serif)', fontSize: 10, lineHeight: 1.4, opacity: 0.78,
               }}>
-                Book picks, community features, and the detours worth taking — every week from Literary Roads.
+                Book picks, community features, and the detours worth taking — every week.
               </div>
             </div>
-          </div>
-          <div style={{
-            marginTop: 11, display: 'inline-flex', alignItems: 'center', gap: 7,
-            fontFamily: 'var(--hs-sans)', fontWeight: 700, fontSize: 12, letterSpacing: '0.08em',
-            textTransform: 'uppercase', color: HS.cream, background: HS.orange,
-            border: `2px solid ${HS.ink}`, borderRadius: 999, padding: '7px 14px',
-            boxShadow: `2px 2px 0 ${HS.ink}`,
-          }}>
-            Read now &rarr;
+            <div style={{
+              flexShrink: 0, fontFamily: 'var(--hs-sans)', fontWeight: 700, fontSize: 10,
+              letterSpacing: '0.08em', textTransform: 'uppercase', color: HS.cream,
+              background: HS.orange, border: `2px solid ${HS.ink}`, borderRadius: 999,
+              padding: '5px 10px', boxShadow: `2px 2px 0 ${HS.ink}`,
+            }}>
+              Read &rarr;
+            </div>
           </div>
         </button>
+      </BucketShelf>
 
-        {/* Magazine rack */}
-        <div style={{
-          borderRadius: 10, background: HS.navy2, border: `1.5px solid ${HS.navyLine}`,
-          padding: '16px 8px 14px', display: 'flex', flexDirection: 'column',
-        }}>
-          {rackItems.length > 0 ? (
-            <div className="hs-rack-scroll" style={{
-              display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
-              gap: 6, padding: '10px 14px 12px', overflowX: 'auto',
-            }}>
-              {rackItems.map((g, i) => (
-                g._type === 'coming' ? (
-                  <div key={g.id} style={{
-                    position: 'relative', flexShrink: 0, width: 124, height: 176,
-                    borderRadius: '5px 5px 4px 4px',
-                    background: `linear-gradient(160deg, ${g.bg2}, ${g.bg})`,
-                    border: `1.5px dashed ${HS.muted}`, overflow: 'hidden', opacity: 0.55,
-                    transform: `rotate(${(i - (rackItems.length - 1) / 2) * 4}deg)`,
-                    transformOrigin: 'bottom center',
-                  }}>
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: HS.muted, textAlign: 'center', padding: '0 8px' }}>
-                        COMING SOON
-                      </span>
+      {/* Bucket 2: Salon Book of the Month */}
+      <BucketShelf label="Salon Book of the Month">
+        {activeSalon ? (
+          <div>
+            <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+              {/* Cover with title label above */}
+              <div style={{ flexShrink: 0 }}>
+                {(activeSalon.coverURL || activeSalon.coverImage) ? (
+                  <>
+                    <div style={{
+                      width: 124, boxSizing: 'border-box',
+                      fontFamily: 'var(--hs-display)', fontSize: 12, color: HS.cream,
+                      background: HS.navy3, border: `1px solid #C9A84C55`,
+                      borderRadius: '6px 6px 0 0', padding: '5px 9px', lineHeight: 1.2,
+                      wordBreak: 'break-word',
+                    }}>
+                      {activeSalon.bookTitle}
                     </div>
-                  </div>
+                    <div style={{
+                      width: 124, height: 176, overflow: 'hidden',
+                      borderRadius: '0 0 5px 5px',
+                      border: `1.5px solid ${HS.ink}`, borderTop: 'none',
+                      boxShadow: '0 10px 20px rgba(0,0,0,0.45)',
+                    }}>
+                      <img src={activeSalon.coverURL || activeSalon.coverImage} alt={activeSalon.bookTitle}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    </div>
+                  </>
                 ) : (
-                  <MagazineCover key={g.id} g={g} active={sel === g.id}
-                    fanned={(i - (rackItems.length - 1) / 2) * 4}
-                    onClick={() => setSel(sel === g.id ? null : g.id)} />
-                )
-              ))}
+                  <div style={{
+                    width: 124, height: 176, borderRadius: '5px 5px 4px 4px',
+                    background: 'linear-gradient(160deg, #1A2A1F, #243428)',
+                    border: `1.5px solid ${HS.ink}`, padding: 12,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 10px 20px rgba(0,0,0,0.45)',
+                  }}>
+                    <span style={{ fontFamily: 'var(--hs-display)', fontSize: 16, color: '#FFF8E7', lineHeight: 1.1, textAlign: 'center' }}>
+                      {activeSalon.bookTitle || 'The Salon'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {/* Author + blurb + CTA */}
+              <div style={{ flex: 1 }}>
+                {activeSalon.bookAuthor && (
+                  <div style={{ fontFamily: 'var(--hs-serif)', fontSize: 13, color: '#C9A84C', marginBottom: 6, fontStyle: 'italic' }}>
+                    {activeSalon.bookAuthor}
+                  </div>
+                )}
+                <p style={{ margin: '0 0 14px', fontFamily: 'var(--hs-serif)', fontSize: 12.5, lineHeight: 1.5, color: HS.cream2 }}>
+                  Reading together, once a month.
+                </p>
+                <button onClick={() => navigate('/salon')} style={{
+                  fontFamily: 'var(--hs-sans)', fontWeight: 700, fontSize: 11, color: '#C9A84C',
+                  letterSpacing: '0.04em', background: 'none', border: `1px solid #C9A84C66`,
+                  borderRadius: 999, padding: '6px 14px', cursor: 'pointer',
+                }}>
+                  The Salon is open &rarr;
+                </button>
+              </div>
             </div>
-          ) : (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', textAlign: 'center' }}>
-              <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: HS.muted }}>
-                Guides coming soon
-              </span>
-            </div>
-          )}
-          <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTop: `1px solid ${HS.navyLine}` }}>
-            <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', color: HS.muted }}>
-              {published.length} guide{published.length !== 1 ? 's' : ''} available
-            </span>
-            {activeSalon && (
-              <button onClick={() => navigate('/salon')} style={{
-                fontFamily: 'var(--hs-sans)', fontWeight: 700, fontSize: 11, color: '#C9A84C',
-                letterSpacing: '0.04em', background: 'none', border: 'none', cursor: 'pointer',
-                padding: 0, textDecoration: 'underline', textDecorationColor: '#C9A84C66',
-              }}>
-                The Salon is open &rarr;
-              </button>
+
+            {/* Past books archive — hidden on desktop */}
+            {pastBooks.length > 0 && (
+              <div className="hs-salon-archive" style={{ marginTop: 14, borderTop: `1px solid ${HS.navyLine}`, paddingTop: 12 }}>
+                <div style={{ fontFamily: 'var(--hs-mono)', fontSize: 8, letterSpacing: '0.18em', textTransform: 'uppercase', color: HS.muted, marginBottom: 8 }}>
+                  Archive
+                </div>
+                <div className="hs-rack-scroll" style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4 }}>
+                  {pastBooks.map(s => {
+                    const cover = s.coverURL || s.coverImage;
+                    const raw = s.startDate?.toDate ? s.startDate.toDate() : s.startDate ? new Date(s.startDate) : null;
+                    const label = raw ? raw.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+                    return (
+                      <div key={s.id} style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <div style={{
+                          width: 54, height: 76, borderRadius: 4, overflow: 'hidden',
+                          border: `1px solid ${HS.navyLine}`, background: '#1A2A1F',
+                          boxShadow: '0 4px 10px rgba(0,0,0,0.35)',
+                        }}>
+                          {cover
+                            ? <img src={cover} alt={s.bookTitle || ''} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 4 }}>
+                                <span style={{ fontFamily: 'var(--hs-display)', fontSize: 7, color: '#C9A84C', textAlign: 'center', lineHeight: 1.1 }}>{s.bookTitle || ''}</span>
+                              </div>
+                          }
+                        </div>
+                        {label && (
+                          <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 7.5, letterSpacing: '0.1em', color: HS.muted, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+                            {label}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Selected detail strip */}
-      <Reveal open={!!selectedItem}>
-        {selectedItem && (
-          <div style={{
-            marginTop: 14, padding: '14px 16px', borderRadius: 10,
-            background: HS.navy3, border: `1.5px solid ${selectedItem.accent}55`,
-            display: 'flex', gap: 14, alignItems: 'center',
-          }}>
-            <span style={{ width: 8, alignSelf: 'stretch', borderRadius: 4, background: selectedItem.accent, flexShrink: 0 }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--hs-nameplate)', fontSize: 16, color: HS.cream, letterSpacing: '0.03em' }}>
-                {selectedItem.title}
-              </div>
-              <p style={{ margin: '4px 0 0', fontFamily: 'var(--hs-serif)', fontSize: 13.5, lineHeight: 1.45, color: HS.cream2 }}>
-                {selectedItem.blurb}
-              </p>
-            </div>
-            <StampButton color={selectedItem.accent} dark onClick={selectedItem.action} style={{ flexShrink: 0, fontSize: 12 }}>
-              {selectedItem.actionLabel}
-            </StampButton>
+        ) : (
+          <div style={{ padding: '20px 0', textAlign: 'center' }}>
+            <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: HS.muted }}>
+              No active salon
+            </span>
           </div>
         )}
-      </Reveal>
+      </BucketShelf>
+
+      {/* Bucket 3: Guides */}
+      <BucketShelf label="Guides">
+        {published.length > 0 || comingSoon.length > 0 ? (
+          <div className="hs-guides-carousel">
+            {published.map((g, i) => {
+              const palette = GUIDE_PALETTES[i % GUIDE_PALETTES.length];
+              const guide = { ...g, ...palette, kicker: g.subtitle || 'Field Guide' };
+              const hasCover = !!g.coverImageUrl;
+              return (
+                <div key={g.id} style={{ display: 'flex', flexDirection: 'column' }}>
+                  {hasCover && (
+                    <div style={{
+                      width: 124, boxSizing: 'border-box',
+                      fontFamily: 'var(--hs-display)', fontSize: 12, color: HS.cream,
+                      background: HS.navy3, border: `1px solid ${palette.accent}55`,
+                      borderRadius: '6px 6px 0 0', padding: '5px 9px', lineHeight: 1.2,
+                      wordBreak: 'break-word',
+                    }}>
+                      {g.title}
+                    </div>
+                  )}
+                  <MagazineCover
+                    g={guide}
+                    hideTitle={hasCover}
+                    noTopRadius={hasCover}
+                    onClick={() => navigate(`/guide/${g.id}`)}
+                  />
+                </div>
+              );
+            })}
+            {comingSoon.map((g, i) => {
+              const palette = GUIDE_PALETTES[(published.length + i) % GUIDE_PALETTES.length];
+              return (
+                <div key={g.id} style={{
+                  flexShrink: 0, width: 124, height: 176, borderRadius: '5px 5px 4px 4px',
+                  background: `linear-gradient(160deg, ${palette.bg2}, ${palette.bg})`,
+                  border: `1.5px dashed ${HS.muted}`, overflow: 'hidden', opacity: 0.55,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 8, letterSpacing: '0.14em', textTransform: 'uppercase', color: HS.muted, textAlign: 'center', padding: '0 8px' }}>
+                    COMING SOON
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ padding: '20px 0', textAlign: 'center' }}>
+            <span style={{ fontFamily: 'var(--hs-mono)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: HS.muted }}>
+              Guides coming soon
+            </span>
+          </div>
+        )}
+      </BucketShelf>
+
+      </div>{/* hs-newsstand */}
     </div>
   );
 }
@@ -1269,8 +1322,9 @@ export default function Resources({ onBack }) {
   const [fortuneTrigger, setFortuneTrigger] = useState(0);
 
   // Data
-  const [guides,      setGuides]      = useState([]);
-  const [activeSalon, setActiveSalon] = useState(null);
+  const [guides,       setGuides]       = useState([]);
+  const [activeSalon,  setActiveSalon]  = useState(null);
+  const [salonHistory, setSalonHistory] = useState([]);
   const [podcasts,    setPodcasts]    = useState([]);
   const [podLoading,  setPodLoading]  = useState(true);
   const [favIds,      setFavIds]      = useState([]);
@@ -1278,6 +1332,7 @@ export default function Resources({ onBack }) {
 
   useEffect(() => { fetchPublishedGuides().then(setGuides).catch(() => {}); }, []);
   useEffect(() => subscribeToActiveSalon(setActiveSalon), []);
+  useEffect(() => subscribeToPastSalons(setSalonHistory), []);
 
   useEffect(() => {
     getDocs(collection(db, 'literary_podcasts')).then(snap => {
@@ -1404,7 +1459,7 @@ export default function Resources({ onBack }) {
           <Section index={2} label="Literary Roads Newsstand" sub="The Gazette + guides"
             accent={HS.cyan} open={open.has(2)} onToggle={() => toggle(2)}
             icon={<HeadChip color={HS.cyan} label="Read ▸" />}>
-            <Newsstand guides={guides} activeSalon={activeSalon} navigate={navigate} />
+            <Newsstand guides={guides} activeSalon={activeSalon} salonHistory={salonHistory} navigate={navigate} />
           </Section>
 
           <Section index={3} label="Literary Roads Radio" sub="Tune the dial"

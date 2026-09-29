@@ -249,6 +249,22 @@
 .hs-marquee:focus-visible { outline: 2px solid #39E0D6; outline-offset: 3px; }
 .hs-rack-scroll::-webkit-scrollbar { height: 6px; }
 
+/* Newsstand three-bucket layout */
+.hs-newsstand { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; }
+@media (min-width: 720px) {
+  .hs-newsstand { flex-direction: row; align-items: flex-start; }
+  .hs-newsstand > *:nth-child(1) { flex: 0 0 210px; }
+  .hs-newsstand > *:nth-child(2) { flex: 1; min-width: 0; }
+  .hs-newsstand > *:nth-child(3) { flex: 1; min-width: 0; }
+  .hs-salon-archive { display: none; }
+}
+
+/* Guides carousel — one scrollable row, no wrap */
+.hs-guides-carousel { display: flex; gap: 16px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px; }
+.hs-guides-carousel::-webkit-scrollbar { height: 5px; }
+.hs-guides-carousel::-webkit-scrollbar-track { background: transparent; }
+.hs-guides-carousel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+
 /* Header chips: hide on narrow, show on wide */
 .hs-headchip { display: none; }
 @media (min-width: 620px) { .hs-headchip { display: inline-block !important; } }
