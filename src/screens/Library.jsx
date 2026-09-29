@@ -56,20 +56,22 @@ const LOG_VIBE_TAGS = [
   'haunting', 'life changing', 'plot-driven', 'entertaining',
   'mind-bending', 'redemptive', 'comforting', 'surprising',
   'great ending', 'notable setting', 'slow', 'thought provoking', 'read again',
+  'flat', 'overhyped', 'preachy', 'disturbing', 'predictable', 'faded',
 ];
 const FOUND_AT_OPTIONS = [
   'recommendation', 'podcast', 'library', 'bookstore',
-  "friend's shelf", 'book review', 'Instagram', 'BookTok', 'book app', 'somewhere else',
+  "friend's shelf", 'book review', 'Instagram', 'BookTok', 'book app', 'book festival', 'Literary Roads', 'somewhere else',
 ];
-const FEEL_OPTIONS    = ['joyful', 'changed', 'sad', 'emotional', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder', 'inspired'];
+const FEEL_OPTIONS    = ['joyful', 'changed', 'sad', 'emotional', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder', 'inspired', 'unsettled', 'unmoved', 'indifferent', 'bored', 'disconnected', 'annoyed', 'angry'];
 const EXTRAS_OPTIONS  = ['memorable characters', 'unforgettable line', 'scenery', 'great premise'];
 
 const NF_VIBE_TAGS = [
   'eye-opening', 'well researched', 'accessible', 'dense', 'inspiring',
   'practical', 'changed my mind', 'fascinating', 'timely', 'essential reading',
   'beautifully written', 'quick read', 'deep dive', 'personal', 'controversial', 'life changing',
+  'overhyped', 'repetitive', 'disorganized', 'jargon-heavy', 'dry', 'academic', 'preachy', 'unconvincing',
 ];
-const NF_FEEL_OPTIONS   = ['inspired', 'informed', 'challenged', 'motivated', 'overwhelmed', 'enlightened', 'skeptical', 'moved', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder'];
+const NF_FEEL_OPTIONS   = ['inspired', 'informed', 'challenged', 'motivated', 'overwhelmed', 'enlightened', 'skeptical', 'moved', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder', 'unmoved', 'indifferent', 'bored', 'unconvinced', 'manipulated', 'deceived', 'drained', 'disappointed'];
 const NF_EXTRAS_OPTIONS = ['changed my perspective', 'surprising facts', 'would read again', 'dense but worth it', 'accessible writing'];
 
 // Detect fiction vs nonfiction from Google Books categories array
