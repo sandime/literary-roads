@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   subscribeToActiveSalon, subscribeToEnrollment, enrollInSalon,
-  subscribeToReviews, postReview, updateReview,
+  subscribeToReviews, postReview, updateReview, subscribeToPastSalons,
 } from '../utils/salon';
 import {
   S, SALON_ANIMATIONS_CSS, useWidth,
@@ -81,7 +81,7 @@ function MastheadBar({ book, status = 'reading', onBack, wide }) {
 }
 
 // ── 1. Entry — the invitation ─────────────────────────────────────────────────
-function EntryScreen({ book, period, user, enrolled, onEnter }) {
+function EntryScreen({ book, period, user, enrolled, onEnter, onPastReads }) {
   const navigate = useNavigate();
   const [ref, w] = useWidth();
   const [enrolling, setEnrolling] = useState(false);
@@ -157,6 +157,16 @@ function EntryScreen({ book, period, user, enrolled, onEnter }) {
             </SalonButton>
           </>
         )}
+        {onPastReads && (
+          <button onClick={onPastReads} style={{
+            marginTop: 6, background: 'none', border: 0, cursor: 'pointer', padding: '4px 0',
+            fontFamily: S.fonts.sans, fontSize: 10, letterSpacing: '0.18em',
+            color: S.creamDim, textTransform: 'uppercase',
+            alignSelf: wide ? 'flex-start' : 'center',
+          }}>
+            Past Reads ›
+          </button>
+        )}
       </div>
     </>
   );
@@ -211,9 +221,9 @@ function EntryScreen({ book, period, user, enrolled, onEnter }) {
 }
 
 // ── Aggregate rating (hidden until ≥ 20 reviews) ──────────────────────────────
-function AggregateRating({ reviews, wide }) {
+function AggregateRating({ reviews, wide, minCount = 20 }) {
   const rated = reviews.filter(r => r.rating > 0);
-  if (rated.length < 20) return null;
+  if (rated.length < minCount) return null;
   const avg = rated.reduce((s, r) => s + r.rating, 0) / rated.length;
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -599,6 +609,197 @@ function EmptyScreen({ book, period, user, reviews, onBack }) {
   );
 }
 
+// ── Past Reads ────────────────────────────────────────────────────────────────
+function PastReadCard({ salon, onClick }) {
+  const book = buildBook(salon);
+  const memberCount = salon.participantCount || 0;
+  const d = salon.startDate?.toDate ? salon.startDate.toDate()
+    : salon.startDate ? new Date(salon.startDate) : null;
+  const dateLabel = d ? d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
+
+  return (
+    <button onClick={onClick} style={{
+      display: 'flex', gap: 16, alignItems: 'flex-start', width: '100%',
+      background: 'none', border: `1px solid ${S.line}`, borderRadius: 12,
+      padding: '16px 18px', cursor: 'pointer', textAlign: 'left', color: S.cream,
+    }}>
+      <BookCover w={54} h={80} src={book?.src} title={book?.title} author={book?.author} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {dateLabel && (
+          <div style={{ fontFamily: S.fonts.sans, fontSize: 9, letterSpacing: '0.22em',
+            color: S.coral, textTransform: 'uppercase', marginBottom: 4 }}>
+            {dateLabel}
+          </div>
+        )}
+        <div style={{ fontFamily: S.fonts.display, fontWeight: 600, fontSize: 17,
+          color: S.cream, lineHeight: 1.15, marginBottom: 3 }}>
+          {salon.bookTitle}
+        </div>
+        <div style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
+          fontSize: 13.5, color: S.turq, marginBottom: 8 }}>
+          {salon.bookAuthor}
+        </div>
+        {memberCount > 0 && (
+          <div style={{ fontFamily: S.fonts.sans, fontSize: 10, letterSpacing: '0.14em',
+            color: S.creamDim, textTransform: 'uppercase' }}>
+            {memberCount.toLocaleString()} readers joined
+          </div>
+        )}
+      </div>
+      <span style={{ color: S.coral, fontSize: 22, alignSelf: 'center', lineHeight: 1 }}>›</span>
+    </button>
+  );
+}
+
+function PastReadsScreen({ pastSalons, user, onSelect, onBack }) {
+  const navigate = useNavigate();
+  const [ref, w] = useWidth();
+  const wide = w >= 720;
+
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', gap: 16, padding: 32 }}>
+        <p style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
+          fontSize: 16, color: S.creamDim, textAlign: 'center', margin: 0 }}>
+          Sign in to browse past reads.
+        </p>
+        <SalonButton variant="primary" onClick={() => navigate('/login')}>
+          Sign in  →
+        </SalonButton>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 30,
+        background: 'rgba(15,55,59,0.93)', backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${S.line}`,
+        padding: wide ? '14px 32px' : '11px 16px',
+        display: 'flex', alignItems: 'center', gap: 14 }}>
+        <span onClick={onBack} style={{ color: S.coral, fontFamily: S.fonts.display,
+          fontSize: 26, lineHeight: 1, cursor: 'pointer', marginTop: -3, userSelect: 'none' }}>
+          ‹
+        </span>
+        <div style={{ fontFamily: S.fonts.display, fontWeight: 600, fontSize: 18,
+          color: S.cream, letterSpacing: '-0.01em' }}>
+          Past Reads
+        </div>
+      </div>
+
+      <div style={{ flex: 1, maxWidth: 680, margin: '0 auto', width: '100%',
+        padding: wide ? '32px 32px' : '20px 18px', boxSizing: 'border-box' }}>
+        {pastSalons.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '64px 0',
+            fontFamily: S.fonts.display, fontStyle: 'italic', fontSize: 16, color: S.creamDim }}>
+            No past reads yet.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {pastSalons.map(s => (
+              <PastReadCard key={s.id} salon={s} onClick={() => onSelect(s.id)} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PastReadDetailScreen({ salon, reviews, onBack }) {
+  const [ref, w] = useWidth();
+  const wide = w >= 720;
+  const book = buildBook(salon);
+  const memberCount = salon.participantCount || 0;
+  const featured = reviews.filter(r => r.isFeatured);
+  const rest = reviews.filter(r => !r.isFeatured);
+  const hasPullQuote = salon?.pullQuoteVisible && salon?.pullQuote;
+
+  return (
+    <div ref={ref} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Sticky header */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 30,
+        background: 'rgba(15,55,59,0.93)', backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${S.line}`,
+        padding: wide ? '14px 32px' : '11px 16px',
+        display: 'flex', alignItems: 'center', gap: 14 }}>
+        <span onClick={onBack} style={{ color: S.coral, fontFamily: S.fonts.display,
+          fontSize: 26, lineHeight: 1, cursor: 'pointer', marginTop: -3, userSelect: 'none' }}>
+          ‹
+        </span>
+        <BookCover w={30} h={45} src={book?.src} title={book?.title} author={book?.author} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: S.fonts.sans, fontSize: 9.5, letterSpacing: '0.3em',
+            color: S.coral, textTransform: 'uppercase', fontWeight: 600 }}>Past Read</div>
+          <div style={{ fontFamily: S.fonts.display, fontWeight: 600, fontSize: 15,
+            color: S.cream, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {book?.title}
+          </div>
+          {wide && (
+            <div style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
+              fontSize: 13, color: S.turq }}>{book?.author}</div>
+          )}
+        </div>
+        {memberCount > 0 && (
+          <div style={{ flexShrink: 0, textAlign: 'right' }}>
+            <div style={{ fontFamily: S.fonts.sans, fontSize: 15, fontWeight: 700,
+              color: S.turq, letterSpacing: '-0.01em' }}>
+              {memberCount.toLocaleString()}
+            </div>
+            <div style={{ fontFamily: S.fonts.sans, fontSize: 8.5, letterSpacing: '0.16em',
+              color: S.creamDim, textTransform: 'uppercase' }}>readers</div>
+          </div>
+        )}
+      </div>
+
+      <div style={{ flex: 1 }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', width: '100%',
+          padding: wide ? '40px 32px 56px' : '26px 16px 48px', boxSizing: 'border-box' }}>
+
+          <AggregateRating reviews={reviews} wide={wide} minCount={3} />
+
+          {hasPullQuote && <PullQuote period={salon} wide={wide} />}
+
+          <div style={{ margin: reviews.length >= 3 ? '32px 0 18px' : '0 0 18px' }}>
+            <Rule label={
+              reviews.length === 0 ? 'No reviews'
+              : `${reviews.length} reader ${reviews.length === 1 ? 'verdict' : 'verdicts'}`
+            } />
+          </div>
+
+          {featured.length > 0 && (
+            <div style={{ columnWidth: wide ? 330 : 9999, columnGap: 18 }}>
+              {featured.map((r, i) => (
+                <FeaturedCard key={r.id} review={r} colorKey={CARD_COLORS[i % 3]} />
+              ))}
+            </div>
+          )}
+
+          {rest.length > 0 && (
+            <div style={{ marginTop: wide ? 20 : 12, maxWidth: 820,
+              marginLeft: 'auto', marginRight: 'auto' }}>
+              {featured.length > 0 && (
+                <div style={{ marginBottom: 4 }}>
+                  <Rule label={`${rest.length} more ${rest.length === 1 ? 'review' : 'reviews'}`} />
+                </div>
+              )}
+              {rest.map(r => <AccordionRow key={r.id} review={r} />)}
+            </div>
+          )}
+
+          {reviews.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 0',
+              fontFamily: S.fonts.display, fontStyle: 'italic', fontSize: 16, color: S.creamDim }}>
+              No reviews were left for this book.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Root ─────────────────────────────────────────────────────────────────────
 export default function SalonScreen() {
   const { user } = useAuth();
@@ -606,10 +807,14 @@ export default function SalonScreen() {
   const [enrolled, setEnrolled] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
-  // 'entry' always shows first; 'inside' shows review/empty
+  // 'entry' | 'inside' | 'past-list' | 'past-detail'
   const [view, setView] = useState('entry');
+  const [pastSalons, setPastSalons] = useState([]);
+  const [selectedPastId, setSelectedPastId] = useState(null);
+  const [pastReviews, setPastReviews] = useState([]);
 
   useEffect(() => subscribeToActiveSalon(p => { setPeriod(p); setLoading(false); }), []);
+  useEffect(() => subscribeToPastSalons(setPastSalons), []);
 
   useEffect(() => {
     if (!user || !period?.id) { setEnrolled(false); return; }
@@ -621,7 +826,13 @@ export default function SalonScreen() {
     return subscribeToReviews(period.id, setReviews);
   }, [period?.id]);
 
+  useEffect(() => {
+    if (!selectedPastId) { setPastReviews([]); return; }
+    return subscribeToReviews(selectedPastId, setPastReviews);
+  }, [selectedPastId]);
+
   const book = buildBook(period);
+  const selectedPastSalon = pastSalons.find(s => s.id === selectedPastId) ?? null;
 
   if (loading) {
     return (
@@ -635,13 +846,30 @@ export default function SalonScreen() {
 
   if (!period) {
     return (
-      <div style={{ minHeight: '100vh', background: S.teal, display: 'flex',
-        alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
-          fontSize: 16, color: S.creamDim }}>
-          No salon is currently scheduled.
-        </p>
-      </div>
+      <SalonScreenShell>
+        <AnimStyles />
+        {view === 'past-list' ? (
+          <PastReadsScreen pastSalons={pastSalons} user={user}
+            onSelect={id => { setSelectedPastId(id); setView('past-detail'); }}
+            onBack={() => setView('entry')} />
+        ) : view === 'past-detail' && selectedPastSalon ? (
+          <PastReadDetailScreen salon={selectedPastSalon} reviews={pastReviews}
+            onBack={() => { setSelectedPastId(null); setView('past-list'); }} />
+        ) : (
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column',
+            alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+            <p style={{ fontFamily: S.fonts.display, fontStyle: 'italic',
+              fontSize: 16, color: S.creamDim, margin: 0 }}>
+              No salon is currently scheduled.
+            </p>
+            {pastSalons.length > 0 && (
+              <SalonButton variant="ghost" onClick={() => setView('past-list')}>
+                Browse Past Reads ›
+              </SalonButton>
+            )}
+          </div>
+        )}
+      </SalonScreenShell>
     );
   }
 
@@ -650,7 +878,15 @@ export default function SalonScreen() {
       <AnimStyles />
       {view === 'entry' ? (
         <EntryScreen book={book} period={period} user={user} enrolled={enrolled}
-          onEnter={() => setView('inside')} />
+          onEnter={() => setView('inside')}
+          onPastReads={pastSalons.length > 0 ? () => setView('past-list') : null} />
+      ) : view === 'past-list' ? (
+        <PastReadsScreen pastSalons={pastSalons} user={user}
+          onSelect={id => { setSelectedPastId(id); setView('past-detail'); }}
+          onBack={() => setView('entry')} />
+      ) : view === 'past-detail' && selectedPastSalon ? (
+        <PastReadDetailScreen salon={selectedPastSalon} reviews={pastReviews}
+          onBack={() => { setSelectedPastId(null); setView('past-list'); }} />
       ) : reviews.length > 0 ? (
         <ReviewScreen book={book} period={period} user={user}
           reviews={reviews} onBack={() => setView('entry')} />

@@ -166,7 +166,7 @@ function SalonForm({ period, onSave, onClose, saving }) {
             <select style={inp} value={form.status} onChange={e => set('status', e.target.value)}>
               <option value="upcoming">Upcoming — announced, not yet started</option>
               <option value="active">Active — reading period open</option>
-              <option value="closed">Closed — reading period ended</option>
+              <option value="closed">Closed — reading period ended (appears in Past Reads)</option>
             </select>
           </div>
 
