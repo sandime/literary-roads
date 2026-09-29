@@ -744,8 +744,20 @@ function Newsstand({ guides, activeSalon, salonHistory, navigate }) {
         </button>
       </BucketShelf>
 
-      {/* Bucket 2: Salon Book of the Month */}
-      <BucketShelf label="Salon Book of the Month">
+      {/* Bucket 2: Salon Book for <period> */}
+      <BucketShelf label={(() => {
+        if (!activeSalon?.startDate || !activeSalon?.endDate) return 'Salon Book of the Month';
+        const fmt = (ts, opts) => {
+          const d = ts?.toDate ? ts.toDate() : new Date(ts);
+          return d.toLocaleDateString('en-US', opts);
+        };
+        const startYear = (activeSalon.startDate?.toDate ? activeSalon.startDate.toDate() : new Date(activeSalon.startDate)).getFullYear();
+        const endYear   = (activeSalon.endDate?.toDate   ? activeSalon.endDate.toDate()   : new Date(activeSalon.endDate)).getFullYear();
+        const sameYear  = startYear === endYear;
+        const start = fmt(activeSalon.startDate, sameYear ? { month: 'long' } : { month: 'long', year: 'numeric' });
+        const end   = fmt(activeSalon.endDate,   { month: 'long', year: 'numeric' });
+        return `Salon Book for ${start} – ${end}`;
+      })()}>
         {activeSalon ? (
           <div>
             <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
