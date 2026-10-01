@@ -1896,7 +1896,7 @@ export default function Library({ onBack }) {
 
   if (view === 'byLength') {
     return (
-      <ByLength onBack={() => navigate(-1)} onAddToReadNext={handleAddFromDesk} />
+      <ByLength onBack={() => navigate(-1)} onAddToReadNext={handleAddFromDesk} readNext={filteredReadNext} />
     );
   }
 

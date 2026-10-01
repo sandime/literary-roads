@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { fetchBookCover } from '../utils/booksCatalog';
 import { searchBooks } from '../utils/googleBooks';
@@ -190,26 +190,42 @@ async function backfillPageCounts(books, setBooks, onDone) {
 }
 
 // ── Main screen ───────────────────────────────────────────────────────────────
-export default function ByLength({ onBack, onAddToReadNext }) {
+export default function ByLength({ onBack, onAddToReadNext, readNext = [] }) {
   const [books,          setBooks]      = useState([]);
   const [loading,        setLoading]    = useState(true);
   const [backfilling,    setBackfilling] = useState(false);
   const [selectedBucket, setSelected]   = useState(null);
 
   useEffect(() => {
-    getDocs(collection(db, 'books'))
-      .then(snap => {
-        const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setBooks(loaded);
-        const needsBackfill = loaded.some(b => !b.pageCount);
-        if (needsBackfill) {
-          setBackfilling(true);
-          backfillPageCounts(loaded, setBooks, () => setBackfilling(false));
-        }
-        setLoading(false);
+    const items = readNext.filter(item => item.title);
+    if (!items.length) { setBooks([]); setLoading(false); return; }
+    setLoading(true);
+    Promise.all(
+      items.map(async item => {
+        const booksDocId = (item.googleBooksId || '').replace(/\//g, '_');
+        const booksData = booksDocId
+          ? await getDoc(doc(db, 'books', booksDocId))
+              .then(s => s.exists() ? s.data() : {})
+              .catch(() => ({}))
+          : {};
+        return {
+          id: booksDocId || item.title,
+          title: item.title || '',
+          authors: item.author ? [item.author] : (booksData.authors || []),
+          coverUrl: item.coverUrl || item.coverURL || booksData.coverUrl || '',
+          pageCount: booksData.pageCount || null,
+        };
       })
-      .catch(() => setLoading(false));
-  }, []);
+    ).then(loaded => {
+      setBooks(loaded);
+      const needsBackfill = loaded.some(b => !b.pageCount);
+      if (needsBackfill) {
+        setBackfilling(true);
+        backfillPageCounts(loaded, setBooks, () => setBackfilling(false));
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, [readNext]);
 
   const grouped = books.reduce((acc, book) => {
     acc[assignBucket(book.pageCount)].push(book);
