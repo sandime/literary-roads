@@ -465,10 +465,8 @@ function drawCardA(ctx, d, icon) {
   // signature
   my += 18;
   ctx.fillStyle = BP.cream; ctx.font = 'italic 27px Fraunces';
-  if (d.signOff) {
-    ctx.fillText('— ' + d.signOff, 470, my);
-  } else {
-    const sigPre = '— Yours, between miles, ';
+  {
+    const sigPre = d.signOff ? '— ' + d.signOff + ' ' : '— Yours, between miles, ';
     ctx.fillText(sigPre, 470, my);
     const sigX = 470 + ctx.measureText(sigPre).width;
     ctx.save();
@@ -545,12 +543,12 @@ function drawCardB(ctx, d, icon) {
   let my = 694;
   for (const ln of ml) { ctx.fillText(ln, 540, my); my += 42; }
   my += 10; ctx.font = 'italic 25px Fraunces';
-  if (d.signOff) {
-    ctx.fillStyle = BP.ink; ctx.fillText('— ' + d.signOff, 540, my);
-  } else {
-    ctx.fillStyle = BP.ink; ctx.fillText('— Yours,', 540, my);
+  {
+    const sigPre = d.signOff ? '— ' + d.signOff + ' ' : '— Yours, ';
+    ctx.fillStyle = BP.ink; ctx.fillText(sigPre, 540, my);
+    const sigX = 540 + ctx.measureText(sigPre).width;
     ctx.fillStyle = BP.terra; ctx.font = '700 26px Fraunces';
-    ctx.fillText(d.sign, 628, my);
+    ctx.fillText(d.sign, sigX, my);
   }
   ctx.restore();
   // pills
