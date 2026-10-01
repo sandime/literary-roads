@@ -74,11 +74,28 @@ const NF_VIBE_TAGS = [
 const NF_FEEL_OPTIONS   = ['inspired', 'informed', 'challenged', 'motivated', 'overwhelmed', 'enlightened', 'skeptical', 'moved', 'introspective', 'fearful', 'transported', 'validated', 'intrigued', 'nostalgic', 'wonder', 'unmoved', 'indifferent', 'bored', 'unconvinced', 'manipulated', 'deceived', 'drained', 'disappointed'];
 const NF_EXTRAS_OPTIONS = ['changed my perspective', 'surprising facts', 'would read again', 'dense but worth it', 'accessible writing'];
 
-// Detect fiction vs nonfiction from Google Books categories array
+const POETRY_VIBE_TAGS = [
+  'musical', 'spare', 'dense', 'imagistic', 'lyric', 'confessional', 'narrative',
+  'political', 'experimental', 'elegiac', 'celebratory', 'accessible', 'haunting',
+  'beautiful language', 'life changing', 'thought provoking', 'read again',
+  'comforting', 'uneven', 'overhyped', 'lost me', 'hard to finish',
+];
+const POETRY_FEEL_OPTIONS = [
+  'still', 'gutted', 'seen', 'unsettled', 'awakened', 'moved', 'transported',
+  'nostalgic', 'wonder', 'introspective', 'haunted', 'validated', 'melancholy',
+];
+const POETRY_EXTRAS_OPTIONS = [
+  'would read again', 'read it aloud', 'returning to it', 'memorized a line',
+  'gave it to someone', 'need to sit with it', 'changed how i see language',
+  "bought the poet's other work", 'read in one sitting',
+];
+
+// Detect fiction / poetry / nonfiction from Google Books categories array
 function detectBookType(categories) {
   if (!categories?.length) return 'fiction';
   const joined = categories.join(' ').toLowerCase();
   if (joined.includes('nonfiction') || joined.includes('non-fiction') || joined.includes('non fiction')) return 'nonfiction';
+  if (joined.includes('poetry') || joined.includes('poem')) return 'poetry';
   if (joined.includes('fiction')) return 'fiction';
   return 'fiction';
 }
@@ -387,10 +404,10 @@ function EntryForm({
         </p>
       </div>
 
-      {/* Fiction / Non-Fiction toggle */}
+      {/* Fiction / Poetry / Non-Fiction toggle */}
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', border: `1.5px solid ${L.divider}` }}>
-          {[{ value: 'fiction', label: 'FICTION' }, { value: 'nonfiction', label: 'NON-FICTION' }].map(({ value, label }) => (
+          {[{ value: 'fiction', label: 'FICTION' }, { value: 'poetry', label: 'POETRY' }, { value: 'nonfiction', label: 'NON-FICTION' }].map(({ value, label }) => (
             <button key={value} type="button" onClick={() => setBookType(value)}
               style={{ flex: 1, padding: '9px 6px', border: 'none', cursor: 'pointer',
                 fontFamily: 'Bungee, sans-serif', fontSize: 10, letterSpacing: '0.06em',
@@ -480,6 +497,20 @@ function EntryForm({
         </div>
       )}
 
+      {/* Vibe tags — poetry */}
+      {bookType === 'poetry' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>VIBE TAGS</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {POETRY_VIBE_TAGS.map(tag => (
+              <button key={tag} type="button" onClick={togglePill(setLogVibeTags, tag)} style={pillBtn(logVibeTags.includes(tag))}>
+                {tag.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Where did you find this book? */}
       <div style={{ marginBottom: 14 }}>
         <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHERE DID YOU FIND THIS BOOK?</label>
@@ -530,6 +561,20 @@ function EntryForm({
         </div>
       )}
 
+      {/* How did this book make you feel — poetry */}
+      {bookType === 'poetry' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>HOW DID THIS BOOK MAKE YOU FEEL?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {POETRY_FEEL_OPTIONS.map(opt => (
+              <button key={opt} type="button" onClick={togglePill(setFeel, opt)} style={pillBtn(feel.includes(opt))}>
+                {opt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* What else — fiction */}
       {bookType === 'fiction' && (
         <div style={{ marginBottom: 14 }}>
@@ -550,6 +595,20 @@ function EntryForm({
           <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHAT ELSE?</label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
             {NF_EXTRAS_OPTIONS.map(opt => (
+              <button key={opt} type="button" onClick={togglePill(setExtras, opt)} style={pillBtn(extras.includes(opt))}>
+                {opt.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* What else — poetry */}
+      {bookType === 'poetry' && (
+        <div style={{ marginBottom: 14 }}>
+          <label style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: L.turquoise, letterSpacing: '0.08em', display: 'block', marginBottom: 8 }}>WHAT ELSE?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+            {POETRY_EXTRAS_OPTIONS.map(opt => (
               <button key={opt} type="button" onClick={togglePill(setExtras, opt)} style={pillBtn(extras.includes(opt))}>
                 {opt.toUpperCase()}
               </button>

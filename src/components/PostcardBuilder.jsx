@@ -91,6 +91,13 @@ const NF_VIBE_TAGS = [
   'practical', 'changed my mind', 'fascinating', 'timely', 'essential reading',
   'beautifully written', 'quick read', 'deep dive', 'personal', 'controversial', 'life changing',
 ];
+const POETRY_VIBE_TAGS = [
+  'musical', 'spare', 'dense', 'imagistic', 'lyric', 'confessional', 'narrative',
+  'political', 'experimental', 'elegiac', 'celebratory', 'accessible', 'haunting',
+  'beautiful language', 'life changing', 'thought provoking', 'read again',
+  'comforting', 'awakened', 'moved', 'transported', 'nostalgic', 'wonder',
+  'introspective', 'haunted', 'validated', 'melancholy',
+];
 // Combined list: fiction tags + separator sentinel + nonfiction tags
 const VIBE_TAGS = [...FICTION_VIBE_TAGS, '__separator__', ...NF_VIBE_TAGS];
 
@@ -879,7 +886,7 @@ function Step2({ book, onNext, onBack, onClose }) {
         {/* Fiction / Nonfiction toggle */}
         <div style={{ display: 'inline-flex', background: 'rgba(56,197,197,0.08)', borderRadius: 20,
           padding: 3, marginBottom: 10, gap: 2 }}>
-          {['fiction', 'nonfiction'].map(type => (
+          {[['fiction', 'FICTION'], ['poetry', 'POETRY'], ['nonfiction', 'NON-FICTION']].map(([type, label]) => (
             <button key={type} type="button" onClick={() => { setBookType(type); setVibeTags([]); }}
               className="font-bungee"
               style={{
@@ -889,12 +896,12 @@ function Step2({ book, onNext, onBack, onClose }) {
                 color: bookType === type ? PB.white : PB.mid,
                 boxShadow: bookType === type ? '0 2px 8px rgba(255,107,122,0.25)' : 'none',
               }}>
-              {type.toUpperCase()}
+              {label}
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 14 }}>
-          {(bookType === 'fiction' ? FICTION_VIBE_TAGS : NF_VIBE_TAGS).map(tag => (
+          {(bookType === 'fiction' ? FICTION_VIBE_TAGS : bookType === 'poetry' ? POETRY_VIBE_TAGS : NF_VIBE_TAGS).map(tag => (
             <button key={tag} type="button" onClick={() => toggleVibeTag(tag)} className="font-bungee"
               style={{
                 padding: '3px 9px', borderRadius: 20, fontSize: 9, letterSpacing: '0.06em',
