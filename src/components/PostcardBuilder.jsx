@@ -957,6 +957,15 @@ function Step3({ data, onBack, saving, saved, onClose }) {
   const canvasRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [previewEnlarged, setPreviewEnlarged] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+
+  // Editable overrides — initialized from data, update the canvas live
+  const [editMessage,    setEditMessage]    = useState(data.message || '');
+  const [editAuthorName, setEditAuthorName] = useState(data.authorName || '');
+  const [editSignOff,    setEditSignOff]    = useState(data.signOff || '');
+  const [editHashtags,   setEditHashtags]   = useState((data.hashtags || []).join(' '));
+
+  const parsedHashtags = editHashtags.trim().split(/\s+/).filter(h => h.startsWith('#'));
 
   const canvasData = {
     direction: data.direction || 'A',
@@ -965,16 +974,16 @@ function Step3({ data, onBack, saving, saved, onClose }) {
     nickname: data.nickname || '',
     title: data.bookTitle,
     author: data.bookAuthor,
-    message: data.message,
-    sign: data.authorName,
-    signOff: data.signOff || '',
+    message: editMessage,
+    sign: editAuthorName || 'A Literary Traveler',
+    signOff: editSignOff,
     vibes: (data.vibeTags || []).map(t => t.toUpperCase()),
-    tags: data.hashtags || [],
+    tags: parsedHashtags,
     date: data.dateStr || '',
     no: String(data.cardNumber || 1).padStart(4, '0'),
   };
 
-  const caption = [data.message, ...(data.hashtags || [])].join(' ');
+  const caption = [editMessage, ...parsedHashtags].join(' ');
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -1053,11 +1062,63 @@ function Step3({ data, onBack, saving, saved, onClose }) {
             style={{ transformOrigin: 'top left', transform: `scale(${previewEnlarged ? 0.48 : 0.333})`, transition: 'transform 0.25s ease', display: 'block' }}
           />
         </div>
-        <button onClick={() => setPreviewEnlarged(v => !v)} className="font-bungee"
-          style={{ background: 'none', border: 'none', color: PB.muted, fontSize: 9, letterSpacing: '0.08em', cursor: 'pointer', padding: '4px 0' }}>
-          {previewEnlarged ? 'SHRINK' : 'ENLARGE'}
-        </button>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <button onClick={() => setPreviewEnlarged(v => !v)} className="font-bungee"
+            style={{ background: 'none', border: 'none', color: PB.muted, fontSize: 9, letterSpacing: '0.08em', cursor: 'pointer', padding: '4px 0' }}>
+            {previewEnlarged ? 'SHRINK' : 'ENLARGE'}
+          </button>
+          <button onClick={() => setShowEdit(v => !v)} className="font-bungee"
+            style={{ background: 'none', border: 'none', color: showEdit ? PB.coral : PB.muted, fontSize: 9, letterSpacing: '0.08em', cursor: 'pointer', padding: '4px 0' }}>
+            {showEdit ? 'HIDE EDITS' : 'EDIT POSTCARD'}
+          </button>
+        </div>
       </div>
+
+      {/* Inline edit panel */}
+      {showEdit && (
+        <div style={{ background: 'rgba(255,107,122,0.04)', border: `1px solid rgba(255,107,122,0.15)`, borderRadius: 10, padding: '12px 14px', marginBottom: 12 }}>
+          <label className="font-bungee" style={{ ...labelStyle, marginBottom: 4 }}>MESSAGE</label>
+          <div style={{ position: 'relative', marginBottom: 10 }}>
+            <textarea
+              value={editMessage}
+              onChange={e => setEditMessage(e.target.value.slice(0, MSG_LIMIT))}
+              style={{ ...inputStyle, resize: 'none', lineHeight: 1.5, paddingBottom: 22, height: 80, fontSize: 13 }}
+              onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+              onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+            />
+            <span className="font-bungee" style={{ position: 'absolute', bottom: 6, right: 10, fontSize: 8, color: editMessage.length >= MSG_LIMIT ? PB.coral : PB.muted }}>
+              {MSG_LIMIT - editMessage.length}
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+            <div>
+              <label className="font-bungee" style={{ ...labelStyle, marginBottom: 4 }}>YOUR NAME</label>
+              <input value={editAuthorName} onChange={e => setEditAuthorName(e.target.value)}
+                style={{ ...inputStyle, fontSize: 13 }}
+                onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+                onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+              />
+            </div>
+            <div>
+              <label className="font-bungee" style={{ ...labelStyle, marginBottom: 4 }}>
+                SIGN-OFF <span style={{ fontWeight: 400, fontSize: 8, color: PB.muted }}>OPTIONAL</span>
+              </label>
+              <input value={editSignOff} onChange={e => setEditSignOff(e.target.value)}
+                placeholder="Yours between the miles"
+                style={{ ...inputStyle, fontSize: 13 }}
+                onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+                onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+              />
+            </div>
+          </div>
+          <label className="font-bungee" style={{ ...labelStyle, marginBottom: 4 }}>HASHTAGS</label>
+          <input value={editHashtags} onChange={e => setEditHashtags(e.target.value)}
+            style={{ ...inputStyle, fontSize: 13 }}
+            onFocus={e => e.currentTarget.style.borderColor = PB.coral}
+            onBlur={e => e.currentTarget.style.borderColor = PB.inputBdr}
+          />
+        </div>
+      )}
 
       {/* Save status */}
       <div style={{ textAlign: 'center', padding: '10px 0', marginBottom: 12,
