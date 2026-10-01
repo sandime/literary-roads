@@ -1,5 +1,5 @@
 // JourneysPage.jsx — Curated literary road trips page.
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../config/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,6 +73,18 @@ const CATEGORY_DEFS = [
   { key: 'googie',           label: 'Googie Architecture', sub: 'Atomic age'          },
 ];
 
+// ── Dusk ramp palette (strip backgrounds by display index) ───────────────────
+const DUSK = ['#1B1F2A','#2a2234','#3a2640','#4d2d4c','#5E3A5A','#744a6c','#8a5670','#a0605a','#B96A3E'];
+const duskAt = (i) => DUSK[Math.min(i, DUSK.length - 1)];
+
+const DIFF_COLOR = { easy: '#40E0D0', moderate: '#F5A623', remote: '#FF4E00' };
+const diffColor  = (d) => { if (!d) return '#8a7d60'; return DIFF_COLOR[d.toLowerCase()] || '#8a7d60'; };
+
+const WORDMARK_GRADIENT = {
+  background: 'linear-gradient(90deg, #a06a94 0%, #c0607a 40%, #e0704a 75%, #F58128 100%)',
+  WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+};
+
 // ── Utility components ────────────────────────────────────────────────────────
 function RoadRule({ style = {} }) {
   return (
@@ -85,352 +97,324 @@ function RoadRule({ style = {} }) {
   );
 }
 
-// ── Stamp-album components ────────────────────────────────────────────────────
-function PostageBadge({ count, rotate = 8 }) {
-  return (
-    <div style={{
-      position: 'absolute', top: 8, right: 8, width: 38, height: 38,
-      borderRadius: '50%', background: 'rgba(255,248,231,0.95)',
-      border: `1.5px dashed ${P.orange}`,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      transform: `rotate(${rotate}deg)`,
-      fontFamily: 'Bungee, sans-serif', fontSize: 5.5, color: P.orange,
-      letterSpacing: '0.04em', textAlign: 'center', lineHeight: 1.15,
-      whiteSpace: 'pre-line',
-      boxShadow: '0 1px 0 rgba(0,0,0,0.4)',
-      zIndex: 2, pointerEvents: 'none',
-    }}>{`${count}\nROUTES`}</div>
-  );
-}
-
-function PosterCard({ cat, featured, onTap }) {
-  return (
-    <div onClick={() => onTap?.(cat.key)} style={{
-      position: 'relative', cursor: 'pointer',
-      background: '#0a0805',
-      padding: 6, paddingBottom: 38,
-      border: `1px solid ${P.border}`,
-      boxShadow: '0 2px 0 rgba(0,0,0,0.6), 0 6px 18px rgba(0,0,0,0.5)',
-      transform: featured ? 'rotate(-0.4deg)' : 'rotate(0.3deg)',
-    }}>
-      <div style={{
-        position: 'relative', width: '100%',
-        aspectRatio: featured ? '1.4' : '0.78',
-        overflow: 'hidden',
-        border: '1px solid #1a1810',
-      }}>
-        <PosterIllustration type={cat.key} />
-        {/* Type label overlay */}
-        <div style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0,
-          background: 'linear-gradient(180deg, transparent 0%, rgba(10,5,2,0.85) 70%, rgba(10,5,2,0.95) 100%)',
-          padding: featured ? '36px 14px 12px' : '20px 8px 8px',
-        }}>
-          <div style={{
-            fontFamily: 'Special Elite, serif',
-            fontSize: featured ? 9 : 7, color: P.gold,
-            letterSpacing: '0.2em', textTransform: 'uppercase',
-            marginBottom: 3,
-          }}>{cat.sub}</div>
-          <div style={{
-            fontFamily: 'Bungee, sans-serif',
-            fontSize: featured ? 22 : 13, color: P.cream,
-            letterSpacing: '0.02em', lineHeight: 0.95,
-            textShadow: '0 1px 0 #000',
-          }}>{cat.label.toUpperCase()}</div>
-        </div>
-        <PostageBadge count={cat.count} rotate={featured ? -10 : 8} />
-      </div>
-      {/* Perforated stamp footer */}
-      <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0, height: 32,
-        background: '#f4e4b0',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 10px',
-        borderTop: `1px dashed ${P.border}`,
-        backgroundImage: 'radial-gradient(circle at 4px 0, #0a0805 2.5px, transparent 2.5px), radial-gradient(circle at 4px 32px, #0a0805 2.5px, transparent 2.5px)',
-        backgroundSize: '8px 32px',
-        backgroundRepeat: 'repeat-x',
-      }}>
-        <span style={{
-          fontFamily: 'Special Elite, serif', fontSize: 9, color: '#3a2810',
-          letterSpacing: '0.12em', textTransform: 'uppercase',
-        }}>Literary Roads</span>
-        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.orange }}>→</span>
-      </div>
-    </div>
-  );
-}
-
-// ── Stamp-album landing ───────────────────────────────────────────────────────
-function JourneysLanding({ categories, featuredKey, onCategoryTap, onBack, onSecretRoom, onShowDayTrip, onShowFestivalTrip, totalRoutes }) {
-  const featuredCat = categories.find(c => c.key === featuredKey) || categories[0];
-  const restCats = categories.filter(c => c !== featuredCat);
-
-  return (
-    <div style={{
-      height: '100%', overflowY: 'auto', background: P.bg, color: P.cream,
-      backgroundImage: 'radial-gradient(rgba(255,78,0,0.04) 1px, transparent 1px)',
-      backgroundSize: '12px 12px',
-      position: 'relative',
-    }}>
-      {/* Journey cat — tour guide, upper-right corner */}
-      <style>{`
-        @keyframes journey-cat-bounce {
-          0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-8px); }
-        }
-      `}</style>
-      <img
-        src={JOURNEY_CAT_SRC}
-        alt=""
-        onClick={onSecretRoom}
-        onError={e => { e.currentTarget.style.display = 'none'; }}
-        style={{
-          position: 'absolute', top: 56, right: 12,
-          height: 96, cursor: 'pointer', zIndex: 101,
-          animation: 'journey-cat-bounce 1.6s ease-in-out infinite',
-          filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.5))',
-        }}
-      />
-
-      {/* Sticky nav */}
-      <div style={{
-        background: P.navBg, borderBottom: `1px solid ${P.border}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', position: 'sticky', top: 0, zIndex: 100, height: 48,
-      }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal,
-          letterSpacing: '0.06em', padding: 0,
-        }}>← MAP</button>
-        <span style={{
-          fontFamily: 'Bungee, sans-serif', fontSize: 12, color: P.teal,
-          letterSpacing: '0.06em',
-          textShadow: '0 0 8px rgba(64,224,208,0.5)',
-        }}>LITERARY ROADS</span>
-        <div style={{ width: 40 }} />
-      </div>
-
-      <div style={{ padding: '20px 14px 60px' }}>
-        {/* Header */}
-        <div style={{ marginBottom: 18 }}>
-          <div style={{
-            fontFamily: 'Special Elite, serif', fontSize: 9, color: P.teal,
-            letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4,
-          }}>Plan your next adventure</div>
-          <h1 style={{
-            fontFamily: 'Bungee, sans-serif', fontSize: 38,
-            color: P.teal, margin: '0 0 6px', lineHeight: 0.95,
-            letterSpacing: '0.04em',
-            textShadow: '0 0 20px rgba(64,224,208,0.55)',
-          }}>JOURNEY<span style={{ color: P.orange }}>S</span></h1>
-          <p style={{
-            fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted,
-            margin: 0, lineHeight: 1.5, maxWidth: '88%',
-          }}>A stamp-album of curated American road trips — pick a postcard.</p>
-        </div>
-
-        <RoadRule style={{ marginBottom: 18, opacity: 0.6 }} />
-
-        {/* Featured poster */}
-        {featuredCat && (
-          <div style={{ marginBottom: 22 }}>
-            <PosterCard cat={featuredCat} featured onTap={onCategoryTap} />
-          </div>
-        )}
-
-        {/* The Collection divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-          <div style={{ flex: 1, height: 1, background: P.border }} />
-          <span style={{
-            fontFamily: 'Special Elite, serif', fontSize: 9, color: P.muted,
-            letterSpacing: '0.25em', textTransform: 'uppercase',
-          }}>The Collection</span>
-          <div style={{ flex: 1, height: 1, background: P.border }} />
-        </div>
-
-        {/* 2-column grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          {restCats.map((cat, i) => (
-            <div key={cat.key} style={{ transform: `rotate(${i % 2 === 0 ? 0.6 : -0.5}deg)` }}>
-              <PosterCard cat={cat} onTap={onCategoryTap} />
-            </div>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div style={{ marginTop: 28, textAlign: 'center' }}>
-          <div style={{
-            fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
-            fontStyle: 'italic', letterSpacing: '0.04em',
-          }}>~ choose your road ~</div>
-          {/* Route count + Day/Festival Trip links */}
-          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted }}>
-              {totalRoutes} {totalRoutes === 1 ? 'route' : 'routes'}
-            </span>
-            <div style={{ display: 'flex', gap: 14 }}>
-              {onShowDayTrip && (
-                <button onClick={onShowDayTrip} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
-                }}>Day Trip →</button>
-              )}
-              {onShowFestivalTrip && (
-                <button onClick={onShowFestivalTrip} style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted,
-                }}>Festival Trip →</button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Route card (category view) ────────────────────────────────────────────────
-function RouteCard({ route, onExplore }) {
-  const stops = route.stops || [];
-  const books = Array.isArray(route.readingList) ? route.readingList.filter(b => b.title) : [];
-  const blurb = books[0]?.title
-    ? `"${books[0].title}"${books[0].author ? ` — ${books[0].author}` : ''}`
-    : (route.description ? route.description.slice(0, 80) + (route.description.length > 80 ? '…' : '') : '');
-
+// ── Desktop route card (hover state) ─────────────────────────────────────────
+function DesktopRouteCard({ route, stateLbl, stops, book, onExplore }) {
+  const [hovered, setHovered] = useState(false);
   return (
     <div
       onClick={() => onExplore(route)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       style={{
-        background: P.card, border: `1px solid ${P.border}`,
-        borderRadius: 4, overflow: 'hidden', marginBottom: 12,
-        display: 'grid', gridTemplateColumns: '110px 1fr',
+        background: P.card, border: `1px solid ${hovered ? '#8a5670' : P.border}`,
+        borderRadius: 6, padding: '18px 20px',
+        display: 'flex', flexDirection: 'column', gap: 8,
         cursor: 'pointer',
+        transform: hovered ? 'translateY(-2px)' : 'none',
+        transition: 'transform 150ms cubic-bezier(.2,.8,.2,1), border-color 150ms cubic-bezier(.2,.8,.2,1)',
       }}
     >
-      <div style={{ height: '100%', minHeight: 110, position: 'relative' }}>
-        <PosterIllustration type={route.routeType} />
+      <div style={{ fontFamily: 'Special Elite, serif', fontSize: 9, color: P.gold, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+        {[stateLbl, route.duration].filter(Boolean).join(' · ')}
       </div>
-      <div style={{ padding: '12px 14px' }}>
+      <div style={{ fontFamily: 'Georgia, serif', fontSize: 18, lineHeight: 1.25, color: P.cream }}>
+        {route.name}
+      </div>
+      <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted }}>
+        {stops > 0 && `${stops} stop${stops !== 1 ? 's' : ''}`}
+        {stops > 0 && route.difficulty && ' · '}
+        {route.difficulty && <span style={{ color: diffColor(route.difficulty) }}>{route.difficulty}</span>}
+      </div>
+      {book && (
         <div style={{
-          fontFamily: 'Special Elite, serif', fontSize: 8, color: P.gold,
-          letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 4,
+          fontFamily: 'Georgia, serif', fontSize: 12, lineHeight: 1.4,
+          fontStyle: 'italic', color: P.muted,
+          borderTop: `1px solid ${P.border}`, paddingTop: 8,
         }}>
-          {[route.state, route.duration].filter(Boolean).join(' · ')}
+          "{book.title}"{book.author ? ` — ${book.author}` : ''}
         </div>
-        <h3 style={{
-          fontFamily: 'Georgia, serif', fontSize: 15, color: P.cream,
-          margin: '0 0 6px', lineHeight: 1.2,
-        }}>{route.name}</h3>
-        {blurb && (
-          <p style={{
-            fontFamily: 'Georgia, serif', fontSize: 11, color: P.muted,
-            fontStyle: 'italic', lineHeight: 1.45, margin: '0 0 10px',
-          }}>{blurb}</p>
-        )}
-        <div style={{ display: 'flex', gap: 7, alignItems: 'center', flexWrap: 'wrap' }}>
-          {stops.length > 0 && (
-            <span style={{
-              fontFamily: 'Bungee, sans-serif', fontSize: 7, color: P.orange,
-              letterSpacing: '0.08em', padding: '3px 6px',
-              border: `1px solid ${P.orange}`, borderRadius: 2,
-            }}>{stops.length} STOPS</span>
-          )}
-          {route.difficulty && (
-            <span style={{
-              fontFamily: 'Bungee, sans-serif', fontSize: 7, color: P.teal,
-              letterSpacing: '0.08em', padding: '3px 6px',
-              border: `1px solid ${P.teal}`, borderRadius: 2,
-            }}>{route.difficulty.toUpperCase()}</span>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
 
-// ── Category view ─────────────────────────────────────────────────────────────
-function CategoryView({ categoryKey, routes, stateFilter, onStateFilter, onExplore, onBack }) {
-  const label = TYPE_LABEL[categoryKey] || categoryKey;
-  const states = useMemo(() => [...new Set(routes.map(r => r.state).filter(Boolean))].sort(), [routes]);
+// ── Mobile accordion ──────────────────────────────────────────────────────────
+function JourneysAccordion({ categories, routes, filter, stateFilter, onSelectCategory, onStateFilter, onExplore, onBack }) {
+  const containerRef = useRef(null);
+  const stripRefs    = useRef([]);
+
+  const totalRoutes = routes.length;
+
+  const handleStripClick = (key, idx) => {
+    const newFilter = filter === key ? null : key;
+    onSelectCategory(newFilter);
+    onStateFilter('');
+    if (newFilter !== null && containerRef.current && stripRefs.current[idx]) {
+      const container = containerRef.current;
+      const strip     = stripRefs.current[idx];
+      setTimeout(() => {
+        const containerRect = container.getBoundingClientRect();
+        const stripRect     = strip.getBoundingClientRect();
+        const offset = stripRect.top - containerRect.top + container.scrollTop - 56;
+        container.scrollTo({ top: Math.max(0, offset), behavior: 'smooth' });
+      }, 10);
+    }
+  };
 
   return (
-    <div style={{ height: '100%', overflowY: 'auto', background: P.bg, color: P.cream }}>
+    <div ref={containerRef} style={{ height: '100%', overflowY: 'auto', background: P.bg, color: P.cream }}>
       {/* Nav */}
       <div style={{
         background: P.navBg, borderBottom: `1px solid ${P.border}`,
-        display: 'flex', alignItems: 'center', padding: '0 16px',
-        position: 'sticky', top: 0, zIndex: 100, height: 48,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 16px', position: 'sticky', top: 0, zIndex: 5, height: 48,
       }}>
-        <button onClick={onBack} style={{
-          background: 'none', border: 'none', cursor: 'pointer',
-          fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal,
-          letterSpacing: '0.06em', padding: 0,
-        }}>← JOURNEYS</button>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Bungee, sans-serif', fontSize: 10, color: P.teal, letterSpacing: '0.06em', padding: 0 }}>← MAP</button>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: P.teal, letterSpacing: '0.06em', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>LITERARY ROADS</span>
+        <div style={{ width: 40 }} />
       </div>
 
-      {/* Hero poster */}
-      <div style={{ position: 'relative', height: 200, overflow: 'hidden' }}>
-        <PosterIllustration type={categoryKey} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(180deg, transparent 30%, rgba(28,26,20,0.5) 60%, #1C1A14 100%)',
-        }} />
-        <div style={{ position: 'absolute', bottom: 14, left: 16, right: 16 }}>
-          <div style={{
-            fontFamily: 'Special Elite, serif', fontSize: 9, color: P.gold,
-            letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 4,
-          }}>The Collection</div>
-          <h1 style={{
-            fontFamily: 'Bungee, sans-serif', fontSize: 26, color: P.cream,
-            margin: 0, letterSpacing: '0.03em', lineHeight: 1,
-            textShadow: '0 2px 0 #000',
-          }}>{label.toUpperCase()}</h1>
-        </div>
+      {/* Header */}
+      <div style={{ padding: '16px 16px 12px', display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 }}>
+        <h1 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 30, lineHeight: 1, letterSpacing: '0.04em', margin: 0, ...WORDMARK_GRADIENT }}>JOURNEYS</h1>
+        <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted, letterSpacing: '0.06em', flexShrink: 0 }}>
+          {categories.length} collections · {totalRoutes} routes
+        </span>
       </div>
 
-      <div style={{ padding: '18px 14px 60px' }}>
-        {/* State filter chips */}
-        <div style={{
-          display: 'flex', gap: 8, overflowX: 'auto', marginBottom: 18, paddingBottom: 4,
-          msOverflowStyle: 'none', scrollbarWidth: 'none',
-        }}>
-          {['All States', ...states].map((s, i) => {
-            const active = i === 0 ? stateFilter === '' : stateFilter === s;
-            return (
-              <button key={s} onClick={() => onStateFilter(i === 0 ? '' : s)} style={{
-                flexShrink: 0, padding: '6px 12px', borderRadius: 16,
-                fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.08em',
-                background: active ? P.orange : 'transparent',
-                color: active ? '#fff' : P.muted,
-                border: active ? 'none' : `1px solid ${P.border}`,
-                cursor: 'pointer', whiteSpace: 'nowrap',
-              }}>{s.toUpperCase()}</button>
-            );
-          })}
-        </div>
+      {/* Category strips */}
+      {categories.map((cat, idx) => {
+        const isOpen = filter === cat.key;
+        const catRoutes = routes.filter(r =>
+          cat.key === 'roadTrip'
+            ? (r.routeType === 'roadTrip' || r.routeType === 'route66')
+            : r.routeType === cat.key
+        );
+        const states       = [...new Set(catRoutes.map(r => r.state).filter(Boolean))].sort();
+        const hasMulti     = catRoutes.some(r => r.state && r.state.includes(','));
+        const visibleRoutes = stateFilter === ''          ? catRoutes :
+                              stateFilter === 'Multi-state' ? catRoutes.filter(r => r.state?.includes(',')) :
+                              catRoutes.filter(r => r.state === stateFilter);
 
-        {/* Route count rule */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{
-            fontFamily: 'Special Elite, serif', fontSize: 10, color: P.muted, letterSpacing: '0.1em',
-          }}>{routes.length} ROUTE{routes.length !== 1 ? 'S' : ''}</span>
-          <div style={{
-            flex: 1, height: 1,
-            background: 'repeating-linear-gradient(90deg, #FF4E00 0, #FF4E00 6px, transparent 6px, transparent 12px)',
-            opacity: 0.5,
-          }} />
-        </div>
+        return (
+          <div key={cat.key} ref={el => { stripRefs.current[idx] = el; }}>
+            {/* Strip */}
+            <div
+              onClick={() => handleStripClick(cat.key, idx)}
+              style={{
+                height: 60, background: duskAt(idx), padding: '0 16px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 12, cursor: 'pointer',
+              }}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 8, color: P.cream, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{cat.sub}</span>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 14, lineHeight: 1, color: P.cream }}>{cat.label.toUpperCase()}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.cream }}>{cat.count} routes</span>
+                <div style={{
+                  width: 22, height: 22, borderRadius: '50%', border: `1px solid ${P.cream}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.cream,
+                }}>{isOpen ? '–' : '+'}</div>
+              </div>
+            </div>
 
-        {routes.length === 0 ? (
-          <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted, padding: '32px 0', textAlign: 'center' }}>
-            No routes yet in this collection.
+            {/* Expanded panel */}
+            {isOpen && (
+              <div style={{ background: P.bg, padding: '12px 0 6px', borderBottom: `2px solid ${duskAt(idx)}` }}>
+                {/* State chips */}
+                <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', padding: '0 16px 6px' }}>
+                  {['All states', ...(hasMulti ? ['Multi-state'] : []), ...states].map(s => {
+                    const active = s === 'All states' ? stateFilter === '' : stateFilter === s;
+                    return (
+                      <button
+                        key={s}
+                        onClick={e => { e.stopPropagation(); onStateFilter(active || s === 'All states' ? '' : s); }}
+                        style={{
+                          flex: 'none', padding: '5px 10px', borderRadius: 14,
+                          fontFamily: 'Bungee, sans-serif', fontSize: 8, letterSpacing: '0.08em',
+                          background: active ? P.orange : 'transparent',
+                          color: active ? '#fff' : P.muted,
+                          border: active ? 'none' : `1px solid ${P.border}`,
+                          cursor: 'pointer', textTransform: 'uppercase', whiteSpace: 'nowrap',
+                        }}
+                      >{s}</button>
+                    );
+                  })}
+                </div>
+
+                {/* Route rows */}
+                {visibleRoutes.length === 0 ? (
+                  <p style={{ fontFamily: 'Georgia, serif', fontSize: 11, color: P.muted, fontStyle: 'italic', padding: '12px 16px', margin: 0 }}>
+                    Your road's clear here. Try another state.
+                  </p>
+                ) : visibleRoutes.map(r => {
+                  const stops   = r.stops?.length || 0;
+                  const stateLbl = (r.state && r.state.includes(',')) ? 'Multi-state' : r.state;
+                  const meta    = [stateLbl, r.duration, stops > 0 ? `${stops} stop${stops !== 1 ? 's' : ''}` : null].filter(Boolean);
+                  const book    = Array.isArray(r.readingList) ? r.readingList.find(b => b.title) : null;
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => onExplore(r)}
+                      style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 10, alignItems: 'center', padding: '10px 16px', borderTop: `1px solid ${P.border}`, cursor: 'pointer' }}
+                    >
+                      <div>
+                        <div style={{ fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.25, color: P.cream, marginBottom: 2 }}>{r.name}</div>
+                        <div style={{ fontFamily: 'Special Elite, serif', fontSize: 9, color: P.muted, letterSpacing: '0.06em', marginBottom: book ? 2 : 0 }}>
+                          {meta.join(' · ')}
+                          {r.difficulty && <span> · <span style={{ color: diffColor(r.difficulty) }}>{r.difficulty}</span></span>}
+                        </div>
+                        {book && <div style={{ fontFamily: 'Georgia, serif', fontSize: 11, color: P.muted, fontStyle: 'italic' }}>"{book.title}"</div>}
+                      </div>
+                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 12, color: P.teal }}>›</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        ) : (
-          routes.map(r => <RouteCard key={r.id} route={r} onExplore={onExplore} />)
-        )}
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Desktop rail + panel ──────────────────────────────────────────────────────
+function JourneysDesktop({ categories, routes, filter, stateFilter, onSelectCategory, onStateFilter, onExplore, onBack }) {
+  const selectedIdx = categories.findIndex(c => c.key === filter);
+  const selectedCat = categories[Math.max(selectedIdx, 0)];
+
+  const catRoutes = useMemo(() => routes.filter(r =>
+    filter === 'roadTrip'
+      ? (r.routeType === 'roadTrip' || r.routeType === 'route66')
+      : r.routeType === filter
+  ), [routes, filter]);
+
+  const states    = useMemo(() => [...new Set(catRoutes.map(r => r.state).filter(Boolean))].sort(), [catRoutes]);
+  const hasMulti  = catRoutes.some(r => r.state?.includes(','));
+
+  const visibleRoutes = useMemo(() => {
+    if (!stateFilter) return catRoutes;
+    if (stateFilter === 'Multi-state') return catRoutes.filter(r => r.state?.includes(','));
+    return catRoutes.filter(r => r.state === stateFilter);
+  }, [catRoutes, stateFilter]);
+
+  return (
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: P.bg, color: P.cream }}>
+      {/* Nav */}
+      <div style={{
+        height: 56, background: P.navBg, borderBottom: `1px solid ${P.border}`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 48px', flexShrink: 0,
+      }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.teal, letterSpacing: '0.06em', padding: 0 }}>← MAP</button>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 14, color: P.teal, letterSpacing: '0.06em', textShadow: '0 0 8px rgba(64,224,208,0.5)' }}>LITERARY ROADS</span>
+        <div style={{ width: 60 }} />
+      </div>
+
+      {/* Body */}
+      <div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', padding: '32px 48px 0', gap: 24, overflow: 'hidden' }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 24, flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: P.muted, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Plan your next adventure</span>
+            <h1 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 56, lineHeight: 0.95, letterSpacing: '0.04em', margin: 0, ...WORDMARK_GRADIENT }}>JOURNEYS</h1>
+          </div>
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: P.muted, paddingBottom: 6 }}>
+            {categories.length} collections · {routes.length} routes
+          </span>
+        </div>
+
+        {/* Columns */}
+        <div style={{ display: 'grid', gridTemplateColumns: '360px minmax(0,1fr)', gap: 32, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          {/* Left rail */}
+          <div style={{ overflowY: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', borderRadius: '8px 8px 0 0' }}>
+            {categories.map((cat, idx) => {
+              const isSelected = cat.key === filter;
+              return (
+                <div
+                  key={cat.key}
+                  onClick={() => onSelectCategory(cat.key)}
+                  style={{
+                    height: 62, background: duskAt(idx), padding: '0 18px 0 20px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? 'inset 5px 0 0 #FFF8E7' : 'none',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <span style={{ fontFamily: 'Special Elite, serif', fontSize: 8, color: P.cream, letterSpacing: '0.2em', textTransform: 'uppercase' }}>{cat.sub}</span>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 14, lineHeight: 1, color: P.cream }}>{cat.label.toUpperCase()}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.cream }}>{cat.count} routes</span>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: P.cream, width: 12, textAlign: 'center' }}>
+                      {isSelected ? '●' : '›'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Right panel */}
+          <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 18, paddingBottom: 32 }}>
+            {/* Panel header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingBottom: 16, borderBottom: `2px solid ${duskAt(Math.max(selectedIdx, 0))}`, flexShrink: 0 }}>
+              <div>
+                <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: P.gold, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 4 }}>
+                  The Collection · {selectedCat?.sub}
+                </div>
+                <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 32, lineHeight: 1, color: P.cream, margin: 0 }}>
+                  {(selectedCat?.label || '').toUpperCase()}
+                </h2>
+              </div>
+              <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: P.cream, paddingBottom: 4 }}>
+                {catRoutes.length} routes
+              </span>
+            </div>
+
+            {/* State chips */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, padding: '0 0 6px', flexShrink: 0 }}>
+              {['All states', ...(hasMulti ? ['Multi-state'] : []), ...states].map(s => {
+                const active = s === 'All states' ? !stateFilter : stateFilter === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => onStateFilter(s === 'All states' ? '' : s)}
+                    style={{
+                      padding: '5px 10px', borderRadius: 14,
+                      fontFamily: 'Bungee, sans-serif', fontSize: 9, letterSpacing: '0.08em',
+                      background: active ? P.orange : 'transparent',
+                      color: active ? '#fff' : P.muted,
+                      border: active ? 'none' : `1px solid ${P.border}`,
+                      cursor: 'pointer', textTransform: 'uppercase',
+                    }}
+                  >{s}</button>
+                );
+              })}
+            </div>
+
+            {/* Route grid */}
+            {visibleRoutes.length === 0 ? (
+              <p style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: P.muted, fontStyle: 'italic' }}>
+                Your road's clear here. Try another state.
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 14 }}>
+                {visibleRoutes.map(r => {
+                  const stops   = r.stops?.length || 0;
+                  const stateLbl = (r.state && r.state.includes(',')) ? 'Multi-state' : r.state;
+                  const book    = Array.isArray(r.readingList) ? r.readingList.find(b => b.title) : null;
+                  return <DesktopRouteCard key={r.id} route={r} stateLbl={stateLbl} stops={stops} book={book} onExplore={onExplore} />;
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1042,50 +1026,40 @@ function RouteDetail({ route, onBack, isMobile, user, onShowLogin }) {
 }
 
 // ── Main page ─────────────────────────────────────────────────────────────────
-export default function JourneysPage({
-  onBack,
-  onShowDayTrip,
-  onShowFestivalTrip,
-  onShowLogin,
-}) {
+export default function JourneysPage({ onBack, onShowDayTrip, onShowFestivalTrip, onShowLogin }) {
   const { user } = useAuth();
   const [routes, setRoutes]           = useState([]);
-  const [featured, setFeatured]       = useState(null);
   const [loading, setLoading]         = useState(true);
   const [filter, setFilter]           = useState(null);
   const [stateFilter, setStateFilter] = useState('');
-  const navigate_    = useNavigate();
-  const location_    = useLocation();
   const [showSecretRoom, setShowSecretRoom] = useState(false);
+  const [isDesktop, setIsDesktop]     = useState(() => typeof window !== 'undefined' && window.innerWidth >= 900);
+
+  const navigate_ = useNavigate();
+  const location_ = useLocation();
 
   const journeySubPath = location_.pathname.replace(/^\/journeys\/?/, '').split('?')[0];
   const detail = journeySubPath ? (location_.state?.route ?? null) : null;
 
-  const openDetail  = useCallback((route) => {
-    navigate_(`/journeys/${route.id}`, { state: { route } });
-  }, [navigate_]);
+  const openDetail  = useCallback((route) => navigate_(`/journeys/${route.id}`, { state: { route } }), [navigate_]);
   const closeDetail = useCallback(() => navigate_(-1), [navigate_]);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 900px)');
+    const handler = e => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const loadRoutes = useCallback(async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(query(
-        collection(db, 'curatedRoutes'),
-        where('active', '==', true),
-      ));
-      const all = snap.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-
-      setRoutes(all);
-
-      const featuredRoutes = all.filter(r => r.featured);
-      const sorted = featuredRoutes.length > 0
-        ? [...featuredRoutes].sort((a, b) => (b.updatedAt?.toMillis?.() || 0) - (a.updatedAt?.toMillis?.() || 0))
-        : all;
-      if (sorted.length > 0) setFeatured(sorted[0]);
+      const snap = await getDocs(query(collection(db, 'curatedRoutes'), where('active', '==', true)));
+      setRoutes(
+        snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0))
+      );
     } catch (err) {
       console.error('[JourneysPage] load routes failed:', err);
     } finally { setLoading(false); }
@@ -1093,95 +1067,61 @@ export default function JourneysPage({
 
   useEffect(() => { loadRoutes(); }, [loadRoutes]);
 
-  // Route counts per category key
   const countsByType = useMemo(() => {
     const counts = {};
-    routes.forEach(r => {
-      if (!r.routeType) return;
-      counts[r.routeType] = (counts[r.routeType] || 0) + 1;
-    });
-    // roadTrip filter also shows route66 routes
+    routes.forEach(r => { if (r.routeType) counts[r.routeType] = (counts[r.routeType] || 0) + 1; });
     counts['roadTrip'] = (counts['roadTrip'] || 0) + (counts['route66'] || 0);
     return counts;
   }, [routes]);
 
-  // Routes filtered by current category + state
-  const filteredRoutes = useMemo(() => routes.filter(r => {
-    if (filter !== null) {
-      const typeMatch = filter === 'roadTrip'
-        ? (r.routeType === 'roadTrip' || r.routeType === 'route66')
-        : r.routeType === filter;
-      if (!typeMatch) return false;
-    }
-    if (stateFilter && r.state !== stateFilter) return false;
-    return true;
-  }), [routes, filter, stateFilter]);
+  const categoriesWithCounts = useMemo(() =>
+    CATEGORY_DEFS.map(c => ({ ...c, count: countsByType[c.key] || 0 })),
+    [countsByType]
+  );
 
-  const selectFilter = (key) => {
-    setFilter(key);
-    setStateFilter('');
-  };
+  const selectFilter = (key) => { setFilter(key); setStateFilter(''); };
 
-  // ── Detail view ───────────────────────────────────────────────────────────
+  // Desktop: default to first category; mobile: null = all closed
+  const effectiveFilter = useMemo(() => {
+    if (!isDesktop) return filter;
+    if (filter !== null) return filter;
+    return categoriesWithCounts.find(c => c.count > 0)?.key || categoriesWithCounts[0]?.key || null;
+  }, [isDesktop, filter, categoriesWithCounts]);
+
   if (detail) {
     return (
       <RouteDetail
         route={detail}
         onBack={closeDetail}
-        isMobile={isMobile}
+        isMobile={!isDesktop}
         user={user}
         onShowLogin={onShowLogin}
       />
     );
   }
 
-  // ── Category definitions with live counts ─────────────────────────────────
-  const categoriesWithCounts = CATEGORY_DEFS.map(c => ({
-    ...c,
-    count: countsByType[c.key] || 0,
-  }));
+  const sharedProps = {
+    categories: categoriesWithCounts,
+    routes,
+    filter: effectiveFilter,
+    stateFilter,
+    onSelectCategory: selectFilter,
+    onStateFilter: setStateFilter,
+    onExplore: openDetail,
+    onBack,
+    loading,
+  };
 
-  // ── Landing ───────────────────────────────────────────────────────────────
-  if (filter === null) {
-    return (
-      <div style={{ height: '100vh', position: 'relative', background: P.bg }}>
-        {loading ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted }}>Loading routes…</span>
-          </div>
-        ) : (
-          <JourneysLanding
-            categories={categoriesWithCounts}
-            featuredKey={featured?.routeType}
-            onCategoryTap={selectFilter}
-            onBack={onBack}
-            onSecretRoom={() => setShowSecretRoom(true)}
-            onShowDayTrip={onShowDayTrip}
-            onShowFestivalTrip={onShowFestivalTrip}
-            totalRoutes={routes.length}
-          />
-        )}
-        {showSecretRoom && <SecretRoom onClose={() => setShowSecretRoom(false)} />}
-      </div>
-    );
-  }
-
-  // ── Category view ─────────────────────────────────────────────────────────
   return (
-    <div style={{ height: '100vh', position: 'relative', background: P.bg }}>
+    <div style={{ height: '100vh', background: P.bg }}>
       {loading ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <span style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: P.muted }}>Loading routes…</span>
         </div>
+      ) : isDesktop ? (
+        <JourneysDesktop {...sharedProps} />
       ) : (
-        <CategoryView
-          categoryKey={filter}
-          routes={filteredRoutes}
-          stateFilter={stateFilter}
-          onStateFilter={setStateFilter}
-          onExplore={openDetail}
-          onBack={() => setFilter(null)}
-        />
+        <JourneysAccordion {...sharedProps} />
       )}
       {showSecretRoom && <SecretRoom onClose={() => setShowSecretRoom(false)} />}
     </div>

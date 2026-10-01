@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="_ds/literary-roads-design-system-019de4e0-8c59-76cf-b575-ced2dbcce369/colors_and_type.css">
+<link rel="stylesheet" href="_ds/literary-roads-design-system-019de4e0-8c59-76cf-b575-ced2dbcce369/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&display=swap">
+<script src="_ds/literary-roads-design-system-019de4e0-8c59-76cf-b575-ced2dbcce369/_ds_bundle.js"></script>
+<style>body{margin:0;background:#f0eee9;font-family:system-ui,sans-serif}a{color:#1a1a1a}a:hover{color:#F03A8E}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 8px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}</style>
+</helmet>
+<section class="dv-turn" id="t4">
+<div class="dv-thd"><a class="dv-tid" href="#t4">4</a><span class="dv-tname">Desktop — <a class="dv-oid" href="#2b">2b</a> + <a class="dv-oid" href="#3b">3b</a> at 1280px</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="4a">
+<div class="dv-olabel"><a class="dv-oid" href="#4a">4a</a>Rail + panel — strips become a left rail; the chosen collection fills the right (click a strip)</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px">
+<div style="width:1280px;height:820px;border-radius:12px;overflow:hidden;background:#1C1A14;color:#FFF8E7;box-shadow:0 10px 30px rgba(0,0,0,.25);display:flex;flex-direction:column">
+<div style="height:56px;flex:none;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 48px">
+<span style="font-family:Bungee,sans-serif;font-size:11px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:14px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:60px"></span>
+</div>
+<div style="flex:1;min-height:0;display:flex;flex-direction:column;padding:32px 48px 0;gap:24px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-family:'Special Elite',serif;font-size:11px;color:#8a7d60;letter-spacing:.2em;text-transform:uppercase">Plan your next adventure</span>
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:56px;line-height:.95;letter-spacing:.04em;background:linear-gradient(90deg,#a06a94 0%,#c0607a 40%,#e0704a 75%,#F58128 100%);-webkit-background-clip:text;background-clip:text;color:transparent">JOURNEYS</h1>
+</div>
+<span style="font-family:'Special Elite',serif;font-size:12px;color:#8a7d60;letter-spacing:.06em;padding-bottom:6px">9 collections · 49 routes</span>
+</div>
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:360px minmax(0,1fr);gap:32px">
+<div style="overflow-y:auto;scrollbar-width:none;border-radius:8px 8px 0 0">
+<sc-for list="{{ catsF }}" as="c" hint-placeholder-count="9">
+<div onClick="{{ c.select }}" style="height:62px;background:{{ c.bg }};box-shadow:{{ c.shadow }};display:flex;align-items:center;justify-content:space-between;padding:0 18px 0 20px;gap:12px;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span><span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span></div>
+<div style="display:flex;align-items:center;gap:12px"><span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span><span style="font-family:Bungee,sans-serif;font-size:11px;color:#FFF8E7;width:12px;text-align:center">{{ c.mark }}</span></div>
+</div>
+</sc-for>
+</div>
+<div style="overflow-y:auto;display:flex;flex-direction:column;gap:18px;padding-bottom:32px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding-bottom:16px;border-bottom:2px solid {{ selF.hue }}">
+<div style="display:flex;flex-direction:column;gap:6px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#F5A623;letter-spacing:.25em;text-transform:uppercase">The Collection · {{ selF.sub }}</span>
+<h2 style="margin:0;font-family:Bungee,sans-serif;font-size:32px;line-height:1;color:#FFF8E7">{{ selF.labelU }}</h2>
+</div>
+<span style="font-family:'Special Elite',serif;font-size:12px;color:#FFF8E7">{{ selF.count }} routes</span>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="padding:6px 12px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">ALL STATES</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">NEVADA</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">WEST VIRGINIA</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">ARIZONA</span>
+</div>
+<sc-if value="{{ selF.isUfo }}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+<sc-for list="{{ routes }}" as="r" hint-placeholder-count="4">
+<div style="background:#252318;border:1px solid #2a2820;border-radius:6px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;cursor:pointer" style-hover="border-color:#8a5670;transform:translateY(-2px)">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.18em;text-transform:uppercase">{{ r.meta }}</span>
+<span style="font-family:Georgia,serif;font-size:18px;line-height:1.25;color:#FFF8E7;text-wrap:pretty">{{ r.name }}</span>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">{{ r.stops }} stops · <span style="color:{{ r.dColor }}">{{ r.diff }}</span></span>
+<span style="font-family:Georgia,serif;font-size:12px;line-height:1.4;color:#8a7d60;font-style:italic;border-top:1px solid #2a2820;padding-top:8px;margin-top:2px">“{{ r.book }}” — {{ r.author }}</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ selF.notUfo }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-family:Georgia,serif;font-size:13px;font-style:italic;color:#8a7d60">Sample routes are only filled in for UFO &amp; Paranormal.</p>
+</sc-if>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="4b">
+<div class="dv-olabel"><a class="dv-oid" href="#4b">4b</a>Wide accordion — same as mobile; an open strip reveals routes in a four-across row</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px">
+<div style="width:1280px;height:820px;border-radius:12px;overflow:hidden;background:#1C1A14;color:#FFF8E7;box-shadow:0 10px 30px rgba(0,0,0,.25)">
+<div style="height:100%;overflow-y:auto">
+<div style="height:56px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 48px;position:sticky;top:0;z-index:5">
+<span style="font-family:Bungee,sans-serif;font-size:11px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:14px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:60px"></span>
+</div>
+<div style="max-width:1184px;margin:0 auto;padding:32px 0 48px">
+<div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-family:'Special Elite',serif;font-size:11px;color:#8a7d60;letter-spacing:.2em;text-transform:uppercase">Plan your next adventure</span>
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:56px;line-height:.95;letter-spacing:.04em;background:linear-gradient(90deg,#a06a94 0%,#c0607a 40%,#e0704a 75%,#F58128 100%);-webkit-background-clip:text;background-clip:text;color:transparent">JOURNEYS</h1>
+</div>
+<span style="font-family:'Special Elite',serif;font-size:12px;color:#8a7d60;letter-spacing:.06em;padding-bottom:6px">9 collections · 49 routes</span>
+</div>
+<div style="border-radius:8px;overflow:hidden">
+<sc-for list="{{ catsG }}" as="c" hint-placeholder-count="9">
+<div>
+<div onClick="{{ c.toggle }}" style="height:64px;background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:12px;cursor:pointer">
+<div style="display:flex;align-items:baseline;gap:18px"><span style="font-family:Bungee,sans-serif;font-size:17px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span><span style="font-family:'Special Elite',serif;font-size:9px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span></div>
+<div style="display:flex;align-items:center;gap:14px"><span style="font-family:'Special Elite',serif;font-size:11px;color:#FFF8E7">{{ c.count }} routes</span><span style="width:24px;height:24px;border-radius:50%;border:1px solid #FFF8E7;color:#FFF8E7;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:12px">{{ c.sign }}</span></div>
+</div>
+<sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+<div style="padding:18px 24px 22px;background:#171510;border-bottom:2px solid {{ c.hue }};display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<span style="padding:6px 12px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">ALL STATES</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">NEVADA</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">WEST VIRGINIA</span>
+<span style="padding:6px 12px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:9px;letter-spacing:.08em">ARIZONA</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+<sc-for list="{{ c.routes }}" as="r" hint-placeholder-count="0">
+<div style="background:#252318;border:1px solid #2a2820;border-radius:6px;padding:14px 16px;display:flex;flex-direction:column;gap:7px;cursor:pointer" style-hover="border-color:#8a5670;transform:translateY(-2px)">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.16em;text-transform:uppercase">{{ r.meta }}</span>
+<span style="font-family:Georgia,serif;font-size:15px;line-height:1.25;color:#FFF8E7;text-wrap:pretty">{{ r.name }}</span>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60">{{ r.stops }} stops · <span style="color:{{ r.dColor }}">{{ r.diff }}</span></span>
+<span style="font-family:Georgia,serif;font-size:11px;line-height:1.4;color:#8a7d60;font-style:italic;margin-top:auto;border-top:1px solid #2a2820;padding-top:7px">“{{ r.book }}” — {{ r.author }}</span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ c.noRoutes }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-family:Georgia,serif;font-size:12px;font-style:italic;color:#8a7d60">Sample routes are only filled in for UFO &amp; Paranormal.</p>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "<a class="dv-oid" href="#4a">4a</a> with the route detail opening in the right panel" · "<a class="dv-oid" href="#4b">4b</a> with three-across cards" · "a tablet width"</p>
+</section>
+<section class="dv-turn" id="t3">
+<div class="dv-thd"><a class="dv-tid" href="#t3">3</a><span class="dv-tname">Wordmark ideas for <a class="dv-oid" href="#2b">2b</a> (top of screen only)</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="3a">
+<div class="dv-olabel"><a class="dv-oid" href="#3a">3a</a>Minimum fix — all-teal S</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px 24px 0">
+<div style="width:360px;height:380px;border-radius:28px 28px 0 0;overflow:hidden;background:#1C1A14;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEYS</h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsE }}" as="c" hint-placeholder-count="5">
+<div style="height:60px;background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span><span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span></div>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3b">
+<div class="dv-olabel"><a class="dv-oid" href="#3b">3b</a>Sunset fill — the wordmark carries the same dusk ramp as the strips</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px 24px 0">
+<div style="width:360px;height:380px;border-radius:28px 28px 0 0;overflow:hidden;background:#1C1A14;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:30px;line-height:1;letter-spacing:.04em;background:linear-gradient(90deg,#a06a94 0%,#c0607a 40%,#e0704a 75%,#F58128 100%);-webkit-background-clip:text;background-clip:text;color:transparent">JOURNEYS</h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsE }}" as="c" hint-placeholder-count="5">
+<div style="height:60px;background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span><span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span></div>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3c">
+<div class="dv-olabel"><a class="dv-oid" href="#3c">3c</a>Paint-chip letters — each letter on its own ramp swatch</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px 24px 0">
+<div style="width:360px;height:380px;border-radius:28px 28px 0 0;overflow:hidden;background:#1C1A14;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px">
+<h1 style="margin:0;display:flex;gap:3px">
+<sc-for list="{{ tiles }}" as="t" hint-placeholder-count="8">
+<span style="flex:1;height:42px;background:{{ t.bg }};border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:22px;color:#FFF8E7">{{ t.ch }}</span>
+</sc-for>
+</h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsE }}" as="c" hint-placeholder-count="5">
+<div style="height:60px;background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span><span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span></div>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="3d">
+<div class="dv-olabel"><a class="dv-oid" href="#3d">3d</a>Editorial — serif wordmark on a dashed road with a "you are here" dot</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px 24px 0">
+<div style="width:360px;height:380px;border-radius:28px 28px 0 0;overflow:hidden;background:#1C1A14;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:14px 16px 14px;display:flex;flex-direction:column;gap:6px">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#40E0D0;letter-spacing:.2em;text-transform:uppercase">Plan your next adventure</span>
+<div style="display:flex;align-items:flex-end;gap:10px">
+<h1 style="margin:0;font-family:'DM Serif Display',Georgia,serif;font-weight:400;font-size:40px;line-height:.95;color:#FFF8E7">Journeys</h1>
+<div style="flex:1;display:flex;align-items:center;margin-bottom:8px">
+<div style="flex:1;border-top:2px dashed #40E0D0;opacity:.7"></div>
+<span style="flex:none;width:10px;height:10px;border-radius:50%;background:#FF4E00;box-shadow:0 0 8px rgba(255,78,0,.7)"></span>
+</div>
+</div>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsE }}" as="c" hint-placeholder-count="5">
+<div style="height:60px;background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span><span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span></div>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "apply <a class="dv-oid" href="#3c">3c</a> to the full <a class="dv-oid" href="#2b">2b</a> screen" · "<a class="dv-oid" href="#3b">3b</a> with a soft glow" · "<a class="dv-oid" href="#3d">3d</a> but in Bungee"</p>
+</section>
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname"><a class="dv-oid" href="#1c">1c</a> with color strips instead of posters</span></div>
+<div class="dv-opts">
+
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a>One hue per category — deep shade on the left, full color bleeding in on the right</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px;display:flex;gap:24px">
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEY<span style="color:#FF4E00">S</span></h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsC }}" as="c" hint-placeholder-count="9">
+<div>
+<div onClick="{{ c.toggle }}" style="height:60px;background:{{ c.bg }};border-top:1px solid #141209;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span>
+<span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#1B1F2A;background:#FFF8E7;padding:2px 6px;border-radius:2px">{{ c.count }} routes</span>
+<span style="width:22px;height:22px;border-radius:50%;background:#1B1F2A;color:#FFF8E7;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:11px">{{ c.sign }}</span>
+</div>
+</div>
+<sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 0 6px;border-left:4px solid {{ c.hue }};border-bottom:1px solid #2a2820">
+<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 16px 6px 12px">
+<span style="flex:none;padding:5px 10px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ALL STATES</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">NEVADA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">WEST VIRGINIA</span>
+</div>
+<sc-for list="{{ c.routes }}" as="r" hint-placeholder-count="0">
+<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 16px 10px 12px;border-top:1px solid #2a2820;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:Georgia,serif;font-size:14px;line-height:1.25;color:#FFF8E7">{{ r.name }}</span>
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#8a7d60;letter-spacing:.06em">{{ r.meta }} · {{ r.stops }} stops · <span style="color:{{ r.dColor }}">{{ r.diff }}</span></span>
+<span style="font-family:Georgia,serif;font-size:11px;color:#8a7d60;font-style:italic">“{{ r.book }}”</span>
+</div>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0">›</span>
+</div>
+</sc-for>
+<sc-if value="{{ c.noRoutes }}" hint-placeholder-val="{{ false }}">
+<p style="margin:6px 16px 8px 12px;font-family:Georgia,serif;font-size:11px;font-style:italic;color:#8a7d60">Sample routes are only filled in for UFO &amp; Paranormal.</p>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+<div class="dv-opt" id="2b">
+<div class="dv-olabel"><a class="dv-oid" href="#2b">2b</a>Dusk ramp — solid shades stepping from night ink to sunset, like a paint chip</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px;display:flex;gap:24px">
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEY<span style="color:#FF4E00">S</span></h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsD }}" as="c" hint-placeholder-count="9">
+<div>
+<div onClick="{{ c.toggle }}" style="height:60px;background:{{ c.bg }};display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font-family:'Special Elite',serif;font-size:8px;color:#FFF8E7;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span>
+<span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+<span style="width:22px;height:22px;border-radius:50%;border:1px solid #FFF8E7;color:#FFF8E7;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:11px">{{ c.sign }}</span>
+</div>
+</div>
+<sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 0 6px;background:#1C1A14;border-bottom:2px solid {{ c.hue }}">
+<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 16px 6px">
+<span style="flex:none;padding:5px 10px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ALL STATES</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">NEVADA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">WEST VIRGINIA</span>
+</div>
+<sc-for list="{{ c.routes }}" as="r" hint-placeholder-count="0">
+<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid #2a2820;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:Georgia,serif;font-size:14px;line-height:1.25;color:#FFF8E7">{{ r.name }}</span>
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#8a7d60;letter-spacing:.06em">{{ r.meta }} · {{ r.stops }} stops · <span style="color:{{ r.dColor }}">{{ r.diff }}</span></span>
+<span style="font-family:Georgia,serif;font-size:11px;color:#8a7d60;font-style:italic">“{{ r.book }}”</span>
+</div>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0">›</span>
+</div>
+</sc-for>
+<sc-if value="{{ c.noRoutes }}" hint-placeholder-val="{{ false }}">
+<p style="margin:6px 16px 8px;font-family:Georgia,serif;font-size:11px;font-style:italic;color:#8a7d60">Sample routes are only filled in for UFO &amp; Paranormal.</p>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "<a class="dv-oid" href="#2a">2a</a> but flat colors, no gradient" · "<a class="dv-oid" href="#2b">2b</a> ramp in teal instead" · "show the route detail in this style"</p>
+</section>
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Compact Journeys — three directions</span></div>
+<p style="margin:0 0 24px;max-width:760px;font:12px/1.55 system-ui,sans-serif;color:rgba(0,0,0,.6);text-wrap:pretty">Built from the Journeys handoff: same app palette, Bungee / Special Elite / Georgia, and the same poster illustrations. Removed: perforated stamp frames, postage badges, tilts, and the 200px category hero. Each option shows the landing and the UFO &amp; Paranormal category.</p>
+<div class="dv-opts">
+
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a>Index — posters shrink to thumbnails, everything becomes a list</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px;display:flex;gap:24px">
+
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEY<span style="color:#FF4E00">S</span></h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<div style="margin:0 16px 16px;display:grid;grid-template-columns:84px 1fr;height:96px;background:#252318;border:1px solid #2a2820;border-radius:6px;overflow:hidden">
+<div style="position:relative;overflow:hidden"><x-import component-from-global-scope="NewPoster" type="route66" style="position:absolute;inset:0" hint-size="84px,96px"></x-import></div>
+<div style="padding:12px 14px;display:flex;flex-direction:column;justify-content:center;gap:5px">
+<span style="font-family:'Special Elite',serif;font-size:8px;color:#F5A623;letter-spacing:.2em;text-transform:uppercase">Featured · Centennial 2026</span>
+<span style="font-family:Bungee,sans-serif;font-size:18px;line-height:1;color:#FFF8E7">ROUTE 66</span>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#40E0D0">4 routes →</span>
+</div>
+</div>
+<div style="display:flex;align-items:center;gap:10px;padding:0 16px 4px">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#8a7d60;letter-spacing:.25em;text-transform:uppercase">The Collection</span>
+<div style="flex:1;height:1px;background:#2a2820"></div>
+</div>
+<sc-for list="{{ rest }}" as="c" hint-placeholder-count="8">
+<div style="display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid #2a2820;cursor:pointer">
+<div style="position:relative;width:44px;height:44px;border-radius:4px;overflow:hidden"><x-import component-from-global-scope="NewPoster" type="{{ c.key }}" style="position:absolute;left:0;top:-6px;width:44px;height:58px" hint-size="44px,58px"></x-import></div>
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:Bungee,sans-serif;font-size:12px;line-height:1.1;color:#FFF8E7">{{ c.labelU }}</span>
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.15em;text-transform:uppercase">{{ c.sub }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60">{{ c.count }} routes</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0">›</span>
+</div>
+</div>
+</sc-for>
+<div style="height:24px"></div>
+</div>
+</div>
+
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;padding:0 16px">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← JOURNEYS</span>
+</div>
+<div style="display:grid;grid-template-columns:60px 1fr;gap:14px;align-items:center;padding:16px">
+<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden"><x-import component-from-global-scope="NewPoster" type="ufo" style="position:absolute;left:0;top:-10px;width:60px;height:80px" hint-size="60px,80px"></x-import></div>
+<div style="display:flex;flex-direction:column;gap:4px">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.25em;text-transform:uppercase">The Collection</span>
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:19px;line-height:1;color:#FFF8E7">UFO &amp; PARANORMAL</h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60">4 routes · high strange</span>
+</div>
+</div>
+<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 16px 14px">
+<span style="flex:none;padding:5px 10px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ALL STATES</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">NEVADA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">WEST VIRGINIA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ARIZONA</span>
+</div>
+<div style="display:flex;align-items:center;gap:8px;padding:0 16px 4px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.1em">4 ROUTES</span>
+<div style="flex:1;height:1px;background:repeating-linear-gradient(90deg,#FF4E00 0,#FF4E00 6px,transparent 6px,transparent 12px);opacity:.5"></div>
+</div>
+<sc-for list="{{ routes }}" as="r" hint-placeholder-count="4">
+<div style="padding:14px 16px;border-bottom:1px solid #2a2820;display:flex;flex-direction:column;gap:6px;cursor:pointer">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.18em;text-transform:uppercase">{{ r.meta }}</span>
+<div style="display:flex;gap:5px">
+<span style="white-space:nowrap;flex:none;font-family:Bungee,sans-serif;font-size:7px;color:#FF4E00;letter-spacing:.08em;padding:2px 5px;border:1px solid #FF4E00;border-radius:2px">{{ r.stops }} STOPS</span>
+<span style="white-space:nowrap;flex:none;font-family:Bungee,sans-serif;font-size:7px;color:{{ r.dColor }};letter-spacing:.08em;padding:2px 5px;border:1px solid {{ r.dColor }};border-radius:2px">{{ r.diffU }}</span>
+</div>
+</div>
+<span style="font-family:Georgia,serif;font-size:15px;line-height:1.25;color:#FFF8E7;text-wrap:pretty">{{ r.name }}</span>
+<span style="font-family:Georgia,serif;font-size:11px;line-height:1.4;color:#8a7d60;font-style:italic">“{{ r.book }}” — {{ r.author }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="dv-opt" id="1b">
+<div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a>Poster rack — posters stay, but as a tight 3-up shelf; routes get a mini stop-line</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px;display:flex;gap:24px">
+
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEY<span style="color:#FF4E00">S</span></h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">Pick a road.</span>
+</div>
+<div style="position:relative;margin:0 16px;height:132px;border-radius:6px;overflow:hidden;border:1px solid #2a2820">
+<x-import component-from-global-scope="NewPoster" type="route66" style="position:absolute;left:0;right:0;top:-30px;height:440px" hint-size="100%,440px"></x-import>
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(10,5,2,.55) 35%,rgba(10,5,2,.95) 70%)"></div>
+<div style="position:absolute;left:14px;right:14px;bottom:12px;display:flex;align-items:flex-end;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:4px">
+<span style="font-family:'Special Elite',serif;font-size:8px;color:#F5A623;letter-spacing:.2em;text-transform:uppercase">Featured · Centennial 2026</span>
+<span style="font-family:Bungee,sans-serif;font-size:22px;line-height:1;color:#FFF8E7;text-shadow:0 1px 0 #000">ROUTE 66</span>
+</div>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#40E0D0">4 routes →</span>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px;padding:18px 16px 24px">
+<sc-for list="{{ rest }}" as="c" hint-placeholder-count="8">
+<div style="display:flex;flex-direction:column;gap:6px;cursor:pointer">
+<div style="position:relative;aspect-ratio:3/4;border-radius:4px;overflow:hidden;border:1px solid #2a2820"><x-import component-from-global-scope="NewPoster" type="{{ c.key }}" style="position:absolute;inset:0" hint-size="100%,100%"></x-import></div>
+<span style="font-family:Bungee,sans-serif;font-size:9.5px;line-height:1.1;color:#FFF8E7">{{ c.labelU }}</span>
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#8a7d60;margin-top:-3px">{{ c.count }} routes</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="position:relative;height:124px;overflow:hidden">
+<x-import component-from-global-scope="NewPoster" type="ufo" style="position:absolute;left:0;right:0;top:-100px;height:480px" hint-size="100%,480px"></x-import>
+<div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,18,9,.7) 0%,transparent 35%,rgba(28,26,20,.5) 60%,#1C1A14 100%)"></div>
+<span style="position:absolute;top:16px;left:16px;font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← JOURNEYS</span>
+<div style="position:absolute;left:16px;right:16px;bottom:10px;display:flex;align-items:flex-end;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:4px">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.25em;text-transform:uppercase">The Collection</span>
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:22px;line-height:1;color:#FFF8E7;text-shadow:0 2px 0 #000">UFO &amp; PARANORMAL</h1>
+</div>
+</div>
+</div>
+<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:12px 16px 14px">
+<span style="flex:none;padding:5px 10px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ALL STATES</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">NEVADA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">WEST VIRGINIA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ARIZONA</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:0 12px 24px">
+<sc-for list="{{ routes }}" as="r" hint-placeholder-count="4">
+<div style="background:#252318;border:1px solid #2a2820;border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:7px;cursor:pointer">
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#F5A623;letter-spacing:.18em;text-transform:uppercase">{{ r.meta }}</span>
+<span style="font-family:Georgia,serif;font-size:15px;line-height:1.25;color:#FFF8E7;text-wrap:pretty">{{ r.name }}</span>
+<div style="display:flex;align-items:center;gap:12px">
+<div style="display:flex;align-items:center;flex:1;max-width:120px;min-width:0">
+<span style="flex:none;width:8px;height:8px;border-radius:50%;background:#FF4E00;box-shadow:0 0 6px rgba(255,78,0,.6)"></span>
+<sc-for list="{{ r.rest }}" as="s" hint-placeholder-count="3">
+<div style="flex:1;display:flex;align-items:center"><div style="flex:1;border-top:1.5px dashed rgba(255,78,0,.6)"></div><span style="flex:none;width:8px;height:8px;border-radius:50%;background:#FF4E00"></span></div>
+</sc-for>
+</div>
+<span style="white-space:nowrap;flex:none;font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ r.stops }} stops</span>
+<span style="margin-left:auto;white-space:nowrap;flex:none;font-family:Bungee,sans-serif;font-size:7px;color:{{ r.dColor }};letter-spacing:.08em;padding:2px 5px;border:1px solid {{ r.dColor }};border-radius:2px">{{ r.diffU }}</span>
+</div>
+<span style="font-family:Georgia,serif;font-size:11px;line-height:1.4;color:#8a7d60;font-style:italic;border-top:1px solid #2a2820;padding-top:7px">“{{ r.book }}” — {{ r.author }}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="dv-opt" id="1c">
+<div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a>Atlas strips — one screen; categories are poster bands that open in place (tap to try)</div>
+<div class="dv-card" style="background:#e9e4d8;padding:24px;display:flex;gap:24px">
+
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEY<span style="color:#FF4E00">S</span></h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsA }}" as="c" hint-placeholder-count="9">
+<div>
+<div onClick="{{ c.toggle }}" style="position:relative;height:60px;overflow:hidden;border-top:1px solid #141209;cursor:pointer">
+<x-import component-from-global-scope="NewPoster" type="{{ c.key }}" style="position:absolute;left:0;right:0;top:-120px;height:480px" hint-size="100%,480px"></x-import>
+<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,18,9,.94) 0%,rgba(20,18,9,.8) 50%,rgba(20,18,9,.3) 100%)"></div>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font-family:'Special Elite',serif;font-size:8px;color:#F5A623;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span>
+<span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+<span style="width:22px;height:22px;border-radius:50%;border:1px solid #40E0D0;color:#40E0D0;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:11px">{{ c.sign }}</span>
+</div>
+</div>
+</div>
+<sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 0 6px;border-bottom:2px solid #FF4E00">
+<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 16px 6px">
+<span style="flex:none;padding:5px 10px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ALL STATES</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">NEVADA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">WEST VIRGINIA</span>
+</div>
+<sc-for list="{{ c.routes }}" as="r" hint-placeholder-count="0">
+<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid #2a2820;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:Georgia,serif;font-size:14px;line-height:1.25;color:#FFF8E7">{{ r.name }}</span>
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#8a7d60;letter-spacing:.06em">{{ r.meta }} · {{ r.stops }} stops · <span style="color:{{ r.dColor }}">{{ r.diff }}</span></span>
+<span style="font-family:Georgia,serif;font-size:11px;color:#8a7d60;font-style:italic">“{{ r.book }}”</span>
+</div>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0">›</span>
+</div>
+</sc-for>
+<sc-if value="{{ c.noRoutes }}" hint-placeholder-val="{{ false }}">
+<p style="margin:6px 16px 8px;font-family:Georgia,serif;font-size:11px;font-style:italic;color:#8a7d60">Sample routes are only filled in for UFO &amp; Paranormal.</p>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+
+<div style="width:360px;height:740px;border-radius:28px;overflow:hidden;background:#1C1A14;box-shadow:0 10px 30px rgba(0,0,0,.25);flex:none">
+<div style="height:100%;overflow-y:auto;color:#FFF8E7">
+<div style="height:48px;background:#141209;border-bottom:1px solid #2a2820;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:5">
+<span style="font-family:Bungee,sans-serif;font-size:10px;color:#40E0D0;letter-spacing:.06em">← MAP</span>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0;letter-spacing:.06em;text-shadow:0 0 8px rgba(64,224,208,.5)">LITERARY ROADS</span>
+<span style="width:40px"></span>
+</div>
+<div style="padding:16px 16px 12px;display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+<h1 style="margin:0;font-family:Bungee,sans-serif;font-size:26px;line-height:1;color:#40E0D0;letter-spacing:.04em;text-shadow:0 0 16px rgba(64,224,208,.45)">JOURNEY<span style="color:#FF4E00">S</span></h1>
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#8a7d60;letter-spacing:.06em">9 collections · 49 routes</span>
+</div>
+<sc-for list="{{ catsB }}" as="c" hint-placeholder-count="9">
+<div>
+<div onClick="{{ c.toggle }}" style="position:relative;height:60px;overflow:hidden;border-top:1px solid #141209;cursor:pointer">
+<x-import component-from-global-scope="NewPoster" type="{{ c.key }}" style="position:absolute;left:0;right:0;top:-120px;height:480px" hint-size="100%,480px"></x-import>
+<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,18,9,.94) 0%,rgba(20,18,9,.8) 50%,rgba(20,18,9,.3) 100%)"></div>
+<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px">
+<div style="display:flex;flex-direction:column;gap:3px">
+<span style="font-family:'Special Elite',serif;font-size:8px;color:#F5A623;letter-spacing:.2em;text-transform:uppercase">{{ c.sub }}</span>
+<span style="font-family:Bungee,sans-serif;font-size:14px;line-height:1;color:#FFF8E7">{{ c.labelU }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:10px">
+<span style="font-family:'Special Elite',serif;font-size:10px;color:#FFF8E7">{{ c.count }} routes</span>
+<span style="width:22px;height:22px;border-radius:50%;border:1px solid #40E0D0;color:#40E0D0;display:flex;align-items:center;justify-content:center;font-family:Bungee,sans-serif;font-size:11px">{{ c.sign }}</span>
+</div>
+</div>
+</div>
+<sc-if value="{{ c.open }}" hint-placeholder-val="{{ false }}">
+<div style="padding:12px 0 6px;border-bottom:2px solid #FF4E00">
+<div style="display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:0 16px 6px">
+<span style="flex:none;padding:5px 10px;border-radius:14px;background:#FF4E00;color:#fff;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">ALL STATES</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">MULTI-STATE</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">NEVADA</span>
+<span style="flex:none;padding:5px 10px;border-radius:14px;border:1px solid #2a2820;color:#8a7d60;font-family:Bungee,sans-serif;font-size:8px;letter-spacing:.08em">WEST VIRGINIA</span>
+</div>
+<sc-for list="{{ c.routes }}" as="r" hint-placeholder-count="0">
+<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid #2a2820;cursor:pointer">
+<div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+<span style="font-family:Georgia,serif;font-size:14px;line-height:1.25;color:#FFF8E7">{{ r.name }}</span>
+<span style="font-family:'Special Elite',serif;font-size:9px;color:#8a7d60;letter-spacing:.06em">{{ r.meta }} · {{ r.stops }} stops · <span style="color:{{ r.dColor }}">{{ r.diff }}</span></span>
+<span style="font-family:Georgia,serif;font-size:11px;color:#8a7d60;font-style:italic">“{{ r.book }}”</span>
+</div>
+<span style="font-family:Bungee,sans-serif;font-size:12px;color:#40E0D0">›</span>
+</div>
+</sc-for>
+<sc-if value="{{ c.noRoutes }}" hint-placeholder-val="{{ false }}">
+<p style="margin:6px 16px 8px;font-family:Georgia,serif;font-size:11px;font-style:italic;color:#8a7d60">Sample routes are only filled in for UFO &amp; Paranormal.</p>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<p class="dv-next">Try next: "<a class="dv-oid" href="#1a">1a</a> landing with <a class="dv-oid" href="#1b">1b</a>'s stop-line route cards" · "push <a class="dv-oid" href="#1c">1c</a> further — make it the whole page" · "do the route detail page in the same style"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { openA: null, openB: 'ufo', openC: 'ufo', openD: 'ufo', openG: 'ufo', selF: 'ufo' };
+  renderVals() {
+    const CATS = [
+      ['route66', 'Route 66', 'Centennial 2026', 4],
+      ['ghostTown', 'Ghost Towns', 'Boom & bust', 7],
+      ['lighthouse', 'Lighthouses', 'Coastal beacons', 5],
+      ['ufo', 'UFO & Paranormal', 'High strange', 4],
+      ['nationalPark', 'National Parks', 'Public lands', 6],
+      ['coffeeShop', 'Coffee Crawls', 'Third places', 4],
+      ['bookstore', 'Bookstores', 'Indie shelves', 5],
+      ['literaryLandmark', 'Literary Landmarks', 'Where it happened', 8],
+      ['authorCountry', 'Author Country', 'Lived geographies', 6],
+    ].map(([key, label, sub, count]) => ({ key, label, labelU: label.toUpperCase(), sub, count }));
+    const D = { Easy: '#40E0D0', Moderate: '#F5A623', Remote: '#FF4E00' };
+    const routes = [
+      { name: 'Roswell to Marfa: The Unexplained Highway', meta: 'Multi-state · 2 days', stops: 4, diff: 'Easy', book: 'The Roswell Incident', author: 'Charles Berlitz and William Moore' },
+      { name: 'The Extraterrestrial Highway', meta: 'Nevada · Full day', stops: 5, diff: 'Remote', book: 'Area 51', author: 'Annie Jacobsen' },
+      { name: 'Point Pleasant & the Mothman', meta: 'West Virginia · Weekend', stops: 3, diff: 'Easy', book: 'The Mothman Prophecies', author: 'John Keel' },
+      { name: 'Snowflake Sightings Loop', meta: 'Arizona · 2 days', stops: 4, diff: 'Moderate', book: 'The Walton Experience', author: 'Travis Walton' },
+    ].map(r => ({ ...r, dColor: D[r.diff], diffU: r.diff.toUpperCase(), rest: Array.from({ length: r.stops - 1 }, (_, i) => i) }));
+    const mk = (k) => CATS.map(c => {
+      const open = this.state[k] === c.key;
+      return { ...c, open, sign: open ? '–' : '+', routes: open && c.key === 'ufo' ? routes : [], noRoutes: open && c.key !== 'ufo',
+        toggle: () => this.setState(s => ({ [k]: s[k] === c.key ? null : c.key })) };
+    });
+    const HUES = {
+      route66: ['#7E4424', '#FF4E00'], ghostTown: ['#3a2016', '#B96A3E'], lighthouse: ['#0f3533', '#1E8079'],
+      ufo: ['#2e1d2d', '#8E5A86'], nationalPark: ['#12403c', '#34B7AE'], coffeeShop: ['#2e1a0e', '#7E4424'],
+      bookstore: ['#3d2438', '#F03A8E'], literaryLandmark: ['#4d3a0c', '#F5A623'], authorCountry: ['#3a3010', '#F2C744'],
+    };
+    const ramp = ['#1B1F2A', '#2a2234', '#3a2640', '#4d2d4c', '#5E3A5A', '#744a6c', '#8a5670', '#a0605a', '#B96A3E'];
+    const colorize = (list, mode) => list.map((c, i) => {
+      const [deep, hue] = HUES[c.key];
+      return mode === 'hue'
+        ? { ...c, hue, bg: `linear-gradient(90deg, ${deep} 0%, ${deep} 40%, ${hue} 140%)` }
+        : { ...c, hue: ramp[i], bg: ramp[i] };
+    });
+    return { rest: CATS.slice(1), routes, catsA: mk('openA'), catsB: mk('openB'), catsC: colorize(mk('openC'), 'hue'), catsD: colorize(mk('openD'), 'ramp'), catsE: colorize(mk('openE'), 'ramp').slice(0, 5),
+      catsF: colorize(CATS.map(c => {
+        const sel = (this.state.selF || 'ufo') === c.key;
+        return { ...c, shadow: sel ? 'inset 5px 0 0 #FFF8E7' : 'none', mark: sel ? '●' : '›', select: () => this.setState({ selF: c.key }) };
+      }), 'ramp'),
+      selF: (() => { const i = CATS.findIndex(c => c.key === (this.state.selF || 'ufo')); const c = CATS[i];
+        return { ...c, hue: ramp[i], isUfo: c.key === 'ufo', notUfo: c.key !== 'ufo' }; })(),
+      catsG: colorize(mk('openG'), 'ramp'),
+      tiles: 'JOURNEYS'.split('').map((ch, i) => ({ ch, bg: ramp[i + 1] })) };
+  }
+}
+</script>
+</body>
+</html>
