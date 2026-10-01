@@ -466,13 +466,25 @@ function drawCardA(ctx, d, icon) {
   my += 18;
   ctx.fillStyle = BP.cream; ctx.font = 'italic 27px Fraunces';
   {
-    const sigPre = d.signOff ? '— ' + d.signOff + ' ' : '— Yours, between miles, ';
-    ctx.fillText(sigPre, 470, my);
-    const sigX = 470 + ctx.measureText(sigPre).width;
-    ctx.save();
-    ctx.fillStyle = BP.cyan; ctx.shadowColor = BP.cyan; ctx.shadowBlur = 10;
-    ctx.font = '700 30px Fraunces'; ctx.fillText(d.sign, sigX, my + 1);
-    ctx.restore();
+    const sigPre = d.signOff ? '— ' + d.signOff + ' ' : '— Yours, between the miles, ';
+    const preW = ctx.measureText(sigPre).width;
+    ctx.font = '700 30px Fraunces';
+    const nameW = ctx.measureText(d.sign).width;
+    ctx.font = 'italic 27px Fraunces';
+    if (preW + nameW > 520) {
+      ctx.fillText(sigPre.trimEnd(), 470, my);
+      my += 36;
+      ctx.save();
+      ctx.fillStyle = BP.cyan; ctx.shadowColor = BP.cyan; ctx.shadowBlur = 10;
+      ctx.font = '700 30px Fraunces'; ctx.fillText(d.sign, 470, my + 1);
+      ctx.restore();
+    } else {
+      ctx.fillText(sigPre, 470, my);
+      ctx.save();
+      ctx.fillStyle = BP.cyan; ctx.shadowColor = BP.cyan; ctx.shadowBlur = 10;
+      ctx.font = '700 30px Fraunces'; ctx.fillText(d.sign, 470 + preW, my + 1);
+      ctx.restore();
+    }
   }
   // title plate
   ctx.fillStyle = BP.creamHi; ctx.font = '700 40px Fraunces';
@@ -544,11 +556,22 @@ function drawCardB(ctx, d, icon) {
   for (const ln of ml) { ctx.fillText(ln, 540, my); my += 42; }
   my += 10; ctx.font = 'italic 25px Fraunces';
   {
-    const sigPre = d.signOff ? '— ' + d.signOff + ' ' : '— Yours, ';
-    ctx.fillStyle = BP.ink; ctx.fillText(sigPre, 540, my);
-    const sigX = 540 + ctx.measureText(sigPre).width;
-    ctx.fillStyle = BP.terra; ctx.font = '700 26px Fraunces';
-    ctx.fillText(d.sign, sigX, my);
+    const sigPre = d.signOff ? '— ' + d.signOff + ' ' : '— Yours, between the miles, ';
+    ctx.fillStyle = BP.ink;
+    const preW = ctx.measureText(sigPre).width;
+    ctx.font = '700 26px Fraunces';
+    const nameW = ctx.measureText(d.sign).width;
+    ctx.font = 'italic 25px Fraunces';
+    if (preW + nameW > 440) {
+      ctx.fillText(sigPre.trimEnd(), 540, my);
+      my += 32;
+      ctx.fillStyle = BP.terra; ctx.font = '700 26px Fraunces';
+      ctx.fillText(d.sign, 540, my);
+    } else {
+      ctx.fillText(sigPre, 540, my);
+      ctx.fillStyle = BP.terra; ctx.font = '700 26px Fraunces';
+      ctx.fillText(d.sign, 540 + preW, my);
+    }
   }
   ctx.restore();
   // pills

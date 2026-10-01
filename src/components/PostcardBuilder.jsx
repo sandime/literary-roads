@@ -953,7 +953,7 @@ function Step2({ book, onNext, onBack, onClose }) {
   );
 }
 
-function Step3({ data, onBack, saving, saved, onClose }) {
+function Step3({ data, onBack, saving, saved, onClose, onDone }) {
   const canvasRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [previewEnlarged, setPreviewEnlarged] = useState(false);
@@ -999,41 +999,75 @@ function Step3({ data, onBack, saving, saved, onClose }) {
     }
   };
 
-  const handleNativeShare = async () => {
+  const [shareHint, setShareHint] = useState('');
+  const showHint = (msg) => { setShareHint(msg); setTimeout(() => setShareHint(''), 3500); };
+
+  const getBlob = () => new Promise((res, rej) => {
+    const canvas = canvasRef.current;
+    if (!canvas) { rej(new Error('no canvas')); return; }
+    canvas.toBlob(b => b ? res(b) : rej(new Error('blob failed')), 'image/png');
+  });
+
+  const handleCopyImage = async () => {
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) { await handleDownload(); return; }
-      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
-      const file = new File([blob], 'literary-roads-postcard.png', { type: 'image/png' });
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: data.bookTitle, text: caption });
-      } else {
-        await handleDownload();
-      }
-    } catch (err) {
-      if (err.name !== 'AbortError') await handleDownload();
+      const blob = await getBlob();
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showHint('Image copied to clipboard — paste it anywhere');
+      return true;
+    } catch {
+      await handleDownload();
+      return false;
     }
   };
 
-  const handleFacebook = () => {
+  const shareToApp = async (appName) => {
+    try { await navigator.clipboard.writeText(caption); } catch { /* */ }
+    try {
+      const blob = await getBlob();
+      const file = new File([blob], 'literary-roads-postcard.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: data.bookTitle, text: caption });
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+    // Desktop: copy image to clipboard
+    try {
+      const blob = await getBlob();
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showHint(`Image + caption copied — paste into ${appName}`);
+    } catch {
+      await handleDownload();
+      showHint(`Caption copied — paste it in ${appName}`);
+    }
+  };
+
+  const handleInstagram = () => shareToApp('Instagram');
+  const handleTikTok    = () => shareToApp('TikTok');
+
+  const handleFacebook = async () => {
+    try { await navigator.clipboard.writeText(caption); } catch { /* */ }
+    try {
+      const blob = await getBlob();
+      const file = new File([blob], 'literary-roads-postcard.png', { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: data.bookTitle, text: caption });
+        return;
+      }
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+    }
+    // Desktop: copy image + open Facebook share dialog
+    try {
+      const blob = await getBlob();
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    } catch { /* */ }
     window.open(
       `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(caption)}`,
       '_blank', 'noopener,width=600,height=400'
     );
-  };
-
-  const handleInstagram = async () => {
-    try {
-      await navigator.clipboard.writeText(caption);
-    } catch { /* clipboard unavailable */ }
-    await handleNativeShare();
-  };
-
-  const handleTikTok = async () => {
-    try {
-      await navigator.clipboard.writeText(caption);
-    } catch { /* clipboard unavailable */ }
-    await handleNativeShare();
+    showHint('Image + caption copied — paste into your post');
   };
 
   const shareBtn = (label, color, onClick, icon) => (
@@ -1120,6 +1154,14 @@ function Step3({ data, onBack, saving, saved, onClose }) {
         </div>
       )}
 
+      {/* Toast hint */}
+      {shareHint && (
+        <div style={{ textAlign: 'center', padding: '7px 12px', borderRadius: 8, marginBottom: 8,
+          background: 'rgba(56,197,197,0.08)', border: '1px solid rgba(56,197,197,0.25)' }}>
+          <span className="font-special-elite" style={{ fontSize: 12, color: PB.turq, fontStyle: 'italic' }}>{shareHint}</span>
+        </div>
+      )}
+
       {/* Save status */}
       <div style={{ textAlign: 'center', padding: '10px 0', marginBottom: 12,
         borderRadius: 8,
@@ -1131,14 +1173,22 @@ function Step3({ data, onBack, saving, saved, onClose }) {
         </p>
       </div>
 
-      {/* Download */}
-      <button onClick={handleDownload} disabled={downloading} className="font-bungee"
-        style={{ width: '100%', padding: '10px 0', marginBottom: 14,
-          background: 'transparent', border: `1.5px solid ${PB.divider}`,
-          borderRadius: 8, color: PB.mid, fontSize: 11, letterSpacing: '0.06em',
-          cursor: downloading ? 'default' : 'pointer', opacity: downloading ? 0.5 : 1 }}>
-        {downloading ? 'GENERATING...' : 'DOWNLOAD IMAGE'}
-      </button>
+      {/* Download + Copy row */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+        <button onClick={handleCopyImage} className="font-bungee"
+          style={{ flex: 1, padding: '10px 0',
+            background: 'transparent', border: `1.5px solid ${PB.divider}`,
+            borderRadius: 8, color: PB.mid, fontSize: 11, letterSpacing: '0.06em', cursor: 'pointer' }}>
+          COPY IMAGE
+        </button>
+        <button onClick={handleDownload} disabled={downloading} className="font-bungee"
+          style={{ flex: 1, padding: '10px 0',
+            background: 'transparent', border: `1.5px solid ${PB.divider}`,
+            borderRadius: 8, color: PB.mid, fontSize: 11, letterSpacing: '0.06em',
+            cursor: downloading ? 'default' : 'pointer', opacity: downloading ? 0.5 : 1 }}>
+          {downloading ? 'GENERATING...' : 'DOWNLOAD'}
+        </button>
+      </div>
 
       {/* Share row */}
       <p className="font-bungee" style={{ fontSize: 9, color: PB.muted, letterSpacing: '0.1em', marginBottom: 8 }}>SHARE</p>
@@ -1155,7 +1205,9 @@ function Step3({ data, onBack, saving, saved, onClose }) {
       </div>
 
       {saved ? (
-        <button onClick={onClose} className="font-bungee"
+        <button
+          onClick={() => onDone({ message: editMessage, authorName: editAuthorName, signOff: editSignOff, hashtags: parsedHashtags })}
+          className="font-bungee"
           style={{ width: '100%', padding: '10px 0', fontSize: 11,
             background: PB.turq, color: PB.white, borderRadius: 8, border: 'none', cursor: 'pointer',
             letterSpacing: '0.08em', boxShadow: '0 2px 12px rgba(56,197,197,0.3)' }}>
@@ -1257,6 +1309,7 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
   const [stepData, setStepData] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const bookIdRef = useRef(null);
 
   // A/B alternation persisted across sessions
   const [direction] = useState(() => {
@@ -1295,6 +1348,7 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
     const bookId = (bookData.id || bookData.googleBooksId || '')
       .replace(/\//g, '_') ||
       bookData.title.replace(/[^a-z0-9]/gi, '-').toLowerCase().slice(0, 40);
+    bookIdRef.current = bookId;
     const entry = {
       bookId,
       title:      bookData.title,
@@ -1306,6 +1360,7 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
       vibeTags:   stepData.vibeTags   || [],
       hashtags:   stepData.hashtags   || [],
       authorName: stepData.authorName || 'A Literary Traveler',
+      signOff:    stepData.signOff    || '',
       createdAt:  serverTimestamp(),
     };
     setSaving(true);
@@ -1315,6 +1370,22 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
       .finally(() => setSaving(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+
+  const handleDone = (finalData) => {
+    if (user && bookIdRef.current) {
+      setDoc(
+        doc(db, 'users', user.uid, 'libraryPostcards', bookIdRef.current),
+        {
+          message:    finalData.message    || '',
+          authorName: finalData.authorName || 'A Literary Traveler',
+          signOff:    finalData.signOff    || '',
+          hashtags:   finalData.hashtags   || [],
+        },
+        { merge: true }
+      ).catch(err => console.error('[PostcardBuilder] final save:', err));
+    }
+    onClose();
+  };
 
   return (
     <div style={{
@@ -1366,7 +1437,7 @@ export default function PostcardBuilder({ onClose, onSaved, loggedBooks = [] }) 
         {step === 3 && postcardData && (
           <Step3 data={postcardData} onClose={onClose}
             onBack={() => setStep(2)}
-            saving={saving} saved={saved} />
+            saving={saving} saved={saved} onDone={handleDone} />
         )}
       </div>
     </div>
