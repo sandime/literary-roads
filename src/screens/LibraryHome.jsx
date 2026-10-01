@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AUTHOR_TIDBITS } from '../data/authorTidbits';
 
 // ── Library palette ────────────────────────────────────────────────────────────
@@ -25,10 +25,10 @@ const SPINE_LABELS = ['ROAD','NOVEL','JOURNEY','STORY','VERSE',
                       'PROSE','TALES','PAGES','WORDS','MAPS'];
 
 const SHELVES = [
-  { key: 'bookLog',   label: 'BOOK LOG',      sub: 'Your reading journey',     spines: [0,1,2,3,4,5,6,7,8] },
-  { key: 'postcards', label: 'POSTCARD BOOKS', sub: 'Share a postcard of the book you\'re reading', spines: [3,6,1,8,4,0,7,2,5] },
-  { key: 'myRecs',    label: 'MY RECS',        sub: 'Recommended at pit stops', spines: [7,2,5,0,8,3,1,6,4] },
-  { key: 'readNext',  label: 'READ NEXT',      sub: 'Your literary wish list',  spines: [5,8,0,4,2,7,3,1,6] },
+  { key: 'bookLog',   label: 'BOOK LOG',      sub: 'Your reading journey',                          subShort: 'Your reading journey',  spines: [0,1,2,3,4,5,6,7,8] },
+  { key: 'postcards', label: 'POSTCARD BOOKS', sub: 'Share a postcard of the book you\'re reading',  subShort: 'Share a postcard',       spines: [3,6,1,8,4,0,7,2,5] },
+  { key: 'myRecs',    label: 'MY RECS',        sub: 'Recommended at pit stops',                      subShort: 'From pit stops',         spines: [7,2,5,0,8,3,1,6,4] },
+  { key: 'readNext',  label: 'READ NEXT',      sub: 'Your literary wish list',                       subShort: 'Your wish list',         spines: [5,8,0,4,2,7,3,1,6] },
 ];
 
 // ── Archive shelf — leather journal spines ────────────────────────────────────
@@ -44,23 +44,25 @@ const ARCHIVE_SPINES = [
   { w: 24, h: 80, color: '#C8960C', label: 'Vol. IX',   lines: true  },
 ];
 
-function ArchiveSpine({ w, h, color, label, lines }) {
+function ArchiveSpine({ w, h, color, label, lines, scale = 1 }) {
+  const sw = Math.round(w * scale);
+  const sh = Math.round(h * scale);
   const lightText = color !== '#E8D5A3';
   const textColor = lightText ? 'rgba(255,255,255,0.82)' : '#5C3A1E';
   const lineColor = lightText ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.14)';
   return (
     <div style={{
-      width: w, height: h, flexShrink: 0, borderRadius: '2px 2px 0 0',
+      width: sw, height: sh, flexShrink: 0, borderRadius: '2px 2px 0 0',
       position: 'relative', overflow: 'hidden',
       background: `linear-gradient(90deg, ${color}AA 0%, ${color} 25%, ${color}F0 75%, ${color}99 100%)`,
       boxShadow: 'inset -2px 0 4px rgba(0,0,0,0.22), inset 1px 0 2px rgba(255,255,255,0.08)',
     }}>
       {lines && (
-        <svg width={w} height={h} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-          <line x1={3} y1={9}    x2={w-3} y2={9}    stroke={lineColor} strokeWidth="0.9" />
-          <line x1={3} y1={13}   x2={w-3} y2={13}   stroke={lineColor} strokeWidth="0.4" />
-          <line x1={3} y1={h-9}  x2={w-3} y2={h-9}  stroke={lineColor} strokeWidth="0.9" />
-          <line x1={3} y1={h-13} x2={w-3} y2={h-13} stroke={lineColor} strokeWidth="0.4" />
+        <svg width={sw} height={sh} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+          <line x1={3} y1={9}    x2={sw-3} y2={9}    stroke={lineColor} strokeWidth="0.9" />
+          <line x1={3} y1={13}   x2={sw-3} y2={13}   stroke={lineColor} strokeWidth="0.4" />
+          <line x1={3} y1={sh-9}  x2={sw-3} y2={sh-9}  stroke={lineColor} strokeWidth="0.9" />
+          <line x1={3} y1={sh-13} x2={sw-3} y2={sh-13} stroke={lineColor} strokeWidth="0.4" />
         </svg>
       )}
       <span style={{
@@ -68,7 +70,7 @@ function ArchiveSpine({ w, h, color, label, lines }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         writingMode: 'vertical-rl', transform: 'rotate(180deg)',
         fontFamily: 'Georgia, serif', fontStyle: 'italic',
-        fontSize: Math.max(5, Math.min(7, w - 6)),
+        fontSize: Math.max(5, Math.min(7, sw - 6)),
         color: textColor, letterSpacing: '0.04em',
         padding: '16px 2px', userSelect: 'none',
       }}>
@@ -78,8 +80,10 @@ function ArchiveSpine({ w, h, color, label, lines }) {
   );
 }
 
-function ArchiveShelfUnit({ onNavigate, estYear }) {
+function ArchiveShelfUnit({ onNavigate, estYear, scale = 1 }) {
   const [hov, setHov] = useState(false);
+  const plankH = scale < 1 ? 12 : 14;
+  const minH   = scale < 1 ? 80 : 96;
   return (
     <button
       type="button"
@@ -94,12 +98,12 @@ function ArchiveShelfUnit({ onNavigate, estYear }) {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '0 2px' }}>
-        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: scale < 1 ? 12 : 13, color: L.dark, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           THE ARCHIVE
         </span>
         <span style={{
-          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10,
-          color: '#C8960C', fontStyle: 'italic',
+          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: scale < 1 ? 9 : 10,
+          color: '#C8960C', fontStyle: 'italic', textAlign: 'right',
         }}>
           {estYear ? `est. ${estYear}` : 'your literary history'}
         </span>
@@ -113,13 +117,13 @@ function ArchiveShelfUnit({ onNavigate, estYear }) {
         borderRadius: '6px 6px 0 0',
         padding: '8px 8px 0',
         display: 'flex', alignItems: 'flex-end', gap: 2,
-        minHeight: 96,
+        minHeight: minH, overflow: scale < 1 ? 'hidden' : 'visible',
         transition: 'border-color 0.2s',
       }}>
-        {ARCHIVE_SPINES.map((spine, idx) => <ArchiveSpine key={idx} {...spine} />)}
+        {ARCHIVE_SPINES.map((spine, idx) => <ArchiveSpine key={idx} {...spine} scale={scale} />)}
       </div>
       <div style={{
-        height: 14,
+        height: plankH,
         background: 'linear-gradient(180deg, #C8960C 0%, #8B6510 100%)',
         borderRadius: '0 0 5px 5px',
         borderBottom: `1.5px solid ${hov ? '#C8960C' : 'rgba(200,150,12,0.35)'}`,
@@ -134,10 +138,12 @@ function ArchiveShelfUnit({ onNavigate, estYear }) {
 }
 
 // ── Set Aside shelf ───────────────────────────────────────────────────────────
-const SET_ASIDE_SPINES = [2, 5, 0, 7, 3, 8]; // indices into SPINE_PALETTE/H/W
+const SET_ASIDE_SPINES = [2, 5, 0, 7, 3, 8];
 
-function SetAsideShelfUnit({ onNavigate, count }) {
+function SetAsideShelfUnit({ onNavigate, count, scale = 1 }) {
   const [hov, setHov] = useState(false);
+  const plankH = scale < 1 ? 12 : 14;
+  const minH   = scale < 1 ? 80 : 96;
   return (
     <button
       type="button"
@@ -151,9 +157,8 @@ function SetAsideShelfUnit({ onNavigate, count }) {
         transition: 'transform 0.22s ease',
       }}
     >
-      {/* Label row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '0 2px' }}>
-        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: scale < 1 ? 12 : 13, color: L.dark, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           SET ASIDE
         </span>
         {count > 0 && (
@@ -165,14 +170,13 @@ function SetAsideShelfUnit({ onNavigate, count }) {
           </span>
         )}
         <span style={{
-          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10,
-          color: '#9b8cbf', fontStyle: 'italic',
+          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: scale < 1 ? 9 : 10,
+          color: '#9b8cbf', fontStyle: 'italic', textAlign: 'right',
         }}>
-          books you didn't finish
+          {scale < 1 ? 'Unfinished' : 'books you didn\'t finish'}
         </span>
       </div>
 
-      {/* Books — anchored right */}
       <div style={{
         background: '#EDE8F4',
         borderTop:   `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
@@ -182,13 +186,13 @@ function SetAsideShelfUnit({ onNavigate, count }) {
         borderRadius: '6px 6px 0 0',
         padding: '8px 8px 0',
         display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', gap: 2,
-        minHeight: 96,
+        minHeight: minH, overflow: scale < 1 ? 'hidden' : 'visible',
         transition: 'border-color 0.2s',
       }}>
         {SET_ASIDE_SPINES.map((si, idx) => (
           <div key={idx} style={{
-            width:  SPINE_W[si % SPINE_W.length],
-            height: SPINE_H[si % SPINE_H.length],
+            width:  Math.round(SPINE_W[si % SPINE_W.length] * scale),
+            height: Math.round(SPINE_H[si % SPINE_H.length] * scale),
             background: SPINE_PALETTE[(si + idx * 2) % SPINE_PALETTE.length],
             borderRadius: '2px 2px 0 0',
             flexShrink: 0,
@@ -209,9 +213,8 @@ function SetAsideShelfUnit({ onNavigate, count }) {
         ))}
       </div>
 
-      {/* Shelf plank */}
       <div style={{
-        height: 14,
+        height: plankH,
         background: 'linear-gradient(180deg, #c4b8d4 0%, #b0a2c2 100%)',
         borderRadius: '0 0 5px 5px',
         borderBottom: `1.5px solid ${hov ? '#c4b8d4' : 'rgba(196,184,212,0.5)'}`,
@@ -225,44 +228,12 @@ function SetAsideShelfUnit({ onNavigate, count }) {
   );
 }
 
-// ── Retro SVG shapes ──────────────────────────────────────────────────────────
-const Starburst = ({ color, size = 30 }) => (
-  <svg width={size} height={size} viewBox="0 0 30 30" aria-hidden="true">
-    <polygon
-      points="15,1 17,10 25,6 21,14 30,15 21,16 25,24 17,20 15,29 13,20 5,24 9,16 0,15 9,14 5,6 13,10"
-      fill={color}
-    />
-  </svg>
-);
-
-const Diamond = ({ color, size = 24 }) => (
-  <svg width={size} height={Math.round(size * 1.2)} viewBox="0 0 24 30" aria-hidden="true">
-    <polygon points="12,0 24,15 12,30 0,15" fill={color} />
-  </svg>
-);
-
-const Boomerang = ({ color, size = 36 }) => (
-  <svg width={size} height={Math.round(size * 0.6)} viewBox="0 0 36 22" aria-hidden="true">
-    <path d="M2,20 Q9,2 18,9 Q27,16 34,3"
-      stroke={color} strokeWidth="5" fill="none" strokeLinecap="round" />
-  </svg>
-);
-
-const Ring = ({ color, size = 22 }) => (
-  <svg width={size} height={size} viewBox="0 0 22 22" aria-hidden="true">
-    <circle cx="11" cy="11" r="8" fill="none" stroke={color} strokeWidth="3.5" />
-  </svg>
-);
-
-const Trapezoid = ({ color, size = 36 }) => (
-  <svg width={size} height={Math.round(size * 0.55)} viewBox="0 0 36 20" aria-hidden="true">
-    <polygon points="7,0 29,0 36,20 0,20" fill={color} />
-  </svg>
-);
-
 // ── Single shelf unit ─────────────────────────────────────────────────────────
-function ShelfUnit({ shelf, onNavigate, count }) {
+function ShelfUnit({ shelf, onNavigate, count, scale = 1 }) {
   const [hov, setHov] = useState(false);
+  const plankH = scale < 1 ? 12 : 14;
+  const minH   = scale < 1 ? 80 : 92;
+  const subText = scale < 1 ? shelf.subShort : shelf.sub;
   return (
     <button
       type="button"
@@ -278,42 +249,42 @@ function ShelfUnit({ shelf, onNavigate, count }) {
     >
       {/* Label row */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, padding: '0 2px' }}>
-        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: L.dark, letterSpacing: '0.05em' }}>
+        <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: scale < 1 ? 12 : 13, color: L.dark, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
           {shelf.label}
         </span>
         {count > 0 && (
           <span style={{
             fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.white,
-            background: L.coral, borderRadius: 10, padding: '2px 6px',
+            background: L.coral, borderRadius: 10, padding: '2px 6px', flexShrink: 0,
           }}>
             {count}
           </span>
         )}
         <span style={{
-          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: 10,
-          color: L.turquoise, fontStyle: 'italic',
+          marginLeft: 'auto', fontFamily: 'Special Elite, serif', fontSize: scale < 1 ? 9 : 10,
+          color: L.turquoise, fontStyle: 'italic', textAlign: 'right',
         }}>
-          {shelf.sub}
+          {subText}
         </span>
       </div>
 
       {/* Books */}
       <div style={{
         background: '#FEF3D0',
-        borderTop: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
-        borderLeft: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderTop:   `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderLeft:  `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
         borderRight: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
         borderBottom: 'none',
         borderRadius: '6px 6px 0 0',
         padding: '8px 8px 0',
         display: 'flex', alignItems: 'flex-end', gap: 2,
-        minHeight: 92,
+        minHeight: minH, overflow: scale < 1 ? 'hidden' : 'visible',
         transition: 'border-color 0.2s',
       }}>
         {shelf.spines.map((si, idx) => (
           <div key={idx} style={{
-            width:  SPINE_W[si % SPINE_W.length],
-            height: SPINE_H[si % SPINE_H.length],
+            width:  Math.round(SPINE_W[si % SPINE_W.length] * scale),
+            height: Math.round(SPINE_H[si % SPINE_H.length] * scale),
             background: SPINE_PALETTE[(si + idx * 2) % SPINE_PALETTE.length],
             borderRadius: '2px 2px 0 0',
             flexShrink: 0,
@@ -336,62 +307,51 @@ function ShelfUnit({ shelf, onNavigate, count }) {
 
       {/* Shelf board */}
       <div style={{
-        height: 14,
+        height: plankH,
         background: `linear-gradient(180deg, ${L.gold} 0%, #B8721A 100%)`,
         borderRadius: '0 0 5px 5px',
         borderBottom: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
-        borderLeft: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
-        borderRight: `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderLeft:   `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
+        borderRight:  `1.5px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.3)'}`,
         borderTop: 'none',
-        boxShadow: hov
-          ? `0 5px 14px rgba(56,197,197,0.35)`
-          : '0 3px 8px rgba(0,0,0,0.14)',
+        boxShadow: hov ? '0 5px 14px rgba(56,197,197,0.35)' : '0 3px 8px rgba(0,0,0,0.14)',
         transition: 'box-shadow 0.22s, border-color 0.2s',
       }} />
     </button>
   );
 }
 
-// ── Cat link to Gazette ───────────────────────────────────────────────────────
-function CatLink({ size = 180 }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <a
-      href="#/newspaper/current"
-      target="_blank"
-      rel="noopener noreferrer"
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        display: 'block', position: 'relative', flexShrink: 0,
-        borderRadius: size <= 60 ? 8 : 12, textDecoration: 'none',
-        transform: hov ? 'scale(1.06)' : 'scale(1)',
-        transition: 'transform 0.22s ease',
-        boxShadow: hov
-          ? `0 0 0 2px ${L.coral}, 0 6px 20px rgba(255,107,122,0.3)`
-          : 'none',
-      }}
-      title="Read The Literary Roads Gazette"
-    >
-      <img
-        src={`${import.meta.env.BASE_URL}images/library-cat.png`}
-        alt="Library cat reading in a chair"
-        style={{
-          width: size, height: size, objectFit: 'contain',
-          borderRadius: size <= 60 ? 8 : 12, display: 'block',
-          animation: 'lib-float 4s ease-in-out infinite',
-        }}
-      />
-    </a>
-  );
-}
-
 // ── Author Room doorway card ──────────────────────────────────────────────────
-function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
+function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate, isMobile = false }) {
   const [hov, setHov] = useState(false);
-
   const totalStates = Object.keys(AUTHOR_TIDBITS).length;
   const remaining   = totalStates - discoveredAuthors.length;
+
+  if (isMobile) {
+    return (
+      <button
+        type="button"
+        onClick={() => onNavigate('authorRoom')}
+        style={{
+          flex: 1, background: '#FFFAF5', border: `1px solid ${hov ? '#FF6B7A' : 'rgba(255,107,122,0.35)'}`,
+          borderRadius: 10, padding: '9px 12px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3,
+          cursor: 'pointer', textAlign: 'left',
+          transform: hov ? 'translateY(-4px)' : 'none',
+          transition: 'transform 0.22s ease, border-color 0.2s',
+        }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+      >
+        <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: '#FF6B7A', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>SECOND ROOM</p>
+        <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: '#2D2D2D', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>The Author Room →</h3>
+        <p style={{ fontFamily: 'Special Elite, serif', fontSize: 9, color: '#888', margin: 0 }}>
+          <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#FF6B7A' }}>{discoveredAuthors.length}</strong> discovered ·{' '}
+          <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#AAAAAA' }}>{remaining}</strong> left
+        </p>
+      </button>
+    );
+  }
 
   return (
     <button
@@ -407,70 +367,28 @@ function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
       }}
     >
       <div style={{
-        borderRadius: 12, overflow: 'hidden', display: 'flex',
-        border: `1px solid ${hov ? '#FF6B7A' : 'rgba(255,107,122,0.25)'}`,
+        borderRadius: 12, padding: '16px 18px',
+        display: 'flex', flexDirection: 'column', gap: 6,
+        border: `1px solid ${hov ? '#FF6B7A' : 'rgba(255,107,122,0.35)'}`,
         background: '#FFFAF5',
         boxShadow: hov ? '0 5px 16px rgba(255,107,122,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
         transition: 'border-color 0.2s, box-shadow 0.2s',
       }}>
-        {/* Coral accent stripe */}
-        <div style={{ width: 4, background: '#FF6B7A', flexShrink: 0 }} />
-
-        {/* Body */}
-        <div style={{ flex: 1, padding: '14px 12px' }}>
-          {/* Eyebrow */}
-          <p style={{
-            fontFamily: 'Bungee, sans-serif', fontSize: 9,
-            color: '#FF6B7A', letterSpacing: '0.14em',
-            textTransform: 'uppercase', margin: '0 0 5px',
-          }}>
-            SECOND ROOM
-          </p>
-
-          {/* Title */}
-          <h3 style={{
-            fontFamily: 'Georgia, serif', fontSize: 18,
-            color: '#2D2D2D', fontWeight: 700,
-            margin: '0 0 7px', lineHeight: 1.2,
-          }}>
-            The Author Room
-          </h3>
-
-          {/* Description */}
-          <p style={{
-            fontFamily: 'Special Elite, serif', fontSize: 12,
-            color: '#888', lineHeight: 1.6, margin: '0 0 12px',
-          }}>
-            Authors discovered through your literary road trips — waiting to be found.
-          </p>
-
-          {/* Stats */}
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
-              <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#FF6B7A' }}>
-                {discoveredAuthors.length}
-              </strong>{' '}discovered
-            </span>
-            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
-              <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#AAAAAA' }}>
-                {remaining}
-              </strong>{' '}remaining
-            </span>
-            <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
-              <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#C07A10' }}>
-                {authorBooksCount}
-              </strong>{' '}books added
-            </span>
-          </div>
-        </div>
-
-        {/* Arrow */}
-        <div style={{
-          display: 'flex', alignItems: 'center',
-          padding: '0 14px 0 4px',
-          color: '#FF6B7A', fontSize: 18, flexShrink: 0,
-        }}>
-          →
+        <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: '#FF6B7A', letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>SECOND ROOM</p>
+        <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: '#2D2D2D', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>The Author Room →</h3>
+        <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.5, margin: 0 }}>
+          Authors discovered through your literary road trips — waiting to be found.
+        </p>
+        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
+            <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#FF6B7A' }}>{discoveredAuthors.length}</strong>{' '}discovered
+          </span>
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
+            <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#AAAAAA' }}>{remaining}</strong>{' '}remaining
+          </span>
+          <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: '#888' }}>
+            <strong style={{ fontFamily: 'Bungee, sans-serif', color: '#C07A10' }}>{authorBooksCount}</strong>{' '}books added
+          </span>
         </div>
       </div>
     </button>
@@ -478,8 +396,31 @@ function AuthorRoomCard({ discoveredAuthors, authorBooksCount, onNavigate }) {
 }
 
 // ── Librarian's Desk doorway card ─────────────────────────────────────────────
-function LibrariansDesk({ onNavigate }) {
+function LibrariansDesk({ onNavigate, isMobile = false }) {
   const [hov, setHov] = useState(false);
+
+  if (isMobile) {
+    return (
+      <button
+        type="button"
+        onClick={() => onNavigate('librariansDesk')}
+        style={{
+          flex: 1, background: '#F7FFFF', border: `1px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.35)'}`,
+          borderRadius: 10, padding: '9px 12px',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 3,
+          cursor: 'pointer', textAlign: 'left',
+          transform: hov ? 'translateY(-4px)' : 'none',
+          transition: 'transform 0.22s ease, border-color 0.2s',
+        }}
+        onMouseEnter={() => setHov(true)}
+        onMouseLeave={() => setHov(false)}
+      >
+        <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: L.turquoise, letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>THIRD ROOM</p>
+        <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: '#2D2D2D', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>The Librarian's Desk →</h3>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -494,31 +435,18 @@ function LibrariansDesk({ onNavigate }) {
       }}
     >
       <div style={{
-        borderRadius: 12, overflow: 'hidden', display: 'flex',
-        border: `1px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.25)'}`,
+        borderRadius: 12, padding: '16px 18px',
+        display: 'flex', flexDirection: 'column', gap: 6,
+        border: `1px solid ${hov ? L.turquoise : 'rgba(56,197,197,0.35)'}`,
         background: '#F7FFFF',
         boxShadow: hov ? '0 5px 16px rgba(56,197,197,0.18)' : '0 2px 8px rgba(0,0,0,0.06)',
         transition: 'border-color 0.2s, box-shadow 0.2s',
       }}>
-        <div style={{ width: 4, background: L.turquoise, flexShrink: 0 }} />
-        <div style={{ flex: 1, padding: '14px 12px' }}>
-          <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.turquoise, letterSpacing: '0.14em', textTransform: 'uppercase', margin: '0 0 5px' }}>
-            THIRD ROOM
-          </p>
-          <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: '#2D2D2D', fontWeight: 700, margin: '0 0 7px', lineHeight: 1.2 }}>
-            The Librarian's Desk
-          </h3>
-          <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.6, margin: 0 }}>
-            Need help finding a book?
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 14px 0 4px' }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-            stroke={hov ? L.turquoise : 'rgba(56,197,197,0.5)'} strokeWidth="2"
-            strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'stroke 0.2s' }}>
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </div>
+        <p style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: L.turquoise, letterSpacing: '0.14em', textTransform: 'uppercase', margin: 0 }}>THIRD ROOM</p>
+        <h3 style={{ fontFamily: 'Georgia, serif', fontSize: 18, color: '#2D2D2D', fontWeight: 700, margin: 0, lineHeight: 1.2 }}>The Librarian's Desk →</h3>
+        <p style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: '#888', lineHeight: 1.5, margin: 0 }}>
+          Need help finding a book?
+        </p>
       </div>
     </button>
   );
@@ -526,6 +454,18 @@ function LibrariansDesk({ onNavigate }) {
 
 // ── LibraryHome ───────────────────────────────────────────────────────────────
 export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYear = null, discoveredAuthors = [], authorBooksCount = 0, setAsideCount = 0 }) {
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 600);
+  const [catHov, setCatHov]     = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 599px)');
+    const handler = e => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  const scale = isMobile ? 0.82 : 1;
+
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 300,
@@ -537,15 +477,6 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
           0%,100% { transform: translateY(0px); }
           50%      { transform: translateY(-7px); }
         }
-        @keyframes lib-spin-slow {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        .lib-header-cat { display: none; }
-        @media (max-width: 540px) {
-          .lib-right-col { display: none !important; }
-          .lib-header-cat { display: block; }
-        }
       `}</style>
 
       {/* Sticky header */}
@@ -554,14 +485,13 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
         background: L.cream, borderBottom: `2px solid ${L.turquoise}`,
         padding: '10px 16px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 680, margin: '0 auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 860, margin: '0 auto' }}>
           <button
             onClick={onBack}
             style={{
               background: 'none', border: 'none', cursor: 'pointer',
               fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.dark,
-              letterSpacing: '0.06em', padding: '4px 8px',
-              borderRadius: 6,
+              letterSpacing: '0.06em', padding: '4px 8px', borderRadius: 6,
               transition: 'color 0.15s',
             }}
             onMouseEnter={e => e.currentTarget.style.color = L.turquoise}
@@ -569,95 +499,136 @@ export default function LibraryHome({ onNavigate, onBack, bookCounts = {}, estYe
           >
             BACK
           </button>
-          <h1 style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: 16, color: L.turquoise, letterSpacing: '0.06em' }}>
+          <h1 style={{ margin: 0, fontFamily: 'Bungee, sans-serif', fontSize: isMobile ? 14 : 16, color: L.turquoise, letterSpacing: '0.06em' }}>
             Literary Roads Library
           </h1>
-          <div className="lib-header-cat"><CatLink size={44} /></div>
+          <div style={{ width: 60 }} />
         </div>
       </div>
 
-      <div style={{ maxWidth: 680, margin: '0 auto', padding: '24px 16px 80px' }}>
-        <div style={{ display: 'flex', gap: 28, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div style={{
+        maxWidth: 860, margin: '0 auto',
+        padding: isMobile ? '12px 16px 40px' : '20px 24px 48px',
+        display: 'flex', flexDirection: 'column',
+        gap: isMobile ? 20 : 24,
+      }}>
 
-          {/* Left column: shelves */}
-          <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-            {/* Top accent row */}
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 22 }}>
-              <Starburst color={L.coral}    size={22} />
-              <Diamond   color={L.gold}     size={16} />
-              <Ring      color={L.turquoise} size={18} />
-              <Boomerang color={L.peach}    size={26} />
-              <Trapezoid color={L.sparkle3} size={28} />
-              <Starburst color={L.sparkle2} size={16} />
-            </div>
+        {isMobile ? (
+          /* ── Mobile: nook + doorways row ──────────────────────────────── */
+          <div style={{
+            display: 'grid', gridTemplateColumns: '104px minmax(0,1fr)',
+            gap: 12, alignItems: 'stretch',
+            borderBottom: '1px solid rgba(56,197,197,.3)', paddingBottom: 14,
+          }}>
+            {/* Left: Gazette link */}
+            <a
+              href="#/newspaper/current"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                gap: 2, textDecoration: 'none',
+              }}
+            >
+              <img
+                src={`${import.meta.env.BASE_URL}images/library-cat.png`}
+                alt="Library cat reading in a chair"
+                style={{ width: 104, height: 104, objectFit: 'contain', display: 'block', animation: 'lib-float 4s ease-in-out infinite' }}
+              />
+              <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: L.coral, letterSpacing: '0.06em', textAlign: 'center' }}>
+                TODAY'S GAZETTE →
+              </span>
+            </a>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-              {SHELVES.map(shelf => (
-                <ShelfUnit
-                  key={shelf.key}
-                  shelf={shelf}
-                  onNavigate={onNavigate}
-                  count={bookCounts[shelf.key] || 0}
-                />
-              ))}
-              <ArchiveShelfUnit onNavigate={onNavigate} estYear={estYear} />
-              <SetAsideShelfUnit onNavigate={onNavigate} count={setAsideCount} />
-            </div>
-
-            {/* Bottom accent row */}
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginTop: 22 }}>
-              <Starburst color={L.turquoise} size={18} />
-              <Diamond   color={L.coral}     size={14} />
-              <Ring      color={L.gold}      size={16} />
-              <Trapezoid color={L.peach}     size={24} />
-              <Boomerang color={L.sparkle1}  size={28} />
-            </div>
-
-            {/* Doorways */}
-            <div style={{ marginTop: 28 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
-                <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: 'rgba(255,107,122,0.6)', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
-                  through the doorway
-                </span>
-                <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <AuthorRoomCard
-                  discoveredAuthors={discoveredAuthors}
-                  authorBooksCount={authorBooksCount}
-                  onNavigate={onNavigate}
-                />
-                <LibrariansDesk onNavigate={onNavigate} />
-              </div>
+            {/* Right: doorway buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <AuthorRoomCard
+                discoveredAuthors={discoveredAuthors}
+                authorBooksCount={authorBooksCount}
+                onNavigate={onNavigate}
+                isMobile={true}
+              />
+              <LibrariansDesk onNavigate={onNavigate} isMobile={true} />
             </div>
           </div>
-
-          {/* Right column: cat + accents (desktop only) */}
-          <div className="lib-right-col" style={{ flex: '0 0 160px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <Starburst color={L.gold}  size={28} />
-              <Starburst color={L.coral} size={18} />
+        ) : (
+          /* ── Desktop: reading nook strip ──────────────────────────────── */
+          <a
+            href="#/newspaper/current"
+            target="_blank"
+            rel="noopener noreferrer"
+            onMouseEnter={() => setCatHov(true)}
+            onMouseLeave={() => setCatHov(false)}
+            style={{
+              display: 'flex', flexDirection: 'row', alignItems: 'center',
+              gap: 20, textDecoration: 'none',
+              borderBottom: '1px solid rgba(56,197,197,.3)', paddingBottom: 16,
+            }}
+            title="Read The Literary Roads Gazette"
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}images/library-cat.png`}
+              alt="Library cat reading in a chair"
+              style={{
+                width: 120, height: 120, objectFit: 'contain', flexShrink: 0,
+                animation: 'lib-float 4s ease-in-out infinite',
+                transform: catHov ? 'translateY(-3px)' : 'none',
+                transition: 'transform 0.22s ease',
+              }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span style={{ fontFamily: 'Special Elite, serif', fontSize: 15, fontStyle: 'italic', color: L.turquoise }}>
+                Every road trip deserves a good book.
+              </span>
+              <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: L.coral, letterSpacing: '0.06em' }}>
+                READ TODAY'S GAZETTE →
+              </span>
             </div>
+          </a>
+        )}
 
-            <CatLink size={160} />
+        {/* ── Shelves ─────────────────────────────────────────────────────── */}
+        {isMobile ? (
+          /* Mobile: single column */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {SHELVES.map(shelf => (
+              <ShelfUnit key={shelf.key} shelf={shelf} onNavigate={onNavigate} count={bookCounts[shelf.key] || 0} scale={scale} />
+            ))}
+            <ArchiveShelfUnit onNavigate={onNavigate} estYear={estYear} scale={scale} />
+            <SetAsideShelfUnit onNavigate={onNavigate} count={setAsideCount} scale={scale} />
+          </div>
+        ) : (
+          /* Desktop: 2-up grid */
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: '22px 28px' }}>
+            {SHELVES.map(shelf => (
+              <ShelfUnit key={shelf.key} shelf={shelf} onNavigate={onNavigate} count={bookCounts[shelf.key] || 0} scale={scale} />
+            ))}
+            <ArchiveShelfUnit onNavigate={onNavigate} estYear={estYear} scale={scale} />
+            <SetAsideShelfUnit onNavigate={onNavigate} count={setAsideCount} scale={scale} />
+          </div>
+        )}
 
-            <p style={{
-              fontFamily: 'Special Elite, serif', fontSize: 12,
-              color: L.turquoise, fontStyle: 'italic',
-              textAlign: 'center', margin: 0, lineHeight: 1.6,
-            }}>
-              Every road trip deserves a good book.
-            </p>
-
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-              <Boomerang color={L.coral}    size={30} />
-              <Ring      color={L.peach}    size={20} />
-              <Trapezoid color={L.turquoise} size={32} />
-              <Diamond   color={L.sparkle3} size={14} />
+        {/* ── Doorways (desktop only) ──────────────────────────────────────── */}
+        {!isMobile && (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
+              <span style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: L.coral, fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+                through the doorway
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'rgba(255,107,122,0.18)' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: 16 }}>
+              <AuthorRoomCard
+                discoveredAuthors={discoveredAuthors}
+                authorBooksCount={authorBooksCount}
+                onNavigate={onNavigate}
+                isMobile={false}
+              />
+              <LibrariansDesk onNavigate={onNavigate} isMobile={false} />
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
