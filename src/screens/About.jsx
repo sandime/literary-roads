@@ -329,9 +329,29 @@ export default function About({ onBack }) {
             <Highlight>CURATED JOURNEYS</Highlight> make planning effortless. Generate a day trip complete with coffee shops, bookstores, restaurants, and local attractions. Planning to attend a literary festival? We'll help you route the journey and discover all the best stops along the way.
           </p>
           <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
+          }}>
+            The app doubles as your <Highlight>BOOK LOG</Highlight>. Step into the Literary Roads Library to track what you've read, reflect in a journal entry, and rate books with our signature five-cat rating system. Share book postcards on social media, build your Read Next shelf, and collect authors whose entire body of work you want to explore.
+          </p>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
+          }}>
+            When your Read Next shelf gets unwieldy — and it will — step up to the <Highlight>LIBRARIAN'S DESK</Highlight>. Find your next read by setting, era, length, whether it's been banned, and more. The Desk is your literary concierge.
+          </p>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
+          }}>
+            Need a little serendipity? Click Surprise Me in <Highlight>HIGHWAY SNACKS</Highlight> for a combined fortune cookie and book recommendation, or browse curated literary podcast picks — including our favorite, <em>What Should I Read Next?</em>
+          </p>
+          <p className="font-special-elite" style={{
+            fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, marginBottom: '16px',
+          }}>
+            Stop by the <Highlight>NEWSSTAND</Highlight> to discover the Salon book the Literary Roads community is reading together this season, then check out a Guide — like our Ann Patchett Bookstore Lovers' Guide, mapping Ann's favorite indie bookstores based on her New York Times piece.
+          </p>
+          <p className="font-special-elite" style={{
             fontSize: '14px', color: 'rgba(245,245,220,0.82)', lineHeight: 1.85, margin: 0,
           }}>
-            The app doubles as your <Highlight>BOOK LOG</Highlight>. Step into the Literary Roads Library and track what you've read and reflect in a journal entry, rate books with our signature cat ratings, share book postcards on social media, and curate your next read list. Need inspiration? Click "Surprise Me" in <Highlight>HIGHWAY SNACKS</Highlight> for your next great read, or explore curated literary podcast recommendations like our favorite, <em>What Should I Read Next?</em>
+            And keep an eye on the map for a <Highlight>SWAP MEET</Highlight> — a virtual book swap where readers set up tables, share their favorites, and discover what fellow travelers are reading.
           </p>
         </div>
 
