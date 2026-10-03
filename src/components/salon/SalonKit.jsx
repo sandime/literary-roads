@@ -247,7 +247,7 @@ export function Rule({ label, color = S.line, style }) {
 
 export function SalonScreenShell({ children, style }) {
   return (
-    <div style={{ width: '100%', minHeight: '100vh', overflowY: 'auto', background: S.teal,
+    <div style={{ position: 'fixed', inset: 0, overflowY: 'auto', overflowX: 'hidden', background: S.teal,
       backgroundImage: [
         'radial-gradient(ellipse 70% 40% at 50% -5%, rgba(246,100,131,0.10), transparent 60%)',
         'radial-gradient(ellipse 60% 50% at 95% 105%, rgba(48,184,178,0.08), transparent 55%)',
