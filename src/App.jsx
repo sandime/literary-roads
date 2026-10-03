@@ -42,23 +42,64 @@ import './App.css';
 // /author, /newspaper/*) and back, so component state alone can't track these.
 
 function AppInner() {
-  const { user } = useAuth();
+  const { user, authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
-  // Show odometer only on the very first load — never again after it completes, even if
-  // AppInner remounts (which happens when navigating to/from standalone routes like /gazette).
+  // Show odometer on first visit, on login, and on logout+re-login.
+  // lr_last_uid (localStorage) persists across reloads so the odometer doesn't repeat for the same user.
+  // Guests (no account) always see it; cleared on logout so re-login triggers it again.
+  const authInitializedRef = useRef(false);
   const [showOdometer, setShowOdometer] = useState(() => {
-    if (sessionStorage.getItem('lr_odometer_done')) return false;
     const hash = window.location.hash.slice(1) || '/';
     const [hashPath, hashQuery] = hash.split('?');
     const p = new URLSearchParams(hashQuery || '');
-    const shouldShow = hashPath === '/' && !p.get('back') && !p.get('landmark') && !p.get('center') && !p.get('bookstoreId');
-    // Mark done immediately if we're skipping — so remounts and page reloads never re-trigger
-    if (!shouldShow) sessionStorage.setItem('lr_odometer_done', '1');
-    return shouldShow;
+    const isRoot = hashPath === '/' && !p.get('back') && !p.get('landmark') && !p.get('center') && !p.get('bookstoreId');
+    if (!isRoot) return false;
+    // No stored UID means first visit or after logout → show immediately.
+    // If a UID is stored, a returning logged-in user is likely — auth effect will confirm.
+    return !localStorage.getItem('lr_last_uid');
   });
+
+  useEffect(() => {
+    if (authLoading) return;
+    const currentUid = user?.uid || null;
+
+    const atRoot = () => {
+      const hash = window.location.hash.slice(1) || '/';
+      const [hashPath, hashQuery] = hash.split('?');
+      const p = new URLSearchParams(hashQuery || '');
+      return hashPath === '/' && !p.get('back') && !p.get('landmark') && !p.get('center') && !p.get('bookstoreId');
+    };
+
+    if (!authInitializedRef.current) {
+      authInitializedRef.current = true;
+      if (!currentUid) {
+        // Guest — odometer already showing from useState; nothing to persist
+      } else {
+        const lastUid = localStorage.getItem('lr_last_uid');
+        if (lastUid !== currentUid) {
+          // New or different login → show odometer, record this user
+          if (atRoot()) setShowOdometer(true);
+          localStorage.setItem('lr_last_uid', currentUid);
+        }
+        // lastUid === currentUid → same returning user → odometer stays suppressed
+      }
+    } else {
+      // Post-init auth change (login or logout while app is open)
+      if (!currentUid) {
+        // Logged out — clear stored UID so next login triggers odometer
+        localStorage.removeItem('lr_last_uid');
+      } else {
+        const lastUid = localStorage.getItem('lr_last_uid');
+        if (lastUid !== currentUid) {
+          localStorage.setItem('lr_last_uid', currentUid);
+          if (atRoot()) setShowOdometer(true);
+        }
+      }
+    }
+  }, [authLoading, user]);
 
   // Incremented when back is pressed while already on the map — MasterMap resets to fresh state
   const [mapResetKey, setMapResetKey] = useState(0);
@@ -252,7 +293,6 @@ function AppInner() {
       {/* Odometer — shown once on fresh app load */}
       {showOdometer && (
         <Odometer onComplete={() => {
-          sessionStorage.setItem('lr_odometer_done', '1');
           setShowOdometer(false);
           if (!hasBeenWelcomed()) setShowWelcomeModal(true);
         }} />
