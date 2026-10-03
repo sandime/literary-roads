@@ -89,6 +89,8 @@ function EntryScreen({ book, period, user, enrolled, onEnter, onPastReads }) {
   const titleSize = wide ? 60 : Math.max(34, Math.min(w * 0.135, 56));
   const memberCount = period?.participantCount || period?.memberCount || 0;
   const editorial = period?.editorialNote || '';
+  const reviewText = period?.reviewText || '';
+  const reviewLink = period?.reviewLink || '';
 
   const handleJoin = async () => {
     if (!user) { navigate('/login'); return; }
@@ -133,6 +135,22 @@ function EntryScreen({ book, period, user, enrolled, onEnter, onPastReads }) {
           margin: wide ? '28px 0 0' : '16px 0 0', maxWidth: 420 }}>
           {editorial}
         </p>
+      ) : null}
+      {reviewText ? (
+        <p style={{ fontFamily: S.fonts.display, fontSize: wide ? 15 : 14,
+          lineHeight: 1.65, color: S.creamDim,
+          margin: wide ? '18px 0 0' : '14px 0 0', maxWidth: 420 }}>
+          {reviewText}
+        </p>
+      ) : null}
+      {reviewLink ? (
+        <a href={reviewLink} target="_blank" rel="noopener noreferrer"
+          style={{ display: 'inline-block', fontFamily: S.fonts.sans, fontSize: 11,
+            letterSpacing: '0.16em', color: S.turq, textTransform: 'uppercase',
+            textDecoration: 'none', borderBottom: `1px solid ${S.turq}`,
+            marginTop: wide ? 14 : 10 }}>
+          Read the review ›
+        </a>
       ) : null}
       {memberCount > 0 && (
         <div style={{ fontFamily: S.fonts.sans, fontSize: 11, letterSpacing: '0.16em',
@@ -195,10 +213,10 @@ function EntryScreen({ book, period, user, enrolled, onEnter, onPastReads }) {
       </div>
 
       {wide ? (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'row',
-          alignItems: 'center', justifyContent: 'center', gap: 56,
+        <div style={{ display: 'flex', flexDirection: 'row',
+          alignItems: 'flex-start', justifyContent: 'center', gap: 56,
           maxWidth: 1080, margin: '0 auto',
-          padding: '24px 56px 48px', width: '100%', boxSizing: 'border-box' }}>
+          padding: '40px 56px 64px', width: '100%', boxSizing: 'border-box' }}>
           <div style={{ maxWidth: 440, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
             <Masthead big align="left" titleSize={titleSize} book={book} />
             {note}
@@ -206,10 +224,10 @@ function EntryScreen({ book, period, user, enrolled, onEnter, onPastReads }) {
           {hero}
         </div>
       ) : (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column',
+        <div style={{ display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'flex-start',
           maxWidth: 460, margin: '0 auto',
-          padding: '10px 24px 36px', width: '100%', boxSizing: 'border-box',
+          padding: '10px 24px 48px', width: '100%', boxSizing: 'border-box',
           textAlign: 'center' }}>
           <Masthead big align="center" titleSize={titleSize} book={book} />
           <div style={{ margin: '14px 0 0' }}>{hero}</div>

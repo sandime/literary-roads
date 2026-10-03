@@ -33,6 +33,7 @@ const EMPTY_FORM = {
   bookTitle: '', bookAuthor: '',
   coverImage: '', openLibraryCoverId: '',
   editorialNote: '',
+  reviewLink: '', reviewText: '',
   startDate: '', endDate: '', nextBookDate: '',
   status: 'upcoming',
   gazetteIssueId: '',
@@ -54,6 +55,8 @@ function SalonForm({ period, onSave, onClose, saving }) {
     coverImage:         period.coverImage             || period.coverURL || '',
     openLibraryCoverId: period.openLibraryCoverId     || '',
     editorialNote:      period.editorialNote          || '',
+    reviewLink:         period.reviewLink             || '',
+    reviewText:         period.reviewText             || '',
     startDate:          toInputDate(period.startDate),
     endDate:            toInputDate(period.endDate),
     nextBookDate:       toInputDate(period.nextBookDate || period.nextBookAnnounceDate),
@@ -73,6 +76,8 @@ function SalonForm({ period, onSave, onClose, saving }) {
       coverImage:         form.coverImage.trim(),
       openLibraryCoverId: form.openLibraryCoverId.trim(),
       editorialNote:      form.editorialNote.trim(),
+      reviewLink:         form.reviewLink.trim(),
+      reviewText:         form.reviewText.trim(),
       startDate:          toTimestamp(form.startDate),
       endDate:            toTimestamp(form.endDate),
       nextBookDate:       toTimestamp(form.nextBookDate),
@@ -140,6 +145,25 @@ function SalonForm({ period, onSave, onClose, saving }) {
             <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted,
               marginTop: 3, textAlign: 'right' }}>
               {form.editorialNote.length}/300
+            </div>
+          </div>
+
+          <div>
+            <label style={lbl}>REVIEW LINK (optional)</label>
+            <input style={inp} value={form.reviewLink}
+              onChange={e => set('reviewLink', e.target.value)}
+              placeholder="https://… (review, article, or author interview)"/>
+          </div>
+
+          <div>
+            <label style={lbl}>REVIEW / ABOUT THE BOOK (optional, ~300 words)</label>
+            <textarea style={{ ...inp, resize: 'vertical' }} rows={7}
+              value={form.reviewText} maxLength={2000}
+              onChange={e => set('reviewText', e.target.value)}
+              placeholder="Share more about this book to help readers decide — a synopsis, review highlights, or why you chose it…"/>
+            <div style={{ fontFamily: 'Special Elite, serif', fontSize: 10, color: C.muted,
+              marginTop: 3, textAlign: 'right' }}>
+              {form.reviewText.length}/2000
             </div>
           </div>
 
