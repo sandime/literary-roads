@@ -252,7 +252,7 @@
 /* Newsstand three-bucket layout */
 .hs-newsstand { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; }
 @media (min-width: 720px) {
-  .hs-newsstand { flex-direction: row; align-items: flex-start; }
+  .hs-newsstand { flex-direction: row; align-items: stretch; }
   .hs-newsstand > *:nth-child(1) { flex: 0 0 210px; }
   .hs-newsstand > *:nth-child(2) { flex: 1; min-width: 0; }
   .hs-newsstand > *:nth-child(3) { flex: 1; min-width: 0; }
