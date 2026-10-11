@@ -2,98 +2,98 @@
   "fiction": [
     {
       "rank": 1,
-      "title": "HOLLYWOOD, ENDING",
-      "author": "John Green",
+      "title": "THRESHING DAY",
+      "author": "Rebecca Yarros",
       "weeksOnList": 1,
-      "isbn13": "9780525556657",
-      "description": "Celebrity permeates lives onscreen and off for two rising stars appearing in the biopic “Andy Warhol Never Gets Old.”",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780525556657.jpg"
+      "isbn13": "9781682818084",
+      "description": "Thirteen short stories, set in the Empyrean world, in which cadets compete to earn the bond of a dragon.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781682818084.jpg"
     },
     {
       "rank": 2,
-      "title": "SOMETIMES I SCARE MYSELF",
-      "author": "Jeneva Rose",
+      "title": "THE FRENCH ILLUSION",
+      "author": "John Grisham",
       "weeksOnList": 1,
-      "isbn13": "9798212182881",
-      "description": "Three horror stories: “Never Kill the Medium,” “The Nightmare House” and “All Curses Are Final.”",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798212182881.jpg"
+      "isbn13": "9780385550543",
+      "description": "When a couple is kidnapped during a honeymoon trip in the French countryside, a young lawyer is used as part of a C.I.A. operation.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780385550543.jpg"
     },
     {
       "rank": 3,
-      "title": "HOLLOW BONES",
-      "author": "Jodi Picoult",
+      "title": "HOLLYWOOD, ENDING",
+      "author": "John Green",
       "weeksOnList": 2,
-      "isbn13": "9780593726259",
-      "description": "A woman who runs the Rhode Island Department for Emergency Preparedness and her husband, who is a police polygraph expert, face a crisis in their marriage.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593726259.jpg"
+      "isbn13": "9780525426073",
+      "description": "Celebrity permeates lives onscreen and off for two rising stars appearing in the biopic “Andy Warhol Never Gets Old.”",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780525426073.jpg"
     },
     {
       "rank": 4,
-      "title": "THE CALAMITY CLUB",
-      "author": "Kathryn Stockett",
-      "weeksOnList": 21,
-      "isbn13": "9781954118812",
-      "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
+      "title": "AMERICAN HAGWON",
+      "author": "Min Jin Lee",
+      "weeksOnList": 1,
+      "isbn13": "9781538752036",
+      "description": "After a betrayal and a financial crisis, John and Helen Koh move with their three children from Korea to Australia to California in the 1990s.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538752036.jpg"
     },
     {
       "rank": 5,
-      "title": "AGATHA CHRISTIE: MURDER AT THE GRAND ALPINE HOTEL",
-      "author": "Lucy Foley",
-      "weeksOnList": 1,
-      "isbn13": "9780063376694",
-      "description": "At a secluded hotel in the Swiss Alps during a blizzard, Miss Marple must determine the identity of a killer.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063376694.jpg"
+      "title": "THE CALAMITY CLUB",
+      "author": "Kathryn Stockett",
+      "weeksOnList": 22,
+      "isbn13": "9781954118812",
+      "description": "As things get tougher during the Depression, several women look for ways to improve their circumstances.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781954118812.jpg"
     }
   ],
   "nonfiction": [
     {
       "rank": 1,
+      "title": "THE STEPS",
+      "author": "Sylvester Stallone",
+      "weeksOnList": 1,
+      "isbn13": "9780063443914",
+      "description": "The Hollywood icon describes the challenges he encountered during his childhood and the start of his career.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780063443914.jpg"
+    },
+    {
+      "rank": 2,
       "title": "SWAN SONG",
       "author": "Charles Spencer",
-      "weeksOnList": 1,
+      "weeksOnList": 2,
       "isbn13": "9798217379743",
       "description": "The ninth Earl Spencer shares personal stories about his sister, Diana, from childhood through her untimely death.",
       "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217379743.jpg"
     },
     {
-      "rank": 2,
-      "title": "ROLL THE CALLS",
-      "author": "Ari Emanuel",
-      "weeksOnList": 1,
-      "isbn13": "9798217209347",
-      "description": "The Hollywood mogul charts his rise to power and depicts behind-the-scenes stories about the entertainment industry.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217209347.jpg"
-    },
-    {
       "rank": 3,
-      "title": "ACTUALLY, NEVERMIND",
-      "author": "Taylor Tomlinson",
+      "title": "THE AMERICAN WAY OF KILLING",
+      "author": "Malcolm Gladwell",
       "weeksOnList": 1,
-      "isbn13": "9781668097236",
-      "description": "In a collection of essays, the comedian reflects upon her life as she approaches the same age her mother was when she died.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781668097236.jpg"
+      "isbn13": "9780316603782",
+      "description": "Gladwell examines why there are so many homicides in the United States and what stops us from fixing this issue.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780316603782.jpg"
     },
     {
       "rank": 4,
-      "title": "AN UNEXPECTED LIFE",
-      "author": "Gloria Steinem",
+      "title": "WHAT COULD POSSIBLY GO RIGHT?",
+      "author": "Danny Meyer",
       "weeksOnList": 1,
-      "isbn13": "9780593978177",
-      "description": "A memoir by the recently deceased feminist journalist and icon in which she recounts her six decades of activism.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593978177.jpg"
+      "isbn13": "9780593731772",
+      "description": "The restaurateur and entrepreneur shares stories of events that shaped the success of his business ventures.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9780593731772.jpg"
     },
     {
       "rank": 5,
-      "title": "THE PERILOUS FIGHT",
-      "author": "Colin Kaepernick with Nick Chiles",
-      "weeksOnList": 2,
-      "isbn13": "9781538777879",
-      "description": "The Super Bowl quarterback and civil rights activist describes defining moments in his life and their outcomes.",
-      "coverUrl": "https://static01.nyt.com/bestsellers/images/9781538777879.jpg"
+      "title": "FICTIONAL SELVES",
+      "author": "Kyle MacLachlan",
+      "weeksOnList": 1,
+      "isbn13": "9798217086320",
+      "description": "The Golden Globe-winning actor gives an account of his career in Hollywood and his relationships with his characters.",
+      "coverUrl": "https://static01.nyt.com/bestsellers/images/9798217086320.jpg"
     }
   ],
-  "issueDate": "Sunday, October 4, 2026",
-  "issueNumber": 92,
-  "updatedAt": "2026-10-04T15:01:44.420Z"
+  "issueDate": "Sunday, October 11, 2026",
+  "issueNumber": 93,
+  "updatedAt": "2026-10-11T16:02:46.005Z"
 }
