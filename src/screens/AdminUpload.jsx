@@ -727,19 +727,39 @@ export default function AdminUpload() {
     try {
       const snap = await getDocs(collection(db, slCollection));
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => !d.deleted);
+      // Normalize & ↔ and so "Books & Ale" matches "Books and Ale"
+      const normName = s => s.toLowerCase().trim()
+        .replace(/\s*&\s*/g, ' and ')
+        .replace(/\s+/g, ' ');
+
       const results = slRows.map(row => {
-        const nameLower = row.name.toLowerCase().trim();
-        // Exact name match first, then substring
-        let match = docs.find(d => (d.name || '').toLowerCase().trim() === nameLower);
-        if (!match) match = docs.find(d => (d.name || '').toLowerCase().includes(nameLower) || nameLower.includes((d.name || '').toLowerCase().trim()));
-        // Narrow by city/state if provided and multiple candidates exist
+        const nameLower = normName(row.name);
+
+        // 1. Exact match (after normalization)
+        let match = docs.find(d => normName(d.name || '') === nameLower);
+
+        // 2. City/state-scoped match — try before broad substring
         if (!match && (row.city || row.state)) {
-          const candidates = docs.filter(d => (d.name || '').toLowerCase().includes(nameLower));
-          match = candidates.find(d =>
+          const byCity = docs.filter(d =>
             (!row.city  || (d.city  || '').toLowerCase().includes(row.city.toLowerCase())) &&
             (!row.state || (d.state || '').toUpperCase() === row.state.toUpperCase())
-          ) || candidates[0];
+          );
+          match = byCity.find(d => normName(d.name || '') === nameLower)
+               || byCity.find(d => {
+                    const dn = normName(d.name || '');
+                    // Only allow substring if the shorter name is at least 8 chars
+                    return dn.length >= 8 && (dn.includes(nameLower) || nameLower.includes(dn));
+                  });
         }
+
+        // 3. Broad substring fallback — short names excluded to avoid false positives
+        if (!match) {
+          match = docs.find(d => {
+            const dn = normName(d.name || '');
+            return dn.length >= 8 && (dn.includes(nameLower) || nameLower.includes(dn));
+          });
+        }
+
         return { row, match: match || null };
       });
       setSlMatches(results);
