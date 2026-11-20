@@ -16,7 +16,6 @@ import Library from './screens/Library';
 import About from './screens/About';
 import Ethics from './screens/Ethics';
 import Credits from './screens/Credits';
-import Badges from './screens/Badges';
 import PrivacyPolicy from './screens/PrivacyPolicy';
 import EthicsModal from './components/EthicsModal';
 import WelcomeModal, { hasBeenWelcomed } from './components/WelcomeModal';
@@ -313,7 +312,6 @@ function AppInner() {
           onShowDayTrip={() => navigate('/daytrip')}
           onShowFestivalTrip={() => navigate('/festivaltrip')}
           onShowJourneys={() => navigate('/journeys')}
-          onShowBadges={() => navigate('/badges')}
           onShowSwapMeet={() => navigate('/swap-meet')}
           onShowPrivacy={() => navigate('/privacy')}
           routeStateRef={routeStateRef}
@@ -342,12 +340,10 @@ function AppInner() {
               <Profile
                 onBack={() => navigate(-1)}
                 onShowLibrary={() => navigate('/library')}
-                onShowBadges={() => navigate('/badges')}
                 onShowTrips={() => navigate('/', { state: { openTrips: true } })}
                 selectedStates={selectedStates}
               />
             } />
-            <Route path="/badges" element={<Badges onBack={() => navigate(-1)} />} />
             <Route path="/library/*" element={<Library onBack={() => navigate(-1)} />} />
             <Route path="/resources" element={<Resources onBack={() => navigate(-1)} />} />
             <Route path="/about" element={<About onBack={() => navigate(-1)} />} />

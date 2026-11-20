@@ -11,7 +11,17 @@
 //   store-cat    → future easter egg
 
 import { useState, useEffect } from 'react';
-import { BADGE_MAP } from '../../utils/badgeDefinitions';
+
+const CAT_SVG = `<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10 21 L14 9 L20 18" fill="#F5F5DC"/>
+  <path d="M30 21 L26 9 L20 18" fill="#F5F5DC"/>
+  <ellipse cx="20" cy="25" rx="12" ry="10.5" fill="#F5F5DC"/>
+  <circle cx="15.5" cy="23" r="3.6" fill="#1A1B2E"/>
+  <circle cx="17" cy="21.5" r="1.2" fill="#F5F5DC"/>
+  <circle cx="24.5" cy="23" r="3.6" fill="#1A1B2E"/>
+  <circle cx="26" cy="21.5" r="1.2" fill="#F5F5DC"/>
+  <path d="M19.5 27 L20 28.2 L20.5 27 Z" fill="#C0A090"/>
+</svg>`;
 
 const P = {
   bg:    '#1C1A14',
@@ -115,7 +125,6 @@ function Photo({ photo }) {
 }
 
 export default function SecretRoom({ onClose }) {
-  const badge = BADGE_MAP['curious-as-a-cat'];
   const [showBadge] = useState(true);
 
   // ESC key
@@ -231,10 +240,7 @@ export default function SecretRoom({ onClose }) {
                     marginBottom: 18,
                   }}
                 >
-                  {badge.iconSvg
-                    ? <div style={{ width: 58, height: 58 }} dangerouslySetInnerHTML={{ __html: badge.iconSvg }} />
-                    : <span style={{ fontSize: '2.6rem' }}>{badge.icon}</span>
-                  }
+                  <div style={{ width: 58, height: 58 }} dangerouslySetInnerHTML={{ __html: CAT_SVG }} />
                 </div>
                 <div style={{
                   fontFamily: 'Georgia, serif', fontSize: 20,

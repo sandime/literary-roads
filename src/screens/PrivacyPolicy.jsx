@@ -53,7 +53,7 @@ const SECTIONS = [
       'Provide core app features (route planning, check-ins, book logging)',
       'Display your activity to other users when you choose to share (guestbook posts, tales, parked cars, shared routes)',
       'Improve the app experience and fix bugs',
-      'Send you notifications about app activity (honks, tale contributions, badge unlocks)',
+      'Send you notifications about app activity (honks, tale contributions)',
       'Analyze usage patterns to build better features',
     ],
     nots: [
@@ -80,7 +80,7 @@ const SECTIONS = [
       'Your saved routes (unless you share them)',
       'Your Book Log (books you\'ve read and rated)',
       'Your "Want to Read" list',
-      'Your personal travel stats and badges',
+      'Your personal travel stats',
       'Your check-in history',
     ],
     controls: 'You can delete your guestbook posts, tale contributions, and shared routes at any time. You can delete your entire account and all associated data from your profile.',

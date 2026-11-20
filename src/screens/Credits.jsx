@@ -224,7 +224,7 @@ export default function Credits({ onBack }) {
             { name: 'Microsoft Copilot', desc: 'Frame and icon design generation' },
             { name: 'Photopea',          desc: 'Image editing and processing' },
             { name: 'Remove.bg',         desc: 'Background removal' },
-            { name: 'Gemini',            desc: 'Badge and emoji design generation' },
+            { name: 'Gemini',            desc: 'Emoji design generation' },
           ]} />
 
           <Section title="DEVELOPMENT TOOLS" color="#39FF14" items={[

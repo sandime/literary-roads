@@ -7,9 +7,6 @@ import { searchBooks } from '../utils/googleBooks';
 import CarSelector from '../components/CarSelector';
 import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
 import { subscribeToTravelStats } from '../utils/travelStats';
-import { subscribeToUserBadges, checkAndAwardBadges, checkSeasonalBadges, computeBadgeProgress } from '../utils/badgeChecker';
-import { BADGE_COUNT } from '../utils/badgeDefinitions';
-import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { deleteAccount } from '../utils/deleteAccount';
 import { BackArrowIcon } from '../components/Icons';
 import SalonProfileCard from '../components/salon/SalonProfileCard';
@@ -608,7 +605,7 @@ function AvatarPicker({ currentId, onSelect, onClose }) {
 }
 
 // ── Main Profile component ──────────────────────────────────────────────────
-export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTrips, selectedStates = [] }) {
+export default function Profile({ onBack, onShowLibrary, onShowTrips, selectedStates = [] }) {
   const { user } = useAuth();
 
   const [avatarId, setAvatarId]               = useState(null);
@@ -624,8 +621,6 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
   const [visitedCount, setVisitedCount] = useState(0);
   const [travelStats, setTravelStats]       = useState(null);
   const [readingStats, setReadingStats]     = useState({ booksRead: 0, fiveCat: 0, nextReads: 0, questBooksRead: 0, foundAtCounts: {} });
-  const [earnedBadgeData, setEarnedBadgeData] = useState([]);
-  const [newBadges, setNewBadges]             = useState([]);
   const [showBookModal, setShowBookModal]     = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -727,27 +722,6 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
     if (!user) return;
     return subscribeToQuestHistory(user.uid, setQuestHistory);
   }, [user]);
-
-  // Seasonal badge check when quest progress changes
-  useEffect(() => {
-    if (!user || !readingGoal || readingStats.questBooksRead === undefined) return;
-    checkSeasonalBadges(user.uid, readingStats.questBooksRead, readingGoal.goal).then(newly => {
-      if (newly.length > 0) setNewBadges(newly);
-    });
-  }, [user, readingStats.questBooksRead, readingGoal]);
-
-  useEffect(() => {
-    if (!user) return;
-    return subscribeToUserBadges(user.uid, setEarnedBadgeData);
-  }, [user]);
-
-  // Check for newly earned badges when travelStats updates
-  useEffect(() => {
-    if (!user || !travelStats) return;
-    checkAndAwardBadges(user.uid).then(newly => {
-      if (newly.length > 0) setNewBadges(newly);
-    });
-  }, [user, travelStats]);
 
   const saveBooks = async (books) => {
     if (!user) return;
@@ -1371,15 +1345,6 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
         />
       )}
 
-      {/* Badge unlock celebration */}
-      {newBadges.length > 0 && (
-        <BadgeUnlockModal
-          badges={newBadges}
-          onClose={() => setNewBadges([])}
-          onViewAll={onShowBadges}
-        />
-      )}
-
       {/* ── Account deletion confirmation modal ── */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[3000] bg-black/80 flex items-center justify-center px-4"
@@ -1407,7 +1372,7 @@ export default function Profile({ onBack, onShowLibrary, onShowBadges, onShowTri
                   'All saved routes and stops',
                   'Book Log and ratings',
                   'Check-in history',
-                  'All badges and stats',
+                  'All travel stats',
                   'Guestbook posts and Tale contributions',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2">

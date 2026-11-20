@@ -19,9 +19,7 @@ import { getTrip, addToTrip, removeFromTrip, clearTrip } from '../utils/tripStor
 import { saveRoute, subscribeToSavedRoutes, deleteSavedRoute, updateRouteName } from '../utils/savedRoutes';
 import { subscribeSavedStops, saveStop, unsaveStop, checkSavedStopsValidity } from '../utils/savedStops';
 import { checkIn, deleteCheckIn, subscribeToLocationCars, carImgSrc } from '../utils/carCheckIns';
-import { checkAndAwardBadges, subscribeToUserBadges } from '../utils/badgeChecker';
 import { ADMIN_UID } from '../utils/newsletterAdmin';
-import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { checkHonkAllowed, recordHonk, sendHonkNotifications, clearHonkNotification, playHorn, requestHonkNotifPermission, showBrowserHonkNotification } from '../utils/honkUtils';
 import RoadTrip from './RoadTrip';
 import SaveRouteModal from '../components/SaveRouteModal';
@@ -31,7 +29,7 @@ import HitchhikerTale from '../components/HitchhikerTale';
 import RoadShotStudio from '../components/RoadShotStudio';
 import TaleModal from '../components/TaleModal';
 import PitStopRating from '../components/PitStopRating';
-import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, BadgesIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon, LibraryIcon } from '../components/Icons';
+import { CarIcon, CameraIcon, ProfileIcon, SignOutIcon, DayTripsIcon, FestivalTentIcon, AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, CloseIcon, LibraryIcon } from '../components/Icons';
 import TripProgressPanel from '../components/TripProgressPanel';
 import HamburgerDrawer from '../components/HamburgerDrawer';
 import AudioNarrative from '../components/AudioNarrative';
@@ -1396,7 +1394,7 @@ const PlaceSearch = ({ onSelect, mapCenter }) => {
   );
 };
 
-const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowBadges, onShowPrivacy, onShowSwapMeet, routeStateRef, onBackToPlanner, mapResetKey }) => {
+const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowResources, onShowLibrary, onShowAbout, onShowEthics, onShowCredits, onShowDayTrip, onShowFestivalTrip, onShowJourneys, onShowPrivacy, onShowSwapMeet, routeStateRef, onBackToPlanner, mapResetKey }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -1466,9 +1464,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const [locationCars, setLocationCars] = useState({});  // { [locationId]: Car[] }
   const [checkInLoading, setCheckInLoading] = useState(false);
   const [checkInError, setCheckInError] = useState('');
-  const [newBadges, setNewBadges]           = useState([]);
+
   const [activeSwapMeet, setActiveSwapMeet] = useState(null);
-  const [earnedBadgeData, setEarnedBadgeData] = useState([]);
   const [honkingLocationId, setHonkingLocationId] = useState(null);
   const [honkToast, setHonkToast] = useState(null);   // { fromName, locationName }
   const [honkMessage, setHonkMessage] = useState(''); // rate-limit feedback
@@ -1966,12 +1963,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
     return subscribeToSavedRoutes(user.uid, setSavedRoutes);
   }, [user]);
 
-  // Badge subscription for earned count (hamburger badge count)
-  useEffect(() => {
-    if (!user) { setEarnedBadgeData([]); return; }
-    return subscribeToUserBadges(user.uid, setEarnedBadgeData);
-  }, [user]);
-
   // Saved stops (permanent bookmarks): stream from Firestore, then check for soft-deleted sources
   useEffect(() => {
     if (!user) { setSavedStops([]); return; }
@@ -2227,10 +2218,6 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
       console.log('[MasterMap] check-in success, doc:', ref.id);
       // Ask for browser notification permission so honks are heard even when tab is backgrounded
       requestHonkNotifPermission();
-      // Check for newly earned badges after parking
-      checkAndAwardBadges(user.uid).then(newly => {
-        if (newly.length > 0) setNewBadges(newly);
-      });
     } catch (err) {
       console.error('[MasterMap] check-in FAILED:', err.code, err.message);
       if (err.code === 'permission-denied') {
@@ -3233,9 +3220,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
             onLibrary={onShowLibrary}
             onResources={onShowResources}
             onBookLog={onShowLibrary}
-            onBadges={onShowBadges}
             tripItems={tripItems}
-            earnedBadgeCount={earnedBadgeData.length}
             onDayTrip={onShowDayTrip}
             onFestivalTrip={onShowFestivalTrip}
             onJourneys={onShowJourneys}
@@ -4788,14 +4773,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
         />
       )}
 
-      {/* ── Badge unlock celebration ── */}
-      {newBadges.length > 0 && (
-        <BadgeUnlockModal
-          badges={newBadges}
-          onClose={() => setNewBadges([])}
-          onViewAll={onShowBadges}
-        />
-      )}
+
 
     </div>
   );

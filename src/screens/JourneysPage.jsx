@@ -1153,6 +1153,7 @@ export default function JourneysPage({ onBack, onShowDayTrip, onShowFestivalTrip
         }}
       />
 
+      {/* Links to SecretRoom easter egg (John Margolies roadside photos). Do not remove in redesigns. */}
       {showSecretRoom && <SecretRoom onClose={() => setShowSecretRoom(false)} />}
     </div>
   );

@@ -9,15 +9,14 @@ import {
  *
  * Navigation props (all optional — omit to hide the item):
  *   onHome, onSearch, onNearMe
- *   onMyTrips, onResources, onBadges
+ *   onMyTrips, onResources
  *   onDayTrip, onFestivalTrip
  *   onAbout, onEthics, onPrivacy, onCredits
  *   onProfile, onLogin, onSignOut
  *   onSaveRoute, onClearRoute
  *
  * State props:
- *   tripItems       — array, shows badge count on MY TRIPS
- *   earnedBadgeCount — number, shows count badge on BADGES (MasterMap only)
+ *   tripItems       — array, shows count on MY TRIPS
  *   route           — array, triggers CURRENT ROUTE section when non-empty
  *   loadedRoute     — object|null, also triggers CURRENT ROUTE section
  *

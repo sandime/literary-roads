@@ -399,21 +399,6 @@ export const DayTripsIcon = ({ size = 24, className = '' }) => (
   </svg>
 );
 
-export const BadgesIcon = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
-    <style>{STYLES}</style>
-    {/* Atomic background burst */}
-    <path className="bg" d="M 64 10 L 72 30 L 92 38 L 72 46 L 64 66 L 56 46 L 36 38 L 56 30 Z" />
-    {/* Mid-century shield base */}
-    <path className="t" d="M 64 15 L 105 35 L 95 85 L 64 115 L 33 85 L 23 35 Z" />
-    {/* Inner orbiting atom */}
-    <ellipse className="p" cx="64" cy="60" rx="20" ry="8" transform="rotate(30 64 60)" />
-    <ellipse className="c" cx="64" cy="60" rx="20" ry="8" transform="rotate(-30 64 60)" />
-    {/* Core dot */}
-    <circle className="fo" cx="64" cy="60" r="5" />
-  </svg>
-);
-
 export const AboutIcon = ({ size = 24, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" className={className}>
     <style>{STYLES}</style>

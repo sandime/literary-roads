@@ -4,8 +4,6 @@ import { collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot, serverTimest
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
-import { checkAndAwardBadges, checkAndAwardFoundersBadge } from '../utils/badgeChecker';
-import BadgeUnlockModal from '../components/BadgeUnlockModal';
 import { BackArrowIcon, LibraryIcon } from '../components/Icons';
 import PostcardBuilder from '../components/PostcardBuilder';
 import LibraryHome from './LibraryHome';
@@ -979,7 +977,6 @@ export default function Library({ onBack }) {
   const [activeCard, setActiveCard] = useState(null);
   const [editingEntry, setEditingEntry] = useState(null);
   const [editSaving, setEditSaving] = useState(false);
-  const [newBadges, setNewBadges] = useState([]);
   const carouselRef = useRef(null);
 
   // Postcard Books shelf state (books user was reading when they made a postcard)
@@ -1104,8 +1101,6 @@ export default function Library({ onBack }) {
         timestamp: serverTimestamp(),
       });
       setSelectedBook(null); setShowAddSearch(false);
-      checkAndAwardBadges(user.uid).then(newly => { if (newly.length > 0) setNewBadges(newly); });
-      checkAndAwardFoundersBadge(user.uid).then(badge => { if (badge) setNewBadges(prev => [...prev, badge]); });
       getOrCreateBook({ id: selectedBook.id, title: selectedBook.title, authors: [selectedBook.author], coverUrl: selectedBook.coverURL || '', categories: selectedBook.categories || [], pageCount: selectedBook.pageCount || null }).catch(() => {});
 
       // Part 4: check if this book is in Read Next — prompt to remove if so
@@ -1216,10 +1211,6 @@ export default function Library({ onBack }) {
           authorBooksCount={authorBooksCount}
           setAsideCount={setAside.length}
         />
-        {/* Overlays still rendered above LibraryHome */}
-        {newBadges.length > 0 && (
-          <BadgeUnlockModal badges={newBadges} onClose={() => setNewBadges([])} />
-        )}
       </>
     );
   }
@@ -1273,7 +1264,7 @@ export default function Library({ onBack }) {
                   YOUR READING JOURNEY STARTS HERE
                 </p>
                 <p style={{ fontFamily: 'Special Elite, serif', color: L.muted, fontSize: 13, fontStyle: 'italic', lineHeight: 1.6 }}>
-                  Add your first finished book to start tracking your literary adventures and earning badges.
+                  Add your first finished book to start tracking your literary adventures.
                 </p>
               </div>
             )}
@@ -1381,7 +1372,6 @@ export default function Library({ onBack }) {
           </ShelfCard>
         )}
 
-        {newBadges.length > 0 && <BadgeUnlockModal badges={newBadges} onClose={() => setNewBadges([])} />}
       </SectionShell>
     );
   }
