@@ -125,7 +125,6 @@ function Photo({ photo }) {
 }
 
 export default function SecretRoom({ onClose }) {
-  const [showBadge] = useState(true);
 
   // ESC key
   useEffect(() => {
@@ -223,8 +222,8 @@ export default function SecretRoom({ onClose }) {
 
           <div style={{ padding: '44px 24px 68px', maxWidth: 640, margin: '0 auto' }}>
 
-            {/* ── Section 1: Badge award (first visit only) ── */}
-            {showBadge && badge && (
+            {/* ── Section 1: Curious as a Cat reveal ── */}
+            {(
               <div style={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                 paddingBottom: 44, marginBottom: 44,
