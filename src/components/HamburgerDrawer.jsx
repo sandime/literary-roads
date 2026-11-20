@@ -1,6 +1,6 @@
 import { useAuth } from '../contexts/AuthContext';
 import {
-  BadgesIcon, DayTripsIcon, FestivalTentIcon,
+  DayTripsIcon, FestivalTentIcon,
   AboutIcon, CodeOfEthicsIcon, PrivacyPolicyIcon, CreditsIcon, LibraryIcon,
 } from './Icons';
 
@@ -28,9 +28,8 @@ const HamburgerDrawer = ({
   // EXPLORE
   onHome, onSearch, onNearMe, onLibraryFinder,
   // GLOVE BOX
-  onMyTrips, onLibrary, onResources, onBadges,
+  onMyTrips, onLibrary, onResources,
   tripItems = [],
-  earnedBadgeCount = 0,
   // GUIDED JOURNEYS
   onDayTrip, onFestivalTrip, onJourneys,
   // AFTERWORD
@@ -142,15 +141,6 @@ const HamburgerDrawer = ({
                   d="M18 8h1a4 4 0 010 8h-1M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8zM6 1v3M10 1v3M14 1v3" />
               </svg>,
               'HIGHWAY SNACKS'
-            )}
-{user && onBadges && navBtn(onBadges,
-              <BadgesIcon size={20} className="flex-shrink-0" />,
-              'BADGES',
-              earnedBadgeCount > 0 && (
-                <span className="ml-auto bg-atomic-orange text-midnight-navy font-bungee text-[10px] px-1.5 py-0.5 rounded-full leading-none">
-                  {earnedBadgeCount}
-                </span>
-              )
             )}
           </div>
 
