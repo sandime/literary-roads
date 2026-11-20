@@ -1123,6 +1123,36 @@ export default function JourneysPage({ onBack, onShowDayTrip, onShowFestivalTrip
       ) : (
         <JourneysAccordion {...sharedProps} />
       )}
+
+      {/* Journey cat easter egg — pogo-bouncing in the upper-right corner */}
+      <style>{`
+        @keyframes journey-cat-bounce {
+          0%   { transform: translateY(0)   scaleY(1)    scaleX(1); }
+          40%  { transform: translateY(-18px) scaleY(1.08) scaleX(0.94); }
+          55%  { transform: translateY(-22px) scaleY(1.1)  scaleX(0.92); }
+          70%  { transform: translateY(-8px)  scaleY(0.96) scaleX(1.04); }
+          85%  { transform: translateY(-2px)  scaleY(1.03) scaleX(0.98); }
+          100% { transform: translateY(0)   scaleY(1)    scaleX(1); }
+        }
+      `}</style>
+      <img
+        src={JOURNEY_CAT_SRC}
+        alt="a cat on a pogo stick"
+        onClick={() => setShowSecretRoom(true)}
+        style={{
+          position: 'fixed',
+          top: 10,
+          right: 12,
+          width: 48,
+          height: 'auto',
+          cursor: 'pointer',
+          zIndex: 900,
+          animation: 'journey-cat-bounce 0.9s cubic-bezier(0.33,0,0.66,1) infinite',
+          transformOrigin: 'bottom center',
+          userSelect: 'none',
+        }}
+      />
+
       {showSecretRoom && <SecretRoom onClose={() => setShowSecretRoom(false)} />}
     </div>
   );
