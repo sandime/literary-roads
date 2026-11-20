@@ -38,6 +38,6 @@ export const MAP_CONFIG = {
   defaultCenter: [39.5, -98.35], // Continental US overview
   defaultZoom: 4,
   corridorWidth: 5, // miles
-  maxZoom: 18,
+  maxZoom: 16,
   minZoom: 4,
 };

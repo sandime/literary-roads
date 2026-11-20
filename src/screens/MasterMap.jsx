@@ -3343,10 +3343,12 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}"
             attribution='&copy; <a href="https://www.esri.com/">Esri</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            maxZoom={16}
           />
           {/* Label overlay */}
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}"
+            maxZoom={16}
           />
           <MapController target={searchTarget} />
           <FitBoundsController target={fitTarget} />
