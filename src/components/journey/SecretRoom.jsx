@@ -11,8 +11,6 @@
 //   store-cat    → future easter egg
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { checkAndAwardJourneyCatBadge } from '../../utils/badgeChecker';
 import { BADGE_MAP } from '../../utils/badgeDefinitions';
 
 const P = {
@@ -117,17 +115,8 @@ function Photo({ photo }) {
 }
 
 export default function SecretRoom({ onClose }) {
-  const { user } = useAuth();
-  const [showBadge, setShowBadge] = useState(false);
   const badge = BADGE_MAP['curious-as-a-cat'];
-
-  // Award badge on first visit; returns null on all subsequent visits
-  useEffect(() => {
-    if (!user) return;
-    checkAndAwardJourneyCatBadge(user.uid).then(awarded => {
-      if (awarded) setShowBadge(true);
-    });
-  }, [user]);
+  const [showBadge] = useState(true);
 
   // ESC key
   useEffect(() => {
@@ -252,12 +241,6 @@ export default function SecretRoom({ onClose }) {
                   color: P.cream, letterSpacing: '0.02em', marginBottom: 7,
                 }}>
                   Curious as a Cat
-                </div>
-                <div style={{
-                  fontFamily: 'Special Elite, serif', fontSize: 9,
-                  color: P.muted, letterSpacing: '0.22em', textTransform: 'uppercase',
-                }}>
-                  Badge Unlocked
                 </div>
               </div>
             )}
