@@ -15,6 +15,9 @@ firebase-debug.log
 .firebase/
 .claude/
 
+# Audio narrations (97 MB of MP3s — deployed via gh-pages, not tracked in source)
+public/audio/
+
 # Local NRHP data files
 downloadNRHP.cjs
 nrhp_points.geojson

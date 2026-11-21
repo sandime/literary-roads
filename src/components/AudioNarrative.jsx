@@ -1,6 +1,6 @@
 // src/components/AudioNarrative.jsx
 // Plays an ElevenLabs MP3 for landmarks when one exists at
-// /sounds/narrations/{location.id}.mp3, falling back to the
+// /audio/narrations/{location.narrationFile}.mp3, falling back to the
 // browser's built-in speech synthesis for locations without a file.
 import { useState, useEffect, useRef } from 'react';
 
@@ -19,7 +19,7 @@ export default function AudioNarrative({ location, text }) {
   const [supported] = useState('speechSynthesis' in window);
   const audioRef = useRef(null);
 
-  const mp3Url = location?.id ? `/sounds/narrations/${location.id}.mp3` : null;
+  const mp3Url = location?.narrationFile ? `${import.meta.env.BASE_URL}audio/narrations/${location.narrationFile}.mp3` : null;
 
   useEffect(() => {
     return () => {
