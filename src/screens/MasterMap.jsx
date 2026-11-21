@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, GeoJSON, useMap, useMapEvents } from 'react-leaflet';
@@ -227,7 +227,7 @@ const SS_FALLBACK_STATES = [
 
 // City autocomplete input with Googie-style dropdown
 // filterToState: if true and exactly 1 state selected, restricts results to that state
-const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, className, style, selectedStates = [], filterToState = false }) => {
+const CityAutocomplete = forwardRef(({ value, onChange, onPlaceSelect, placeholder, className, style, selectedStates = [], filterToState = false }, ref) => {
   const hasPR = selectedStates.includes('Puerto Rico');
   const hasOtherStates = selectedStates.some((s) => s !== 'Puerto Rico');
   const regionCodes = hasPR && !hasOtherStates ? ['PR'] : hasPR ? ['US', 'PR'] : ['US'];
@@ -250,6 +250,8 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
   const dropdownRef = useRef(null);
   const skipRef = useRef(false);
   const debounceRef = useRef(null);
+
+  useImperativeHandle(ref, () => ({ skipNext: () => { skipRef.current = true; } }));
 
   // Reset expanded state when selected state changes
   useEffect(() => { setStateExpanded(false); }, [singleState]);
@@ -356,7 +358,7 @@ const CityAutocomplete = ({ value, onChange, onPlaceSelect, placeholder, classNa
       )}
     </div>
   );
-};
+});
 
 // Counter to give each icon's SVG filters a unique DOM ID, preventing cross-marker contamination
 let _iconUid = 0;
@@ -1416,6 +1418,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   const tidbitTimerRef = useRef(null);                  // 600ms debounce for hover trigger
   const [startCity, setStartCity] = useState(saved.startCity ?? '');
   const [endCity, setEndCity] = useState(saved.endCity ?? '');
+  const startCityRef = useRef(null);
+  const endCityRef   = useRef(null);
   const [startPickedCoords, setStartPickedCoords] = useState(null);
   const [endPickedCoords,   setEndPickedCoords]   = useState(null);
   const handleStartPlaceSelect = (s) => setStartPickedCoords(s?.lat ? { lat: s.lat, lng: s.lng } : null);
@@ -1905,8 +1909,8 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
   }, [activeStates]);
 
   const handleCityChipClick = (city) => {
-    if (!startCity.trim()) setStartCity(city);
-    else if (!endCity.trim()) setEndCity(city);
+    if (!startCity.trim()) { startCityRef.current?.skipNext(); setStartCity(city); }
+    else if (!endCity.trim()) { endCityRef.current?.skipNext(); setEndCity(city); }
   };
 
   // Smart placeholder city hints: first selected state → start, last selected state → end
@@ -3873,6 +3877,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   </div>
                 )}
                 <CityAutocomplete
+                  ref={startCityRef}
                   value={startCity}
                   onChange={setStartCity}
                   onPlaceSelect={handleStartPlaceSelect}
@@ -3883,6 +3888,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
                   filterToState={activeStates.length === 1}
                 />
                 <CityAutocomplete
+                  ref={endCityRef}
                   value={endCity}
                   onChange={setEndCity}
                   onPlaceSelect={handleEndPlaceSelect}
@@ -3949,6 +3955,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <div>
                 <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Starting City</label>
                 <CityAutocomplete
+                  ref={startCityRef}
                   value={startCity}
                   onChange={setStartCity}
                   onPlaceSelect={handleStartPlaceSelect}
@@ -3962,6 +3969,7 @@ const MasterMap = ({ selectedStates, onHome, onShowProfile, onShowLogin, onShowR
               <div>
                 <label className="text-paper-white font-special-elite text-[0.875rem] block mb-1">Destination City</label>
                 <CityAutocomplete
+                  ref={endCityRef}
                   value={endCity}
                   onChange={setEndCity}
                   onPlaceSelect={handleEndPlaceSelect}
