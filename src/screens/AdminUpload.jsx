@@ -1267,13 +1267,13 @@ export default function AdminUpload() {
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-midnight-navy flex flex-col items-center justify-start p-6 pt-12">
+    <div className="min-h-screen bg-gaz-cream flex flex-col items-center justify-start p-6 pt-12">
       <div className="w-full max-w-lg">
 
-        <h1 className="font-bungee text-starlight-turquoise text-3xl mb-1 drop-shadow-[0_0_12px_rgba(64,224,208,0.7)]">
+        <h1 className="font-bungee text-gaz-teal-dark text-3xl mb-1 drop-shadow-[0_0_12px_rgba(45,109,116,0.4)]">
           ADMIN UPLOAD
         </h1>
-        <p className="font-special-elite text-chrome-silver text-sm mb-8">
+        <p className="font-special-elite text-gaz-ink-light text-sm mb-8">
           Seed any Firestore collection from OpenStreetMap GeoJSON exports.
         </p>
 
@@ -1281,7 +1281,7 @@ export default function AdminUpload() {
         {!user && (
           <div className="border-2 border-atomic-orange rounded-xl p-4 mb-6">
             <p className="font-bungee text-atomic-orange text-sm">SIGN IN REQUIRED</p>
-            <p className="font-special-elite text-paper-white text-sm mt-1">
+            <p className="font-special-elite text-gaz-ink text-sm mt-1">
               Sign in with Google first, then return to this page.
             </p>
           </div>
@@ -1289,7 +1289,7 @@ export default function AdminUpload() {
 
         {/* Collection selector */}
         <div className="mb-5">
-          <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
+          <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-2">
             SELECT COLLECTION
           </label>
           <div className="relative">
@@ -1297,15 +1297,15 @@ export default function AdminUpload() {
               value={selectedKey}
               onChange={e => handleCollectionChange(e.target.value)}
               disabled={busy}
-              className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm appearance-none focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+              className="w-full bg-gaz-cream-dk border border-gaz-teal-dark/40 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm appearance-none focus:outline-none focus:border-gaz-teal-dark disabled:opacity-40"
             >
               {Object.entries(COLLECTIONS).map(([key, cfg]) => (
-                <option key={key} value={key} className="bg-midnight-navy">
+                <option key={key} value={key} className="bg-gaz-cream">
                   {cfg.icon}  {cfg.label}  →  {key}
                 </option>
               ))}
             </select>
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-starlight-turquoise text-xs">▼</span>
+            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gaz-teal-dark text-xs">▼</span>
           </div>
         </div>
 
@@ -1315,8 +1315,8 @@ export default function AdminUpload() {
             <button key={mode} onClick={() => handleModeChange(mode)} disabled={busy}
               className={`flex-1 py-2.5 rounded-xl font-bungee text-xs tracking-wider border transition-all disabled:opacity-40 ${
                 uploadMode === mode
-                  ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise'
-                  : 'bg-transparent border-white/20 text-chrome-silver hover:border-white/40'
+                  ? 'bg-gaz-teal-dark/20 border-gaz-teal-dark text-gaz-teal-dark'
+                  : 'bg-transparent border-white/20 text-gaz-ink-light hover:border-white/40'
               }`}>
               {label}
             </button>
@@ -1326,23 +1326,23 @@ export default function AdminUpload() {
         {/* ── CSV MODE ─────────────────────────────────────────────────────── */}
         {uploadMode === 'csv' && (
           <div className="mb-6">
-            <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
+            <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-2">
               CSV FILE
             </label>
 
             {/* Expected columns hint */}
-            <div className="border border-starlight-turquoise/20 rounded-xl p-3 mb-3 bg-white/5">
-              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">EXPECTED COLUMNS</p>
+            <div className="border border-gaz-teal-dark/20 rounded-xl p-3 mb-3 bg-gaz-cream-dk">
+              <p className="font-bungee text-gaz-teal-dark text-xs tracking-widest mb-1">EXPECTED COLUMNS</p>
               {selectedKey === 'storiedPlaces' ? (
-                <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-                  <span className="text-paper-white">Required:</span> name, lat, lng<br/>
-                  <span className="text-paper-white">Optional:</span> author, city, state, description, website, source, sourceUrl, year
+                <p className="font-special-elite text-gaz-ink-light text-xs leading-relaxed">
+                  <span className="text-gaz-ink">Required:</span> name, lat, lng<br/>
+                  <span className="text-gaz-ink">Optional:</span> author, city, state, description, website, source, sourceUrl, year
                 </p>
               ) : (
-                <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-                  <span className="text-paper-white">Required:</span> name<br/>
-                  <span className="text-paper-white">With coords:</span> name, lat, lng, address, city, state, zipcode, phone, website<br/>
-                  <span className="text-paper-white">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Nominatim)
+                <p className="font-special-elite text-gaz-ink-light text-xs leading-relaxed">
+                  <span className="text-gaz-ink">Required:</span> name<br/>
+                  <span className="text-gaz-ink">With coords:</span> name, lat, lng, address, city, state, zipcode, phone, website<br/>
+                  <span className="text-gaz-ink">Auto-geocode:</span> name, address, city, state, zipcode (lat/lng added automatically via Nominatim)
                 </p>
               )}
             </div>
@@ -1351,7 +1351,7 @@ export default function AdminUpload() {
             <input ref={csvInputRef} type="file" accept=".csv,.txt" onChange={handleCsvFileChange}
               disabled={busy} className="hidden" />
             <button onClick={() => csvInputRef.current?.click()} disabled={busy}
-              className="w-full border-2 border-dashed border-starlight-turquoise/40 rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:border-starlight-turquoise/70 hover:text-paper-white transition-all text-center disabled:opacity-40">
+              className="w-full border-2 border-dashed border-gaz-teal-dark/40 rounded-xl p-4 font-special-elite text-gaz-ink-light text-sm hover:border-gaz-teal-dark/70 hover:text-gaz-ink transition-all text-center disabled:opacity-40">
               {csvFile
                 ? csvFile.name
                 : 'Click to choose a .csv file'}
@@ -1361,13 +1361,13 @@ export default function AdminUpload() {
             {csvRows.length > 0 && (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="font-special-elite text-chrome-silver text-xs">
-                    <span className="text-paper-white">{csvRows.length.toLocaleString()} rows</span> detected
+                  <p className="font-special-elite text-gaz-ink-light text-xs">
+                    <span className="text-gaz-ink">{csvRows.length.toLocaleString()} rows</span> detected
                     {needsGeocoding && (
                       <span className="text-atomic-orange ml-2">· lat/lng missing — will auto-geocode via Nominatim (1 req/s)</span>
                     )}
                     {!needsGeocoding && (
-                      <span className="text-starlight-turquoise ml-2">· lat/lng present ✓</span>
+                      <span className="text-gaz-teal-dark ml-2">· lat/lng present ✓</span>
                     )}
                   </p>
                 </div>
@@ -1376,16 +1376,16 @@ export default function AdminUpload() {
                   {csvHeaders.map(h => (
                     <span key={h} className={`font-mono text-xs px-1.5 py-0.5 rounded ${
                       ['name','lat','lng','address','city','state','zipcode','phone','website'].includes(h)
-                        ? 'bg-starlight-turquoise/20 text-starlight-turquoise'
-                        : 'bg-white/10 text-chrome-silver'
+                        ? 'bg-gaz-teal-dark/20 text-gaz-teal-dark'
+                        : 'bg-white/10 text-gaz-ink-light'
                     }`}>{h}</span>
                   ))}
                 </div>
                 {/* First 3 rows preview */}
-                <div className="bg-black/40 rounded-lg p-2 overflow-x-auto">
-                  <p className="font-bungee text-chrome-silver/50 text-xs mb-1">PREVIEW (first 3 rows)</p>
+                <div className="bg-gaz-cream-dk rounded-lg p-2 overflow-x-auto">
+                  <p className="font-bungee text-gaz-ink-light/50 text-xs mb-1">PREVIEW (first 3 rows)</p>
                   {csvRows.slice(0, 3).map((row, i) => (
-                    <p key={i} className="font-mono text-xs text-chrome-silver/80 truncate">
+                    <p key={i} className="font-mono text-xs text-gaz-ink-light/80 truncate">
                       {row.name}{row.city ? ` · ${row.city}` : ''}{row.state ? `, ${row.state}` : ''}
                       {row.lat ? ` (${parseFloat(row.lat).toFixed(4)}, ${parseFloat(row.lng).toFixed(4)})` : ' [needs geocoding]'}
                       {row.phone ? ` · ${row.phone}` : ''}
@@ -1401,7 +1401,7 @@ export default function AdminUpload() {
         {/* ── GEOJSON MODE ──────────────────────────────────────────────────── */}
         {uploadMode === 'geojson' && (
         <div className="mb-6">
-          <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
+          <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-2">
             GEOJSON SOURCE
           </label>
 
@@ -1409,14 +1409,14 @@ export default function AdminUpload() {
             <div className="flex gap-2 mb-3">
               <button onClick={() => setUsePreset(true)} disabled={busy}
                 className={`flex-1 py-2 rounded-lg font-special-elite text-sm border transition-all ${
-                  usePreset ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise'
-                            : 'bg-transparent border-white/20 text-chrome-silver hover:border-white/40'}`}>
+                  usePreset ? 'bg-gaz-teal-dark/20 border-gaz-teal-dark text-gaz-teal-dark'
+                            : 'bg-transparent border-white/20 text-gaz-ink-light hover:border-white/40'}`}>
                 Preset files ({config.presetFiles.length})
               </button>
               <button onClick={() => setUsePreset(false)} disabled={busy}
                 className={`flex-1 py-2 rounded-lg font-special-elite text-sm border transition-all ${
-                  !usePreset ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise'
-                             : 'bg-transparent border-white/20 text-chrome-silver hover:border-white/40'}`}>
+                  !usePreset ? 'bg-gaz-teal-dark/20 border-gaz-teal-dark text-gaz-teal-dark'
+                             : 'bg-transparent border-white/20 text-gaz-ink-light hover:border-white/40'}`}>
                 Upload files
               </button>
             </div>
@@ -1427,7 +1427,7 @@ export default function AdminUpload() {
               <input ref={fileInputRef} type="file" accept=".geojson,.json" multiple
                 onChange={handleFileChange} disabled={busy} className="hidden" />
               <button onClick={() => fileInputRef.current?.click()} disabled={busy}
-                className="w-full border-2 border-dashed border-starlight-turquoise/40 rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:border-starlight-turquoise/70 hover:text-paper-white transition-all text-center disabled:opacity-40">
+                className="w-full border-2 border-dashed border-gaz-teal-dark/40 rounded-xl p-4 font-special-elite text-gaz-ink-light text-sm hover:border-gaz-teal-dark/70 hover:text-gaz-ink transition-all text-center disabled:opacity-40">
                 {uploadedFiles.length > 0
                   ? `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} selected: ${uploadedFiles.map(f => f.name).join(', ')}`
                   : 'Click to choose .geojson file(s) from your computer'}
@@ -1436,7 +1436,7 @@ export default function AdminUpload() {
           )}
 
           {hasPreset && usePreset && (
-            <p className="font-special-elite text-chrome-silver/50 text-xs mt-2">
+            <p className="font-special-elite text-gaz-ink-light/50 text-xs mt-2">
               {config.presetFiles.join(' · ')}
             </p>
           )}
@@ -1448,7 +1448,7 @@ export default function AdminUpload() {
           <div className="mb-6 space-y-4">
             {/* Collection picker for manual entry (independent of the bulk selector) */}
             <div>
-              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">
+              <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-2">
                 COLLECTION
               </label>
               <div className="relative">
@@ -1456,21 +1456,21 @@ export default function AdminUpload() {
                   value={manualForm.collectionKey}
                   onChange={e => handleManualChange('collectionKey', e.target.value)}
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm appearance-none focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-gaz-teal-dark/40 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm appearance-none focus:outline-none focus:border-gaz-teal-dark disabled:opacity-40"
                 >
                   {Object.entries(COLLECTIONS).map(([key, cfg]) => (
-                    <option key={key} value={key} className="bg-midnight-navy">
+                    <option key={key} value={key} className="bg-gaz-cream">
                       {cfg.icon}  {cfg.label}
                     </option>
                   ))}
                 </select>
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-starlight-turquoise text-xs">▼</span>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gaz-teal-dark text-xs">▼</span>
               </div>
             </div>
 
             {/* Name */}
             <div>
-              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-1.5">
+              <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-1.5">
                 NAME <span className="text-atomic-orange">*</span>
               </label>
               <input
@@ -1479,38 +1479,38 @@ export default function AdminUpload() {
                 onChange={e => handleManualChange('name', e.target.value)}
                 placeholder="Location name"
                 disabled={manualSaving}
-                className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                className="w-full bg-gaz-cream-dk border border-gaz-teal-dark/40 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark disabled:opacity-40"
               />
             </div>
 
             {/* Address */}
             <div>
-              <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">ADDRESS</label>
+              <label className="font-bungee text-gaz-ink-light text-xs tracking-widest block mb-1.5">ADDRESS</label>
               <input
                 type="text"
                 value={manualForm.address}
                 onChange={e => handleManualChange('address', e.target.value)}
                 placeholder="123 Main St"
                 disabled={manualSaving}
-                className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                className="w-full bg-gaz-cream-dk border border-white/20 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark/60 disabled:opacity-40"
               />
             </div>
 
             {/* City / State / Zip row */}
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-1">
-                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">CITY</label>
+                <label className="font-bungee text-gaz-ink-light text-xs tracking-widest block mb-1.5">CITY</label>
                 <input
                   type="text"
                   value={manualForm.city}
                   onChange={e => handleManualChange('city', e.target.value)}
                   placeholder="Portland"
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-white/20 rounded-xl px-3 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark/60 disabled:opacity-40"
                 />
               </div>
               <div className="col-span-1">
-                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">STATE</label>
+                <label className="font-bungee text-gaz-ink-light text-xs tracking-widest block mb-1.5">STATE</label>
                 <input
                   type="text"
                   value={manualForm.state}
@@ -1518,18 +1518,18 @@ export default function AdminUpload() {
                   placeholder="OR"
                   maxLength={2}
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-white/20 rounded-xl px-3 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark/60 disabled:opacity-40"
                 />
               </div>
               <div className="col-span-1">
-                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">ZIP</label>
+                <label className="font-bungee text-gaz-ink-light text-xs tracking-widest block mb-1.5">ZIP</label>
                 <input
                   type="text"
                   value={manualForm.zipcode}
                   onChange={e => handleManualChange('zipcode', e.target.value)}
                   placeholder="97201"
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-white/20 rounded-xl px-3 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark/60 disabled:opacity-40"
                 />
               </div>
             </div>
@@ -1537,7 +1537,7 @@ export default function AdminUpload() {
             {/* Lat / Lng row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-1.5">
+                <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-1.5">
                   LAT <span className="text-atomic-orange">*</span>
                 </label>
                 <input
@@ -1547,11 +1547,11 @@ export default function AdminUpload() {
                   onChange={e => handleManualChange('lat', e.target.value)}
                   placeholder="45.5231"
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-gaz-teal-dark/40 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark disabled:opacity-40"
                 />
               </div>
               <div>
-                <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-1.5">
+                <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-1.5">
                   LNG <span className="text-atomic-orange">*</span>
                 </label>
                 <input
@@ -1561,7 +1561,7 @@ export default function AdminUpload() {
                   onChange={e => handleManualChange('lng', e.target.value)}
                   placeholder="-122.6765"
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-gaz-teal-dark/40 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark disabled:opacity-40"
                 />
               </div>
             </div>
@@ -1569,33 +1569,33 @@ export default function AdminUpload() {
             {/* Phone / Website row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">PHONE</label>
+                <label className="font-bungee text-gaz-ink-light text-xs tracking-widest block mb-1.5">PHONE</label>
                 <input
                   type="text"
                   value={manualForm.phone}
                   onChange={e => handleManualChange('phone', e.target.value)}
                   placeholder="(503) 555-0100"
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-white/20 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark/60 disabled:opacity-40"
                 />
               </div>
               <div>
-                <label className="font-bungee text-chrome-silver text-xs tracking-widest block mb-1.5">WEBSITE</label>
+                <label className="font-bungee text-gaz-ink-light text-xs tracking-widest block mb-1.5">WEBSITE</label>
                 <input
                   type="url"
                   value={manualForm.website}
                   onChange={e => handleManualChange('website', e.target.value)}
                   placeholder="https://..."
                   disabled={manualSaving}
-                  className="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm placeholder-chrome-silver/40 focus:outline-none focus:border-starlight-turquoise/60 disabled:opacity-40"
+                  className="w-full bg-gaz-cream-dk border border-white/20 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm placeholder-gaz-ink-light/40 focus:outline-none focus:border-gaz-teal-dark/60 disabled:opacity-40"
                 />
               </div>
             </div>
 
             {/* Result message */}
             {manualResult && (
-              <div className={`border-2 rounded-xl p-4 ${manualResult.ok ? 'border-starlight-turquoise' : 'border-atomic-orange'}`}>
-                <pre className={`font-special-elite text-sm whitespace-pre-wrap leading-relaxed ${manualResult.ok ? 'text-starlight-turquoise' : 'text-atomic-orange'}`}>
+              <div className={`border-2 rounded-xl p-4 ${manualResult.ok ? 'border-gaz-teal-dark' : 'border-atomic-orange'}`}>
+                <pre className={`font-special-elite text-sm whitespace-pre-wrap leading-relaxed ${manualResult.ok ? 'text-gaz-teal-dark' : 'text-atomic-orange'}`}>
                   {manualResult.msg}
                 </pre>
               </div>
@@ -1607,8 +1607,8 @@ export default function AdminUpload() {
               disabled={!user || manualSaving}
               className="w-full font-bungee rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
-                background: '#FF4E00',
-                color: '#1A1B2E',
+                background: '#c0392b',
+                color: '#f5f1eb',
                 minHeight: 56,
                 fontSize: '1rem',
                 boxShadow: (!manualSaving && user) ? '0 0 24px rgba(255,78,0,0.5)' : 'none',
@@ -1623,14 +1623,14 @@ export default function AdminUpload() {
         {uploadMode === 'spotlight' && (
           <div className="mb-6 space-y-4">
             {/* What this does */}
-            <div className="border border-starlight-turquoise/20 rounded-xl p-3 bg-white/5">
-              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">HOW IT WORKS</p>
-              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-                Upload a CSV with <code className="text-paper-white">name</code> and <code className="text-paper-white">spotlight</code> columns
-                (plus optional <code className="text-paper-white">city</code> and <code className="text-paper-white">state</code> to help match).
+            <div className="border border-gaz-teal-dark/20 rounded-xl p-3 bg-gaz-cream-dk">
+              <p className="font-bungee text-gaz-teal-dark text-xs tracking-widest mb-1">HOW IT WORKS</p>
+              <p className="font-special-elite text-gaz-ink-light text-xs leading-relaxed">
+                Upload a CSV with <code className="text-gaz-ink">name</code> and <code className="text-gaz-ink">spotlight</code> columns
+                (plus optional <code className="text-gaz-ink">city</code> and <code className="text-gaz-ink">state</code> to help match).
                 The tool finds each entry in Firestore by name and patches only the spotlight field — no other data is changed.
               </p>
-              <p className="font-mono text-starlight-turquoise/60 text-xs mt-2">
+              <p className="font-mono text-gaz-teal-dark/60 text-xs mt-2">
                 name,city,state,spotlight<br/>
                 "Powell's Books",Portland,OR,"Portland's cathedral of books…"
               </p>
@@ -1638,31 +1638,31 @@ export default function AdminUpload() {
 
             {/* Collection picker */}
             <div>
-              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">COLLECTION</label>
+              <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-2">COLLECTION</label>
               <div className="relative">
                 <select
                   value={slCollection}
                   onChange={e => { setSlCollection(e.target.value); setSlMatches(null); setSlMsg(''); }}
-                  className="w-full bg-black/40 border border-starlight-turquoise/40 rounded-xl px-4 py-3 font-special-elite text-paper-white text-sm appearance-none focus:outline-none focus:border-starlight-turquoise"
+                  className="w-full bg-gaz-cream-dk border border-gaz-teal-dark/40 rounded-xl px-4 py-3 font-special-elite text-gaz-ink text-sm appearance-none focus:outline-none focus:border-gaz-teal-dark"
                 >
                   {[['bookstores','📚 Bookstores'],['coffeeShops','☕ Coffee Shops']].map(([k,l]) => (
-                    <option key={k} value={k} className="bg-midnight-navy">{l}</option>
+                    <option key={k} value={k} className="bg-gaz-cream">{l}</option>
                   ))}
                 </select>
-                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-starlight-turquoise text-xs">▼</span>
+                <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gaz-teal-dark text-xs">▼</span>
               </div>
             </div>
 
             {/* File picker */}
             <div>
-              <label className="font-bungee text-starlight-turquoise text-xs tracking-widest block mb-2">CSV FILE</label>
+              <label className="font-bungee text-gaz-teal-dark text-xs tracking-widest block mb-2">CSV FILE</label>
               <input ref={slInputRef} type="file" accept=".csv,.txt" onChange={handleSlFileChange} className="hidden" />
               <button onClick={() => slInputRef.current?.click()}
-                className="w-full border-2 border-dashed border-starlight-turquoise/40 rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:border-starlight-turquoise/70 hover:text-paper-white transition-all text-center">
+                className="w-full border-2 border-dashed border-gaz-teal-dark/40 rounded-xl p-4 font-special-elite text-gaz-ink-light text-sm hover:border-gaz-teal-dark/70 hover:text-gaz-ink transition-all text-center">
                 {slFile ? slFile.name : 'Click to choose a .csv file'}
               </button>
               {slRows.length > 0 && (
-                <p className="font-special-elite text-starlight-turquoise text-xs mt-1.5">
+                <p className="font-special-elite text-gaz-teal-dark text-xs mt-1.5">
                   {slRows.length} row{slRows.length !== 1 ? 's' : ''} with name + spotlight detected
                 </p>
               )}
@@ -1671,7 +1671,7 @@ export default function AdminUpload() {
             {/* Search button */}
             {slRows.length > 0 && !slMatches && (
               <button onClick={handleSlSearch} disabled={slSearching || !user}
-                className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider border border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-all disabled:opacity-40">
+                className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider border border-gaz-teal-dark text-gaz-teal-dark hover:bg-gaz-teal-dark/10 transition-all disabled:opacity-40">
                 {slSearching ? 'SEARCHING…' : `FIND MATCHES IN ${slCollection.toUpperCase()}`}
               </button>
             )}
@@ -1679,20 +1679,20 @@ export default function AdminUpload() {
             {/* Match preview */}
             {slMatches && (
               <div className="space-y-2">
-                <p className="font-bungee text-xs tracking-widest" style={{ color: '#c8601a' }}>
+                <p className="font-bungee text-xs tracking-widest" style={{ color: '#2d6d74' }}>
                   MATCH PREVIEW — {slMatches.filter(m => m.match).length} of {slMatches.length} found
                 </p>
-                <div className="bg-black/40 rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
+                <div className="bg-gaz-cream-dk rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
                   {slMatches.map(({ row, match }, i) => (
-                    <div key={i} className={`text-xs font-special-elite border-b border-white/5 pb-1.5 ${match ? 'text-paper-white' : 'text-atomic-orange/70'}`}>
+                    <div key={i} className={`text-xs font-special-elite border-b border-white/5 pb-1.5 ${match ? 'text-gaz-ink' : 'text-atomic-orange/70'}`}>
                       <span className="font-bold">{row.name}</span>
                       {row.city ? ` · ${row.city}` : ''}
                       {row.state ? `, ${row.state}` : ''}
                       {match
-                        ? <span className="text-starlight-turquoise ml-1">✓ → [{match.id}] {match.name}{match.city ? `, ${match.city}` : ''}</span>
+                        ? <span className="text-gaz-teal-dark ml-1">✓ → [{match.id}] {match.name}{match.city ? `, ${match.city}` : ''}</span>
                         : <span className="text-atomic-orange ml-1">✗ no match found</span>
                       }
-                      <div className="text-chrome-silver/50 mt-0.5 truncate">"{row.spotlight}"</div>
+                      <div className="text-gaz-ink-light/50 mt-0.5 truncate">"{row.spotlight}"</div>
                     </div>
                   ))}
                 </div>
@@ -1701,7 +1701,7 @@ export default function AdminUpload() {
                 {slMatches.some(m => m.match) && (
                   <button onClick={handleSlPatch} disabled={slPatching || !user}
                     className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider transition-all disabled:opacity-40"
-                    style={{ background: '#c8601a', color: '#1A1B2E', boxShadow: !slPatching ? '0 0 20px rgba(200,96,26,0.4)' : 'none' }}>
+                    style={{ background: '#2d6d74', color: '#f5f1eb', boxShadow: !slPatching ? '0 0 20px rgba(45,109,116,0.3)' : 'none' }}>
                     {slPatching
                       ? 'PATCHING…'
                       : `PATCH ${slMatches.filter(m => m.match).length} SPOTLIGHT${slMatches.filter(m => m.match).length !== 1 ? 'S' : ''}`}
@@ -1709,7 +1709,7 @@ export default function AdminUpload() {
                 )}
 
                 {slMsg && (
-                  <p className={`font-special-elite text-sm ${slMsg.startsWith('Done') ? 'text-starlight-turquoise' : 'text-atomic-orange'}`}>
+                  <p className={`font-special-elite text-sm ${slMsg.startsWith('Done') ? 'text-gaz-teal-dark' : 'text-atomic-orange'}`}>
                     {slMsg}
                   </p>
                 )}
@@ -1722,12 +1722,12 @@ export default function AdminUpload() {
         {uploadMode === 'bannedBooks' && (
           <div className="mb-6 space-y-4">
             {/* How it works */}
-            <div className="border border-starlight-turquoise/20 rounded-xl p-3 bg-white/5">
-              <p className="font-bungee text-xs tracking-widest mb-1" style={{ color: '#c8601a' }}>HOW IT WORKS</p>
-              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-                Upload a CSV with <code className="text-paper-white">name</code> (book title), <code className="text-paper-white">author</code> (for disambiguation),
-                <code className="text-paper-white"> banned</code> (true/yes/1), <code className="text-paper-white">bannedContext</code>, and optional <code className="text-paper-white">bannedSource</code>.
-                Matches against the <code className="text-paper-white">books</code> collection's <code className="text-paper-white">title</code> field — not the locations collections.
+            <div className="border border-gaz-teal-dark/20 rounded-xl p-3 bg-gaz-cream-dk">
+              <p className="font-bungee text-xs tracking-widest mb-1" style={{ color: '#2d6d74' }}>HOW IT WORKS</p>
+              <p className="font-special-elite text-gaz-ink-light text-xs leading-relaxed">
+                Upload a CSV with <code className="text-gaz-ink">name</code> (book title), <code className="text-gaz-ink">author</code> (for disambiguation),
+                <code className="text-gaz-ink"> banned</code> (true/yes/1), <code className="text-gaz-ink">bannedContext</code>, and optional <code className="text-gaz-ink">bannedSource</code>.
+                Matches against the <code className="text-gaz-ink">books</code> collection's <code className="text-gaz-ink">title</code> field — not the locations collections.
                 Only the fields present in the CSV are patched; nothing else is touched.
               </p>
               <p className="font-mono text-xs mt-2" style={{ color: 'rgba(200,96,26,0.6)' }}>
@@ -1738,15 +1738,15 @@ export default function AdminUpload() {
 
             {/* File picker */}
             <div>
-              <label className="font-bungee text-xs tracking-widest block mb-2" style={{ color: '#c8601a' }}>CSV FILE</label>
+              <label className="font-bungee text-xs tracking-widest block mb-2" style={{ color: '#2d6d74' }}>CSV FILE</label>
               <input ref={bbInputRef} type="file" accept=".csv,.txt" onChange={handleBbFileChange} className="hidden" />
               <button onClick={() => bbInputRef.current?.click()}
-                className="w-full border-2 border-dashed rounded-xl p-4 font-special-elite text-chrome-silver text-sm hover:text-paper-white transition-all text-center"
-                style={{ borderColor: 'rgba(200,96,26,0.4)' }}>
+                className="w-full border-2 border-dashed rounded-xl p-4 font-special-elite text-gaz-ink-light text-sm hover:text-gaz-ink transition-all text-center"
+                style={{ borderColor: 'rgba(45,109,116,0.3)' }}>
                 {bbFile ? bbFile.name : 'Click to choose a .csv file'}
               </button>
               {bbRows.length > 0 && (
-                <p className="font-special-elite text-xs mt-1.5" style={{ color: '#c8601a' }}>
+                <p className="font-special-elite text-xs mt-1.5" style={{ color: '#2d6d74' }}>
                   {bbRows.length} row{bbRows.length !== 1 ? 's' : ''} detected
                 </p>
               )}
@@ -1756,7 +1756,7 @@ export default function AdminUpload() {
             {bbRows.length > 0 && !bbMatches && (
               <button onClick={handleBbSearch} disabled={bbSearching || !user}
                 className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider border transition-all disabled:opacity-40"
-                style={{ borderColor: '#c8601a', color: '#c8601a' }}
+                style={{ borderColor: '#2d6d74', color: '#2d6d74' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(200,96,26,0.08)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
@@ -1767,19 +1767,19 @@ export default function AdminUpload() {
             {/* Match preview */}
             {bbMatches && (
               <div className="space-y-2">
-                <p className="font-bungee text-xs tracking-widest" style={{ color: '#c8601a' }}>
+                <p className="font-bungee text-xs tracking-widest" style={{ color: '#2d6d74' }}>
                   PREVIEW — {bbMatches.filter(m => m.match).length} matched · {bbMatches.filter(m => m.willCreate).length} will create
                 </p>
-                <div className="bg-black/40 rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
+                <div className="bg-gaz-cream-dk rounded-lg p-3 space-y-2 max-h-64 overflow-y-auto">
                   {bbMatches.map(({ row, match, patch, willCreate, docId }, i) => (
-                    <div key={i} className="text-xs font-special-elite border-b border-white/5 pb-1.5 text-paper-white">
+                    <div key={i} className="text-xs font-special-elite border-b border-white/5 pb-1.5 text-gaz-ink">
                       <span className="font-bold">{row.name}</span>
                       {row.author ? ` · ${row.author}` : ''}
                       {match
-                        ? <span className="text-starlight-turquoise ml-1">✓ patch [{match._docId}]</span>
-                        : <span className="ml-1" style={{ color: '#F5C842' }}>+ create [{docId}]</span>
+                        ? <span className="text-gaz-teal-dark ml-1">✓ patch [{match._docId}]</span>
+                        : <span className="ml-1" style={{ color: '#9d6c06' }}>+ create [{docId}]</span>
                       }
-                      <div className="text-chrome-silver/50 mt-0.5 truncate">
+                      <div className="text-gaz-ink-light/50 mt-0.5 truncate">
                         {Object.entries(patch).map(([k, v]) => `${k}: ${String(v)}`).join(' · ')}
                       </div>
                     </div>
@@ -1790,13 +1790,13 @@ export default function AdminUpload() {
                 {bbMatches.some(m => Object.keys(m.patch).length > 0) && (
                   <button onClick={handleBbPatch} disabled={bbPatching || !user}
                     className="w-full font-bungee rounded-xl py-3 text-sm tracking-wider transition-all disabled:opacity-40"
-                    style={{ background: '#c8601a', color: '#1A1B2E', boxShadow: !bbPatching ? '0 0 20px rgba(200,96,26,0.4)' : 'none' }}>
+                    style={{ background: '#2d6d74', color: '#f5f1eb', boxShadow: !bbPatching ? '0 0 20px rgba(45,109,116,0.3)' : 'none' }}>
                     {bbPatching ? 'WRITING…' : `WRITE ${bbMatches.filter(m => Object.keys(m.patch).length > 0).length} BOOKS`}
                   </button>
                 )}
 
                 {bbMsg && (
-                  <p className={`font-special-elite text-sm ${bbMsg.startsWith('Done') ? 'text-starlight-turquoise' : 'text-atomic-orange'}`}>
+                  <p className={`font-special-elite text-sm ${bbMsg.startsWith('Done') ? 'text-gaz-teal-dark' : 'text-atomic-orange'}`}>
                     {bbMsg}
                   </p>
                 )}
@@ -1819,12 +1819,12 @@ export default function AdminUpload() {
                 <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                   deleteFirst ? 'bg-atomic-orange border-atomic-orange' : 'bg-transparent border-white/30 group-hover:border-atomic-orange/60'
                 }`}>
-                  {deleteFirst && <span className="text-midnight-navy text-xs font-bold leading-none">✓</span>}
+                  {deleteFirst && <span className="text-gaz-cream text-xs font-bold leading-none">✓</span>}
                 </div>
               </div>
               <div>
                 <p className="font-bungee text-atomic-orange text-xs tracking-widest">DELETE EXISTING DOCS FIRST</p>
-                <p className="font-special-elite text-chrome-silver/70 text-xs mt-0.5">
+                <p className="font-special-elite text-gaz-ink-light/70 text-xs mt-0.5">
                   Wipes the <code className="text-atomic-orange">{selectedKey}</code> collection before uploading.
                   Use this to re-seed with an updated filter. Requires write permission on the collection.
                 </p>
@@ -1835,19 +1835,19 @@ export default function AdminUpload() {
 
         {/* Firestore rules reminder */}
         {user && phase === 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && uploadMode !== 'bannedBooks' && (
-          <div className="border border-starlight-turquoise/30 rounded-xl p-4 mb-6 bg-white/5">
-            <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-2">FIRESTORE RULES</p>
-            <p className="font-special-elite text-paper-white text-sm mb-2">
-              Ensure your rules allow authenticated writes to <code className="text-starlight-turquoise">{selectedKey}</code>:
+          <div className="border border-gaz-teal-dark/30 rounded-xl p-4 mb-6 bg-gaz-cream-dk">
+            <p className="font-bungee text-gaz-teal-dark text-xs tracking-widest mb-2">FIRESTORE RULES</p>
+            <p className="font-special-elite text-gaz-ink text-sm mb-2">
+              Ensure your rules allow authenticated writes to <code className="text-gaz-teal-dark">{selectedKey}</code>:
             </p>
-            <pre className="text-xs text-starlight-turquoise/80 bg-black/40 rounded p-3 overflow-x-auto font-mono leading-relaxed">{`match /${selectedKey}/{doc} {\n  allow read, write: if request.auth != null;\n}`}</pre>
-            <p className="font-special-elite text-chrome-silver/60 text-xs mt-2">Remove this rule after seeding.</p>
+            <pre className="text-xs text-gaz-teal-dark/80 bg-gaz-cream-dk rounded p-3 overflow-x-auto font-mono leading-relaxed">{`match /${selectedKey}/{doc} {\n  allow read, write: if request.auth != null;\n}`}</pre>
+            <p className="font-special-elite text-gaz-ink-light/60 text-xs mt-2">Remove this rule after seeding.</p>
           </div>
         )}
 
         {/* Stats */}
         {phase !== 'idle' && uploadMode !== 'manual' && uploadMode !== 'spotlight' && uploadMode !== 'bannedBooks' && (
-          <div className="border border-starlight-turquoise/20 rounded-xl p-4 mb-6 bg-black/30 font-special-elite text-sm space-y-1">
+          <div className="border border-gaz-teal-dark/20 rounded-xl p-4 mb-6 bg-gaz-cream-dk font-special-elite text-sm space-y-1">
 
             {/* Input counts */}
             {stats.deleted > 0 && (
@@ -1856,23 +1856,23 @@ export default function AdminUpload() {
                 <span>{stats.deleted.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex justify-between text-chrome-silver">
+            <div className="flex justify-between text-gaz-ink-light">
               <span>Total features in files</span>
-              <span className="text-paper-white">{stats.total.toLocaleString()}</span>
+              <span className="text-gaz-ink">{stats.total.toLocaleString()}</span>
             </div>
             {stats.geocoded > 0 && (
-              <div className="flex justify-between text-chrome-silver">
+              <div className="flex justify-between text-gaz-ink-light">
                 <span>Auto-geocoded via Nominatim</span>
-                <span className="text-starlight-turquoise">{stats.geocoded.toLocaleString()}</span>
+                <span className="text-gaz-teal-dark">{stats.geocoded.toLocaleString()}</span>
               </div>
             )}
-            <div className="flex justify-between text-chrome-silver">
+            <div className="flex justify-between text-gaz-ink-light">
               <span>Passed quality filter</span>
-              <span className="text-paper-white">{(stats.total - stats.filtered).toLocaleString()}</span>
+              <span className="text-gaz-ink">{(stats.total - stats.filtered).toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-chrome-silver">
+            <div className="flex justify-between text-gaz-ink-light">
               <span>Excluded by filter</span>
-              <span className="text-paper-white">{stats.filtered.toLocaleString()}</span>
+              <span className="text-gaz-ink">{stats.filtered.toLocaleString()}</span>
             </div>
 
             {/* Exclusion reason breakdown */}
@@ -1881,7 +1881,7 @@ export default function AdminUpload() {
                 {Object.entries(stats.excludeReasons)
                   .sort((a, b) => b[1] - a[1])
                   .map(([reason, count]) => (
-                    <div key={reason} className="flex justify-between text-chrome-silver/60 text-xs">
+                    <div key={reason} className="flex justify-between text-gaz-ink-light/60 text-xs">
                       <span>↳ {reason}</span>
                       <span>{count.toLocaleString()}</span>
                     </div>
@@ -1889,16 +1889,16 @@ export default function AdminUpload() {
               </div>
             )}
 
-            <div className="flex justify-between text-chrome-silver">
+            <div className="flex justify-between text-gaz-ink-light">
               <span>Duplicates removed</span>
-              <span className="text-paper-white">{stats.dupes.toLocaleString()}</span>
+              <span className="text-gaz-ink">{stats.dupes.toLocaleString()}</span>
             </div>
 
             {/* Address coverage breakdown — shown when data is available */}
             {stats.uniqueCount > 0 && (
               <>
-                <div className="h-px bg-starlight-turquoise/10 my-1" />
-                <p className="font-bungee text-starlight-turquoise text-xs tracking-widest">ADDRESS COVERAGE</p>
+                <div className="h-px bg-gaz-teal-dark/10 my-1" />
+                <p className="font-bungee text-gaz-teal-dark text-xs tracking-widest">ADDRESS COVERAGE</p>
                 {[
                   { label: 'Has city',           count: stats.withCity,    target: 80 },
                   { label: 'Has state',           count: stats.withState,   target: 90 },
@@ -1908,8 +1908,8 @@ export default function AdminUpload() {
                   const ok  = pct >= target;
                   return (
                     <div key={label} className="flex justify-between text-xs">
-                      <span className="text-chrome-silver">{label}</span>
-                      <span className={ok ? 'text-starlight-turquoise' : 'text-atomic-orange'}>
+                      <span className="text-gaz-ink-light">{label}</span>
+                      <span className={ok ? 'text-gaz-teal-dark' : 'text-atomic-orange'}>
                         {count.toLocaleString()} / {stats.uniqueCount.toLocaleString()} ({pct}%{ok ? ' ✓' : ` — target ${target}%`})
                       </span>
                     </div>
@@ -1918,14 +1918,14 @@ export default function AdminUpload() {
               </>
             )}
 
-            <div className="h-px bg-starlight-turquoise/10 my-1" />
+            <div className="h-px bg-gaz-teal-dark/10 my-1" />
 
             <div className="flex justify-between">
-              <span className="text-starlight-turquoise">Uploaded to Firestore</span>
-              <span className="text-starlight-turquoise font-bold">{stats.uploaded.toLocaleString()}</span>
+              <span className="text-gaz-teal-dark">Uploaded to Firestore</span>
+              <span className="text-gaz-teal-dark font-bold">{stats.uploaded.toLocaleString()}</span>
             </div>
             {stats.skipped > 0 && (
-              <div className="flex justify-between text-chrome-silver/60">
+              <div className="flex justify-between text-gaz-ink-light/60">
                 <span>Already existed (skipped)</span>
                 <span>{stats.skipped.toLocaleString()}</span>
               </div>
@@ -1942,8 +1942,8 @@ export default function AdminUpload() {
         {/* Progress */}
         {current && uploadMode !== 'manual' && (
           <div className="flex items-center gap-3 mb-6">
-            <span className="w-4 h-4 border-2 border-starlight-turquoise border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            <span className="font-special-elite text-starlight-turquoise text-sm">{current}</span>
+            <span className="w-4 h-4 border-2 border-gaz-teal-dark border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <span className="font-special-elite text-gaz-teal-dark text-sm">{current}</span>
           </div>
         )}
 
@@ -1951,25 +1951,25 @@ export default function AdminUpload() {
         {phase === 'error' && errorMsg && uploadMode !== 'manual' && (
           <div className="border-2 border-atomic-orange rounded-xl p-4 mb-6">
             <p className="font-bungee text-atomic-orange text-xs tracking-widest mb-2">ERROR</p>
-            <pre className="font-special-elite text-paper-white text-xs whitespace-pre-wrap leading-relaxed">{errorMsg}</pre>
+            <pre className="font-special-elite text-gaz-ink text-xs whitespace-pre-wrap leading-relaxed">{errorMsg}</pre>
           </div>
         )}
 
         {/* Done */}
         {phase === 'done' && uploadMode !== 'manual' && (
-          <div className="border-2 border-starlight-turquoise rounded-xl p-5 mb-6 text-center">
-            <p className="font-bungee text-starlight-turquoise text-xl drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">DONE!</p>
-            <p className="font-special-elite text-paper-white text-sm mt-1">
+          <div className="border-2 border-gaz-teal-dark rounded-xl p-5 mb-6 text-center">
+            <p className="font-bungee text-gaz-teal-dark text-xl drop-shadow-[0_0_8px_rgba(64,224,208,0.6)]">DONE!</p>
+            <p className="font-special-elite text-gaz-ink text-sm mt-1">
               {stats.uploaded.toLocaleString()} {config.label.toLowerCase()} added to{' '}
-              <code className="text-starlight-turquoise">{selectedKey}</code>.
+              <code className="text-gaz-teal-dark">{selectedKey}</code>.
               {stats.skipped > 0 && ` ${stats.skipped.toLocaleString()} already existed.`}
             </p>
-            <p className="font-special-elite text-chrome-silver/60 text-xs mt-3">
+            <p className="font-special-elite text-gaz-ink-light/60 text-xs mt-3">
               Remember to remove the temporary Firestore rule.
             </p>
             <button
               onClick={() => { setPhase('idle'); setStats(EMPTY_STATS); setCsvFile(null); setCsvRows([]); setCsvHeaders([]); setNeedsGeocoding(false); setUploadedFiles([]); }}
-              className="mt-4 font-bungee text-xs text-starlight-turquoise border border-starlight-turquoise/40 rounded-lg px-4 py-2 hover:bg-starlight-turquoise/10 transition-all"
+              className="mt-4 font-bungee text-xs text-gaz-teal-dark border border-gaz-teal-dark/40 rounded-lg px-4 py-2 hover:bg-gaz-teal-dark/10 transition-all"
             >
               UPLOAD ANOTHER COLLECTION
             </button>
@@ -1983,8 +1983,8 @@ export default function AdminUpload() {
             disabled={!canUpload}
             className="w-full font-bungee rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
-              background: '#FF4E00',
-              color: '#1A1B2E',
+              background: '#c0392b',
+              color: '#f5f1eb',
               minHeight: 56,
               fontSize: '1rem',
               boxShadow: canUpload ? '0 0 24px rgba(255,78,0,0.5)' : 'none',
@@ -1999,32 +1999,32 @@ export default function AdminUpload() {
           </button>
         )}
 
-        <p className="font-special-elite text-chrome-silver/40 text-xs text-center mt-3">
+        <p className="font-special-elite text-gaz-ink-light/40 text-xs text-center mt-3">
           Filters · deduplicates · writes to Firestore <code>{selectedKey}</code> collection
         </p>
 
         {/* ── DEDUP MODE ─────────────────────────────────────────────────────── */}
         {uploadMode === 'dedup' && (
           <div className="mt-6 space-y-4">
-            <div className="border border-starlight-turquoise/20 rounded-xl p-3 bg-white/5">
-              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-1">HOW IT WORKS</p>
-              <p className="font-special-elite text-chrome-silver text-xs leading-relaxed">
-                For <span className="text-paper-white">location collections</span>: flags entries with the same name whose coordinates are within 50 meters of each other.<br/>
-                For <span className="text-paper-white">books</span>: flags entries with the same title (ignoring leading articles) and overlapping author.<br/>
-                Choose which doc to keep in each group, then delete the rest. Deleted docs are soft-deleted (<code className="text-paper-white">deleted: true</code>) and will no longer appear on the map.
+            <div className="border border-gaz-teal-dark/20 rounded-xl p-3 bg-gaz-cream-dk">
+              <p className="font-bungee text-gaz-teal-dark text-xs tracking-widest mb-1">HOW IT WORKS</p>
+              <p className="font-special-elite text-gaz-ink-light text-xs leading-relaxed">
+                For <span className="text-gaz-ink">location collections</span>: flags entries with the same name whose coordinates are within 50 meters of each other.<br/>
+                For <span className="text-gaz-ink">books</span>: flags entries with the same title (ignoring leading articles) and overlapping author.<br/>
+                Choose which doc to keep in each group, then delete the rest. Deleted docs are soft-deleted (<code className="text-gaz-ink">deleted: true</code>) and will no longer appear on the map.
               </p>
             </div>
 
             {/* Collection selector */}
             <div>
-              <p className="font-bungee text-starlight-turquoise text-xs tracking-widest mb-2">COLLECTION TO SCAN</p>
+              <p className="font-bungee text-gaz-teal-dark text-xs tracking-widest mb-2">COLLECTION TO SCAN</p>
               <div className="flex gap-2 flex-wrap">
                 {[['coffeeShops','☕ Coffee Shops'],['bookstores','📚 Bookstores'],['books','📖 Books']].map(([col, label]) => (
                   <button key={col} onClick={() => { setDedupCol(col); setDedupGroups(null); setDedupMsg(''); }}
                     className={`px-4 py-2 rounded-xl font-bungee text-xs tracking-wider border transition-all ${
                       dedupCol === col
-                        ? 'bg-starlight-turquoise/20 border-starlight-turquoise text-starlight-turquoise'
-                        : 'bg-transparent border-white/20 text-chrome-silver hover:border-white/40'
+                        ? 'bg-gaz-teal-dark/20 border-gaz-teal-dark text-gaz-teal-dark'
+                        : 'bg-transparent border-white/20 text-gaz-ink-light hover:border-white/40'
                     }`}>
                     {label}
                   </button>
@@ -2034,12 +2034,12 @@ export default function AdminUpload() {
 
             {/* Scan button */}
             <button onClick={handleDedupScan} disabled={dedupScanning}
-              className="w-full py-3 rounded-xl font-bungee text-xs tracking-widest border-2 border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise/10 transition-all disabled:opacity-40">
+              className="w-full py-3 rounded-xl font-bungee text-xs tracking-widest border-2 border-gaz-teal-dark text-gaz-teal-dark hover:bg-gaz-teal-dark/10 transition-all disabled:opacity-40">
               {dedupScanning ? 'SCANNING…' : 'SCAN FOR DUPLICATES'}
             </button>
 
             {dedupMsg && (
-              <p className="font-special-elite text-center text-sm" style={{ color: dedupGroups?.length === 0 ? '#38c5c5' : '#e07b39' }}>{dedupMsg}</p>
+              <p className="font-special-elite text-center text-sm" style={{ color: dedupGroups?.length === 0 ? '#2d6d74' : '#c0392b' }}>{dedupMsg}</p>
             )}
 
             {/* Results */}
@@ -2059,27 +2059,27 @@ export default function AdminUpload() {
                           onClick={() => setDedupKeep(prev => ({ ...prev, [gi]: d._id }))}
                           className={`rounded-lg p-3 cursor-pointer border transition-all ${
                             isKeep
-                              ? 'border-starlight-turquoise bg-starlight-turquoise/10'
-                              : 'border-white/10 bg-white/5 hover:border-white/30'
+                              ? 'border-gaz-teal-dark bg-gaz-teal-dark/10'
+                              : 'border-white/10 bg-gaz-cream-dk hover:border-white/30'
                           } ${isDeleting ? 'opacity-40 pointer-events-none' : ''}`}>
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <p className="font-bungee text-xs text-paper-white truncate">
+                              <p className="font-bungee text-xs text-gaz-ink truncate">
                                 {d.name || d.title || d._id}
                               </p>
                               {d.authors?.length > 0 && (
-                                <p className="font-special-elite text-chrome-silver text-xs">{d.authors.join(', ')}</p>
+                                <p className="font-special-elite text-gaz-ink-light text-xs">{d.authors.join(', ')}</p>
                               )}
                               {(d.city || d.state) && (
-                                <p className="font-special-elite text-chrome-silver text-xs">{[d.city, d.state].filter(Boolean).join(', ')}</p>
+                                <p className="font-special-elite text-gaz-ink-light text-xs">{[d.city, d.state].filter(Boolean).join(', ')}</p>
                               )}
-                              {d.lat && <p className="font-special-elite text-chrome-silver/50 text-xs">{d.lat?.toFixed(5)}, {d.lng?.toFixed(5)}</p>}
-                              <p className="font-special-elite text-chrome-silver/40 text-xs mt-0.5">
+                              {d.lat && <p className="font-special-elite text-gaz-ink-light/50 text-xs">{d.lat?.toFixed(5)}, {d.lng?.toFixed(5)}</p>}
+                              <p className="font-special-elite text-gaz-ink-light/40 text-xs mt-0.5">
                                 ID: {d._id} · source: {d.source || '—'}
                               </p>
                             </div>
                             <span className={`flex-shrink-0 text-xs font-bungee px-2 py-0.5 rounded-full ${
-                              isKeep ? 'bg-starlight-turquoise text-midnight-navy' : 'bg-white/10 text-chrome-silver'
+                              isKeep ? 'bg-gaz-teal-dark text-gaz-cream' : 'bg-white/10 text-gaz-ink-light'
                             }`}>
                               {isKeep ? 'KEEP' : 'DELETE'}
                             </span>
@@ -2104,7 +2104,7 @@ export default function AdminUpload() {
       {/* ── REMOVE LOCATION (soft-delete) ─────────────────────────────────── */}
       <div className="w-full max-w-2xl mt-10 border border-atomic-orange/30 rounded-xl p-6">
         <h2 className="font-bungee text-atomic-orange text-sm tracking-widest mb-4">REMOVE LOCATION</h2>
-        <p className="font-special-elite text-chrome-silver/60 text-xs mb-4">
+        <p className="font-special-elite text-gaz-ink-light/60 text-xs mb-4">
           Marks a location as deleted — it disappears from the map and searches but is not destroyed in Firestore.
         </p>
 
@@ -2112,7 +2112,7 @@ export default function AdminUpload() {
           <select
             value={removeCol}
             onChange={e => { setRemoveCol(e.target.value); setRemoveResults(null); setRemoveMsg(''); }}
-            className="bg-midnight-navy border border-chrome-silver/30 text-paper-white font-special-elite text-sm px-3 py-2 rounded-lg"
+            className="bg-gaz-cream border border-gaz-ink-light/30 text-gaz-ink font-special-elite text-sm px-3 py-2 rounded-lg"
           >
             {Object.entries(COLLECTIONS).map(([k, v]) => (
               <option key={k} value={k}>{v.icon} {v.label}</option>
@@ -2126,12 +2126,12 @@ export default function AdminUpload() {
               value={removeQuery}
               onChange={e => setRemoveQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleRemoveSearch()}
-              className="flex-1 bg-midnight-navy border border-chrome-silver/30 text-paper-white font-special-elite text-sm px-3 py-2 rounded-lg placeholder-chrome-silver/30"
+              className="flex-1 bg-gaz-cream border border-gaz-ink-light/30 text-gaz-ink font-special-elite text-sm px-3 py-2 rounded-lg placeholder-gaz-ink-light/30"
             />
             <button
               onClick={handleRemoveSearch}
               disabled={removeSearching || !removeQuery.trim()}
-              className="font-bungee text-xs px-4 py-2 rounded-lg border border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-midnight-navy transition-colors disabled:opacity-40"
+              className="font-bungee text-xs px-4 py-2 rounded-lg border border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-gaz-cream transition-colors disabled:opacity-40"
             >
               {removeSearching ? 'SEARCHING…' : 'SEARCH'}
             </button>
@@ -2139,16 +2139,16 @@ export default function AdminUpload() {
         </div>
 
         {removeMsg && (
-          <p className="font-special-elite text-chrome-silver/50 text-xs mb-3">{removeMsg}</p>
+          <p className="font-special-elite text-gaz-ink-light/50 text-xs mb-3">{removeMsg}</p>
         )}
 
         {removeResults !== null && removeResults.length > 0 && (
           <ul className="flex flex-col gap-2">
             {removeResults.map(r => (
-              <li key={r.id} className={`flex items-start justify-between gap-3 p-3 rounded-lg border ${r.deleted ? 'border-chrome-silver/10 opacity-50' : 'border-chrome-silver/20'}`}>
+              <li key={r.id} className={`flex items-start justify-between gap-3 p-3 rounded-lg border ${r.deleted ? 'border-gaz-ink-light/10 opacity-50' : 'border-gaz-ink-light/20'}`}>
                 <div className="min-w-0 flex-1">
-                  <p className={`font-special-elite text-sm ${r.deleted ? 'line-through text-chrome-silver/50' : 'text-paper-white'}`}>{r.name}</p>
-                  <p className="font-bungee text-[9px] text-chrome-silver/40 tracking-wider mt-0.5">
+                  <p className={`font-special-elite text-sm ${r.deleted ? 'line-through text-gaz-ink-light/50' : 'text-gaz-ink'}`}>{r.name}</p>
+                  <p className="font-bungee text-[9px] text-gaz-ink-light/40 tracking-wider mt-0.5">
                     {[r.city, r.state].filter(Boolean).join(', ')} &middot; {r.id}
                   </p>
                   {r.deleted && (
@@ -2159,8 +2159,8 @@ export default function AdminUpload() {
                   onClick={() => handleSoftDelete(r.id, r.deleted)}
                   className={`flex-shrink-0 font-bungee text-[10px] px-3 py-1 rounded border transition-colors ${
                     r.deleted
-                      ? 'border-starlight-turquoise text-starlight-turquoise hover:bg-starlight-turquoise hover:text-midnight-navy'
-                      : 'border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-midnight-navy'
+                      ? 'border-gaz-teal-dark text-gaz-teal-dark hover:bg-gaz-teal-dark hover:text-gaz-cream'
+                      : 'border-atomic-orange text-atomic-orange hover:bg-atomic-orange hover:text-gaz-cream'
                   }`}
                 >
                   {r.deleted ? 'RESTORE' : 'REMOVE'}
