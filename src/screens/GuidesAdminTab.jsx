@@ -10,14 +10,14 @@ import {
 } from '../utils/bookstoreGuides';
 
 const C = {
-  bg:      '#0D0E1A',
-  surface: '#1A1B2E',
-  border:  'rgba(64,224,208,0.2)',
-  teal:    '#40E0D0',
-  orange:  '#FF4E00',
-  white:   '#F5F5DC',
-  silver:  '#C0C0C0',
-  muted:   'rgba(192,192,192,0.45)',
+  bg:      '#f5f1eb',
+  surface: '#ede7dc',
+  border:  'rgba(45,109,116,0.2)',
+  teal:    '#2d6d74',
+  orange:  '#c0392b',
+  white:   '#1c2b2d',
+  silver:  '#3a4f52',
+  muted:   'rgba(58,79,82,0.55)',
 };
 
 const inputStyle = {
@@ -66,7 +66,7 @@ function GuideModal({ guide, onSave, onClose, saving }) {
       onClick={onClose}
     >
       <div
-        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
+        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(45,109,116,0.15)' }}
         onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -129,7 +129,7 @@ function GuideModal({ guide, onSave, onClose, saving }) {
             CANCEL
           </button>
           <button onClick={() => onSave(form)} disabled={!form.title.trim() || saving || uploading}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: 'none', letterSpacing: '0.05em', cursor: form.title.trim() && !saving ? 'pointer' : 'not-allowed', background: form.title.trim() && !saving ? C.teal : 'rgba(64,224,208,0.25)', color: C.bg }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: 'none', letterSpacing: '0.05em', cursor: form.title.trim() && !saving ? 'pointer' : 'not-allowed', background: form.title.trim() && !saving ? C.teal : 'rgba(45,109,116,0.25)', color: C.bg }}>
             {saving ? 'SAVING...' : 'SAVE GUIDE'}
           </button>
         </div>
@@ -176,7 +176,7 @@ function StoreModal({ store, onSave, onClose, saving }) {
       onClick={onClose}
     >
       <div
-        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
+        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 520, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(45,109,116,0.15)' }}
         onClick={e => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
@@ -255,7 +255,7 @@ function StoreModal({ store, onSave, onClose, saving }) {
             CANCEL
           </button>
           <button onClick={handleSave} disabled={!canSave || saving}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: 'none', letterSpacing: '0.05em', cursor: canSave && !saving ? 'pointer' : 'not-allowed', background: canSave && !saving ? C.teal : 'rgba(64,224,208,0.25)', color: C.bg }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: 'none', letterSpacing: '0.05em', cursor: canSave && !saving ? 'pointer' : 'not-allowed', background: canSave && !saving ? C.teal : 'rgba(45,109,116,0.25)', color: C.bg }}>
             {saving ? 'SAVING...' : isEdit ? 'SAVE CHANGES' : 'ADD STORE'}
           </button>
         </div>
@@ -479,7 +479,7 @@ export default function GuidesAdminTab({ showToast }) {
                 {/* Status badges */}
                 <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
                   {guide.published && (
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 7, padding: '2px 6px', borderRadius: 3, background: 'rgba(64,224,208,0.1)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.07em' }}>LIVE</span>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 7, padding: '2px 6px', borderRadius: 3, background: 'rgba(45,109,116,0.1)', color: C.teal, border: `1px solid rgba(45,109,116,0.3)`, letterSpacing: '0.07em' }}>LIVE</span>
                   )}
                   {guide.comingSoon && !guide.published && (
                     <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 7, padding: '2px 6px', borderRadius: 3, background: 'rgba(255,78,0,0.1)', color: C.orange, border: `1px solid rgba(255,78,0,0.3)`, letterSpacing: '0.07em' }}>SOON</span>
@@ -554,7 +554,7 @@ export default function GuidesAdminTab({ showToast }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {stores.map((store, idx) => (
             <div key={store.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.bg, border: `1px solid rgba(64,224,208,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <div style={{ width: 26, height: 26, borderRadius: '50%', background: C.bg, border: `1px solid rgba(45,109,116,0.3)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, color: C.teal }}>{idx + 1}</span>
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
@@ -576,7 +576,7 @@ export default function GuidesAdminTab({ showToast }) {
                   title={store.lat == null ? 'Add coordinates first' : inDb.has(store.id) ? 'Already in map database' : 'Add to map database'}
                   style={{
                     fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6,
-                    border: `1px solid ${inDb.has(store.id) ? 'rgba(64,224,208,0.2)' : 'rgba(255,78,0,0.5)'}`,
+                    border: `1px solid ${inDb.has(store.id) ? 'rgba(45,109,116,0.2)' : 'rgba(255,78,0,0.5)'}`,
                     background: 'transparent',
                     color: inDb.has(store.id) ? C.muted : (store.lat == null ? C.muted : C.orange),
                     cursor: (addingToDb.has(store.id) || inDb.has(store.id) || store.lat == null) ? 'not-allowed' : 'pointer',

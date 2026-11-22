@@ -10,15 +10,15 @@ import {
 
 // ── Palette (matches AdminPanel) ──────────────────────────────────────────────
 const C = {
-  bg:      '#0D0E1A',
-  surface: '#1A1B2E',
-  border:  'rgba(64,224,208,0.2)',
-  teal:    '#40E0D0',
-  orange:  '#FF4E00',
-  white:   '#F5F5DC',
-  silver:  '#C0C0C0',
-  muted:   'rgba(192,192,192,0.45)',
-  purple:  '#B044FB',
+  bg:      '#f5f1eb',
+  surface: '#ede7dc',
+  border:  'rgba(45,109,116,0.2)',
+  teal:    '#2d6d74',
+  orange:  '#c0392b',
+  white:   '#1c2b2d',
+  silver:  '#3a4f52',
+  muted:   'rgba(58,79,82,0.55)',
+  purple:  '#6a1b9a',
 };
 
 const inputStyle = {
@@ -447,7 +447,7 @@ export default function CuratedRoutesTab({ showToast }) {
   return (
     <div>
       {/* ── Form ── */}
-      <div style={{ background: C.surface, border: `1.5px solid rgba(64,224,208,0.3)`, borderRadius: 10, padding: 24, marginBottom: 32 }}>
+      <div style={{ background: C.surface, border: `1.5px solid rgba(45,109,116,0.3)`, borderRadius: 10, padding: 24, marginBottom: 32 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
           <h3 style={{ ...sectionHead, margin: 0 }}>
             {editingId ? 'EDIT CURATED ROUTE' : 'NEW CURATED ROUTE'}
@@ -551,7 +551,7 @@ export default function CuratedRoutesTab({ showToast }) {
               const on = (form.bestSeason || []).includes(s);
               return (
                 <button key={s} type="button" onClick={() => toggleSeason(s)}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '6px 12px', borderRadius: 20, border: `1px solid ${on ? C.teal : C.border}`, background: on ? 'rgba(64,224,208,0.12)' : 'transparent', color: on ? C.teal : C.muted, cursor: 'pointer', letterSpacing: '0.05em', transition: 'all 0.15s' }}>
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '6px 12px', borderRadius: 20, border: `1px solid ${on ? C.teal : C.border}`, background: on ? 'rgba(45,109,116,0.12)' : 'transparent', color: on ? C.teal : C.muted, cursor: 'pointer', letterSpacing: '0.05em', transition: 'all 0.15s' }}>
                   {s.toUpperCase()}
                 </button>
               );
@@ -588,7 +588,7 @@ export default function CuratedRoutesTab({ showToast }) {
                     <div key={`${loc.id}_${i}`}
                       onMouseDown={() => handleAddStop(loc)}
                       style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: i < stopResults.length - 1 ? `1px solid ${C.border}` : 'none' }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(64,224,208,0.08)'}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(45,109,116,0.08)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                     >
                       <div style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: C.white }}>{loc.name}</div>
@@ -885,7 +885,7 @@ export default function CuratedRoutesTab({ showToast }) {
           <button
             onClick={handleSave}
             disabled={saving || !form.routeType || !form.name.trim()}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '10px 24px', borderRadius: 6, border: 'none', cursor: saving || !form.routeType || !form.name.trim() ? 'not-allowed' : 'pointer', background: saving || !form.routeType || !form.name.trim() ? 'rgba(64,224,208,0.25)' : C.teal, color: '#fff', transition: 'all 0.15s' }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '10px 24px', borderRadius: 6, border: 'none', cursor: saving || !form.routeType || !form.name.trim() ? 'not-allowed' : 'pointer', background: saving || !form.routeType || !form.name.trim() ? 'rgba(45,109,116,0.25)' : C.teal, color: '#fff', transition: 'all 0.15s' }}>
             {saving ? 'SAVING...' : editingId ? 'SAVE CHANGES' : 'SAVE ROUTE'}
           </button>
         </div>
@@ -918,7 +918,7 @@ export default function CuratedRoutesTab({ showToast }) {
               </thead>
               <tbody>
                 {filteredRoutes.map(route => (
-                  <tr key={route.id} style={{ borderBottom: `1px solid rgba(64,224,208,0.08)` }}>
+                  <tr key={route.id} style={{ borderBottom: `1px solid rgba(45,109,116,0.08)` }}>
                     <td style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: C.white, padding: '10px 10px' }}>{route.name}</td>
                     <td style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.silver, padding: '10px 10px', whiteSpace: 'nowrap' }}>
                       {ROUTE_TYPE_CONFIG[route.routeType]?.label || route.routeType}
@@ -929,7 +929,7 @@ export default function CuratedRoutesTab({ showToast }) {
                     </td>
                     <td style={{ fontFamily: 'Special Elite, serif', fontSize: 11, color: C.silver, padding: '10px 10px', whiteSpace: 'nowrap' }}>{route.duration || '—'}</td>
                     <td style={{ padding: '10px 10px' }}>
-                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '3px 8px', borderRadius: 10, background: route.active ? 'rgba(64,224,208,0.15)' : 'rgba(192,192,192,0.1)', color: route.active ? C.teal : C.muted, letterSpacing: '0.05em' }}>
+                      <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '3px 8px', borderRadius: 10, background: route.active ? 'rgba(45,109,116,0.15)' : 'rgba(192,192,192,0.1)', color: route.active ? C.teal : C.muted, letterSpacing: '0.05em' }}>
                         {route.active ? 'ACTIVE' : 'OFF'}
                       </span>
                     </td>

@@ -284,14 +284,14 @@ const SECTIONS = [
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const C = {
-  bg:      '#0D0E1A',
-  surface: '#1A1B2E',
-  border:  'rgba(64,224,208,0.2)',
-  teal:    '#40E0D0',
-  orange:  '#FF4E00',
-  white:   '#F5F5DC',
-  silver:  '#C0C0C0',
-  muted:   'rgba(192,192,192,0.45)',
+  bg:      '#f5f1eb',
+  surface: '#ede7dc',
+  border:  'rgba(45,109,116,0.2)',
+  teal:    '#2d6d74',
+  orange:  '#c0392b',
+  white:   '#1c2b2d',
+  silver:  '#3a4f52',
+  muted:   'rgba(58,79,82,0.55)',
 };
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -408,7 +408,7 @@ function ItemModal({ section, item, onSave, onClose, saving, publishMode = false
       onClick={onClose}
     >
       <div
-        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
+        style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 580, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(45,109,116,0.15)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Modal header */}
@@ -484,7 +484,7 @@ function ItemModal({ section, item, onSave, onClose, saving, publishMode = false
 
         {/* Festival date range preview (key stays 'festivals') */}
         {section.key === 'festivals' && form.date && (
-          <div style={{ margin: '-4px 0 18px', padding: '8px 12px', background: 'rgba(64,224,208,0.06)', border: `1px solid rgba(64,224,208,0.18)`, borderRadius: 6 }}>
+          <div style={{ margin: '-4px 0 18px', padding: '8px 12px', background: 'rgba(45,109,116,0.07)', border: `1px solid rgba(45,109,116,0.18)`, borderRadius: 6 }}>
             <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.teal }}>
               {formatFestivalDate(form.date, form.endDate)}
             </span>
@@ -496,7 +496,7 @@ function ItemModal({ section, item, onSave, onClose, saving, publishMode = false
           <button
             type="button"
             onClick={() => !section.featuredFixed && setForm(f => ({ ...f, featured: !f.featured }))}
-            style={{ width: 40, height: 22, borderRadius: 11, background: form.featured ? C.teal : 'rgba(192,192,192,0.18)', border: 'none', cursor: section.featuredFixed ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+            style={{ width: 40, height: 22, borderRadius: 11, background: form.featured ? C.teal : 'rgba(58,79,82,0.15)', border: 'none', cursor: section.featuredFixed ? 'default' : 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
           >
             <span style={{ position: 'absolute', top: 3, left: form.featured ? 20 : 3, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
           </button>
@@ -516,7 +516,7 @@ function ItemModal({ section, item, onSave, onClose, saving, publishMode = false
             type="button"
             onClick={() => canSave && !saving && onSave(publishMode ? { ...form, status: 'published' } : form)}
             disabled={!canSave || saving}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', cursor: canSave && !saving ? 'pointer' : 'not-allowed', background: canSave && !saving ? (publishMode ? C.orange : C.teal) : 'rgba(64,224,208,0.25)', color: '#fff', letterSpacing: '0.06em', transition: 'all 0.15s' }}
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', cursor: canSave && !saving ? 'pointer' : 'not-allowed', background: canSave && !saving ? (publishMode ? C.orange : C.teal) : 'rgba(45,109,116,0.25)', color: '#fff', letterSpacing: '0.06em', transition: 'all 0.15s' }}
           >
             {saving ? 'SAVING...' : publishMode ? 'PUBLISH' : isEdit ? 'SAVE CHANGES' : 'ADD'}
           </button>
@@ -530,7 +530,7 @@ function ItemModal({ section, item, onSave, onClose, saving, publishMode = false
 function DeleteConfirm({ name, onConfirm, onCancel }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2001, background: 'rgba(0,0,0,0.78)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-      <div style={{ background: C.surface, border: `1.5px solid ${C.orange}`, borderRadius: 12, padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 0 30px rgba(255,78,0,0.2)' }}>
+      <div style={{ background: C.surface, border: `1.5px solid ${C.orange}`, borderRadius: 12, padding: 24, maxWidth: 360, width: '100%', boxShadow: '0 0 30px rgba(192,57,43,0.2)' }}>
         <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.orange, margin: '0 0 10px', letterSpacing: '0.05em' }}>DELETE?</h3>
         <p style={{ fontFamily: 'Special Elite, serif', fontSize: 13, color: C.white, margin: '0 0 20px', lineHeight: 1.5 }}>
           Delete <strong>"{name}"</strong>? This cannot be undone.
@@ -659,7 +659,7 @@ function IssueTab({ showToast }) {
   return (
     <div>
       {/* Issue metadata form */}
-      <div style={{ background: C.surface, border: `1.5px solid rgba(64,224,208,0.3)`, borderRadius: 10, padding: 20, marginBottom: 28 }}>
+      <div style={{ background: C.surface, border: `1.5px solid rgba(45,109,116,0.3)`, borderRadius: 10, padding: 20, marginBottom: 28 }}>
         <h3 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, color: C.teal, margin: '0 0 18px', letterSpacing: '0.06em' }}>
           CURRENT ISSUE SETTINGS
         </h3>
@@ -687,7 +687,7 @@ function IssueTab({ showToast }) {
 
         {/* Preview line */}
         {form.volume && form.issue && (
-          <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(64,224,208,0.06)', border: `1px solid rgba(64,224,208,0.18)`, borderRadius: 6 }}>
+          <div style={{ marginBottom: 16, padding: '8px 12px', background: 'rgba(45,109,116,0.07)', border: `1px solid rgba(45,109,116,0.18)`, borderRadius: 6 }}>
             <span style={{ fontFamily: 'Special Elite, serif', fontSize: 12, color: C.teal }}>
               Vol. {form.volume} · Issue {form.issue}{form.publishDate ? ` · Week of ${formatIssueDate(form.publishDate)}` : ''}
             </span>
@@ -733,7 +733,7 @@ function IssueTab({ showToast }) {
               }
             }}
             disabled={copyingHTML}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(64,224,208,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(45,109,116,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
             {copyingHTML ? '✓ COPIED!' : '✉ COPY NEWSLETTER HTML'}
           </button>
           <button
@@ -756,11 +756,11 @@ function IssueTab({ showToast }) {
               }
             }}
             disabled={copyingSubstack}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(192,57,43,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
             {copyingSubstack ? '✓ COPIED!' : '◆ COPY FOR SUBSTACK'}
           </button>
           <button onClick={() => navigate('/newspaper/current')}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(64,224,208,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 14px', borderRadius: 6, border: `1px solid rgba(45,109,116,0.4)`, background: 'transparent', color: C.teal, cursor: 'pointer', letterSpacing: '0.04em' }}>
             ◰ NEWSPAPER VIEW
           </button>
           <button onClick={handleSave} disabled={saving}
@@ -771,7 +771,7 @@ function IssueTab({ showToast }) {
             style={{
               fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6,
               border: 'none', letterSpacing: '0.05em', cursor: publishing ? 'not-allowed' : 'pointer',
-              background: (!form.volume || !form.issue || !form.publishDate) ? 'rgba(255,78,0,0.25)' : C.orange,
+              background: (!form.volume || !form.issue || !form.publishDate) ? 'rgba(192,57,43,0.25)' : C.orange,
               color: '#fff',
             }}>
             {publishing ? 'PUBLISHING...' : '★ PUBLISH ISSUE'}
@@ -815,7 +815,7 @@ function IssueTab({ showToast }) {
                 )}
               </div>
               <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.06em', padding: '2px 6px', border: `1px solid rgba(64,224,208,0.3)`, borderRadius: 4 }}>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, color: C.teal, letterSpacing: '0.06em', padding: '2px 6px', border: `1px solid rgba(45,109,116,0.3)`, borderRadius: 4 }}>
                   PUBLISHED
                 </span>
                 <button onClick={() => navigate(`/newspaper/${iss.slug}`)}
@@ -833,7 +833,7 @@ function IssueTab({ showToast }) {
                     showToast('Delete failed', 'error');
                   }
                 }}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid rgba(192,57,43,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
                   DELETE
                 </button>
               </div>
@@ -968,7 +968,7 @@ function SectionTab({ section, showToast }) {
                   EDIT
                 </button>
                 <button onClick={() => setDeleteTarget(item)}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 10px', borderRadius: 6, border: `1px solid rgba(192,57,43,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em' }}>
                   DEL
                 </button>
               </div>
@@ -1081,7 +1081,7 @@ function FeedManager({ onClose, showToast }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 2100, background: 'rgba(0,0,0,0.82)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
       onClick={onClose}>
-      <div style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 620, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(64,224,208,0.15)' }}
+      <div style={{ background: C.surface, border: `1.5px solid ${C.teal}`, borderRadius: 12, padding: 24, width: '100%', maxWidth: 620, maxHeight: '88vh', overflowY: 'auto', boxShadow: '0 0 40px rgba(45,109,116,0.15)' }}
         onClick={e => e.stopPropagation()}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <h2 style={{ fontFamily: 'Bungee, sans-serif', fontSize: 13, color: C.teal, margin: 0, letterSpacing: '0.06em' }}>RSS FEED MANAGER</h2>
@@ -1097,7 +1097,7 @@ function FeedManager({ onClose, showToast }) {
               <div key={feed.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 12px' }}>
                 {/* Active toggle */}
                 <button onClick={() => handleToggle(feed)}
-                  style={{ width: 34, height: 18, borderRadius: 9, background: feed.active ? C.teal : 'rgba(192,192,192,0.18)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
+                  style={{ width: 34, height: 18, borderRadius: 9, background: feed.active ? C.teal : 'rgba(58,79,82,0.15)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
                   <span style={{ position: 'absolute', top: 2, left: feed.active ? 17 : 2, width: 14, height: 14, borderRadius: '50%', background: '#fff', transition: 'left 0.2s' }} />
                 </button>
                 {/* Info */}
@@ -1110,7 +1110,7 @@ function FeedManager({ onClose, showToast }) {
                   </div>
                 </div>
                 <button onClick={() => handleDelete(feed)}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 9px', borderRadius: 5, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', flexShrink: 0 }}>
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '4px 9px', borderRadius: 5, border: `1px solid rgba(192,57,43,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', flexShrink: 0 }}>
                   DEL
                 </button>
               </div>
@@ -1142,7 +1142,7 @@ function FeedManager({ onClose, showToast }) {
             <input value={form.keywords} onChange={e => setForm(f => ({ ...f, keywords: e.target.value }))} style={inputStyle} placeholder="books, literary, reading" />
           </div>
           <button onClick={handleAdd} disabled={!form.url || !form.sourceName || adding}
-            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', background: (!form.url || !form.sourceName) ? 'rgba(64,224,208,0.25)' : C.teal, color: C.bg, cursor: (!form.url || !form.sourceName) ? 'not-allowed' : 'pointer', letterSpacing: '0.05em' }}>
+            style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 20px', borderRadius: 6, border: 'none', background: (!form.url || !form.sourceName) ? 'rgba(45,109,116,0.25)' : C.teal, color: C.bg, cursor: (!form.url || !form.sourceName) ? 'not-allowed' : 'pointer', letterSpacing: '0.05em' }}>
             {adding ? 'ADDING...' : '+ ADD FEED'}
           </button>
         </div>
@@ -1311,12 +1311,12 @@ function RSSTab({ showToast }) {
           ) : (
             <>
               <button onClick={toggleSelectAll}
-                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: allVisibleSelected ? 'rgba(64,224,208,0.1)' : 'transparent', color: allVisibleSelected ? C.teal : C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
+                style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 12px', borderRadius: 6, border: `1px solid ${C.border}`, background: allVisibleSelected ? 'rgba(45,109,116,0.1)' : 'transparent', color: allVisibleSelected ? C.teal : C.silver, cursor: 'pointer', letterSpacing: '0.04em' }}>
                 {allVisibleSelected ? 'DESELECT ALL' : 'SELECT ALL'}
               </button>
               {selected.size > 0 && (
                 <button onClick={() => setConfirmMass(true)} disabled={massDeleting}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.5)`, background: 'rgba(255,78,0,0.12)', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em', opacity: massDeleting ? 0.5 : 1 }}>
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '6px 14px', borderRadius: 6, border: `1px solid rgba(192,57,43,0.5)`, background: 'rgba(192,57,43,0.12)', color: C.orange, cursor: 'pointer', letterSpacing: '0.04em', opacity: massDeleting ? 0.5 : 1 }}>
                   {massDeleting ? 'DISCARDING…' : `DISCARD ${selected.size}`}
                 </button>
               )}
@@ -1338,7 +1338,7 @@ function RSSTab({ showToast }) {
             }))
           ].map(opt => (
             <button key={opt.key} onClick={() => setFilterSection(opt.key)}
-              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 11px', borderRadius: 20, border: `1px solid ${filterSection === opt.key ? C.teal : C.border}`, background: filterSection === opt.key ? 'rgba(64,224,208,0.1)' : 'transparent', color: filterSection === opt.key ? C.teal : C.muted, cursor: 'pointer', letterSpacing: '0.04em', transition: 'all 0.15s' }}>
+              style={{ fontFamily: 'Bungee, sans-serif', fontSize: 9, padding: '5px 11px', borderRadius: 20, border: `1px solid ${filterSection === opt.key ? C.teal : C.border}`, background: filterSection === opt.key ? 'rgba(45,109,116,0.1)' : 'transparent', color: filterSection === opt.key ? C.teal : C.muted, cursor: 'pointer', letterSpacing: '0.04em', transition: 'all 0.15s' }}>
               {opt.label}
             </button>
           ))}
@@ -1360,8 +1360,8 @@ function RSSTab({ showToast }) {
               <div key={draft.id}
                 onClick={selectMode ? () => toggleSelect(draft.id) : undefined}
                 style={{
-                  background: isSelected ? 'rgba(255,78,0,0.07)' : C.surface,
-                  border: `1px solid ${isSelected ? 'rgba(255,78,0,0.5)' : C.border}`,
+                  background: isSelected ? 'rgba(192,57,43,0.07)' : C.surface,
+                  border: `1px solid ${isSelected ? 'rgba(192,57,43,0.5)' : C.border}`,
                   borderRadius: 10, padding: '14px 16px',
                   cursor: selectMode ? 'pointer' : 'default',
                   transition: 'background 0.15s, border-color 0.15s',
@@ -1389,10 +1389,10 @@ function RSSTab({ showToast }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   {/* Badges */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 7 }}>
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(64,224,208,0.1)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.06em' }}>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(45,109,116,0.1)', color: C.teal, border: `1px solid rgba(45,109,116,0.3)`, letterSpacing: '0.06em' }}>
                       {draft.sourceName}
                     </span>
-                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,78,0,0.1)', color: C.orange, border: `1px solid rgba(255,78,0,0.3)`, letterSpacing: '0.06em' }}>
+                    <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(192,57,43,0.1)', color: C.orange, border: `1px solid rgba(192,57,43,0.3)`, letterSpacing: '0.06em' }}>
                       {RSS_SECTION_LABELS[draft.suggestedSection] || draft.suggestedSection}
                     </span>
                   </div>
@@ -1433,7 +1433,7 @@ function RSSTab({ showToast }) {
                         USE THIS
                       </button>
                       <button onClick={() => setDiscardTarget(draft)}
-                        style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                        style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(192,57,43,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
                         DISCARD
                       </button>
                     </div>
@@ -1545,14 +1545,14 @@ function DraftsPanel({ showToast }) {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {drafts.map(draft => (
-            <div key={draft.id} style={{ background: C.surface, border: `1px solid rgba(255,78,0,0.25)`, borderRadius: 10, padding: '14px 16px', position: 'relative' }}>
+            <div key={draft.id} style={{ background: C.surface, border: `1px solid rgba(192,57,43,0.25)`, borderRadius: 10, padding: '14px 16px', position: 'relative' }}>
               {/* Badges row */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(255,78,0,0.18)', color: C.orange, border: `1px solid rgba(255,78,0,0.35)`, letterSpacing: '0.07em' }}>
+                <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(192,57,43,0.18)', color: C.orange, border: `1px solid rgba(192,57,43,0.35)`, letterSpacing: '0.07em' }}>
                   DRAFT
                 </span>
                 {draft.autoGenerated && (
-                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(64,224,208,0.12)', color: C.teal, border: `1px solid rgba(64,224,208,0.3)`, letterSpacing: '0.07em' }}>
+                  <span style={{ fontFamily: 'Bungee, sans-serif', fontSize: 8, padding: '2px 7px', borderRadius: 4, background: 'rgba(45,109,116,0.12)', color: C.teal, border: `1px solid rgba(45,109,116,0.3)`, letterSpacing: '0.07em' }}>
                     AUTO
                   </span>
                 )}
@@ -1590,7 +1590,7 @@ function DraftsPanel({ showToast }) {
                 </button>
                 <button
                   onClick={() => setDiscardTarget(draft)}
-                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(255,78,0,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
+                  style={{ fontFamily: 'Bungee, sans-serif', fontSize: 10, padding: '7px 14px', borderRadius: 6, border: `1px solid rgba(192,57,43,0.4)`, background: 'transparent', color: C.orange, cursor: 'pointer', letterSpacing: '0.05em' }}>
                   DISCARD
                 </button>
               </div>
@@ -1664,7 +1664,7 @@ export default function AdminPanel() {
           to   { opacity: 1; transform: translateY(0); }
         }
         input[type="text"], input[type="url"], input[type="date"], textarea {
-          outline-color: #40E0D0;
+          outline-color: #2d6d74;
         }
       `}</style>
 
@@ -1731,7 +1731,7 @@ export default function AdminPanel() {
         {/* Swap Meet tab — after Curated Routes */}
         <button
           onClick={() => setActiveTab('swapMeet')}
-          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'swapMeet' ? `2px solid #7bc67e` : '2px solid transparent', color: activeTab === 'swapMeet' ? '#7bc67e' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'swapMeet' ? `2px solid #2e7d32` : '2px solid transparent', color: activeTab === 'swapMeet' ? '#2e7d32' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
         >
           SWAP MEET
         </button>
@@ -1745,13 +1745,13 @@ export default function AdminPanel() {
         {/* Salon tab */}
         <button
           onClick={() => setActiveTab('salon')}
-          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'salon' ? '2px solid #C9A84C' : '2px solid transparent', color: activeTab === 'salon' ? '#C9A84C' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'salon' ? '2px solid #9d6c06' : '2px solid transparent', color: activeTab === 'salon' ? '#9d6c06' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
         >
           THE SALON
         </button>
         <button
           onClick={() => setActiveTab('books')}
-          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'books' ? '2px solid #38C5C5' : '2px solid transparent', color: activeTab === 'books' ? '#38C5C5' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '13px 16px', background: 'transparent', border: 'none', borderBottom: activeTab === 'books' ? '2px solid #2d6d74' : '2px solid transparent', color: activeTab === 'books' ? '#2d6d74' : C.muted, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'color 0.15s' }}
         >
           BOOKS
         </button>

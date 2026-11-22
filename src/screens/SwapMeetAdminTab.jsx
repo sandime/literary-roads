@@ -6,15 +6,15 @@ import {
 } from '../utils/swapMeet';
 
 const C = {
-  bg:      '#0F1117',
-  surface: '#1A1B2E',
-  teal:    '#40E0D0',
-  orange:  '#FF4E00',
-  silver:  '#C0C0C0',
-  muted:   'rgba(192,192,192,0.5)',
-  border:  'rgba(255,255,255,0.07)',
-  green:   '#7bc67e',
-  white:   '#FFF8E7',
+  bg:      '#f5f1eb',
+  surface: '#ede7dc',
+  teal:    '#2d6d74',
+  orange:  '#c0392b',
+  silver:  '#3a4f52',
+  muted:   'rgba(58,79,82,0.55)',
+  border:  'rgba(45,109,116,0.15)',
+  green:   '#2e7d32',
+  white:   '#1c2b2d',
 };
 
 const US_STATES = [
@@ -46,7 +46,7 @@ function nextSundayNoon() {
 
 function statusChip(status) {
   const colors = {
-    upcoming: { bg: 'rgba(64,224,208,0.15)', text: C.teal },
+    upcoming: { bg: 'rgba(45,109,116,0.12)', text: C.teal },
     active:   { bg: 'rgba(123,198,126,0.2)', text: C.green },
     closed:   { bg: 'rgba(255,255,255,0.06)', text: C.muted },
   };
@@ -126,7 +126,7 @@ function MeetForm({ initial, onSave, onCancel }) {
       </div>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
         <button onClick={onCancel} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 16px', borderRadius: 6, border: `1px solid ${C.border}`, background: 'transparent', color: C.silver, cursor: 'pointer' }}>CANCEL</button>
-        <button onClick={handleSave} disabled={saving} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: 'none', background: C.teal, color: '#1A1B2E', cursor: 'pointer' }}>
+        <button onClick={handleSave} disabled={saving} style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, padding: '8px 18px', borderRadius: 6, border: 'none', background: C.teal, color: '#f5f1eb', cursor: 'pointer' }}>
           {saving ? 'SAVING…' : 'SAVE MEET'}
         </button>
       </div>
@@ -269,7 +269,7 @@ export default function SwapMeetAdminTab({ showToast }) {
         </div>
         <button
           onClick={() => { setShowForm(true); setEditMeet(null); }}
-          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '9px 16px', borderRadius: 6, border: 'none', background: C.green, color: '#1A1B2E', cursor: 'pointer', flexShrink: 0 }}
+          style={{ fontFamily: 'Bungee, sans-serif', fontSize: 11, letterSpacing: '0.06em', padding: '9px 16px', borderRadius: 6, border: 'none', background: C.green, color: '#f5f1eb', cursor: 'pointer', flexShrink: 0 }}
         >
           + NEW MEET
         </button>

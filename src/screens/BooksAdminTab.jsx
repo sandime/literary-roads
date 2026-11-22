@@ -12,18 +12,18 @@ import { db } from '../config/firebase';
 import { titleAuthorSlug } from '../utils/booksCatalog';
 
 const C = {
-  bg:     '#1A1B2E',
-  card:   '#252640',
-  teal:   '#38C5C5',
-  orange: '#FF4E00',
-  muted:  '#888',
-  text:   '#EEF0FF',
-  gold:   '#C9A84C',
+  bg:     '#f5f1eb',
+  card:   '#ede7dc',
+  teal:   '#2d6d74',
+  orange: '#c0392b',
+  muted:  '#3a4f52',
+  text:   '#1c2b2d',
+  gold:   '#9d6c06',
 };
 
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
-  background: '#1a1b2e', border: '1px solid rgba(56,197,197,0.3)',
+  background: '#f5f1eb', border: '1px solid rgba(45,109,116,0.25)',
   borderRadius: 8, color: C.text, padding: '9px 12px',
   fontFamily: 'Special Elite, serif', fontSize: 13, outline: 'none',
 };

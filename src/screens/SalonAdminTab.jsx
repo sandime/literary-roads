@@ -7,16 +7,16 @@ import {
 import { db } from '../config/firebase';
 
 const C = {
-  bg:      '#0D0E1A',
-  surface: '#1A1B2E',
-  border:  'rgba(201,168,76,0.2)',
-  gold:    '#C9A84C',
-  orange:  '#FF4E00',
-  pink:    '#f66483',
-  teal:    '#30b8b2',
-  white:   '#F5F5DC',
-  silver:  '#C0C0C0',
-  muted:   'rgba(192,192,192,0.45)',
+  bg:      '#f5f1eb',
+  surface: '#ede7dc',
+  border:  'rgba(157,108,6,0.25)',
+  gold:    '#9d6c06',
+  orange:  '#c0392b',
+  pink:    '#b03060',
+  teal:    '#2d6d74',
+  white:   '#1c2b2d',
+  silver:  '#3a4f52',
+  muted:   'rgba(58,79,82,0.55)',
 };
 
 const inp = {
