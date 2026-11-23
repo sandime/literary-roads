@@ -16,7 +16,7 @@ function setCache(key, data) {
 }
 
 async function fetchGoogle(query) {
-  const cacheKey = `lr_gbooks_v3_${query}`;
+  const cacheKey = `lr_gbooks_v4_${query}`;
   const cached = getCached(cacheKey);
   if (cached) return cached;
 
@@ -99,16 +99,18 @@ export async function searchBooks(query) {
     }
   }
 
-  // Pass 2: dedup (Google wins on cover/ISBN data), then inject publishedYear.
-  const seen = new Set();
+  // Pass 2: dedup (Google wins on ISBN/metadata), then inject publishedYear.
+  // If Google has the book but no cover, patch in Open Library's cover when available.
+  const seen = new Map(); // key → index in merged
   const merged = [];
   for (const book of [...google, ...openlib]) {
     const key = dedupKey(book);
     if (!seen.has(key)) {
-      seen.add(key);
-      // Prefer OL's original publication year; fall back to parsing Google's edition date
+      seen.set(key, merged.length);
       const publishedYear = olYearMap.get(key) || parseYear(book.publishedDate) || null;
       merged.push({ ...book, publishedYear, publishedDate: undefined });
+    } else if (book.coverURL && !merged[seen.get(key)].coverURL) {
+      merged[seen.get(key)].coverURL = book.coverURL;
     }
   }
 

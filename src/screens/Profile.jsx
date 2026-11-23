@@ -4,6 +4,7 @@ import { subscribeToCurrentMeet } from '../utils/swapMeet';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../config/firebase';
 import { searchBooks } from '../utils/googleBooks';
+import { fetchBookCover } from '../utils/booksCatalog';
 import CarSelector from '../components/CarSelector';
 import { saveSelectedCar, updateParkedCar } from '../utils/carCheckIns';
 import { subscribeToTravelStats } from '../utils/travelStats';
@@ -24,7 +25,6 @@ import {
 
 // ── Book cover card (profile display) ──────────────────────────────────────
 function BookCover({ book, onRemove }) {
-  const coverSrc = book.coverURL || book.cover || null;
   return (
     <div style={{ flexShrink: 0, width: '88px', position: 'relative' }}>
       <a
@@ -44,14 +44,7 @@ function BookCover({ book, onRemove }) {
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#40E0D0'; e.currentTarget.style.boxShadow = '0 0 18px rgba(64,224,208,0.5)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(64,224,208,0.35)'; e.currentTarget.style.boxShadow = '0 0 10px rgba(64,224,208,0.15)'; }}
         >
-          {coverSrc
-            ? <img src={coverSrc} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : <div style={{
-                width: '100%', height: '100%',
-                background: 'linear-gradient(145deg, #5C3A1E, #2A1508)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '34px',
-              }}>📖</div>
-          }
+          <BookCoverImg book={book} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       </a>
       {/* Remove button */}
@@ -78,6 +71,25 @@ function BookCover({ book, onRemove }) {
   );
 }
 
+// ── Book cover helpers (same pattern as Library.jsx) ───────────────────────
+const CAT_SRC      = `${import.meta.env.BASE_URL}images/library-cat.png`;
+const onCoverLoad  = (e) => { if (e.target.naturalWidth <= 1) e.target.src = CAT_SRC; };
+const onCoverError = (e) => { e.target.onerror = null; e.target.src = CAT_SRC; };
+
+function BookCoverImg({ book, style }) {
+  const [src, setSrc] = useState(book.coverURL || book.coverUrl || null);
+  useEffect(() => {
+    if (src) return;
+    fetchBookCover({ title: book.title, authors: [book.author] }).then(url => {
+      if (url) setSrc(url);
+    });
+  }, [book.id]);
+  return (
+    <img src={src || CAT_SRC} onLoad={onCoverLoad} onError={onCoverError}
+      alt={book.title} style={style} />
+  );
+}
+
 // ── Add-book modal ──────────────────────────────────────────────────────────
 function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
   const [query, setQuery] = useState('');
@@ -101,7 +113,6 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
 
   const handleAdd = (book) => {
     onAdd(book);
-    // Clear search so user can find next book without stale results
     setQuery('');
     setResults([]);
   };
@@ -178,10 +189,7 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
                 return (
                   <div key={b.id} style={{ position: 'relative', flexShrink: 0 }}>
                     <div style={{ width: '36px', height: '50px', borderRadius: '3px', overflow: 'hidden', border: '1.5px solid rgba(64,224,208,0.4)' }}>
-                      {src
-                        ? <img src={src} alt={b.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        : <div style={{ width: '100%', height: '100%', background: '#2A1508', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>📖</div>
-                      }
+                      <BookCoverImg book={b} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <button onClick={() => onRemove(b.id)} style={{
                       position: 'absolute', top: '-5px', right: '-5px',
@@ -253,10 +261,7 @@ function BookModal({ favoriteBooks, onAdd, onRemove, onClose }) {
                   borderRadius: '3px', overflow: 'hidden',
                   border: '1px solid rgba(64,224,208,0.2)',
                 }}>
-                  {book.coverURL || book.cover
-                    ? <img src={book.coverURL || book.cover} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <div style={{ width: '100%', height: '100%', background: '#2A1508', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📖</div>
-                  }
+                  <BookCoverImg book={book} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
 
                 {/* Title + author */}
@@ -726,11 +731,15 @@ export default function Profile({ onBack, onShowLibrary, onShowTrips, selectedSt
   const saveBooks = async (books) => {
     if (!user) return;
     const ref = doc(db, 'users', user.uid);
+    // Firestore rejects undefined values — strip them before writing
+    const clean = books.map(b =>
+      Object.fromEntries(Object.entries(b).filter(([, v]) => v !== undefined))
+    );
     try {
-      await updateDoc(ref, { favoriteBooks: books });
+      await updateDoc(ref, { favoriteBooks: clean });
     } catch (err) {
       if (err.code === 'not-found') {
-        await setDoc(ref, { favoriteBooks: books }, { merge: true });
+        await setDoc(ref, { favoriteBooks: clean }, { merge: true });
       } else {
         console.error('[Profile] save books:', err);
       }
@@ -739,7 +748,21 @@ export default function Profile({ onBack, onShowLibrary, onShowTrips, selectedSt
 
   const handleAddBook = async (book) => {
     if (favoriteBooks.length >= 4 || favoriteBooks.find((b) => b.id === book.id)) return;
-    const updated = [...favoriteBooks, book];
+    let coverURL = book.coverURL || null;
+    if (!coverURL) {
+      try {
+        const bookId = (book.id || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        if (bookId) {
+          const snap = await getDoc(doc(db, 'books', bookId));
+          if (snap.exists()) coverURL = snap.data().coverUrl || null;
+        }
+      } catch {}
+      if (!coverURL) {
+        coverURL = await fetchBookCover({ title: book.title, authors: [book.author] }) || null;
+      }
+    }
+    const enrichedBook = coverURL ? { ...book, coverURL } : book;
+    const updated = [...favoriteBooks, enrichedBook];
     setFavoriteBooks(updated);
     await saveBooks(updated);
   };
